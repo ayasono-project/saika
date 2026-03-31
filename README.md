@@ -128,7 +128,7 @@ pnpm lint:fix         # Biome自動修正
 - [実装ガイド](docs/guides/IMPLEMENTATION_GUIDELINES.md) - 実装細則・分割手順・直接import運用
 - [国際化ガイド](docs/guides/I18N_GUIDE.md) - 多言語対応ガイド
 - [開発 Tips](docs/guides/DEV_TIPS.md) - 開発中のトラブルシューティング・よくあるハマりどころ
-- [取扱説明書](docs/guides/USER_MANUAL.md) - サーバーメンバー・管理者向け操作ガイド
+- [ユーザーマニュアル](docs/guides/USER_MANUAL.md) - サーバーメンバー・管理者向け操作ガイド
 
 ### 機能仕様書
 

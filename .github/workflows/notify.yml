@@ -31,7 +31,7 @@ jobs:
                     },
                     {
                       "name": "Portainer",
-                      "value": "Stack: [saika](https://${{ secrets.PORTAINER_HOST }}/#!/${{ secrets.PORTAINER_ENDPOINT_ID }}/docker/stacks/saika?id=${{ secrets.PORTAINER_STACK_ID }}&type=2)",
+                      "value": "Stack: [saika](${{ secrets.PORTAINER_URL }}/#!/${{ secrets.PORTAINER_ENDPOINT_ID }}/docker/stacks/saika?id=${{ secrets.PORTAINER_STACK_ID }}&type=2)",
                       "inline": false
                     }
                   ],
@@ -68,7 +68,7 @@ jobs:
                     },
                     {
                       "name": "Portainer",
-                      "value": "Stack: [saika](https://${{ secrets.PORTAINER_HOST }}/#!/${{ secrets.PORTAINER_ENDPOINT_ID }}/docker/stacks/saika?id=${{ secrets.PORTAINER_STACK_ID }}&type=2)",
+                      "value": "Stack: [saika](${{ secrets.PORTAINER_URL }}/#!/${{ secrets.PORTAINER_ENDPOINT_ID }}/docker/stacks/saika?id=${{ secrets.PORTAINER_STACK_ID }}&type=2)",
                       "inline": false
                     }
                   ],

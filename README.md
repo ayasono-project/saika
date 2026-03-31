@@ -6,8 +6,7 @@
 
 ## 概要
 
-彩加 =Saika= は、Discord サーバーの管理に必要な機能を充実した形で搭載した多機能 Bot です。
-[Ayasono Project](https://github.com/ayasono-project) のサーバー管理Bot として開発されています。
+「彩加 =Saika=」は、Discord サーバーの管理に必要な機能を充実した形で搭載した多機能 Bot です。
 シンプルな操作性と豊富な機能で、あなたのコミュニティに彩りを加え、豊かで快適にします。
 
 ### コンセプト
@@ -129,7 +128,7 @@ pnpm lint:fix         # Biome自動修正
 - [実装ガイド](docs/guides/IMPLEMENTATION_GUIDELINES.md) - 実装細則・分割手順・直接import運用
 - [国際化ガイド](docs/guides/I18N_GUIDE.md) - 多言語対応ガイド
 - [開発 Tips](docs/guides/DEV_TIPS.md) - 開発中のトラブルシューティング・よくあるハマりどころ
-- [取扱説明書](docs/guides/USER_MANUAL.md) - サーバーメンバー・管理者向け操作ガイド
+- [ユーザーマニュアル](docs/guides/USER_MANUAL.md) - サーバーメンバー・管理者向け操作ガイド
 
 ### 機能仕様書
 

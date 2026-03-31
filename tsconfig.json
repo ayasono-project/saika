@@ -1,0 +1,46 @@
+{
+  "compilerOptions": {
+    // === コンパイルターゲット ===
+    "target": "ES2024", // Node.js 24完全サポート（VS Codeスキーマ上限）
+    "module": "ESNext", // 最新モジュール機能
+    "moduleResolution": "bundler", // 最新の解決方式、拡張子不要
+    "lib": ["ES2024"], // 最新の標準化済みAPI（VS Codeスキーマ上限）
+    "verbatimModuleSyntax": true, // import type を強制（TS 7 推奨）
+    "noUncheckedSideEffectImports": true, // 副作用インポートの存在チェック
+    "erasableSyntaxOnly": true, // TS 7 対応：型消去可能な構文のみ許可
+    "isolatedDeclarations": true, // TS 7 対応：高速並列型チェック
+
+    // === 出力設定 ===
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "declaration": true, // .d.tsファイル生成
+    "declarationMap": true, // .d.ts.mapファイル生成
+    "sourceMap": true, // デバッグ用ソースマップ
+
+    // === 厳格性 ===
+    "strict": true, // 全ての厳格チェック有効
+    "noImplicitAny": true, // 暗黙的any禁止
+    "strictNullChecks": true, // null/undefined厳格チェック
+    "strictFunctionTypes": true, // 関数型の厳格チェック
+    "noUnusedLocals": true, // 未使用ローカル変数検出
+    "noUnusedParameters": true, // 未使用パラメータ検出
+    "noImplicitReturns": true, // 暗黙的return禁止
+    "noFallthroughCasesInSwitch": true, // switch文のfallthrough検出
+
+    // === モジュール互換性 ===
+    "esModuleInterop": true, // CommonJS互換性
+    "allowSyntheticDefaultImports": true, // デフォルトインポート許可
+    "resolveJsonModule": true, // JSONインポート許可
+
+    // === パス・解決 ===
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true, // 型定義ファイルのチェックスキップ
+    "allowImportingTsExtensions": false, // .ts拡張子インポート禁止
+
+    // === その他 ===
+    "types": ["node"], // グローバル型定義
+    "noEmit": false // ビルド時に出力する
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
+}

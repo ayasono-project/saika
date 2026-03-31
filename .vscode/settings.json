@@ -1,0 +1,208 @@
+{
+  // パッケージマネージャー
+  "npm.packageManager": "pnpm",
+  // TypeScript設定
+  "js/ts.tsdk.path": "node_modules/typescript/lib",
+  "js/ts.tsserver.log": "off",
+  "js/ts.preferences.includePackageJsonAutoImports": "on",
+  "js/ts.updateImportsOnFileMove.enabled": "always",
+  "js/ts.implicitProjectConfig.target": "ES2024",
+  "js/ts.preferences.importModuleSpecifier": "relative",
+  "js/ts.tsdk.promptToUseWorkspaceVersion": true,
+  "js/ts.suggest.autoImports": true,
+  // 開いていないファイルを含むプロジェクト全体を常時チェック（乖離防止の核心）
+  // ※ true にすると skipLibCheck を部分的にバイパスし、node_modules 内の .d.ts エラーが
+  //   誤検知として表示される (vite v7 + pnpm の subpath imports 問題)。無効化で抑制。
+  "js/ts.tsserver.experimental.enableProjectDiagnostics": true,
+  // JS ファイル（eslint.config.js 等）の TypeScript 診断をオフ
+  "js/ts.validate.enabled": false,
+  // メモリ不足によるTSサーバー再起動を防ぐ（再起動が乖離の原因になることがある）
+  "js/ts.tsserver.maxMemory": 4096,
+  // Linuxのinotifyで即時検知（ポーリング待機をなくす）
+  "js/ts.tsserver.watchOptions": {
+    "watchFile": "useFsEvents",
+    "watchDirectory": "useFsEvents",
+    "fallbackPolling": "dynamicPriorityPolling",
+    "synchronousWatchDirectory": true
+  },
+  // エディター設定
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "biomejs.biome",
+  "editor.codeActionsOnSave": {
+    "source.fixAll.biome": "explicit",
+    "source.organizeImports.biome": "explicit"
+  },
+  "editor.tabSize": 2,
+  "editor.insertSpaces": true,
+  "editor.detectIndentation": false,
+  "editor.rulers": [100],
+  "editor.wordWrap": "on",
+  "editor.minimap.enabled": true,
+  "editor.suggestSelection": "first",
+  "editor.quickSuggestions": {
+    "other": true,
+    "comments": false,
+    "strings": true
+  },
+  // ファイル設定
+  "files.autoSave": "onFocusChange",
+  "files.trimTrailingWhitespace": true,
+  "files.insertFinalNewline": true,
+  "files.eol": "\n",
+  "files.exclude": {
+    "**/.git": true,
+    "**/.DS_Store": true,
+    "**/node_modules": true,
+    "**/.build": true,
+    "**/dist": true,
+    "**/*.log": true,
+    "**/coverage": true
+  },
+  // 検索設定
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/.build": true,
+    "**/dist": true,
+    "**/coverage": true,
+    "**/pnpm-lock.yaml": true,
+    "**/*.log": true,
+    // Prisma 自動生成ファイル（編集不要）
+    "prisma/migrations/**/migration.sql": true,
+    "prisma/migrations/migration_lock.toml": true
+  },
+  // Git設定
+  "git.autofetch": true,
+  "git.confirmSync": false,
+  "git.enableSmartCommit": true,
+  // ポート自動転送（高番ポートの大量検出を抑制）
+  "remote.autoForwardPorts": true,
+  // Biome設定
+  "biome.enabled": true,
+  // cSpell設定（問題タブに表示しない）
+  "cSpell.diagnosticLevel": "Hint",
+  "cSpell.showStatus": false,
+  // 言語別設定
+  "[typescript]": {
+    "editor.defaultFormatter": "biomejs.biome",
+    "editor.formatOnSave": true
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "biomejs.biome",
+    "editor.formatOnSave": true
+  },
+  "[json]": {
+    "editor.defaultFormatter": "biomejs.biome"
+  },
+  "[jsonc]": {
+    "editor.defaultFormatter": "biomejs.biome"
+  },
+  // その他
+  "todo-tree.tree.scanMode": "workspace only",
+  "errorLens.enabledDiagnosticLevels": ["error", "warning"],
+  "path-intellisense.autoSlashAfterDirectory": true,
+  "path-intellisense.extensionOnImport": true,
+  "chat.tools.terminal.autoApprove": {
+    // GitHub CLI
+    "gh": true,
+    "git": true,
+    // 読み取り系コマンド
+    "ls": true,
+    "ll": true,
+    "cat": true,
+    "head": true,
+    "tail": true,
+    "find": true,
+    "grep": true,
+    "rg": true,
+    "wc": true,
+    "pwd": true,
+    "cd": true,
+    "which": true,
+    "stat": true,
+    "file": true,
+    "diff": true,
+    "du": true,
+    "df": true,
+    "sort": true,
+    "uniq": true,
+    "cut": true,
+    "awk": true,
+    "jq": true,
+    "tree": true,
+    "echo": true,
+    "env": true,
+    "printenv": true,
+    "uname": true,
+    "whoami": true,
+    "id": true,
+    "date": true,
+    // Web 取得系コマンド
+    "curl": true,
+    "wget": true,
+    "ping": true,
+    "nslookup": true,
+    "dig": true,
+    "host": true,
+    // プロセス・システム情報
+    "ps": true,
+    "htop": true,
+    "free": true,
+    "uptime": true,
+    "lsof": true,
+    "lscpu": true,
+    "lsblk": true,
+    "lspci": true,
+    "lsusb": true,
+    "pgrep": true,
+    "pidof": true,
+    // ネットワーク状態確認
+    "ss": true,
+    "netstat": true,
+    "traceroute": true,
+    "tracepath": true,
+    "ifconfig": true,
+    "ip": true,
+    "hostname": true,
+    "mtr": true,
+    // テキスト処理
+    "tr": true,
+    "sed": true,
+    "tac": true,
+    "nl": true,
+    "rev": true,
+    "od": true,
+    "xxd": true,
+    "hexdump": true,
+    "base64": true,
+    "md5sum": true,
+    "sha1sum": true,
+    "sha256sum": true,
+    "sha512sum": true,
+    "column": true,
+    "fold": true,
+    "paste": true,
+    "strings": true,
+    "fmt": true,
+    // ファイル・パス操作
+    "readlink": true,
+    "realpath": true,
+    "basename": true,
+    "dirname": true,
+    "whereis": true,
+    "type": true,
+    "command": true,
+    // ログ確認
+    "journalctl": true,
+    "dmesg": true,
+    // その他ユーティリティ
+    "seq": true,
+    "printf": true,
+    "bc": true,
+    "expr": true,
+    "xargs": true,
+    "man": true,
+    "less": true,
+    "more": true,
+    "sleep": true
+  }
+}

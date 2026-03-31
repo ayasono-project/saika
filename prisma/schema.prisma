@@ -1,0 +1,172 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+// Guild Configuration
+model GuildConfig {
+  id             String   @id @default(cuid())
+  guildId        String   @unique
+  locale         String   @default("ja")
+  errorChannelId String?  @map("error_channel_id")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("guild_configs")
+}
+
+// Bump Reminder (Bump通知)
+model BumpReminder {
+  id          String   @id @default(cuid())
+  guildId        String
+  channelId      String   // 通知を送信するチャンネル
+  messageId      String?  // 元のBumpメッセージID (返信用)
+  panelMessageId String?  // Bumpパネルメッセージ ID (リマインダー送信後に削除)
+  serviceName    String?  // サービス名 (Disboard, Dissoku)
+  scheduledAt    DateTime // 通知予定時刻
+  status         String   @default("pending") // pending, sent, cancelled
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([guildId])
+  @@index([status, scheduledAt])
+  @@map("bump_reminders")
+}
+
+// 機能別設定テーブル（GuildConfig JSON カラムから分割）
+
+// AFK設定
+model GuildAfkConfig {
+  guildId   String  @id @map("guild_id")
+  enabled   Boolean @default(false)
+  channelId String? @map("channel_id")
+
+  @@map("guild_afk_configs")
+}
+
+// Bumpリマインダー設定
+model GuildBumpReminderConfig {
+  guildId        String  @id @map("guild_id")
+  enabled        Boolean @default(false)
+  channelId      String? @map("channel_id")
+  mentionRoleId  String? @map("mention_role_id")
+  mentionUserIds String  @default("[]") @map("mention_user_ids") // JSON: string[]
+
+  @@map("guild_bump_reminder_configs")
+}
+
+// VAC（ボイスチャンネル自動作成）設定
+model GuildVacConfig {
+  guildId           String  @id @map("guild_id")
+  enabled           Boolean @default(false)
+  triggerChannelIds String  @default("[]") @map("trigger_channel_ids") // JSON: string[]
+  createdChannels   String  @default("[]") @map("created_channels")    // JSON: VacChannelPair[]
+
+  @@map("guild_vac_configs")
+}
+
+// メンバーログ設定
+model GuildMemberLogConfig {
+  guildId      String  @id @map("guild_id")
+  enabled      Boolean @default(false)
+  channelId    String? @map("channel_id")
+  joinMessage  String? @map("join_message")
+  leaveMessage String? @map("leave_message")
+
+  @@map("guild_member_log_configs")
+}
+
+// VC募集設定
+model GuildVcRecruitConfig {
+  guildId        String  @id @map("guild_id")
+  enabled        Boolean @default(false)
+  mentionRoleIds String  @default("[]") @map("mention_role_ids") // JSON: string[]
+  setups         String  @default("[]")                          // JSON: VcRecruitSetup[]
+
+  @@map("guild_vc_recruit_configs")
+}
+
+// Sticky Message (スティッキーメッセージ)
+model StickyMessage {
+  id            String   @id @default(cuid())
+  guildId       String   @map("guild_id")
+  channelId     String   @unique @map("channel_id")
+  content       String
+  embedData     String?  @map("embed_data") // JSON文字列
+  updatedBy     String?  @map("updated_by") // 最終設定・更新者の Discord ユーザーID
+  lastMessageId String?  @map("last_message_id")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  @@index([guildId])
+  @@map("sticky_messages")
+}
+
+// チケットチャンネル設定
+model GuildTicketConfig {
+  guildId          String  @map("guild_id")
+  categoryId       String  @map("category_id")
+  enabled          Boolean @default(false)
+  staffRoleIds     String  @default("[]") @map("staff_role_ids") // JSON: string[]
+  panelChannelId   String  @map("panel_channel_id")
+  panelMessageId   String  @map("panel_message_id")
+  panelTitle       String  @default("サポート") @map("panel_title")
+  panelDescription String  @default("サポートが必要な場合は下のボタンからチケットを作成してください。") @map("panel_description")
+  panelColor       String  @default("#00A8F3") @map("panel_color")
+  autoDeleteDays   Int     @default(7) @map("auto_delete_days")
+  maxTicketsPerUser Int    @default(1) @map("max_tickets_per_user")
+  ticketCounter    Int     @default(0) @map("ticket_counter")
+
+  @@id([guildId, categoryId])
+  @@index([guildId])
+  @@map("guild_ticket_configs")
+}
+
+// チケット
+model Ticket {
+  id              String    @id @default(cuid())
+  guildId         String    @map("guild_id")
+  categoryId      String    @map("category_id")
+  channelId       String    @map("channel_id")
+  userId          String    @map("user_id")
+  ticketNumber    Int       @map("ticket_number")
+  subject         String
+  status          String    @default("open") // open, closed
+  elapsedDeleteMs Int       @default(0) @map("elapsed_delete_ms")
+  closedAt        DateTime? @map("closed_at")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  @@index([guildId])
+  @@index([categoryId])
+  @@index([channelId])
+  @@index([guildId, categoryId, userId, status])
+  @@map("tickets")
+}
+
+// リアクションロールパネル
+model GuildReactionRolePanel {
+  id            String   @id @default(cuid())
+  guildId       String   @map("guild_id")
+  channelId     String   @map("channel_id")
+  messageId     String   @map("message_id")
+  mode          String   @default("toggle") // toggle, one-action, exclusive
+  title         String   @default("ロール選択")
+  description   String   @default("ボタンを押してロールを取得・解除できます。")
+  color         String   @default("#00A8F3")
+  buttons       String   @default("[]") // JSON: ReactionRoleButton[]
+  buttonCounter Int      @default(0) @map("button_counter")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  @@index([guildId])
+  @@map("guild_reaction_role_panels")
+}

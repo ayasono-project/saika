@@ -1,0 +1,7 @@
+pnpm run typecheck
+pnpm exec lint-staged
+
+# src/ または tests/ 配下の .ts ファイルが含まれる場合のみテストを実行
+if git diff --cached --name-only | grep -qE '^(src|tests)/.*\.ts$'; then
+  pnpm test
+fi

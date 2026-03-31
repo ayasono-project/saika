@@ -1,0 +1,14 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "rootDir": "..", // プロジェクトルートをrootDirとして設定
+    "paths": {
+      "@/*": ["../src/*"]
+    },
+    "types": ["node", "vitest/globals"], // テスト環境用の型定義
+    "noEmit": true, // テストコードはビルドしない
+    "skipLibCheck": true // node_modules の型定義エラーを抑制
+  },
+  "include": ["./**/*", "../src/**/*"],
+  "exclude": ["node_modules"]
+}

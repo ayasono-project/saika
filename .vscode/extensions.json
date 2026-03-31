@@ -1,0 +1,59 @@
+{
+  "recommendations": [
+    // === 必須 ===
+    // Linter/Formatter
+    "biomejs.biome",
+
+    // TypeScript/JavaScript
+    "yoavbls.pretty-ts-errors",
+
+    // エラー表示
+    "usernamehw.errorlens",
+
+    // === 開発効率化 ===
+    // Git管理
+    "eamodio.gitlens",
+    "mhutchie.git-graph",
+
+    // GitHub連携
+    "github.vscode-pull-request-github",
+    "github.vscode-github-actions",
+
+    // パス補完
+    "christian-kohler.path-intellisense",
+    "christian-kohler.npm-intellisense",
+
+    // TODO管理
+    "gruntfuggly.todo-tree",
+
+    // スペルチェック
+    "streetsidesoftware.code-spell-checker",
+
+    // 日本語命名補助
+    "pizzacat83.codic",
+
+    // .gitignore生成
+    "codezombiech.gitignore",
+
+    // アイコンテーマ
+    "pkief.material-icon-theme",
+
+    // 日本語UIパック
+    "ms-ceintl.vscode-language-pack-ja",
+
+    // === プロジェクト固有 ===
+    // データベース
+    "prisma.prisma",
+
+    // Markdown Mermaid プレビュー
+    "bierner.markdown-mermaid",
+
+    // Docker
+    "docker.docker",
+
+    // === オプション ===
+    // コラボレーション
+    "ms-vsliveshare.vsliveshare"
+  ],
+  "unwantedRecommendations": []
+}

@@ -1,0 +1,77 @@
+name: CI
+
+on:
+  pull_request:
+    branches:
+      - main
+      - develop
+    types:
+      - opened
+      - synchronize
+      - reopened
+
+jobs:
+  changes:
+    name: Detect changes
+    runs-on: ubuntu-latest
+    outputs:
+      should_test: ${{ steps.filter.outputs.src }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            src:
+              - 'src/**'
+              - 'tests/**'
+              - 'package.json'
+              - 'pnpm-lock.yaml'
+              - 'tsconfig*.json'
+              - 'vitest.config.ts'
+              - 'biome.json'
+              - 'prisma/**'
+
+  test:
+    name: Test
+    needs: changes
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Skip (ドキュメントのみの変更)
+        if: needs.changes.outputs.should_test != 'true'
+        run: echo "No source changes detected. Skipping tests."
+
+      - uses: actions/checkout@v6
+        if: needs.changes.outputs.should_test == 'true'
+
+      - uses: pnpm/action-setup@v5
+        if: needs.changes.outputs.should_test == 'true'
+        with:
+          version: latest
+
+      - uses: actions/setup-node@v6
+        if: needs.changes.outputs.should_test == 'true'
+        with:
+          node-version: "24"
+          cache: "pnpm"
+
+      - name: 依存関係のインストール
+        if: needs.changes.outputs.should_test == 'true'
+        run: pnpm install --frozen-lockfile
+
+      - name: Prisma Client 生成
+        if: needs.changes.outputs.should_test == 'true'
+        run: pnpm db:generate
+
+      - name: リント
+        if: needs.changes.outputs.should_test == 'true'
+        run: pnpm lint
+
+      - name: 型チェック
+        if: needs.changes.outputs.should_test == 'true'
+        run: pnpm typecheck
+
+      - name: テスト実行
+        if: needs.changes.outputs.should_test == 'true'
+        run: pnpm test

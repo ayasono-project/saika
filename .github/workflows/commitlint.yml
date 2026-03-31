@@ -1,0 +1,36 @@
+name: Commit Lint
+
+# コミットメッセージを Conventional Commits 形式で検証する
+# - main/develop 向け PR: PR に含まれるコミット範囲を検証
+# （develop への直接 push は husky commit-msg フックでローカル検証）
+on:
+  pull_request:
+    branches:
+      - main
+      - develop
+
+jobs:
+  commitlint:
+    name: Lint Commit Messages
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          # 全コミット履歴を取得するために fetch-depth を 0 にする
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v5
+        with:
+          version: latest
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+          cache: "pnpm"
+
+      - name: 依存関係のインストール
+        run: pnpm install --frozen-lockfile
+
+      - name: コミットメッセージの検証（PR）
+        run: pnpm exec commitlint --from ${{ github.event.pull_request.base.sha }} --to ${{ github.event.pull_request.head.sha }} --verbose

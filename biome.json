@@ -1,0 +1,181 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.4.8/schema.json",
+  "vcs": { "enabled": true, "clientKind": "git", "useIgnoreFile": true },
+  "files": { "includes": ["src/**/*.ts", "tests/**/*.ts"] },
+  "formatter": {
+    "enabled": true,
+    "indentStyle": "space",
+    "indentWidth": 2
+  },
+  "javascript": { "formatter": { "quoteStyle": "double" } },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "recommended": false,
+      "complexity": { "noUselessTypeConstraint": "error" },
+      "correctness": { "noUnusedVariables": "error" },
+      "style": {
+        "noCommonJs": "error",
+        "noNamespace": "error",
+        "noNonNullAssertion": "warn",
+        "useArrayLiterals": "error",
+        "useAsConstAssertion": "error"
+      },
+      "suspicious": {
+        "noExplicitAny": "warn",
+        "noExtraNonNullAssertion": "error",
+        "noMisleadingInstantiator": "error",
+        "noNonNullAssertedOptionalChain": "error",
+        "noUnsafeDeclarationMerging": "error",
+        "useNamespaceKeyword": "error"
+      }
+    }
+  },
+  "overrides": [
+    {
+      "includes": ["tests/**/*.ts"],
+      "linter": {
+        "rules": {
+          "style": { "noNonNullAssertion": "off" },
+          "suspicious": { "noExplicitAny": "off" }
+        }
+      }
+    },
+    {
+      "includes": ["src/shared/**/*.ts"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "paths": {
+                  "../locale": "shared内部ではbarrel import（../locale 等）を禁止し、直接モジュールをimportしてください。",
+                  "../../locale": "shared内部ではbarrel import（../locale 等）を禁止し、直接モジュールをimportしてください。",
+                  "../../../locale": "shared内部ではbarrel import（../locale 等）を禁止し、直接モジュールをimportしてください。",
+                  "../../../../locale": "shared内部ではbarrel import（../locale 等）を禁止し、直接モジュールをimportしてください。",
+                  "../utils": "shared内部ではbarrel import（../utils 等）を禁止し、直接モジュールをimportしてください。",
+                  "../../utils": "shared内部ではbarrel import（../utils 等）を禁止し、直接モジュールをimportしてください。",
+                  "../../../utils": "shared内部ではbarrel import（../utils 等）を禁止し、直接モジュールをimportしてください。",
+                  "../../../../utils": "shared内部ではbarrel import（../utils 等）を禁止し、直接モジュールをimportしてください。",
+                  "../errors": "shared内部ではbarrel import（../errors 等）を禁止し、直接モジュールをimportしてください。",
+                  "../../errors": "shared内部ではbarrel import（../errors 等）を禁止し、直接モジュールをimportしてください。",
+                  "../../../errors": "shared内部ではbarrel import（../errors 等）を禁止し、直接モジュールをimportしてください。",
+                  "../../../../errors": "shared内部ではbarrel import（../errors 等）を禁止し、直接モジュールをimportしてください。",
+                  "../database": "shared内部ではbarrel import（../database 等）を禁止し、直接モジュールをimportしてください。",
+                  "../../database": "shared内部ではbarrel import（../database 等）を禁止し、直接モジュールをimportしてください。",
+                  "../../../database": "shared内部ではbarrel import（../database 等）を禁止し、直接モジュールをimportしてください。",
+                  "../../../../database": "shared内部ではbarrel import（../database 等）を禁止し、直接モジュールをimportしてください。"
+                },
+                "patterns": [
+                  { "group": ["**/bot/**", "**/web/**"], "message": "shared から bot/web への依存は禁止です。" }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "includes": ["src/bot/features/**/*.ts"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "paths": {
+                  "..": "bot/features内部ではfeatureローカルbarrel import（..）を禁止し、直接モジュールをimportしてください。",
+                  "../..": "bot/features内部ではfeatureローカルbarrel import（../..）を禁止し、直接モジュールをimportしてください。",
+                  "../../..": "bot/features内部ではfeatureローカルbarrel import（../../..）を禁止し、直接モジュールをimportしてください。",
+                  "./index": "bot/features内部ではindex経由importを禁止し、直接モジュールをimportしてください。",
+                  "../index": "bot/features内部ではindex経由importを禁止し、直接モジュールをimportしてください。",
+                  "../../index": "bot/features内部ではindex経由importを禁止し、直接モジュールをimportしてください。",
+                  "../../../index": "bot/features内部ではindex経由importを禁止し、直接モジュールをimportしてください。",
+                  "../../../../shared/locale": "bot/features内部ではsharedのbarrel importを禁止し、直接モジュールをimportしてください。",
+                  "../../../../../shared/locale": "bot/features内部ではsharedのbarrel importを禁止し、直接モジュールをimportしてください。",
+                  "../../../../shared/utils": "bot/features内部ではsharedのbarrel importを禁止し、直接モジュールをimportしてください。",
+                  "../../../../../shared/utils": "bot/features内部ではsharedのbarrel importを禁止し、直接モジュールをimportしてください。",
+                  "../../../../shared/errors": "bot/features内部ではsharedのbarrel importを禁止し、直接モジュールをimportしてください。",
+                  "../../../../../shared/errors": "bot/features内部ではsharedのbarrel importを禁止し、直接モジュールをimportしてください。",
+                  "../../../../shared/database": "bot/features内部ではsharedのbarrel importを禁止し、直接モジュールをimportしてください。",
+                  "../../../../../shared/database": "bot/features内部ではsharedのbarrel importを禁止し、直接モジュールをimportしてください。"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "includes": ["src/bot/**/*.ts"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "paths": {
+                  "../shared/locale": "bot内部ではsharedのbarrel importを禁止し、直接モジュールをimportしてください。",
+                  "../../shared/locale": "bot内部ではsharedのbarrel importを禁止し、直接モジュールをimportしてください。",
+                  "../../../shared/locale": "bot内部ではsharedのbarrel importを禁止し、直接モジュールをimportしてください。",
+                  "../../../../shared/locale": "bot内部ではsharedのbarrel importを禁止し、直接モジュールをimportしてください。",
+                  "../shared/utils": "bot内部ではsharedのbarrel importを禁止し、直接モジュールをimportしてください。",
+                  "../../shared/utils": "bot内部ではsharedのbarrel importを禁止し、直接モジュールをimportしてください。",
+                  "../../../shared/utils": "bot内部ではsharedのbarrel importを禁止し、直接モジュールをimportしてください。",
+                  "../../../../shared/utils": "bot内部ではsharedのbarrel importを禁止し、直接モジュールをimportしてください。",
+                  "../shared/errors": "bot内部ではsharedのbarrel importを禁止し、直接モジュールをimportしてください。",
+                  "../../shared/errors": "bot内部ではsharedのbarrel importを禁止し、直接モジュールをimportしてください。",
+                  "../../../shared/errors": "bot内部ではsharedのbarrel importを禁止し、直接モジュールをimportしてください。",
+                  "../../../../shared/errors": "bot内部ではsharedのbarrel importを禁止し、直接モジュールをimportしてください。",
+                  "../shared/database": "bot内部ではsharedのbarrel importを禁止し、直接モジュールをimportしてください。",
+                  "../../shared/database": "bot内部ではsharedのbarrel importを禁止し、直接モジュールをimportしてください。",
+                  "../../../shared/database": "bot内部ではsharedのbarrel importを禁止し、直接モジュールをimportしてください。",
+                  "../../../../shared/database": "bot内部ではsharedのbarrel importを禁止し、直接モジュールをimportしてください。"
+                },
+                "patterns": [
+                  { "group": ["**/web/**"], "message": "bot から web への依存は禁止です。" }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "includes": ["src/web/**/*.ts"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "paths": {
+                  "../shared/locale": "web内部ではsharedのbarrel importを禁止し、直接モジュールをimportしてください。",
+                  "../../shared/locale": "web内部ではsharedのbarrel importを禁止し、直接モジュールをimportしてください。",
+                  "../../../shared/locale": "web内部ではsharedのbarrel importを禁止し、直接モジュールをimportしてください。",
+                  "../shared/utils": "web内部ではsharedのbarrel importを禁止し、直接モジュールをimportしてください。",
+                  "../../shared/utils": "web内部ではsharedのbarrel importを禁止し、直接モジュールをimportしてください。",
+                  "../../../shared/utils": "web内部ではsharedのbarrel importを禁止し、直接モジュールをimportしてください。",
+                  "../shared/errors": "web内部ではsharedのbarrel importを禁止し、直接モジュールをimportしてください。",
+                  "../../shared/errors": "web内部ではsharedのbarrel importを禁止し、直接モジュールをimportしてください。",
+                  "../../../shared/errors": "web内部ではsharedのbarrel importを禁止し、直接モジュールをimportしてください。",
+                  "../shared/database": "web内部ではsharedのbarrel importを禁止し、直接モジュールをimportしてください。",
+                  "../../shared/database": "web内部ではsharedのbarrel importを禁止し、直接モジュールをimportしてください。",
+                  "../../../shared/database": "web内部ではsharedのbarrel importを禁止し、直接モジュールをimportしてください。"
+                },
+                "patterns": [
+                  { "group": ["**/bot/**"], "message": "web から bot への依存は禁止です。" }
+                ]
+              }
+            }
+          }
+        }
+      }
+    }
+  ],
+  "assist": {
+    "enabled": true,
+    "actions": { "source": { "organizeImports": "on" } }
+  }
+}

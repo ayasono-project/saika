@@ -1,0 +1,38 @@
+# ログ
+logs/
+*.log
+
+# 依存関係
+node_modules/
+
+# ビルド成果物
+dist/
+*.tsbuildinfo
+
+# テストカバレッジ
+coverage/
+*.lcov
+
+# 環境変数（.env.example は除外しない）
+.env
+.env.*
+!.env.example
+
+# データベース・ストレージ
+storage/
+*.db
+*.db-journal
+
+# エディタ・ツール
+.cache/
+.claude/
+.vscode-test/
+
+# パッケージマネージャー
+.npm/
+*.tgz
+
+# OS生成ファイル
+*.pid
+*.seed
+*.pid.lock

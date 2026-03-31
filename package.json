@@ -1,0 +1,81 @@
+{
+  "name": "saika",
+  "version": "0.1.0",
+  "description": "彩加 =Saika= — Discordサーバー管理Bot",
+  "main": "dist/bot/main.js",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/bot/main.ts",
+    "build": "tsup",
+    "tsc-watch": "tsc --noEmit --watch",
+    "start": "node dist/bot/main.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "lint": "biome check src tests",
+    "lint:fix": "biome check --write src tests",
+    "format": "biome format --write src tests",
+    "format:check": "biome format src tests",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p tests/tsconfig.json",
+    "typecheck:src": "tsc --noEmit",
+    "typecheck:tests": "tsc --noEmit -p tests/tsconfig.json",
+    "db:migrate": "prisma migrate dev",
+    "db:generate": "prisma generate",
+    "db:studio": "prisma studio",
+    "db:push": "prisma db push",
+    "prepare": "husky"
+  },
+  "keywords": [
+    "discord",
+    "bot",
+    "saika",
+    "ayasono"
+  ],
+  "author": "sonozaki",
+  "license": "AGPL-3.0",
+  "engines": {
+    "node": ">=24"
+  },
+  "lint-staged": {
+    "{src,tests}/**/*.ts": [
+      "biome check --write --no-errors-on-unmatched"
+    ]
+  },
+  "dependencies": {
+    "@libsql/client": "^0.17.2",
+    "@prisma/adapter-libsql": "^7.6.0",
+    "@prisma/client": "^7.6.0",
+    "date-fns": "^4.1.0",
+    "discord.js": "^14.26.0",
+    "dotenv": "^17.3.1",
+    "i18next": "^26.0.3",
+    "node-cron": "^4.2.1",
+    "prisma": "^7.6.0",
+    "winston": "^3.19.0",
+    "winston-daily-rotate-file": "^5.0.0",
+    "winston-transport": "^4.9.0",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.4.10",
+    "@commitlint/cli": "^20.5.0",
+    "@commitlint/config-conventional": "^20.5.0",
+    "@types/node": "^25.5.0",
+    "@types/node-cron": "^3.0.11",
+    "@vitest/coverage-istanbul": "^4.1.2",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.4.0",
+    "tsup": "^8.5.1",
+    "tsx": "^4.21.0",
+    "typescript": "^6.0.2",
+    "vitest": "^4.1.2"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@prisma/engines",
+      "better-sqlite3",
+      "esbuild",
+      "prisma"
+    ]
+  }
+}

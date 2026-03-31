@@ -1,7 +1,7 @@
 {
   "name": "saika",
   "version": "0.1.0",
-  "description": "彩加 =Saika= — Discordサーバー管理Bot",
+  "description": "Discordサーバー管理Bot「彩加 =Saika=」",
   "main": "dist/bot/main.js",
   "type": "module",
   "scripts": {

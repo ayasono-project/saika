@@ -85,7 +85,50 @@
 
 ---
 
-## 5. 動作確認
+## 5. 一般公開設定
+
+Bot を自分のサーバーだけでなく、誰でも招待できるようにするための設定。
+
+### 5-1. 公開 Bot の有効化
+
+1. 左メニュー → **Bot**
+2. **Authorization Flow** セクション → **公開 Bot** を **ON**
+
+> これを有効にすると、OAuth2 招待 URL を知っている人なら誰でも Bot をサーバーに追加できるようになる。
+
+### 5-2. コマンド登録モードの確認
+
+Bot は環境変数 `DISCORD_GUILD_ID` の有無でコマンドの登録先を切り替える。
+
+| `DISCORD_GUILD_ID` | 登録先 | 反映速度 | 用途 |
+| -- | -- | -- | -- |
+| 設定あり | 指定ギルドのみ | 即時 | 開発・テスト |
+| 未設定 | グローバル（全サーバー） | 最大1時間 | 本番・一般公開 |
+
+一般公開時は **`DISCORD_GUILD_ID` を設定しない**（Portainer の環境変数から削除する）。
+
+### 5-3. Bot 認証（Verification）
+
+Bot が **75 サーバー以上**に参加すると、Discord による認証申請が必要になる。
+
+**申請に必要なもの:**
+
+- Bot の説明文（General Information に記載）
+- プライバシーポリシー URL
+- 利用規約 URL
+- Privileged Gateway Intents の使用理由
+
+| Intent | 使用理由 |
+| -- | -- |
+| Server Members Intent | メンバーの参加・退出イベント取得（メンバーログ機能） |
+| Message Content Intent | メッセージ本文の読み取り（Bump 検知） |
+
+> 認証が完了するまで、100 サーバー以上への参加がブロックされる。
+> 認証申請は [Discord Developer Portal](https://discord.com/developers/applications) → アプリ選択 → **App Verification** から行う。
+
+---
+
+## 6. 動作確認
 
 Bot がサーバーに参加したら、以下を確認する。
 
@@ -93,6 +136,8 @@ Bot がサーバーに参加したら、以下を確認する。
 2. スラッシュコマンドが候補に表示される（`/bump-reminder-config` など）
 
 スラッシュコマンドが表示されない場合は、Bot の再起動か、コマンド登録まで数分待つ。
+
+> グローバルコマンド登録（`DISCORD_GUILD_ID` 未設定）の場合、反映まで最大1時間かかる。
 
 ---
 

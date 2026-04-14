@@ -1,0 +1,39 @@
+# ─────────────────────────────────────────────────────
+# saika Coolify デプロイ用 compose ファイル
+# ─────────────────────────────────────────────────────
+# Coolify が Git push をトリガーに自動でビルド・デプロイする。
+# 環境変数は Coolify の管理画面「Environment Variables」で設定すること。
+
+services:
+  bot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runner
+    container_name: saika-bot
+    command: node dist/bot/main.js
+    restart: unless-stopped
+    environment:
+      # --- 必須（Coolify の Environment Variables で設定） ---
+      DISCORD_TOKEN: ${DISCORD_TOKEN}
+      DISCORD_APP_ID: ${DISCORD_APP_ID}
+      DATABASE_URL: ${DATABASE_URL:-file:./storage/db.sqlite}
+      LOCALE: ${LOCALE:-ja}
+      NODE_ENV: ${NODE_ENV:-production}
+      # --- 任意 ---
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      DISCORD_ERROR_WEBHOOK_URL: ${DISCORD_ERROR_WEBHOOK_URL:-}
+      USER_MANUAL_URL: ${USER_MANUAL_URL:-}
+    volumes:
+      # SQLite データの永続化（既存の名前付きボリュームを引き継ぐ）
+      - sqlite_data:/app/storage
+      # ログファイルの永続化（ホストバインドマウント）
+      - /opt/saika/logs:/app/logs
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+volumes:
+  sqlite_data:

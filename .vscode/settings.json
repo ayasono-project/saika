@@ -78,9 +78,6 @@
   "remote.autoForwardPorts": true,
   // Biome設定
   "biome.enabled": true,
-  // cSpell設定（問題タブに表示しない）
-  "cSpell.diagnosticLevel": "Hint",
-  "cSpell.showStatus": false,
   // 言語別設定
   "[typescript]": {
     "editor.defaultFormatter": "biomejs.biome",

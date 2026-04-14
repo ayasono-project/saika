@@ -26,9 +26,6 @@
     // TODO管理
     "gruntfuggly.todo-tree",
 
-    // スペルチェック
-    "streetsidesoftware.code-spell-checker",
-
     // 日本語命名補助
     "pizzacat83.codic",
 

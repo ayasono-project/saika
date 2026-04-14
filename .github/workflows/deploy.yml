@@ -1,17 +1,7 @@
 name: Deploy
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - 'src/**'
-      - 'package.json'
-      - 'pnpm-lock.yaml'
-      - 'Dockerfile'
-      - 'docker-entrypoint.sh'
-      - 'docker-compose.portainer.yml'
-      - 'prisma/**'
+  workflow_dispatch:
 
 jobs:
   deploy:

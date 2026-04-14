@@ -2,7 +2,7 @@
 
 > タスク管理・進捗状況・残件リスト
 
-最終更新: 2026年3月31日
+最終更新: 2026年4月14日
 
 ---
 
@@ -35,26 +35,30 @@
 
 | セクション | タスク | 残件 |
 | --- | --- | ---: |
-| 1. PostgreSQL移行 | DB基盤変更 | 6 |
+| 1. Fastify API実装 | web ダッシュボードからのアクセス用 REST API | 未確定 |
 | 2. Bot一般公開準備 | コマンド追加・認証申請 | 3 |
-| **合計** | | **9** |
+| 3. Coolify移行(saika側) | デプロイ手段の刷新 | 2 |
+| **合計** | | **5+α** |
+
+> インフラ側(VPS / Cloudflare / Coolify 本体)の作業は [`../infra/TODO.md`](../infra/TODO.md) で管理。
 
 ---
 
-### 1. PostgreSQL移行（残: 6件）
+### 1. Fastify API実装（残: 未確定）
 
-ayasono-webダッシュボードからのDB共有アクセスに備え、SQLite → PostgreSQLに移行する。
+ayasono-webダッシュボードは saika の DB を直接参照せず、saika が公開する **Fastify REST API** を経由して設定の閲覧・編集を行う。saika 側にはこれまで Bot プロセスとヘルスチェック API しか存在しないため、新たに Web 用 API レイヤを追加する。
 
-**背景**: 現在SQLite（libSQL）を使用しているが、saika（Bot）とayasono-web（ダッシュボード）の両方からDBにアクセスする構成ではSQLiteの同時接続制限が問題になる。PostgreSQLに移行することで複数プロセスからの安全な同時アクセスが可能になる。
+**背景**: ayasono-web は Coolify 上で saika とは別アプリとして動く。各 Bot(saika / hibiki / amane)は自身の libSQL DB を単一プロセスから読み書きし、外部からのアクセスは API 経由のみとする。これにより SQLite の同時書き込み制約に当たらず、PostgreSQL 移行も不要になる。詳細なリポジトリ構成・データアクセス方針は ayasono プロジェクト全体アーキテクチャの決定事項に従う。
 
-- [ ] VPS上にPostgreSQLコンテナを追加（infra stackまたはsaika stack）
-- [ ] Prismaスキーマの `provider` を `sqlite` → `postgresql` に変更
-- [ ] SQLite固有の記法を修正（JSON文字列カラム → PostgreSQL JSON型など）
-- [ ] 既存データのマイグレーション（SQLite → PostgreSQL）
-- [ ] `@libsql/client` / `@prisma/adapter-libsql` 依存を削除、標準PostgreSQLアダプタに切替
-- [ ] docker-compose・CI/CD・env設定の更新（DATABASE_URL形式変更）
+- [ ] `src/api/` ディレクトリと Fastify サーバー初期化を追加（Bot プロセスとは別エントリポイント or 同一プロセス内に併設するかを決定）
+- [ ] 認証ミドルウェア（Discord OAuth セッション検証 + ManageGuild 権限チェック）
+- [ ] 機能別エンドポイント実装（ギルド設定・AFK・Bump・VAC・メンバーログ・VC募集・チケット・リアクションロール・メッセージ固定）
+- [ ] エラーレスポンスの統一（既存の `AppError` 系列との整合）
+- [ ] OpenAPI スキーマの整備（必要なら）
+- [ ] Coolify 上で saika が API ポートを公開するよう docker-compose / Dockerfile を調整
+- [ ] [docs/guides/ARCHITECTURE.md](docs/guides/ARCHITECTURE.md) を更新し、`src/api/` レイヤと API 公開方針を反映
 
-**移行タイミング**: ayasono-webダッシュボード実装開始前に完了する
+> 詳細タスクは ayasono-web の進捗・API 仕様確定後に詰める。
 
 ### 2. Bot一般公開準備（残: 3件）
 
@@ -62,6 +66,30 @@ ayasono-webダッシュボードからのDB共有アクセスに備え、SQLite 
 - [ ] `/about` コマンドで公式URL・バージョンを表示
 - [ ] helpコマンドにダッシュボードURLリンクを追加
 - [ ] Discord Bot認証の申請（75サーバー到達後）
+
+### 3. Coolify移行（saika側・残: 5件）
+
+Portainer + GitHub Actions API デプロイ → Coolify による Git push 自動デプロイへの基盤刷新に伴う、saika リポジトリ内の整理作業。
+
+> インフラ側(Cloudflare / VPS / Coolify 本体・Portainer 撤去)の作業は [`../infra/TODO.md`](../infra/TODO.md) を参照。
+
+#### Phase A: Coolify 用ファイル整備
+
+- [x] `docker-compose.coolify.yml` を新規作成（既存ボリュームを引き継いでロールバックを成立させる構成）
+- [ ] Coolify 上で saika アプリを作成し、環境変数を Portainer Stack から移植 → テストデプロイで `saika-bot` が正常起動することを確認
+- [x] `.github/workflows/deploy.yml` の自動トリガーを停止（`workflow_dispatch` のみに変更）
+- [x] `docs/guides/DEPLOYMENT.md` を Coolify ベースに書き換え
+
+#### Phase B: 旧構成の完全撤去（Coolify 安定運用後）
+
+> Coolify で Bot が安定稼働していることを確認してから着手する。判断目安は「2週間程度の連続稼働 + 数回のデプロイ成功」など。
+
+- [ ] 旧ファイルを一括削除:
+  - `docker-compose.portainer.yml`
+  - `.github/workflows/deploy.yml`
+  - `.github/workflows/notify.yml`
+  - GitHub Secrets の `PORTAINER_*` 系
+  - `notify.yml` の deploy 通知部分(必要なら)
 
 ---
 

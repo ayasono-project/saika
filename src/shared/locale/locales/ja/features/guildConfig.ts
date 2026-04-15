@@ -68,14 +68,6 @@ export const guildConfig = {
     "現在の設定が上書きされます。この操作は元に戻せません。",
 
   // ── UIラベル ──────────────────────────────────
-  "ui.select.view_placeholder": "ページを選択...",
-  "ui.select.guild_config": "ギルド設定",
-  "ui.select.afk": "AFK",
-  "ui.select.vac": "VAC",
-  "ui.select.vc_recruit": "VC募集",
-  "ui.select.sticky": "メッセージ固定",
-  "ui.select.member_log": "メンバーログ",
-  "ui.select.bump": "Bumpリマインダー",
   "ui.button.reset_all_confirm": "リセットする",
   "ui.button.reset_all_cancel": "キャンセル",
   "ui.button.import_confirm": "インポートする",

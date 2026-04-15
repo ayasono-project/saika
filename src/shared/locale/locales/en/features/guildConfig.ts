@@ -68,14 +68,6 @@ export const guildConfig = {
     "Current settings will be overwritten. This action cannot be undone.",
 
   // ── UI labels ─────────────────────────────────
-  "ui.select.view_placeholder": "Select a page...",
-  "ui.select.guild_config": "Guild Settings",
-  "ui.select.afk": "AFK",
-  "ui.select.vac": "VAC",
-  "ui.select.vc_recruit": "VC Recruit",
-  "ui.select.sticky": "Sticky Message",
-  "ui.select.member_log": "Member Log",
-  "ui.select.bump": "Bump Reminder",
   "ui.button.reset_all_confirm": "Reset",
   "ui.button.reset_all_cancel": "Cancel",
   "ui.button.import_confirm": "Import",

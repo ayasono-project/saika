@@ -1,7 +1,6 @@
 // src/bot/handlers/interactionCreate/ui/selectMenus.ts
 // セレクトメニューハンドラのレジストリ
 
-import { guildConfigViewSelectHandler } from "../../../features/guild-config/handlers/ui/guildConfigViewSelectHandler";
 import {
   reactionRoleAddButtonRoleSelectHandler,
   reactionRoleAddButtonSelectHandler,
@@ -54,8 +53,6 @@ export const roleSelectHandlers: RoleSelectHandler[] = [
 ];
 
 export const stringSelectHandlers: StringSelectHandler[] = [
-  // guild-config view ページセレクトメニューを処理
-  guildConfigViewSelectHandler,
   // リアクションロール setup のモード選択を処理
   reactionRoleSetupModeSelectHandler,
   // リアクションロール teardown のパネル選択を処理

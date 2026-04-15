@@ -168,74 +168,23 @@
 
 ### 動作フロー
 
-1. `repository.getConfig(guildId)` でギルド設定全体を取得（レコードが存在しない場合はデフォルト設定として表示）
-2. 各機能フィールドをパースして各ページ用データを生成
-3. ページ 1 の Embed + ボタン + セレクトメニューを ephemeral で返信
-4. ボタン / セレクトメニューのインタラクション受信
-5. 対応ページの Embed に `interaction.update()` で書き換え
-6. 5分タイムアウト後にコンポーネントを `disabled` 化
+1. `repository.getConfig(guildId)` でギルド設定を取得（レコードが存在しない場合はデフォルト設定として表示）
+2. ギルド設定値（言語・エラー通知チャンネル）の Embed を ephemeral で返信
 
 **ビジネスルール:**
 
-- 各ページの内容は `buildPage(pageIndex, config)` のような純粋関数で生成し、インタラクション受信時に再生成する（メモリ保持不要）
-- ページ番号はページジャンプボタンのラベル（`{{page}}/{{total}}ページ`）で表示する
-- ページ 2 以降は各機能の `*-config view` が使っている Embed 生成ロジック（`buildViewEmbed` 相当の関数）をそのまま呼び出して再利用する（設定を持たない機能はページに含めない）
+- ギルド設定固有の値（locale・errorChannelId）のみを表示する
+- 各機能の設定は各機能の `-config view` コマンドで確認する
 
 ### UI
 
-**Embed（ページ 1: ギルド設定）:**
+**Embed:**
 
 | 項目 | 内容 |
 | --- | --- |
-| タイトル | 🛡️ ギルド設定 |
-| フィールド | 言語: 日本語 (ja) |
+| タイトル | ギルド設定 |
+| フィールド | 言語: 日本語 (ja) / English (en) |
 | フィールド | エラー通知チャンネル: #channel / 未設定 |
-
-**ページ一覧:**
-
-| ページ番号 | タイトル | 内容 |
-| --- | --- | --- |
-| 1 | 🛡️ ギルド設定 | 言語 + エラー通知チャンネル |
-| 2 | 😴 AFK | AFK の詳細設定 |
-| 3 | 🔊 VAC | VAC の詳細設定 |
-| 4 | 📢 VC募集 | VC募集の詳細設定 |
-| 5 | 📌 メッセージ固定 | スティッキーメッセージの詳細設定 |
-| 6 | 👋 メンバーログ | メンバーログの詳細設定 |
-| 7 | 🔔 Bumpリマインダー | Bumpリマインダーの詳細設定 |
-
-> ページ数は設定を持つ機能数に応じて増減する。
-> ページ 2 以降は対応する `*-config view` コマンドが生成する Embed をそのまま再利用する。
-> 機能が未設定の場合は各機能の view と同様「未設定」表示を返す。
-
-**Row 1 - ページネーション（共通コンポーネント）:**
-
-単ページ時はこの行ごと非表示。
-
-| コンポーネント | emoji | ラベル | スタイル | 動作 |
-| --- | --- | --- | --- | --- |
-| `guild-config:page-first` | ⏮ | ― | Secondary | 最初のページ（1ページ目は `disabled`） |
-| `guild-config:page-prev` | ◀ | ― | Secondary | 前のページ（1ページ目は `disabled`） |
-| `guild-config:page-jump` | ― | {{page}}/{{total}}ページ | Secondary | 押下でモーダル表示、番号入力でページジャンプ |
-| `guild-config:page-next` | ▶ | ― | Secondary | 次のページ（最終ページは `disabled`） |
-| `guild-config:page-last` | ⏭ | ― | Secondary | 最後のページ（最終ページは `disabled`） |
-
-**Row 2 - 機能セレクトメニュー:**
-
-| コンポーネント | プレースホルダー | 種別 | 動作 |
-| --- | --- | --- | --- |
-| `guild-config:page-select` | ページを選択... | StringSelect | 選択したページへ直接移動 |
-
-**セレクトメニュー選択肢:**
-
-| ラベル | value |
-| --- | --- |
-| 1. 🛡️ ギルド設定 | `guild_config` |
-| 2. 😴 AFK | `afk` |
-| 3. 🔊 VAC | `vac` |
-| 4. 📢 VC募集 | `vc_recruit` |
-| 5. 📌 メッセージ固定 | `sticky` |
-| 6. 👋 メンバーログ | `member_log` |
-| 7. 🔔 Bumpリマインダー | `bump` |
 
 ---
 
@@ -457,7 +406,6 @@
 
 ## 制約・制限事項
 
-- view のページ操作タイムアウト: 5分（タイムアウト後はコンポーネントを `disabled` 化）
 - reset / reset-all / import の確認ダイアログタイムアウト: 60秒
 - import は同一サーバーの設定ファイルのみ対応（異サーバー間のコピーは非対応）
 - Bot がギルドからキック・BAN・退出した場合、そのギルドの全設定データ（全機能の設定テーブル・ランタイムデータ）が自動削除される。退出前に設定を保持したい場合は `/guild-config export` でエクスポートしておくこと
@@ -526,14 +474,6 @@
 
 | キー | 用途 | ja | en |
 | --- | --- | --- | --- |
-| `ui.select.view_placeholder` | ページセレクトプレースホルダー | ページを選択... | Select a page... |
-| `ui.select.guild_config` | セレクト選択肢 | ギルド設定 | Guild Settings |
-| `ui.select.afk` | セレクト選択肢 | AFK | AFK |
-| `ui.select.vac` | セレクト選択肢 | VAC | VAC |
-| `ui.select.vc_recruit` | セレクト選択肢 | VC募集 | VC Recruit |
-| `ui.select.sticky` | セレクト選択肢 | メッセージ固定 | Sticky Message |
-| `ui.select.member_log` | セレクト選択肢 | メンバーログ | Member Log |
-| `ui.select.bump` | セレクト選択肢 | Bumpリマインダー | Bump Reminder |
 | `ui.button.reset_confirm` | リセット確認ボタン | リセットする | Reset |
 | `ui.button.reset_cancel` | リセットキャンセルボタン | キャンセル | Cancel |
 | `ui.button.reset_all_confirm` | 全リセット確認ボタン | リセットする | Reset |
@@ -562,8 +502,6 @@
 | `log.exported` | エクスポートログ | ギルド設定エクスポート GuildId: {{guildId}} | Guild settings exported GuildId: {{guildId}} |
 | `log.imported` | インポートログ | ギルド設定インポート GuildId: {{guildId}} | Guild settings imported GuildId: {{guildId}} |
 
-※ ページネーション関連キー（`page_jump.label`, `page_jump_modal.title`, `page_jump_modal.input.label`）は `common.ts` で共通定義
-
 ---
 
 ## テストケース
@@ -572,7 +510,7 @@
 
 - [x] set-locale: ja/enロケール設定
 - [x] set-error-channel: テキストチャンネル正常設定、非テキストチャンネルエラー
-- [x] view: ページネーション、セレクトメニューでのページ切替、各機能ページの表示（設定あり/なし）
+- [x] view: ギルド設定値（言語・エラーチャンネル）の単一 Embed 表示（設定あり/なし）
 - [x] reset: 確認ダイアログ、確認→設定リセット+キャッシュ無効化、キャンセル、タイムアウト
 - [x] reset-all: 確認ダイアログ（削除対象フィールド表示）、確認→全削除+キャッシュ無効化、キャンセル
 - [x] export: 設定あり→JSON添付、設定なし→エラー
@@ -589,5 +527,4 @@
 | 依存先 | 内容 |
 | --- | --- |
 | LocaleManager | `invalidateLocaleCache()` による言語キャッシュの即時無効化（set-locale / reset / reset-all / import 後に必須） |
-| 各機能 config view | view のページ 2〜8 で各機能の `buildViewEmbed` 相当の関数を再利用 |
 | GuildConfigRepository | 全設定の取得・更新・削除（データ層は実装済み） |

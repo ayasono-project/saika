@@ -37,3 +37,5 @@ services:
 
 volumes:
   sqlite_data:
+    external: true
+    name: saika_sqlite_data

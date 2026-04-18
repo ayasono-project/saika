@@ -56,37 +56,10 @@ vi.mock("@/bot/services/botCompositionRoot", () => ({
   getBotReactionRolePanelConfigService: () => mockConfigService,
 }));
 
-function createMockStringSelectInteraction(
-  customId: string,
-  values: string[] = [],
-  overrides = {},
-) {
-  return {
-    customId,
-    locale: "ja",
-    guildId: "guild-1",
-    values,
-    reply: vi.fn().mockResolvedValue(undefined),
-    update: vi.fn().mockResolvedValue(undefined),
-    ...overrides,
-  };
-}
-
-function createMockButtonInteraction(customId: string, overrides = {}) {
-  return {
-    customId,
-    locale: "ja",
-    guildId: "guild-1",
-    client: {
-      channels: { fetch: vi.fn() },
-    },
-    reply: vi.fn().mockResolvedValue(undefined),
-    update: vi.fn().mockResolvedValue(undefined),
-    deferUpdate: vi.fn().mockResolvedValue(undefined),
-    editReply: vi.fn().mockResolvedValue(undefined),
-    ...overrides,
-  };
-}
+import {
+  createMockButtonInteraction,
+  createMockStringSelectInteraction,
+} from "../../../../../../helpers/interactionMocks";
 
 describe("bot/features/reaction-role/handlers/ui/reactionRoleTeardownHandler", () => {
   afterEach(() => {

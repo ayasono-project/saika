@@ -37,18 +37,14 @@ vi.mock("@/bot/features/ticket/handlers/ui/ticketSetupState", () => ({
 
 import { ticketSetupSessions } from "@/bot/features/ticket/handlers/ui/ticketSetupState";
 
-function createMockRoleSelectInteraction(customId: string, overrides = {}) {
-  return {
-    customId,
-    locale: "ja",
-    guildId: "guild-1",
-    roles: new Map([
-      ["role-1", { id: "role-1" }],
-      ["role-2", { id: "role-2" }],
-    ]),
-    showModal: vi.fn().mockResolvedValue(undefined),
-    ...overrides,
-  };
+import { createMockRoleSelectInteraction as _createMockRoleSelect } from "../../../../../../helpers/interactionMocks";
+
+// default で ["role-1", "role-2"] を設定するラッパー
+function createMockRoleSelectInteraction(
+  customId: string,
+  overrides: Record<string, unknown> = {},
+) {
+  return _createMockRoleSelect(customId, ["role-1", "role-2"], overrides);
 }
 
 describe("bot/features/ticket/handlers/ui/ticketSetupRoleSelectHandler", () => {

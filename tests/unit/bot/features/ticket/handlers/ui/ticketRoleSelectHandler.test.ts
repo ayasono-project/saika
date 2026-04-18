@@ -40,18 +40,14 @@ vi.mock("@/bot/utils/messageResponse", () => ({
 
 import { getBotTicketConfigService } from "@/bot/services/botCompositionRoot";
 
-function createMockRoleSelectInteraction(customId: string, overrides = {}) {
-  return {
-    customId,
-    locale: "ja",
-    guildId: "guild-1",
-    roles: new Map([
-      ["role-1", { id: "role-1" }],
-      ["role-2", { id: "role-2" }],
-    ]),
-    reply: vi.fn().mockResolvedValue(undefined),
-    ...overrides,
-  };
+import { createMockRoleSelectInteraction as _createMockRoleSelect } from "../../../../../../helpers/interactionMocks";
+
+// このファイルでは default で ["role-1", "role-2"] を設定するラッパーを使用
+function createMockRoleSelectInteraction(
+  customId: string,
+  overrides: Record<string, unknown> = {},
+) {
+  return _createMockRoleSelect(customId, ["role-1", "role-2"], overrides);
 }
 
 describe("bot/features/ticket/handlers/ui/ticketRoleSelectHandler", () => {

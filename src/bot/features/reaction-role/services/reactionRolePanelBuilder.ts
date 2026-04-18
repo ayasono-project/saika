@@ -7,7 +7,12 @@ import {
   ButtonStyle,
   type Client,
   EmbedBuilder,
+  type Guild,
+  type GuildMember,
   ModalBuilder,
+  type Role,
+  StringSelectMenuBuilder,
+  StringSelectMenuOptionBuilder,
   type TextChannel,
   TextInputBuilder,
   TextInputStyle,
@@ -17,12 +22,14 @@ import { tInteraction } from "../../../../shared/locale/localeManager";
 import {
   isValidEmoji,
   normalizeEmoji,
+  REACTION_ROLE_BUTTON_COLORS,
   REACTION_ROLE_BUTTONS_PER_ROW,
+  REACTION_ROLE_COLOR_PLACEHOLDER,
   REACTION_ROLE_CUSTOM_ID,
   REACTION_ROLE_DEFAULT_BUTTON_STYLE,
 } from "../commands/reactionRoleCommand.constants";
 
-/** ボタンスタイル文字列から discord.js ButtonStyle への変換マップ */
+/** lowercase のスタイル値から discord.js ButtonStyle への変換マップ */
 const STYLE_MAP: Record<string, ButtonStyle> = {
   primary: ButtonStyle.Primary,
   secondary: ButtonStyle.Secondary,
@@ -69,7 +76,7 @@ export function buildPanelButtonRows(
           `${REACTION_ROLE_CUSTOM_ID.CLICK_PREFIX}${panelId}:${btn.buttonId}`,
         )
         .setLabel(btn.label)
-        .setStyle(STYLE_MAP[btn.style.toLowerCase()] ?? ButtonStyle.Primary);
+        .setStyle(STYLE_MAP[btn.style] ?? ButtonStyle.Primary);
 
       if (btn.emoji) {
         const normalized = normalizeEmoji(btn.emoji);
@@ -143,7 +150,7 @@ export function buildButtonSettingsModal(
   customIdPrefix: string,
   sessionId: string,
   locale: string,
-  prefill?: { label: string; emoji: string; style: string },
+  prefill?: { label: string; emoji: string },
 ): ModalBuilder {
   return new ModalBuilder()
     .setCustomId(`${customIdPrefix}${sessionId}`)
@@ -172,15 +179,65 @@ export function buildButtonSettingsModal(
           .setRequired(false)
           .setValue(prefill?.emoji ?? ""),
       ),
-      new ActionRowBuilder<TextInputBuilder>().addComponents(
-        new TextInputBuilder()
-          .setCustomId(REACTION_ROLE_CUSTOM_ID.BUTTON_STYLE)
-          .setLabel(
-            tInteraction(locale, "reactionRole:ui.modal.button_field_style"),
-          )
-          .setStyle(TextInputStyle.Short)
-          .setRequired(false)
-          .setValue(prefill?.style ?? REACTION_ROLE_DEFAULT_BUTTON_STYLE),
+    );
+}
+
+/**
+ * 選択されたロールが setup / add-button / edit-button で設定可能か階層検証する
+ * Bot 最上位以上 または 実行者最上位以上のロールを無効として返す。
+ * 実行者がサーバーオーナーの場合は実行者階層チェックを免除する。
+ * @param guild 対象ギルド
+ * @param executor コマンド実行者
+ * @param roleIds 選択された RoleSelectMenu の値
+ * @returns 階層制約に違反するロール配列（空なら有効）
+ */
+export function validateSelectedRolesHierarchy(
+  guild: Guild,
+  executor: GuildMember,
+  roleIds: string[],
+): Role[] {
+  const botMember = guild.members.me;
+  const botHighestPosition =
+    botMember?.roles.highest.position ?? Number.POSITIVE_INFINITY;
+  const isOwner = guild.ownerId === executor.id;
+  const executorHighestPosition = executor.roles.highest.position;
+
+  const invalid: Role[] = [];
+  for (const id of roleIds) {
+    const role = guild.roles.cache.get(id);
+    if (!role) continue;
+    if (role.position >= botHighestPosition) {
+      invalid.push(role);
+      continue;
+    }
+    if (!isOwner && role.position >= executorHighestPosition) {
+      invalid.push(role);
+    }
+  }
+  return invalid;
+}
+
+/**
+ * ボタン色選択 StringSelectMenu を構築する（ロケール非依存の英語固定）
+ * @param customId セレクトメニューのカスタムID
+ * @param defaultStyle default 選択する DB 保存値（lowercase）。未指定時は primary
+ * @returns 色選択 StringSelectMenu
+ */
+export function buildColorSelectMenu(
+  customId: string,
+  defaultStyle: string = REACTION_ROLE_DEFAULT_BUTTON_STYLE,
+): StringSelectMenuBuilder {
+  return new StringSelectMenuBuilder()
+    .setCustomId(customId)
+    .setPlaceholder(REACTION_ROLE_COLOR_PLACEHOLDER)
+    .setMinValues(1)
+    .setMaxValues(1)
+    .addOptions(
+      REACTION_ROLE_BUTTON_COLORS.map((color) =>
+        new StringSelectMenuOptionBuilder()
+          .setLabel(color.label)
+          .setValue(color.value)
+          .setDefault(color.value === defaultStyle),
       ),
     );
 }

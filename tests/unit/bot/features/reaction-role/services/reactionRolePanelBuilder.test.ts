@@ -5,12 +5,12 @@ import type {
   APIButtonComponentWithCustomId,
   TextInputBuilder,
 } from "discord.js";
-import { REACTION_ROLE_DEFAULT_BUTTON_STYLE } from "@/bot/features/reaction-role/commands/reactionRoleCommand.constants";
 import {
   buildButtonSettingsModal,
   buildPanelButtonRows,
   buildPanelEmbed,
   updatePanelMessage,
+  validateSelectedRolesHierarchy,
 } from "@/bot/features/reaction-role/services/reactionRolePanelBuilder";
 import type { ReactionRoleButton } from "@/shared/database/types/reactionRoleTypes";
 
@@ -133,14 +133,10 @@ describe("bot/features/reaction-role/services/reactionRolePanelBuilder", () => {
       );
     });
 
-    it("prefill 未指定時にスタイルのデフォルト値が primary であること", () => {
+    it("モーダルにラベルと絵文字の 2 フィールドのみ含まれること", () => {
       const modal = buildButtonSettingsModal("prefix:", "s1", "ja");
 
-      // 3番目のコンポーネント（スタイルフィールド）
-      const styleRow = modal
-        .components[2] as ActionRowBuilder<TextInputBuilder>;
-      const styleInput = styleRow.components[0];
-      expect(styleInput.data.value).toBe(REACTION_ROLE_DEFAULT_BUTTON_STYLE);
+      expect(modal.components).toHaveLength(2);
     });
 
     it("prefill 未指定時にラベルと絵文字が空文字列であること", () => {
@@ -158,18 +154,14 @@ describe("bot/features/reaction-role/services/reactionRolePanelBuilder", () => {
       const modal = buildButtonSettingsModal("prefix:", "s1", "ja", {
         label: "既存ラベル",
         emoji: "🔥",
-        style: "danger",
       });
 
       const labelRow = modal
         .components[0] as ActionRowBuilder<TextInputBuilder>;
       const emojiRow = modal
         .components[1] as ActionRowBuilder<TextInputBuilder>;
-      const styleRow = modal
-        .components[2] as ActionRowBuilder<TextInputBuilder>;
       expect(labelRow.components[0].data.value).toBe("既存ラベル");
       expect(emojiRow.components[0].data.value).toBe("🔥");
-      expect(styleRow.components[0].data.value).toBe("danger");
     });
   });
 
@@ -272,6 +264,123 @@ describe("bot/features/reaction-role/services/reactionRolePanelBuilder", () => {
       );
 
       expect(result).toBe(false);
+    });
+  });
+
+  describe("validateSelectedRolesHierarchy", () => {
+    function makeGuild(opts: {
+      ownerId?: string;
+      botHighestPosition: number;
+      roles: { id: string; position: number }[];
+    }) {
+      const { ownerId = "owner-1", botHighestPosition, roles } = opts;
+      const rolesMap = new Map(roles.map((r) => [r.id, r]));
+      return {
+        ownerId,
+        members: {
+          me: { roles: { highest: { position: botHighestPosition } } },
+        },
+        roles: {
+          cache: {
+            get: (id: string) => rolesMap.get(id),
+          },
+        },
+      } as never;
+    }
+
+    function makeExecutor(id: string, highestPosition: number) {
+      return {
+        id,
+        roles: { highest: { position: highestPosition } },
+      } as never;
+    }
+
+    it("全ロールが Bot・実行者 両方より下位なら空配列を返す", () => {
+      const guild = makeGuild({
+        botHighestPosition: 10,
+        roles: [
+          { id: "r1", position: 5 },
+          { id: "r2", position: 3 },
+        ],
+      });
+      const executor = makeExecutor("user-1", 8);
+
+      expect(
+        validateSelectedRolesHierarchy(guild, executor, ["r1", "r2"]),
+      ).toEqual([]);
+    });
+
+    it("Bot 最上位以上のロールは無効として返す", () => {
+      const guild = makeGuild({
+        botHighestPosition: 5,
+        roles: [
+          { id: "r1", position: 3 },
+          { id: "r2", position: 5 },
+          { id: "r3", position: 7 },
+        ],
+      });
+      const executor = makeExecutor("user-1", 10);
+
+      const invalid = validateSelectedRolesHierarchy(guild, executor, [
+        "r1",
+        "r2",
+        "r3",
+      ]);
+      expect(invalid.map((r) => r.id)).toEqual(["r2", "r3"]);
+    });
+
+    it("実行者最上位以上のロールは無効として返す", () => {
+      const guild = makeGuild({
+        botHighestPosition: 20,
+        roles: [
+          { id: "r1", position: 3 },
+          { id: "r2", position: 5 },
+        ],
+      });
+      const executor = makeExecutor("user-1", 5);
+
+      const invalid = validateSelectedRolesHierarchy(guild, executor, [
+        "r1",
+        "r2",
+      ]);
+      expect(invalid.map((r) => r.id)).toEqual(["r2"]);
+    });
+
+    it("実行者がサーバーオーナーなら実行者階層チェックは免除される", () => {
+      const guild = makeGuild({
+        ownerId: "owner-1",
+        botHighestPosition: 20,
+        roles: [{ id: "r1", position: 15 }],
+      });
+      const executor = makeExecutor("owner-1", 5);
+
+      expect(validateSelectedRolesHierarchy(guild, executor, ["r1"])).toEqual(
+        [],
+      );
+    });
+
+    it("オーナー実行時でも Bot 階層チェックは常に適用される", () => {
+      const guild = makeGuild({
+        ownerId: "owner-1",
+        botHighestPosition: 5,
+        roles: [{ id: "r1", position: 10 }],
+      });
+      const executor = makeExecutor("owner-1", 100);
+
+      const invalid = validateSelectedRolesHierarchy(guild, executor, ["r1"]);
+      expect(invalid.map((r) => r.id)).toEqual(["r1"]);
+    });
+
+    it("存在しないロールIDは黙ってスキップされる", () => {
+      const guild = makeGuild({
+        botHighestPosition: 10,
+        roles: [{ id: "r1", position: 5 }],
+      });
+      const executor = makeExecutor("user-1", 8);
+
+      expect(
+        validateSelectedRolesHierarchy(guild, executor, ["r1", "missing"]),
+      ).toEqual([]);
     });
   });
 });

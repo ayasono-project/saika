@@ -74,66 +74,11 @@ function createMockModalInteraction(customId: string, overrides = {}) {
   };
 }
 
-function createMockSelectInteraction(
-  customId: string,
-  values: string[] = [],
-  overrides = {},
-) {
-  return {
-    customId,
-    locale: "ja",
-    guildId: "guild-1",
-    values,
-    reply: vi.fn().mockResolvedValue(undefined),
-    update: vi.fn().mockResolvedValue(undefined),
-    deferUpdate: vi.fn().mockResolvedValue(undefined),
-    editReply: vi.fn().mockResolvedValue(undefined),
-    showModal: vi.fn().mockResolvedValue(undefined),
-    deleteReply: vi.fn().mockResolvedValue(undefined),
-    followUp: vi.fn().mockResolvedValue(undefined),
-    ...overrides,
-  };
-}
-
-function createMockRoleSelectInteraction(
-  customId: string,
-  roleIds: string[] = ["role-1"],
-  overrides = {},
-) {
-  const rolesMap = new Map(roleIds.map((id) => [id, { id, name: id }]));
-  return {
-    customId,
-    locale: "ja",
-    guildId: "guild-1",
-    roles: rolesMap,
-    reply: vi.fn().mockResolvedValue(undefined),
-    update: vi.fn().mockResolvedValue(undefined),
-    deferUpdate: vi.fn().mockResolvedValue(undefined),
-    editReply: vi.fn().mockResolvedValue(undefined),
-    showModal: vi.fn().mockResolvedValue(undefined),
-    deleteReply: vi.fn().mockResolvedValue(undefined),
-    followUp: vi.fn().mockResolvedValue(undefined),
-    ...overrides,
-  };
-}
-
-function createMockButtonInteraction(customId: string, overrides = {}) {
-  return {
-    customId,
-    locale: "ja",
-    guildId: "guild-1",
-    channel: null as unknown,
-    reply: vi.fn().mockResolvedValue(undefined),
-    update: vi.fn().mockResolvedValue(undefined),
-    deferUpdate: vi.fn().mockResolvedValue(undefined),
-    deferReply: vi.fn().mockResolvedValue(undefined),
-    editReply: vi.fn().mockResolvedValue(undefined),
-    showModal: vi.fn().mockResolvedValue(undefined),
-    deleteReply: vi.fn().mockResolvedValue(undefined),
-    followUp: vi.fn().mockResolvedValue(undefined),
-    ...overrides,
-  };
-}
+import {
+  createMockButtonInteraction,
+  createMockRoleSelectInteraction,
+  createMockStringSelectInteraction,
+} from "../../../../../../helpers/interactionMocks";
 
 // ---------- テスト ----------
 
@@ -230,7 +175,7 @@ describe("bot/features/reaction-role/handlers/ui/reactionRoleSetupHandlers", () 
     });
 
     it("セッション期限切れの場合、エラーを返す", async () => {
-      const interaction = createMockSelectInteraction(
+      const interaction = createMockStringSelectInteraction(
         "reaction-role:setup-mode:expired",
         ["toggle"],
       );
@@ -247,7 +192,7 @@ describe("bot/features/reaction-role/handlers/ui/reactionRoleSetupHandlers", () 
     it("有効な選択でモードをセッションに保存し、モーダルを表示して返信を削除する", async () => {
       const session = createBaseSession();
       reactionRoleSetupSessions.set("s1", session);
-      const interaction = createMockSelectInteraction(
+      const interaction = createMockStringSelectInteraction(
         "reaction-role:setup-mode:s1",
         ["toggle"],
       );
@@ -273,32 +218,6 @@ describe("bot/features/reaction-role/handlers/ui/reactionRoleSetupHandlers", () 
     it("セッション期限切れの場合、エラーを返す", async () => {
       const interaction = createMockModalInteraction(
         "reaction-role:setup-button-modal:expired",
-      );
-
-      await reactionRoleSetupButtonModalHandler.execute(interaction as never);
-
-      expect(interaction.reply).toHaveBeenCalledWith(
-        expect.objectContaining({
-          embeds: [{ type: "error" }],
-        }),
-      );
-    });
-
-    it("無効なスタイルの場合、エラーを返す", async () => {
-      const session = createBaseSession();
-      reactionRoleSetupSessions.set("s1", session);
-      const interaction = createMockModalInteraction(
-        "reaction-role:setup-button-modal:s1",
-        {
-          fields: {
-            getTextInputValue: vi.fn((fieldId: string) => {
-              if (fieldId === "reaction-role:button-label") return "Label";
-              if (fieldId === "reaction-role:button-emoji") return "";
-              if (fieldId === "reaction-role:button-style") return "invalid";
-              return "";
-            }),
-          },
-        },
       );
 
       await reactionRoleSetupButtonModalHandler.execute(interaction as never);
@@ -336,7 +255,7 @@ describe("bot/features/reaction-role/handlers/ui/reactionRoleSetupHandlers", () 
       );
     });
 
-    it("有効な送信で pendingButton を保存し、RoleSelectMenu を返す", async () => {
+    it("有効な送信で pendingButton を保存し、色選択 SelectMenu を返す", async () => {
       const session = createBaseSession();
       reactionRoleSetupSessions.set("s1", session);
       const interaction = createMockModalInteraction(
@@ -348,7 +267,7 @@ describe("bot/features/reaction-role/handlers/ui/reactionRoleSetupHandlers", () 
       expect(session.pendingButton).toEqual({
         label: "Role A",
         emoji: "🎉",
-        style: "primary",
+        style: "",
       });
       expect(interaction.reply).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -371,6 +290,7 @@ describe("bot/features/reaction-role/handlers/ui/reactionRoleSetupHandlers", () 
     it("セッション期限切れの場合、エラーを返す", async () => {
       const interaction = createMockRoleSelectInteraction(
         "reaction-role:setup-roles:expired",
+        ["role-1"],
       );
 
       await reactionRoleSetupRoleSelectHandler.execute(interaction as never);
@@ -387,6 +307,7 @@ describe("bot/features/reaction-role/handlers/ui/reactionRoleSetupHandlers", () 
       reactionRoleSetupSessions.set("s1", session);
       const interaction = createMockRoleSelectInteraction(
         "reaction-role:setup-roles:s1",
+        ["role-1"],
       );
 
       await reactionRoleSetupRoleSelectHandler.execute(interaction as never);

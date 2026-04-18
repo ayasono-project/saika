@@ -61,19 +61,15 @@ describe("bot/features/reaction-role/commands/reactionRoleCommand.constants", ()
       expect(isValidButtonStyle(style)).toBe(true);
     });
 
-    it.each([
-      "Primary",
-      "SECONDARY",
-      "Success",
-      "DANGER",
-    ])("大文字混在のスタイル '%s' でも true を返すこと（大小文字不問）", (style) => {
-      expect(isValidButtonStyle(style)).toBe(true);
-    });
-
     it("無効なスタイル文字列に対して false を返すこと", () => {
       expect(isValidButtonStyle("link")).toBe(false);
       expect(isValidButtonStyle("unknown")).toBe(false);
       expect(isValidButtonStyle("")).toBe(false);
+    });
+
+    it("大文字混在の値は lowercase 前提のため無効として false を返すこと", () => {
+      expect(isValidButtonStyle("Primary")).toBe(false);
+      expect(isValidButtonStyle("DANGER")).toBe(false);
     });
   });
 

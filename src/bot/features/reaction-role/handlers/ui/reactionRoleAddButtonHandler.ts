@@ -6,10 +6,12 @@ import {
   ButtonBuilder,
   type ButtonInteraction,
   ButtonStyle,
+  type GuildMember,
   MessageFlags,
   type ModalSubmitInteraction,
   RoleSelectMenuBuilder,
   type RoleSelectMenuInteraction,
+  type StringSelectMenuBuilder,
   type StringSelectMenuInteraction,
 } from "discord.js";
 import {
@@ -40,7 +42,9 @@ import {
 } from "../../commands/reactionRoleCommand.constants";
 import {
   buildButtonSettingsModal,
+  buildColorSelectMenu,
   updatePanelMessage,
+  validateSelectedRolesHierarchy,
 } from "../../services/reactionRolePanelBuilder";
 import { reactionRoleAddButtonSessions } from "./reactionRoleSetupState";
 
@@ -144,11 +148,6 @@ export const reactionRoleAddButtonModalHandler: ModalHandler = {
         .getTextInputValue(REACTION_ROLE_CUSTOM_ID.BUTTON_EMOJI)
         .trim(),
     );
-    const styleInput = interaction.fields
-      .getTextInputValue(REACTION_ROLE_CUSTOM_ID.BUTTON_STYLE)
-      .trim()
-      .toLowerCase();
-    const style = styleInput || REACTION_ROLE_DEFAULT_BUTTON_STYLE;
 
     if (!isValidEmoji(emoji)) {
       const embed = createErrorEmbed(
@@ -165,11 +164,51 @@ export const reactionRoleAddButtonModalHandler: ModalHandler = {
       return;
     }
 
-    if (!isValidButtonStyle(style)) {
+    // 前回のエフェメラルメッセージを削除（「もう1つ追加」ループ時）
+    if (session.previousReplyInteraction) {
+      await session.previousReplyInteraction.deleteReply().catch(() => null);
+    }
+
+    // 色は SelectMenu で選択するため、label / emoji のみ一時保存
+    session.pendingButton = { label, emoji, style: "" };
+
+    // 色選択 StringSelectMenu を表示
+    const colorSelect = buildColorSelectMenu(
+      `${REACTION_ROLE_CUSTOM_ID.ADD_BUTTON_COLOR_PREFIX}${sessionId}`,
+    );
+    const row = new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
+      colorSelect,
+    );
+
+    await interaction.reply({
+      components: [row],
+      flags: MessageFlags.Ephemeral,
+    });
+
+    // 次のループで削除できるようインタラクションを保存
+    session.previousReplyInteraction = interaction;
+  },
+};
+
+/**
+ * add-button フローの色選択 SelectMenu ハンドラ
+ * 色選択後、RoleSelectMenu を表示する
+ */
+export const reactionRoleAddButtonColorSelectHandler: StringSelectHandler = {
+  matches(customId: string) {
+    return customId.startsWith(REACTION_ROLE_CUSTOM_ID.ADD_BUTTON_COLOR_PREFIX);
+  },
+
+  async execute(interaction: StringSelectMenuInteraction) {
+    const sessionId = interaction.customId.slice(
+      REACTION_ROLE_CUSTOM_ID.ADD_BUTTON_COLOR_PREFIX.length,
+    );
+    const session = reactionRoleAddButtonSessions.get(sessionId);
+    if (!session || !session.pendingButton) {
       const embed = createErrorEmbed(
         tInteraction(
           interaction.locale,
-          "reactionRole:user-response.invalid_style",
+          "reactionRole:user-response.session_expired",
         ),
         { locale: interaction.locale },
       );
@@ -180,14 +219,12 @@ export const reactionRoleAddButtonModalHandler: ModalHandler = {
       return;
     }
 
-    // 前回のエフェメラルメッセージを削除（「もう1つ追加」ループ時）
-    if (session.previousReplyInteraction) {
-      await session.previousReplyInteraction.deleteReply().catch(() => null);
-    }
+    const selected = interaction.values[0] ?? "";
+    session.pendingButton.style = isValidButtonStyle(selected)
+      ? selected
+      : REACTION_ROLE_DEFAULT_BUTTON_STYLE;
 
-    session.pendingButton = { label, emoji, style };
-
-    // RoleSelectMenu を表示
+    // RoleSelectMenu を表示（同メッセージを update で置き換え）
     const roleSelect = new RoleSelectMenuBuilder()
       .setCustomId(
         `${REACTION_ROLE_CUSTOM_ID.ADD_BUTTON_ROLES_PREFIX}${sessionId}`,
@@ -205,13 +242,9 @@ export const reactionRoleAddButtonModalHandler: ModalHandler = {
       roleSelect,
     );
 
-    await interaction.reply({
+    await interaction.update({
       components: [row],
-      flags: MessageFlags.Ephemeral,
     });
-
-    // 次のループで削除できるようインタラクションを保存
-    session.previousReplyInteraction = interaction;
   },
 };
 
@@ -244,6 +277,30 @@ export const reactionRoleAddButtonRoleSelectHandler: RoleSelectHandler = {
     }
 
     const roleIds = Array.from(interaction.roles.keys());
+
+    // ロール階層バリデーション（Bot 最上位以上 or 実行者最上位以上を拒否）
+    const guild = interaction.guild;
+    const member = interaction.member as GuildMember | null;
+    if (guild && member) {
+      const invalid = validateSelectedRolesHierarchy(guild, member, roleIds);
+      if (invalid.length > 0) {
+        const roleMentions = invalid.map((r) => `<@&${r.id}>`).join(", ");
+        const embed = createErrorEmbed(
+          tInteraction(
+            interaction.locale,
+            "reactionRole:user-response.role_above_hierarchy",
+            { roles: roleMentions },
+          ),
+          { locale: interaction.locale },
+        );
+        await interaction.reply({
+          embeds: [embed],
+          flags: MessageFlags.Ephemeral,
+        });
+        return;
+      }
+    }
+
     session.buttonCounter++;
     session.buttons.push({
       buttonId: session.buttonCounter,

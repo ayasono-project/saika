@@ -98,14 +98,22 @@ function makeGuild(
       type: number;
       parentId: string | null;
     }[];
+    afkChannelId?: string | null;
+    memberVoiceChannelId?: string | null;
   } = {},
 ) {
-  const { panelChannel = null, guildVcs = [] } = opts;
+  const {
+    panelChannel = null,
+    guildVcs = [],
+    afkChannelId = null,
+    memberVoiceChannelId = null,
+  } = opts;
 
   const cacheMap = new Map(guildVcs.map((vc) => [vc.id, vc]));
 
   return {
     id: GUILD_ID,
+    afkChannelId,
     roles: {
       cache: new Map(),
     },
@@ -122,6 +130,9 @@ function makeGuild(
     },
     members: {
       me: { id: "bot-me" },
+      fetch: vi.fn().mockResolvedValue({
+        voice: { channelId: memberVoiceChannelId },
+      }),
     },
   };
 }

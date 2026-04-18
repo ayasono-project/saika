@@ -192,21 +192,11 @@ function makeInteraction(
   };
 }
 
-/** guild.members.fetch の戻り値にボイスチャンネル情報を付与 */
-function makeMember(voiceChannel: unknown | null, setChannelSuccess = true) {
+/** guild.members.fetch の戻り値としてのメンバーオブジェクト */
+function makeMember() {
   return {
     id: "user-1",
     displayName: "testuser",
-    voice: {
-      channel: voiceChannel,
-      setChannel: vi
-        .fn()
-        .mockImplementation(() =>
-          setChannelSuccess
-            ? Promise.resolve()
-            : Promise.reject(new Error("移動失敗")),
-        ),
-    },
   };
 }
 
@@ -283,7 +273,7 @@ describe("vcRecruitModalHandler / execute()", () => {
 
     const newVc = makeVoiceChannel("new-vc-1");
     const guild = makeGuild({ createVcResult: newVc });
-    const member = makeMember({ id: "user-vc-1" }, true);
+    const member = makeMember();
     guild.members.fetch = vi.fn().mockResolvedValue(member);
 
     const interaction = makeInteraction();
@@ -327,7 +317,7 @@ describe("vcRecruitModalHandler / execute()", () => {
     const newVc = makeVoiceChannel("new-vc-1");
     const guild = makeGuild({ createVcResult: newVc });
     // VC にいないメンバー
-    const member = makeMember(null);
+    const member = makeMember();
     guild.members.fetch = vi.fn().mockResolvedValue(member);
 
     const interaction = makeInteraction();
@@ -376,7 +366,7 @@ describe("vcRecruitModalHandler / execute()", () => {
 
     const existingVc = { id: EXISTING_VC_ID, type: ChannelType.GuildVoice };
     const guild = makeGuild({ fetchChannelResult: existingVc });
-    const member = makeMember({ id: "user-vc-1" }, true);
+    const member = makeMember();
     guild.members.fetch = vi.fn().mockResolvedValue(member);
 
     const interaction = makeInteraction();
@@ -416,7 +406,7 @@ describe("vcRecruitModalHandler / execute()", () => {
     );
     const guild = makeGuild();
     guild.channels.create = vi.fn().mockRejectedValue(apiError);
-    const member = makeMember({ id: "user-vc-1" });
+    const member = makeMember();
     guild.members.fetch = vi.fn().mockResolvedValue(member);
 
     const interaction = makeInteraction();
@@ -452,35 +442,6 @@ describe("vcRecruitModalHandler / execute()", () => {
     expect(deleteVcRecruitSessionMock).toHaveBeenCalledWith(SESSION_ID);
   });
 
-  it("setChannel が throw した場合でも成功メッセージが表示される", async () => {
-    getVcRecruitSessionMock.mockReturnValue({
-      panelChannelId: PANEL_CH_ID,
-      mentionRoleIds: [],
-      selectedVcId: "__new__",
-      createdAt: Date.now(),
-    });
-    findSetupByPanelChannelIdMock.mockResolvedValue(makeSetup());
-
-    const newVc = makeVoiceChannel("new-vc-setfail");
-    const guild = makeGuild({ createVcResult: newVc });
-    // setChannelSuccess=false → setChannel が throw する
-    const member = makeMember({ id: "user-vc-1" }, false);
-    guild.members.fetch = vi.fn().mockResolvedValue(member);
-
-    const interaction = makeInteraction();
-    (interaction as Record<string, unknown>).guild = guild;
-
-    await vcRecruitModalHandler.execute(interaction as never);
-
-    expect(member.voice.setChannel).toHaveBeenCalledWith(newVc);
-    // 成功メッセージで editReply が呼ばれる（setChannel失敗はcatchされる）
-    expect(interaction.editReply).toHaveBeenCalledWith(
-      expect.objectContaining({
-        embeds: [{ success: "vcRecruit:user-response.post_success" }],
-      }),
-    );
-  });
-
   it("投稿チャンネルが送信不可の場合はリンクなしの成功メッセージを表示する", async () => {
     getVcRecruitSessionMock.mockReturnValue({
       panelChannelId: PANEL_CH_ID,
@@ -500,7 +461,7 @@ describe("vcRecruitModalHandler / execute()", () => {
         send: vi.fn(),
       },
     });
-    const member = makeMember(null);
+    const member = makeMember();
     guild.members.fetch = vi.fn().mockResolvedValue(member);
 
     const interaction = makeInteraction();
@@ -531,7 +492,7 @@ describe("vcRecruitModalHandler / execute()", () => {
 
     const newVc = makeVoiceChannel("new-vc-nopostch");
     const guild = makeGuild({ createVcResult: newVc });
-    const member = makeMember(null);
+    const member = makeMember();
     guild.members.fetch = vi.fn().mockResolvedValue(member);
     // postChannelId の fetch が null を返すようにオーバーライド
     const originalFetch = guild.channels.fetch;
@@ -574,7 +535,7 @@ describe("vcRecruitModalHandler / execute()", () => {
         send: sendMock,
       },
     });
-    const member = makeMember(null);
+    const member = makeMember();
     guild.members.fetch = vi.fn().mockResolvedValue(member);
 
     const interaction = makeInteraction();
@@ -604,7 +565,7 @@ describe("vcRecruitModalHandler / execute()", () => {
 
     const newVc = makeVoiceChannel("new-vc-editfail");
     const guild = makeGuild({ createVcResult: newVc });
-    const member = makeMember(null);
+    const member = makeMember();
     guild.members.fetch = vi.fn().mockResolvedValue(member);
 
     const interaction = makeInteraction();
@@ -636,7 +597,7 @@ describe("vcRecruitModalHandler / execute()", () => {
         send: vi.fn(),
       },
     });
-    const member = makeMember(null);
+    const member = makeMember();
     guild.members.fetch = vi.fn().mockResolvedValue(member);
 
     const interaction = makeInteraction();
@@ -661,7 +622,7 @@ describe("vcRecruitModalHandler / execute()", () => {
 
     const newVc = makeVoiceChannel("new-vc-mention");
     const guild = makeGuild({ createVcResult: newVc });
-    const member = makeMember(null);
+    const member = makeMember();
     guild.members.fetch = vi.fn().mockResolvedValue(member);
 
     const interaction = makeInteraction();
@@ -687,7 +648,7 @@ describe("vcRecruitModalHandler / execute()", () => {
 
     const newVc = makeVoiceChannel("new-vc-multi-mention");
     const guild = makeGuild({ createVcResult: newVc });
-    const member = makeMember(null);
+    const member = makeMember();
     guild.members.fetch = vi.fn().mockResolvedValue(member);
 
     const interaction = makeInteraction();
@@ -713,7 +674,7 @@ describe("vcRecruitModalHandler / execute()", () => {
 
     const newVc = makeVoiceChannel("new-vc-nomention");
     const guild = makeGuild({ createVcResult: newVc });
-    const member = makeMember(null);
+    const member = makeMember();
     guild.members.fetch = vi.fn().mockResolvedValue(member);
 
     const interaction = makeInteraction();
@@ -748,7 +709,7 @@ describe("vcRecruitModalHandler / execute()", () => {
 
     await vcRecruitModalHandler.execute(interaction as never);
 
-    // member が null なので setChannel は呼ばれない
+    // members.fetch 失敗時でも投稿処理自体は継続する
     expect(interaction.editReply).toHaveBeenCalled();
   });
 });

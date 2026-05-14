@@ -4,17 +4,20 @@
 FROM node:24-slim AS base
 WORKDIR /app
 
+# pnpm 11 の非対話モード（modules purge 等の confirm を抑止）
+ENV CI=true
+
 # OS パッケージを最新化してセキュリティ脆弱性を修正 + OpenSSL（Prisma が必要）
 RUN apt-get update && apt-get upgrade -y --no-install-recommends \
     && apt-get install -y --no-install-recommends openssl \
     && rm -rf /var/lib/apt/lists/*
 
-# pnpm のインストール
-RUN corepack enable && corepack prepare pnpm@latest --activate
+# pnpm のインストール（package.json の packageManager から自動取得）
+RUN corepack enable
 
 # ─── 依存関係インストール ───
 FROM base AS deps
-COPY package.json pnpm-lock.yaml ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 RUN pnpm install --frozen-lockfile
 
 # ─── ビルド ───
@@ -27,6 +30,9 @@ RUN pnpm run build
 # ─── 本番イメージ ───
 FROM node:24-slim AS runner
 WORKDIR /app
+
+# pnpm 11 の非対話モード（modules purge 等の confirm を抑止）
+ENV CI=true
 
 # OS パッケージを最新化してセキュリティ脆弱性を修正 + OpenSSL（Prisma が必要）
 # gosu: entrypoint で root → node への安全な権限降格に使用
@@ -41,10 +47,10 @@ RUN apt-get update && apt-get upgrade -y --no-install-recommends \
 ENV COREPACK_HOME=/app/.cache/corepack
 RUN mkdir -p /app/.cache/corepack
 
-RUN corepack enable && corepack prepare pnpm@latest --activate
+RUN corepack enable
 
 # 本番依存のみインストール（--ignore-scripts で prepare/husky 等を無効化）
-COPY package.json pnpm-lock.yaml ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY prisma ./prisma
 COPY prisma.config.ts ./
 RUN pnpm install --frozen-lockfile --prod --ignore-scripts

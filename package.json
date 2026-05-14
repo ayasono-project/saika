@@ -42,33 +42,33 @@
     ]
   },
   "dependencies": {
-    "@libsql/client": "^0.17.2",
-    "@prisma/adapter-libsql": "^7.6.0",
-    "@prisma/client": "^7.6.0",
+    "@libsql/client": "^0.17.3",
+    "@prisma/adapter-libsql": "^7.8.0",
+    "@prisma/client": "^7.8.0",
     "date-fns": "^4.1.0",
-    "discord.js": "^14.26.0",
-    "dotenv": "^17.3.1",
-    "i18next": "^26.0.3",
+    "discord.js": "^14.26.4",
+    "dotenv": "^17.4.2",
+    "i18next": "^26.1.0",
     "node-cron": "^4.2.1",
-    "prisma": "^7.6.0",
+    "prisma": "^7.8.0",
     "winston": "^3.19.0",
     "winston-daily-rotate-file": "^5.0.0",
     "winston-transport": "^4.9.0",
-    "zod": "^4.3.6"
+    "zod": "^4.4.3"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.4.10",
-    "@commitlint/cli": "^20.5.0",
-    "@commitlint/config-conventional": "^20.5.0",
-    "@types/node": "^25.5.0",
+    "@biomejs/biome": "^2.4.15",
+    "@commitlint/cli": "^21.0.1",
+    "@commitlint/config-conventional": "^21.0.1",
+    "@types/node": "^25.7.0",
     "@types/node-cron": "^3.0.11",
-    "@vitest/coverage-istanbul": "^4.1.2",
+    "@vitest/coverage-istanbul": "^4.1.6",
     "husky": "^9.1.7",
-    "lint-staged": "^16.4.0",
+    "lint-staged": "^17.0.4",
     "tsup": "^8.5.1",
-    "tsx": "^4.21.0",
-    "typescript": "^6.0.2",
-    "vitest": "^4.1.2"
+    "tsx": "^4.22.0",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.6"
   },
   "pnpm": {
     "onlyBuiltDependencies": [

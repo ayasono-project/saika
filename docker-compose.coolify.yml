@@ -3,6 +3,10 @@
 # ─────────────────────────────────────────────────────
 # Coolify が Git push をトリガーに自動でビルド・デプロイする。
 # 環境変数は Coolify の管理画面「Environment Variables」で設定すること。
+#
+# ボリューム名は Coolify がアプリ ID をプレフィックスとして付与する。
+# 例: sqlite_data → <app-id>_sqlite_data
+# Coolify 管理画面 > Storages でマッピングを確認できる。
 
 services:
   bot:
@@ -10,7 +14,6 @@ services:
       context: .
       dockerfile: Dockerfile
       target: runner
-    container_name: saika-bot
     command: node dist/bot/main.js
     restart: unless-stopped
     environment:
@@ -25,7 +28,7 @@ services:
       DISCORD_ERROR_WEBHOOK_URL: ${DISCORD_ERROR_WEBHOOK_URL:-}
       USER_MANUAL_URL: ${USER_MANUAL_URL:-}
     volumes:
-      # SQLite データの永続化（既存の名前付きボリュームを引き継ぐ）
+      # SQLite データの永続化（Coolify が名前付きボリュームを管理）
       - sqlite_data:/app/storage
       # ログファイルの永続化（ホストバインドマウント）
       - /opt/saika/logs:/app/logs
@@ -37,5 +40,3 @@ services:
 
 volumes:
   sqlite_data:
-    external: true
-    name: saika_sqlite_data

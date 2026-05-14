@@ -5,24 +5,22 @@ import {
   ActionRowBuilder,
   MessageFlags,
   type ModalSubmitInteraction,
-  RoleSelectMenuBuilder,
+  type StringSelectMenuBuilder,
 } from "discord.js";
 import { tInteraction } from "../../../../../shared/locale/localeManager";
 import type { ModalHandler } from "../../../../handlers/interactionCreate/ui/types";
 import { createErrorEmbed } from "../../../../utils/messageResponse";
 import {
-  isValidButtonStyle,
   isValidEmoji,
   normalizeEmoji,
   REACTION_ROLE_CUSTOM_ID,
-  REACTION_ROLE_DEFAULT_BUTTON_STYLE,
-  REACTION_ROLE_MAX_ROLE_SELECT,
 } from "../../commands/reactionRoleCommand.constants";
+import { buildColorSelectMenu } from "../../services/reactionRolePanelBuilder";
 import { reactionRoleSetupSessions } from "./reactionRoleSetupState";
 
 /**
  * setup フローのボタン設定モーダルを処理するハンドラ
- * モーダル送信後、RoleSelectMenu を表示する
+ * モーダル送信後、色選択 StringSelectMenu を表示する
  */
 export const reactionRoleSetupButtonModalHandler: ModalHandler = {
   matches(customId: string) {
@@ -59,11 +57,6 @@ export const reactionRoleSetupButtonModalHandler: ModalHandler = {
         .getTextInputValue(REACTION_ROLE_CUSTOM_ID.BUTTON_EMOJI)
         .trim(),
     );
-    const styleInput = interaction.fields
-      .getTextInputValue(REACTION_ROLE_CUSTOM_ID.BUTTON_STYLE)
-      .trim()
-      .toLowerCase();
-    const style = styleInput || REACTION_ROLE_DEFAULT_BUTTON_STYLE;
 
     // 絵文字のバリデーション
     if (!isValidEmoji(emoji)) {
@@ -81,44 +74,20 @@ export const reactionRoleSetupButtonModalHandler: ModalHandler = {
       return;
     }
 
-    // スタイルのバリデーション
-    if (!isValidButtonStyle(style)) {
-      const embed = createErrorEmbed(
-        tInteraction(
-          interaction.locale,
-          "reactionRole:user-response.invalid_style",
-        ),
-        { locale: interaction.locale },
-      );
-      await interaction.reply({
-        embeds: [embed],
-        flags: MessageFlags.Ephemeral,
-      });
-      return;
-    }
-
     // 前回のエフェメラルメッセージを削除（「もう1つ追加」ループ時）
     if (session.previousReplyInteraction) {
       await session.previousReplyInteraction.deleteReply().catch(() => null);
     }
 
-    // 一時的にボタン情報を保存（ロール選択後に確定）
-    session.pendingButton = { label, emoji, style };
+    // 色選択は SelectMenu で行うため、label / emoji のみ一時保存
+    session.pendingButton = { label, emoji, style: "" };
 
-    // RoleSelectMenu を表示
-    const roleSelect = new RoleSelectMenuBuilder()
-      .setCustomId(`${REACTION_ROLE_CUSTOM_ID.SETUP_ROLES_PREFIX}${sessionId}`)
-      .setPlaceholder(
-        tInteraction(
-          interaction.locale,
-          "reactionRole:ui.select.roles_placeholder",
-        ),
-      )
-      .setMinValues(1)
-      .setMaxValues(REACTION_ROLE_MAX_ROLE_SELECT);
-
-    const row = new ActionRowBuilder<RoleSelectMenuBuilder>().addComponents(
-      roleSelect,
+    // 色選択 StringSelectMenu を表示
+    const colorSelect = buildColorSelectMenu(
+      `${REACTION_ROLE_CUSTOM_ID.SETUP_COLOR_PREFIX}${sessionId}`,
+    );
+    const row = new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
+      colorSelect,
     );
 
     await interaction.reply({

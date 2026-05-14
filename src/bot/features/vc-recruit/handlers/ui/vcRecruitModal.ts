@@ -320,11 +320,6 @@ export const vcRecruitModalHandler: ModalHandler = {
         .catch(() => null);
     }
 
-    // 投稿者をVCへ移動
-    if (member && member.voice.channel) {
-      await member.voice.setChannel(voiceChannel).catch(() => null);
-    }
-
     // セッションを削除
     deleteVcRecruitSession(sessionId);
 

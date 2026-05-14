@@ -5,6 +5,7 @@ import {
   ActionRowBuilder,
   ButtonBuilder,
   ButtonStyle,
+  type GuildMember,
   MessageFlags,
   type RoleSelectMenuInteraction,
 } from "discord.js";
@@ -15,6 +16,7 @@ import {
   REACTION_ROLE_CUSTOM_ID,
   REACTION_ROLE_MAX_BUTTONS,
 } from "../../commands/reactionRoleCommand.constants";
+import { validateSelectedRolesHierarchy } from "../../services/reactionRolePanelBuilder";
 import { reactionRoleSetupSessions } from "./reactionRoleSetupState";
 
 /**
@@ -46,8 +48,32 @@ export const reactionRoleSetupRoleSelectHandler: RoleSelectHandler = {
       return;
     }
 
-    // ロールIDを取得してボタンを確定
+    // ロールIDを取得
     const roleIds = Array.from(interaction.roles.keys());
+
+    // ロール階層バリデーション（Bot 最上位以上 or 実行者最上位以上を拒否）
+    const guild = interaction.guild;
+    const member = interaction.member as GuildMember | null;
+    if (guild && member) {
+      const invalid = validateSelectedRolesHierarchy(guild, member, roleIds);
+      if (invalid.length > 0) {
+        const roleMentions = invalid.map((r) => `<@&${r.id}>`).join(", ");
+        const embed = createErrorEmbed(
+          tInteraction(
+            interaction.locale,
+            "reactionRole:user-response.role_above_hierarchy",
+            { roles: roleMentions },
+          ),
+          { locale: interaction.locale },
+        );
+        await interaction.reply({
+          embeds: [embed],
+          flags: MessageFlags.Ephemeral,
+        });
+        return;
+      }
+    }
+
     session.buttonCounter++;
     session.buttons.push({
       buttonId: session.buttonCounter,

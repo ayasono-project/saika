@@ -70,42 +70,10 @@ vi.mock(
   }),
 );
 
-function createMockStringSelectInteraction(
-  customId: string,
-  values: string[] = [],
-  overrides = {},
-) {
-  return {
-    customId,
-    locale: "ja",
-    guildId: "guild-1",
-    values,
-    reply: vi.fn().mockResolvedValue(undefined),
-    update: vi.fn().mockResolvedValue(undefined),
-    showModal: vi.fn().mockResolvedValue(undefined),
-    ...overrides,
-  };
-}
-
-function createMockModalInteraction(
-  customId: string,
-  fields: Record<string, string> = {},
-  overrides = {},
-) {
-  return {
-    customId,
-    locale: "ja",
-    guildId: "guild-1",
-    client: {},
-    fields: {
-      getTextInputValue: vi.fn((key: string) => fields[key] ?? ""),
-    },
-    reply: vi.fn().mockResolvedValue(undefined),
-    deferReply: vi.fn().mockResolvedValue(undefined),
-    editReply: vi.fn().mockResolvedValue(undefined),
-    ...overrides,
-  };
-}
+import {
+  createMockModalInteraction,
+  createMockStringSelectInteraction,
+} from "../../../../../../helpers/interactionMocks";
 
 describe("bot/features/reaction-role/handlers/ui/reactionRoleEditPanelHandler", () => {
   afterEach(() => {

@@ -2,14 +2,26 @@
 
 > Architecture Guide - コード設計・モジュール構成・設計パターンの解説
 
-最終更新: 2026年3月28日
+最終更新: 2026年4月17日
+
+---
+
+> **⚠️ 部分的に旧前提**
+>
+> 本ドキュメントは現行コード（SQLite / libSQL + Bot 単一プロセス）を記述しているが、以下は**移行予定**:
+>
+> - **DB を PostgreSQL に変更**（Coolify Scheduled Backups 対応・Bot 間の運用統一。決定済み・実装未着手）
+> - **Fastify API 層を `src/api/` に追加**し、web ダッシュボードから設定 CRUD を受け付ける（Bot と同一プロセス内で起動）
+> - ディレクトリ構成を `src/{bot,api,features,shared}/` 前提に再編
+>
+> プロジェクト全体方針は [infra/docs/PROJECT_ARCHITECTURE.md](../../../infra/docs/PROJECT_ARCHITECTURE.md) を参照。
 
 ---
 
 ## 概要
 
 saika は **Discord サーバー管理 Bot** です。
-Web UI は別リポジトリ（ayasono-web）に分離されており、本リポジトリは Bot プロセスとヘルスチェック API のみを担当します。
+Web UI は別リポジトリ（ayasono-web）に分離されており、本リポジトリは Bot プロセス本体と、web ダッシュボードから呼ばれる Fastify API サーバー（同一 Node プロセス内で起動、現在実装中）を担当します。
 
 ### このドキュメントのスコープ
 

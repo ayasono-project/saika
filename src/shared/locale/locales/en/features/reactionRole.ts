@@ -31,6 +31,8 @@ export const reactionRole = {
   "user-response.role_already_selected": "This role is already selected.",
   "user-response.role_too_high":
     "The bot cannot manage this role. Please contact a server administrator.",
+  "user-response.role_above_hierarchy":
+    "The following roles are above the bot's or your highest role and cannot be configured: {{roles}}",
   "user-response.no_panels": "No reaction role configurations found.",
   "user-response.button_limit_reached": "Button limit (25) has been reached.",
   "user-response.cannot_remove_all_buttons": "Cannot remove all buttons.",
@@ -38,8 +40,6 @@ export const reactionRole = {
     "Invalid color format. Please use #RRGGBB format.",
   "user-response.invalid_emoji":
     "Invalid emoji format. Please use a Unicode emoji or Discord custom emoji (<:name:id>).",
-  "user-response.invalid_style":
-    "Invalid style. Please use primary, secondary, success, or danger.",
   "user-response.session_expired":
     "Session has expired. Please run the command again.",
   "user-response.panels_cleaned_up":
@@ -95,8 +95,6 @@ export const reactionRole = {
   "ui.modal.button_settings_title": "Button Settings",
   "ui.modal.button_field_label": "Button Label",
   "ui.modal.button_field_emoji": "Emoji",
-  "ui.modal.button_field_style":
-    "Style (primary / secondary / success / danger)",
   "ui.modal.edit_panel_title": "Edit Panel",
 
   // ── Logs

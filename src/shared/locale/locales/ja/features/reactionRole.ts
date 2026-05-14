@@ -31,6 +31,8 @@ export const reactionRole = {
   "user-response.role_already_selected": "既にこのロールが選択されています。",
   "user-response.role_too_high":
     "Botの権限ではこのロールを操作できません。サーバー管理者に連絡してください。",
+  "user-response.role_above_hierarchy":
+    "以下のロールはBotまたはあなたの最上位ロールより上位のため設定できません: {{roles}}",
   "user-response.no_panels": "リアクションロール設定がありません。",
   "user-response.button_limit_reached": "ボタンの上限（25個）に達しています。",
   "user-response.cannot_remove_all_buttons":
@@ -39,8 +41,6 @@ export const reactionRole = {
     "カラーの形式が正しくありません。#RRGGBB形式で入力してください。",
   "user-response.invalid_emoji":
     "絵文字の形式が正しくありません。Unicode絵文字またはDiscordカスタム絵文字（<:name:id>）を入力してください。",
-  "user-response.invalid_style":
-    "スタイルの形式が正しくありません。primary / secondary / success / danger のいずれかを入力してください。",
   "user-response.session_expired":
     "セッションの有効期限が切れました。もう一度コマンドを実行してください。",
   "user-response.panels_cleaned_up":
@@ -97,8 +97,6 @@ export const reactionRole = {
   "ui.modal.button_settings_title": "ボタン設定",
   "ui.modal.button_field_label": "ボタンラベル",
   "ui.modal.button_field_emoji": "絵文字",
-  "ui.modal.button_field_style":
-    "スタイル（primary / secondary / success / danger）",
   "ui.modal.edit_panel_title": "パネル編集",
 
   // ── ログ

@@ -72,7 +72,6 @@ Coolify の管理画面 **Environment Variables** で設定する。サーバー
 | ファイル | 用途 |
 | --- | --- |
 | `docker-compose.coolify.yml` | Coolify デプロイ用（本番で使用） |
-| `docker-compose.portainer.yml` | 旧 Portainer Stack 用（ロールバック用に一時保存） |
 
 Coolify は Git push をトリガーに `docker-compose.coolify.yml` を使ってビルド・デプロイする。compose ファイルの変更はリポジトリに push すれば次回デプロイ時に自動で反映される。
 
@@ -92,15 +91,6 @@ git push origin main
 # → Coolify が自動でデプロイ
 ```
 
-### 3-3. Portainer へのフォールバック（緊急時）
-
-Coolify で復旧できない場合、旧 Portainer 環境にフォールバックできる。
-
-1. `.github/workflows/deploy.yml` を手動実行（GitHub Actions の Run workflow）
-2. Portainer UI で Stack を確認
-
-> Portainer 関連ファイル（`docker-compose.portainer.yml`、`deploy.yml`）は Coolify の安定運用が確認できた段階で削除する。
-
 ---
 
 ## 4. トラブルシューティング
@@ -116,12 +106,16 @@ docker logs saika-bot --tail 50
 - Coolify の環境変数が正しく設定されているか確認
 - `sqlite_data` ボリュームの権限エラーがないか確認
 
+### DB データが初期値になっている
+
+Coolify がアプリを再作成した場合や、ボリュームが新規生成された場合に発生する。復旧手順は [DEV_TIPS.md](DEV_TIPS.md#coolify-で-db-データを復旧する) を参照。
+
 ### SQLITE_READONLY エラーが発生する
 
-`docker-entrypoint.sh` がコンテナ起動時に `chown -R node:node /app/storage` を自動実行するため、通常は発生しない。発生した場合:
+`docker-entrypoint.sh` がコンテナ起動時に `chown -R node:node /app/storage` を自動実行するため、通常は発生しない。発生した場合は Coolify のコンテナ名を確認して実行:
 
 ```bash
-docker exec -u root saika-bot chown -R node:node /app/storage
+docker exec -u root <コンテナ名> chown -R node:node /app/storage
 ```
 
 ### Coolify が GitHub リポジトリにアクセスできない

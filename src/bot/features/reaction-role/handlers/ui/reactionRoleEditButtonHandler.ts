@@ -3,15 +3,13 @@
 
 import {
   ActionRowBuilder,
+  type GuildMember,
   MessageFlags,
-  ModalBuilder,
   type ModalSubmitInteraction,
   RoleSelectMenuBuilder,
   type RoleSelectMenuInteraction,
   StringSelectMenuBuilder,
   type StringSelectMenuInteraction,
-  TextInputBuilder,
-  TextInputStyle,
 } from "discord.js";
 import {
   logPrefixed,
@@ -37,7 +35,12 @@ import {
   REACTION_ROLE_DEFAULT_BUTTON_STYLE,
   REACTION_ROLE_MAX_ROLE_SELECT,
 } from "../../commands/reactionRoleCommand.constants";
-import { updatePanelMessage } from "../../services/reactionRolePanelBuilder";
+import {
+  buildButtonSettingsModal,
+  buildColorSelectMenu,
+  updatePanelMessage,
+  validateSelectedRolesHierarchy,
+} from "../../services/reactionRolePanelBuilder";
 import { reactionRoleEditButtonSessions } from "./reactionRoleSetupState";
 
 /**
@@ -148,59 +151,13 @@ export const reactionRoleEditButtonSelectHandler: StringSelectHandler = {
     const targetButton = buttons.find((b) => b.buttonId === buttonId);
     if (!targetButton) return;
 
-    // ボタン設定モーダルを表示（現在値をプリフィル）
-    const modal = new ModalBuilder()
-      .setCustomId(
-        `${REACTION_ROLE_CUSTOM_ID.EDIT_BUTTON_MODAL_PREFIX}${sessionId}`,
-      )
-      .setTitle(
-        tInteraction(
-          interaction.locale,
-          "reactionRole:ui.modal.button_settings_title",
-        ),
-      )
-      .addComponents(
-        new ActionRowBuilder<TextInputBuilder>().addComponents(
-          new TextInputBuilder()
-            .setCustomId(REACTION_ROLE_CUSTOM_ID.BUTTON_LABEL)
-            .setLabel(
-              tInteraction(
-                interaction.locale,
-                "reactionRole:ui.modal.button_field_label",
-              ),
-            )
-            .setStyle(TextInputStyle.Short)
-            .setRequired(true)
-            .setMaxLength(80)
-            .setValue(targetButton.label),
-        ),
-        new ActionRowBuilder<TextInputBuilder>().addComponents(
-          new TextInputBuilder()
-            .setCustomId(REACTION_ROLE_CUSTOM_ID.BUTTON_EMOJI)
-            .setLabel(
-              tInteraction(
-                interaction.locale,
-                "reactionRole:ui.modal.button_field_emoji",
-              ),
-            )
-            .setStyle(TextInputStyle.Short)
-            .setRequired(false)
-            .setValue(targetButton.emoji),
-        ),
-        new ActionRowBuilder<TextInputBuilder>().addComponents(
-          new TextInputBuilder()
-            .setCustomId(REACTION_ROLE_CUSTOM_ID.BUTTON_STYLE)
-            .setLabel(
-              tInteraction(
-                interaction.locale,
-                "reactionRole:ui.modal.button_field_style",
-              ),
-            )
-            .setStyle(TextInputStyle.Short)
-            .setRequired(false)
-            .setValue(targetButton.style),
-        ),
-      );
+    // ボタン設定モーダルを表示（現在値をプリフィル、色はモーダル後の SelectMenu で選択）
+    const modal = buildButtonSettingsModal(
+      REACTION_ROLE_CUSTOM_ID.EDIT_BUTTON_MODAL_PREFIX,
+      sessionId,
+      interaction.locale,
+      { label: targetButton.label, emoji: targetButton.emoji },
+    );
 
     await interaction.showModal(modal);
   },
@@ -244,11 +201,6 @@ export const reactionRoleEditButtonModalHandler: ModalHandler = {
         .getTextInputValue(REACTION_ROLE_CUSTOM_ID.BUTTON_EMOJI)
         .trim(),
     );
-    const styleInput = interaction.fields
-      .getTextInputValue(REACTION_ROLE_CUSTOM_ID.BUTTON_STYLE)
-      .trim()
-      .toLowerCase();
-    const style = styleInput || REACTION_ROLE_DEFAULT_BUTTON_STYLE;
 
     if (!isValidEmoji(emoji)) {
       const embed = createErrorEmbed(
@@ -265,11 +217,54 @@ export const reactionRoleEditButtonModalHandler: ModalHandler = {
       return;
     }
 
-    if (!isValidButtonStyle(style)) {
+    // 現在のボタン色を取得して色 SelectMenu の default に使う
+    const configService = getBotReactionRolePanelConfigService();
+    const panel = await configService.findById(session.panelId);
+    const currentStyle =
+      parseButtons(panel?.buttons ?? "[]").find(
+        (b) => b.buttonId === session.buttonId,
+      )?.style ?? "";
+
+    // 色は SelectMenu で選択するため、label / emoji のみ一時保存
+    session.pendingButton = { label, emoji, style: "" };
+
+    // 色選択 StringSelectMenu を表示（現在値を default 選択）
+    const colorSelect = buildColorSelectMenu(
+      `${REACTION_ROLE_CUSTOM_ID.EDIT_BUTTON_COLOR_PREFIX}${sessionId}`,
+      currentStyle,
+    );
+    const row = new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
+      colorSelect,
+    );
+
+    await interaction.reply({
+      components: [row],
+      flags: MessageFlags.Ephemeral,
+    });
+  },
+};
+
+/**
+ * edit-button フローの色選択 SelectMenu ハンドラ
+ * 色選択後、RoleSelectMenu を表示する
+ */
+export const reactionRoleEditButtonColorSelectHandler: StringSelectHandler = {
+  matches(customId: string) {
+    return customId.startsWith(
+      REACTION_ROLE_CUSTOM_ID.EDIT_BUTTON_COLOR_PREFIX,
+    );
+  },
+
+  async execute(interaction: StringSelectMenuInteraction) {
+    const sessionId = interaction.customId.slice(
+      REACTION_ROLE_CUSTOM_ID.EDIT_BUTTON_COLOR_PREFIX.length,
+    );
+    const session = reactionRoleEditButtonSessions.get(sessionId);
+    if (!session || !session.pendingButton) {
       const embed = createErrorEmbed(
         tInteraction(
           interaction.locale,
-          "reactionRole:user-response.invalid_style",
+          "reactionRole:user-response.session_expired",
         ),
         { locale: interaction.locale },
       );
@@ -280,9 +275,12 @@ export const reactionRoleEditButtonModalHandler: ModalHandler = {
       return;
     }
 
-    session.pendingButton = { label, emoji, style };
+    const selected = interaction.values[0] ?? "";
+    session.pendingButton.style = isValidButtonStyle(selected)
+      ? selected
+      : REACTION_ROLE_DEFAULT_BUTTON_STYLE;
 
-    // RoleSelectMenu を表示
+    // RoleSelectMenu を表示（同メッセージを update で置き換え）
     const roleSelect = new RoleSelectMenuBuilder()
       .setCustomId(
         `${REACTION_ROLE_CUSTOM_ID.EDIT_BUTTON_ROLES_PREFIX}${sessionId}`,
@@ -300,9 +298,8 @@ export const reactionRoleEditButtonModalHandler: ModalHandler = {
       roleSelect,
     );
 
-    await interaction.reply({
+    await interaction.update({
       components: [row],
-      flags: MessageFlags.Ephemeral,
     });
   },
 };
@@ -337,9 +334,33 @@ export const reactionRoleEditButtonRoleSelectHandler: RoleSelectHandler = {
       return;
     }
 
+    const roleIds = Array.from(interaction.roles.keys());
+
+    // ロール階層バリデーション（Bot 最上位以上 or 実行者最上位以上を拒否）
+    const guild = interaction.guild;
+    const member = interaction.member as GuildMember | null;
+    if (guild && member) {
+      const invalid = validateSelectedRolesHierarchy(guild, member, roleIds);
+      if (invalid.length > 0) {
+        const roleMentions = invalid.map((r) => `<@&${r.id}>`).join(", ");
+        const embed = createErrorEmbed(
+          tInteraction(
+            interaction.locale,
+            "reactionRole:user-response.role_above_hierarchy",
+            { roles: roleMentions },
+          ),
+          { locale: interaction.locale },
+        );
+        await interaction.reply({
+          embeds: [embed],
+          flags: MessageFlags.Ephemeral,
+        });
+        return;
+      }
+    }
+
     await interaction.deferUpdate();
 
-    const roleIds = Array.from(interaction.roles.keys());
     const configService = getBotReactionRolePanelConfigService();
     const panel = await configService.findById(session.panelId);
     if (!panel) return;

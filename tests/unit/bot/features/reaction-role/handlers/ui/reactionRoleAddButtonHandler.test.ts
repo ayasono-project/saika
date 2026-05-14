@@ -61,83 +61,31 @@ const mockUpdatePanelMessage = vi.fn();
 const mockBuildButtonSettingsModal = vi.fn((..._args: unknown[]) => ({
   type: "modal",
 }));
+const mockBuildColorSelectMenu = vi.fn((..._args: unknown[]) => ({
+  type: "color-select",
+}));
+const mockValidateSelectedRolesHierarchy = vi.fn<
+  (...args: unknown[]) => Array<{ id: string }>
+>(() => []);
 vi.mock(
   "@/bot/features/reaction-role/services/reactionRolePanelBuilder",
   () => ({
     updatePanelMessage: (...args: unknown[]) => mockUpdatePanelMessage(...args),
     buildButtonSettingsModal: (...args: unknown[]) =>
       mockBuildButtonSettingsModal(...args),
+    buildColorSelectMenu: (...args: unknown[]) =>
+      mockBuildColorSelectMenu(...args),
+    validateSelectedRolesHierarchy: (...args: unknown[]) =>
+      mockValidateSelectedRolesHierarchy(...args),
   }),
 );
 
-function createMockStringSelectInteraction(
-  customId: string,
-  values: string[] = [],
-  overrides = {},
-) {
-  return {
-    customId,
-    locale: "ja",
-    guildId: "guild-1",
-    values,
-    reply: vi.fn().mockResolvedValue(undefined),
-    update: vi.fn().mockResolvedValue(undefined),
-    showModal: vi.fn().mockResolvedValue(undefined),
-    ...overrides,
-  };
-}
-
-function createMockModalInteraction(
-  customId: string,
-  fields: Record<string, string> = {},
-  overrides = {},
-) {
-  return {
-    customId,
-    locale: "ja",
-    guildId: "guild-1",
-    fields: {
-      getTextInputValue: vi.fn((key: string) => fields[key] ?? ""),
-    },
-    reply: vi.fn().mockResolvedValue(undefined),
-    update: vi.fn().mockResolvedValue(undefined),
-    ...overrides,
-  };
-}
-
-function createMockRoleSelectInteraction(
-  customId: string,
-  roleIds: string[] = [],
-  overrides = {},
-) {
-  const rolesMap = new Map(roleIds.map((id) => [id, { id }]));
-  return {
-    customId,
-    locale: "ja",
-    guildId: "guild-1",
-    roles: rolesMap,
-    reply: vi.fn().mockResolvedValue(undefined),
-    update: vi.fn().mockResolvedValue(undefined),
-    ...overrides,
-  };
-}
-
-function createMockButtonInteraction(customId: string, overrides = {}) {
-  return {
-    customId,
-    locale: "ja",
-    guildId: "guild-1",
-    client: {},
-    reply: vi.fn().mockResolvedValue(undefined),
-    update: vi.fn().mockResolvedValue(undefined),
-    deferUpdate: vi.fn().mockResolvedValue(undefined),
-    editReply: vi.fn().mockResolvedValue(undefined),
-    deleteReply: vi.fn().mockResolvedValue(undefined),
-    followUp: vi.fn().mockResolvedValue(undefined),
-    showModal: vi.fn().mockResolvedValue(undefined),
-    ...overrides,
-  };
-}
+import {
+  createMockButtonInteraction,
+  createMockModalInteraction,
+  createMockRoleSelectInteraction,
+  createMockStringSelectInteraction,
+} from "../../../../../../helpers/interactionMocks";
 
 describe("bot/features/reaction-role/handlers/ui/reactionRoleAddButtonHandler", () => {
   afterEach(() => {
@@ -314,35 +262,7 @@ describe("bot/features/reaction-role/handlers/ui/reactionRoleAddButtonHandler", 
         expect(session.pendingButton).toBeUndefined();
       });
 
-      it("無効なスタイルの場合はエラー応答する", async () => {
-        const session = {
-          panelId: "panel-1",
-          buttons: [],
-          buttonCounter: 0,
-          pendingButton: undefined,
-        };
-        reactionRoleAddButtonSessions.set("session-1", session);
-
-        const interaction = createMockModalInteraction(
-          "reaction-role:add-button-modal:session-1",
-          {
-            "reaction-role:button-label": "テスト",
-            "reaction-role:button-emoji": "",
-            "reaction-role:button-style": "invalid-style",
-          },
-        );
-
-        await reactionRoleAddButtonModalHandler.execute(interaction as never);
-
-        expect(interaction.reply).toHaveBeenCalledWith(
-          expect.objectContaining({
-            embeds: expect.any(Array),
-          }),
-        );
-        expect(session.pendingButton).toBeUndefined();
-      });
-
-      it("有効な入力の場合はpendingButtonを保存しRoleSelectMenuを表示する", async () => {
+      it("有効な入力の場合はpendingButtonを保存し色選択SelectMenuを表示する", async () => {
         const session = {
           panelId: "panel-1",
           buttons: [],
@@ -356,7 +276,6 @@ describe("bot/features/reaction-role/handlers/ui/reactionRoleAddButtonHandler", 
           {
             "reaction-role:button-label": "テストボタン",
             "reaction-role:button-emoji": "🎉",
-            "reaction-role:button-style": "primary",
           },
         );
 
@@ -365,7 +284,7 @@ describe("bot/features/reaction-role/handlers/ui/reactionRoleAddButtonHandler", 
         expect(session.pendingButton).toEqual({
           label: "テストボタン",
           emoji: "🎉",
-          style: "primary",
+          style: "",
         });
         expect(interaction.reply).toHaveBeenCalledWith(
           expect.objectContaining({
@@ -482,6 +401,49 @@ describe("bot/features/reaction-role/handlers/ui/reactionRoleAddButtonHandler", 
             components: expect.any(Array),
           }),
         );
+      });
+
+      it("階層バリデーション NG のロールが選択された場合はエラー返信し session を更新しない", async () => {
+        const initialPending = { label: "テスト", emoji: "", style: "primary" };
+        const session = {
+          panelId: "panel-1",
+          buttons: [] as {
+            buttonId: number;
+            label: string;
+            emoji: string;
+            style: string;
+            roleIds: string[];
+          }[],
+          buttonCounter: 0,
+          pendingButton: initialPending,
+        };
+        reactionRoleAddButtonSessions.set("session-1", session);
+
+        mockValidateSelectedRolesHierarchy.mockReturnValueOnce([
+          { id: "bad-role" },
+        ]);
+
+        const interaction = createMockRoleSelectInteraction(
+          "reaction-role:add-button-roles:session-1",
+          ["bad-role"],
+          {
+            guild: { id: "guild-1" },
+            member: { id: "user-1" },
+          },
+        );
+
+        await reactionRoleAddButtonRoleSelectHandler.execute(
+          interaction as never,
+        );
+
+        expect(interaction.reply).toHaveBeenCalledWith(
+          expect.objectContaining({
+            embeds: expect.any(Array),
+          }),
+        );
+        expect(session.buttons).toHaveLength(0);
+        expect(session.pendingButton).toEqual(initialPending);
+        expect(interaction.update).not.toHaveBeenCalled();
       });
 
       it("上限に達した場合はmoreボタンが無効化される", async () => {

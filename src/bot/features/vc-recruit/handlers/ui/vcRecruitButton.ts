@@ -175,13 +175,15 @@ export const vcRecruitButtonHandler: ButtonHandler = {
         guild.id,
       );
       const vacTriggerIds = new Set(vacConfig.triggerChannelIds);
+      const afkChannelId = guild.afkChannelId;
 
       const existingVcs = guild.channels.cache
         .filter(
           (ch): ch is VoiceChannel =>
             ch.type === ChannelType.GuildVoice &&
             (ch.parentId ?? null) === (setup.categoryId ?? null) &&
-            !vacTriggerIds.has(ch.id),
+            !vacTriggerIds.has(ch.id) &&
+            ch.id !== afkChannelId,
         )
         .sort((a, b) => a.position - b.position)
         .toJSON();
@@ -191,18 +193,28 @@ export const vcRecruitButtonHandler: ButtonHandler = {
         "vcRecruit:ui.select.new_vc",
       );
 
+      // 実行ユーザーが候補VCに参加中なら、そのVCをデフォルト選択する
+      const member = await guild.members
+        .fetch(interaction.user.id)
+        .catch(() => null);
+      const currentVcId = member?.voice.channelId ?? null;
+      const visibleVcs = existingVcs.slice(0, 24);
+      const defaultVcId =
+        currentVcId && visibleVcs.some((vc) => vc.id === currentVcId)
+          ? currentVcId
+          : NEW_VC_VALUE;
+
       const vcOptions: StringSelectMenuOptionBuilder[] = [
         new StringSelectMenuOptionBuilder()
           .setValue(NEW_VC_VALUE)
           .setLabel(newVcLabel)
-          .setDefault(true),
-        ...existingVcs
-          .slice(0, 24)
-          .map((vc) =>
-            new StringSelectMenuOptionBuilder()
-              .setValue(vc.id)
-              .setLabel(`🔊 ${vc.name}`),
-          ),
+          .setDefault(defaultVcId === NEW_VC_VALUE),
+        ...visibleVcs.map((vc) =>
+          new StringSelectMenuOptionBuilder()
+            .setValue(vc.id)
+            .setLabel(`🔊 ${vc.name}`)
+            .setDefault(defaultVcId === vc.id),
+        ),
       ];
 
       const vcSelect = new StringSelectMenuBuilder()
@@ -235,7 +247,7 @@ export const vcRecruitButtonHandler: ButtonHandler = {
       setVcRecruitSession(interaction.id, {
         panelChannelId,
         mentionRoleIds: [],
-        selectedVcId: NEW_VC_VALUE,
+        selectedVcId: defaultVcId,
         createdAt: Date.now(),
       });
 

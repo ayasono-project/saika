@@ -1,12 +1,13 @@
 // src/bot/handlers/interactionCreate/ui/selectMenus.ts
 // セレクトメニューハンドラのレジストリ
 
-import { guildConfigViewSelectHandler } from "../../../features/guild-config/handlers/ui/guildConfigViewSelectHandler";
 import {
+  reactionRoleAddButtonColorSelectHandler,
   reactionRoleAddButtonRoleSelectHandler,
   reactionRoleAddButtonSelectHandler,
 } from "../../../features/reaction-role/handlers/ui/reactionRoleAddButtonHandler";
 import {
+  reactionRoleEditButtonColorSelectHandler,
   reactionRoleEditButtonPanelSelectHandler,
   reactionRoleEditButtonRoleSelectHandler,
   reactionRoleEditButtonSelectHandler,
@@ -16,6 +17,7 @@ import {
   reactionRoleRemoveButtonPanelSelectHandler,
   reactionRoleRemoveButtonSelectHandler,
 } from "../../../features/reaction-role/handlers/ui/reactionRoleRemoveButtonHandler";
+import { reactionRoleSetupColorSelectHandler } from "../../../features/reaction-role/handlers/ui/reactionRoleSetupColorSelectHandler";
 import { reactionRoleSetupModeSelectHandler } from "../../../features/reaction-role/handlers/ui/reactionRoleSetupModeSelectHandler";
 import { reactionRoleSetupRoleSelectHandler } from "../../../features/reaction-role/handlers/ui/reactionRoleSetupRoleSelectHandler";
 import { reactionRoleTeardownSelectHandler } from "../../../features/reaction-role/handlers/ui/reactionRoleTeardownHandler";
@@ -54,10 +56,10 @@ export const roleSelectHandlers: RoleSelectHandler[] = [
 ];
 
 export const stringSelectHandlers: StringSelectHandler[] = [
-  // guild-config view ページセレクトメニューを処理
-  guildConfigViewSelectHandler,
   // リアクションロール setup のモード選択を処理
   reactionRoleSetupModeSelectHandler,
+  // リアクションロール setup のボタン色選択を処理
+  reactionRoleSetupColorSelectHandler,
   // リアクションロール teardown のパネル選択を処理
   reactionRoleTeardownSelectHandler,
   // リアクションロール view のパネル選択を処理
@@ -66,6 +68,8 @@ export const stringSelectHandlers: StringSelectHandler[] = [
   reactionRoleEditPanelSelectHandler,
   // リアクションロール add-button のパネル選択を処理
   reactionRoleAddButtonSelectHandler,
+  // リアクションロール add-button のボタン色選択を処理
+  reactionRoleAddButtonColorSelectHandler,
   // リアクションロール remove-button のパネル選択を処理
   reactionRoleRemoveButtonPanelSelectHandler,
   // リアクションロール remove-button のボタン選択を処理
@@ -74,6 +78,8 @@ export const stringSelectHandlers: StringSelectHandler[] = [
   reactionRoleEditButtonPanelSelectHandler,
   // リアクションロール edit-button のボタン選択を処理
   reactionRoleEditButtonSelectHandler,
+  // リアクションロール edit-button のボタン色選択を処理
+  reactionRoleEditButtonColorSelectHandler,
   // sticky-message remove コマンドのチャンネル選択を処理
   stickyMessageRemoveSelectHandler,
   // sticky-message view コマンドのチャンネル選択を処理

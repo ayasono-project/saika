@@ -24,6 +24,7 @@ export const REACTION_ROLE_CUSTOM_ID = {
   SETUP_MODAL_COLOR: "reaction-role:setup-color",
   SETUP_MODE_PREFIX: "reaction-role:setup-mode:",
   SETUP_BUTTON_MODAL_PREFIX: "reaction-role:setup-button-modal:",
+  SETUP_COLOR_PREFIX: "reaction-role:setup-color:",
   SETUP_ROLES_PREFIX: "reaction-role:setup-roles:",
   SETUP_ADD_PREFIX: "reaction-role:setup-add:",
   SETUP_DONE_PREFIX: "reaction-role:setup-done:",
@@ -31,7 +32,6 @@ export const REACTION_ROLE_CUSTOM_ID = {
   // ボタン設定モーダルフィールド
   BUTTON_LABEL: "reaction-role:button-label",
   BUTTON_EMOJI: "reaction-role:button-emoji",
-  BUTTON_STYLE: "reaction-role:button-style",
 
   // パネルボタンクリック（panelId:buttonId を動的に付与）
   CLICK_PREFIX: "reaction-role:click:",
@@ -55,6 +55,7 @@ export const REACTION_ROLE_CUSTOM_ID = {
   // add-button フロー
   ADD_BUTTON_SELECT_PREFIX: "reaction-role:add-button-select:",
   ADD_BUTTON_MODAL_PREFIX: "reaction-role:add-button-modal:",
+  ADD_BUTTON_COLOR_PREFIX: "reaction-role:add-button-color:",
   ADD_BUTTON_ROLES_PREFIX: "reaction-role:add-button-roles:",
   ADD_BUTTON_MORE_PREFIX: "reaction-role:add-button-more:",
   ADD_BUTTON_DONE_PREFIX: "reaction-role:add-button-done:",
@@ -69,6 +70,7 @@ export const REACTION_ROLE_CUSTOM_ID = {
   EDIT_BUTTON_PANEL_PREFIX: "reaction-role:edit-button-panel:",
   EDIT_BUTTON_SELECT_PREFIX: "reaction-role:edit-button-select:",
   EDIT_BUTTON_MODAL_PREFIX: "reaction-role:edit-button-modal:",
+  EDIT_BUTTON_COLOR_PREFIX: "reaction-role:edit-button-color:",
   EDIT_BUTTON_ROLES_PREFIX: "reaction-role:edit-button-roles:",
 } as const;
 
@@ -93,16 +95,30 @@ export const REACTION_ROLE_FIELD_VALUE_MAX_LENGTH = 1024;
 /** ボタン一覧省略時の「他 X件」表示用の予約文字数 */
 export const REACTION_ROLE_TRUNCATION_RESERVE = 50;
 
-/** ボタンスタイルのデフォルト値 */
+/** ボタンスタイルのデフォルト値（DB 保存値） */
 export const REACTION_ROLE_DEFAULT_BUTTON_STYLE = "primary";
 
-/** 有効なボタンスタイル */
+/** 有効なボタンスタイル（DB 保存値） */
 export const VALID_BUTTON_STYLES = [
   "primary",
   "secondary",
   "success",
   "danger",
 ] as const;
+
+/**
+ * ボタン色選択 SelectMenu の選択肢（ロケール非依存の英語固定）
+ * ラベル: Discord カラー呼称 / value: DB 保存値（lowercase）
+ */
+export const REACTION_ROLE_BUTTON_COLORS = [
+  { label: "Blue", value: "primary" },
+  { label: "Gray", value: "secondary" },
+  { label: "Green", value: "success" },
+  { label: "Red", value: "danger" },
+] as const;
+
+/** ボタン色選択 SelectMenu のプレースホルダー（英語固定） */
+export const REACTION_ROLE_COLOR_PLACEHOLDER = "Select a color";
 
 /**
  * buttons の JSON 文字列を安全にパースする
@@ -161,7 +177,5 @@ export function isValidEmoji(emoji: string): boolean {
 export function isValidButtonStyle(
   style: string,
 ): style is (typeof VALID_BUTTON_STYLES)[number] {
-  return (VALID_BUTTON_STYLES as readonly string[]).includes(
-    style.toLowerCase(),
-  );
+  return (VALID_BUTTON_STYLES as readonly string[]).includes(style);
 }

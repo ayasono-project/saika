@@ -36,6 +36,7 @@
   "engines": {
     "node": ">=24"
   },
+  "packageManager": "pnpm@11.1.2",
   "lint-staged": {
     "{src,tests}/**/*.ts": [
       "biome check --write --no-errors-on-unmatched"
@@ -69,13 +70,5 @@
     "tsx": "^4.22.0",
     "typescript": "^6.0.3",
     "vitest": "^4.1.6"
-  },
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "@prisma/engines",
-      "better-sqlite3",
-      "esbuild",
-      "prisma"
-    ]
   }
 }

@@ -2,13 +2,15 @@
 
 > Guild Config - ギルド全体の共通設定の管理・バックアップ機能
 
-最終更新: 2026年3月25日
+最終更新: 2026年5月14日
 
 ---
 
 ## 概要
 
 サーバー（ギルド）全体に適用される共通設定を管理するコマンドです。言語設定の切り替え、エラー通知チャンネルの設定、全設定の一覧確認、設定リセット、および設定のエクスポート/インポートによるバックアップ・リストアを提供します。
+
+エクスポート/インポートは「**同一ギルド内のバックアップおよび DB 移行**」のための機能であり、異なるギルドへの設定コピーは想定しません。export には**設定系**（各機能の有効化フラグ・チャンネル/ロール ID 等）に加え、再構築が困難な **stateful データ**（チケット設定パネル / open 中チケット / スティッキーメッセージ / リアクションロールパネル / VAC が自動作成した VC の追跡情報）も含まれます。
 
 ### 機能一覧
 
@@ -19,8 +21,8 @@
 | view | 現在のギルド設定をページ形式で表示 |
 | reset | ギルド設定（言語・エラー通知チャンネル）をリセット |
 | reset-all | 全機能の設定を一括リセット |
-| export | 現在のギルド設定をJSON形式でエクスポート |
-| import | JSONファイルからギルド設定をインポート |
+| export | 現在のギルド設定および stateful データを JSON 形式でエクスポート |
+| import | JSON ファイルからギルド設定および stateful データをインポート（設定系は上書き、stateful はマージ） |
 
 ### 権限モデル
 
@@ -277,51 +279,134 @@
 
 ### 動作フロー
 
-1. repository から全設定を取得（GuildConfig + 各機能設定）
-2. JSON形式にシリアライズ（`version`, `exportedAt`, `guildId`, `config`）
-3. JSONファイルを添付した ephemeral メッセージで返信
+1. repository から全設定を取得（GuildConfig + 各機能設定 + stateful データ）
+2. JSON 形式にシリアライズ（`version`, `exportedAt`, `guildId`, `config`, `state`）
+3. JSON ファイルを添付した ephemeral メッセージで返信
 
 **ビジネスルール:**
 
 - 添付ファイル名: `guild-config-{guildId}-{timestamp}.json`
-- 設定が存在しない場合はエラーメッセージを返す
+- `GuildConfig` レコード（locale/errorChannelId を保持）が存在しない場合はエラーメッセージを返す（= まだギルドが Bot を一度も触っていない状態）
+- `state` フィールドは stateful データ（チケット設定 / open チケット / スティッキー / リアクションロールパネル / VAC 作成済み VC）を格納
+- DB 上 JSON 文字列で保存されているフィールド（`StickyMessage.embedData` / `GuildReactionRolePanel.buttons` / `GuildVacConfig.createdChannels` / `GuildVcRecruitConfig.setups` / `GuildVcRecruitConfig.mentionRoleIds` / `GuildBumpReminderConfig.mentionUserIds` / `GuildTicketConfig.staffRoleIds` / `GuildVacConfig.triggerChannelIds`）は export 時にパースしてオブジェクト/配列として書き出し、import 時に再シリアライズして DB に保存する（JSON ファイルの可読性と Postgres 移行後の jsonb 化との整合性を優先）
+
+**export 対象外:**
+
+| 対象 | 理由 |
+| --- | --- |
+| `BumpReminder`（予約済みリマインダーキュー） | 時刻ベースのスケジュールで鮮度が落ちる |
+| `Ticket` の `status="closed"` | 履歴扱い・運用復元には不要 |
+| `VcRecruitConfig.setups[].createdVoiceChannelIds` | VC 募集が作成した一時 VC のランタイム追跡情報。バックアップ価値が薄い。export 時は JSON から省略し、import 時は `setups[].createdVoiceChannelIds = []` で書き込む |
 
 ### UI
 
 **レスポンス（成功）:** `createSuccessEmbed` でエクスポート完了を通知
 
-**エクスポートJSON構造:**
+**エクスポート JSON 構造:**
 
 ```json
 {
   "version": 1,
-  "exportedAt": "2026-03-19T12:00:00.000Z",
+  "exportedAt": "2026-05-14T12:00:00.000Z",
   "guildId": "123456789012345678",
   "config": {
     "locale": "ja",
     "errorChannelId": "666666666666666666",
     "afk": {
+      "enabled": true,
       "channelId": "111111111111111111"
     },
     "bumpReminder": {
       "enabled": true,
-      "mentionRoleIds": ["222222222222222222"],
+      "channelId": "777777777777777777",
+      "mentionRoleId": "222222222222222222",
       "mentionUserIds": []
     },
     "vac": {
-      "triggerChannelId": "333333333333333333"
+      "enabled": true,
+      "triggerChannelIds": ["333333333333333333"]
     },
     "memberLog": {
+      "enabled": true,
       "channelId": "444444444444444444",
       "joinMessage": null,
       "leaveMessage": null
     },
     "vcRecruit": {
-      "channelId": "555555555555555555"
+      "enabled": true,
+      "mentionRoleIds": [],
+      "setups": [
+        {
+          "categoryId": "888888888888888888",
+          "panelChannelId": "555555555555555555",
+          "postChannelId": "999999999999999999",
+          "panelMessageId": "101010101010101010",
+          "threadArchiveDuration": 1440
+        }
+      ]
     }
+  },
+  "state": {
+    "ticketConfigs": [
+      {
+        "categoryId": "111000000000000001",
+        "enabled": true,
+        "staffRoleIds": ["222000000000000001"],
+        "panelChannelId": "333000000000000001",
+        "panelMessageId": "444000000000000001",
+        "panelTitle": "サポート",
+        "panelDescription": "サポートが必要な場合は下のボタンからチケットを作成してください。",
+        "panelColor": "#00A8F3",
+        "autoDeleteDays": 7,
+        "maxTicketsPerUser": 1,
+        "ticketCounter": 12
+      }
+    ],
+    "openTickets": [
+      {
+        "categoryId": "111000000000000001",
+        "channelId": "555000000000000001",
+        "userId": "666000000000000001",
+        "ticketNumber": 12,
+        "subject": "ログインできません",
+        "elapsedDeleteMs": 0
+      }
+    ],
+    "stickyMessages": [
+      {
+        "channelId": "777000000000000001",
+        "content": "このチャンネルのルール: ...",
+        "embedData": null,
+        "updatedBy": "888000000000000001",
+        "lastMessageId": "999000000000000001"
+      }
+    ],
+    "reactionRolePanels": [
+      {
+        "channelId": "101100000000000001",
+        "messageId": "121200000000000001",
+        "mode": "toggle",
+        "title": "ロール選択",
+        "description": "ボタンを押してロールを取得・解除できます。",
+        "color": "#00A8F3",
+        "buttons": [
+          { "id": 1, "label": "通知", "style": "primary", "roleId": "131300000000000001" }
+        ],
+        "buttonCounter": 1
+      }
+    ],
+    "vacCreatedChannels": [
+      {
+        "voiceChannelId": "141400000000000001",
+        "ownerId": "151500000000000001",
+        "createdAt": 1747200000000
+      }
+    ]
   }
 }
 ```
+
+> 注: `state.openTickets[]` の各要素は `categoryId` で `state.ticketConfigs[]` と紐付く。`openTickets[].ticketNumber` は対応する `ticketConfigs[].ticketCounter` 以下である前提（`ticketCounter` は最後に発行された番号）。
 
 ---
 
@@ -339,17 +424,49 @@
 
 ### 動作フロー
 
-1. 添付ファイルのバリデーション（JSON形式・`version` フィールド・構造チェック）
+1. 添付ファイルのバリデーション（JSON 形式・`version` フィールド・構造チェック）
 2. `guildId` が実行サーバーと一致するか検証（不一致の場合はエラー）
-3. チャンネル/ロールIDの存在チェック（不在は警告表示）
-4. `createWarningEmbed` で確認ダイアログ Embed + ボタンを ephemeral で送信
-5. 「インポートする」ボタン押下 → 既存設定を上書き保存 → `localeManager.invalidateLocaleCache(guildId)` → 完了メッセージに `update()`
-6. 「キャンセル」ボタン押下 / 60秒タイムアウト → キャンセルメッセージに `update()`
+3. チャンネル/ロール ID の存在チェック（不在は警告表示）
+4. stateful データのマージ計画を算出（新規 insert 予定件数のカウント）
+5. `createWarningEmbed` で確認ダイアログ Embed + ボタンを ephemeral で送信（設定有無サマリー + 新規 insert 予定件数を表示）
+6. 「インポートする」ボタン押下 → マージ方式に従いインポート実行 → `localeManager.invalidateLocaleCache(guildId)` → 完了メッセージに `update()`
+7. 「キャンセル」ボタン押下 / 60秒タイムアウト → キャンセルメッセージに `update()`
 
 **ビジネスルール:**
 
 - 同一サーバーのバックアップ/リストアのみ対応（`guildId` 一致が必須）
-- チャンネル/ロールIDが見つからない場合は警告表示のみでインポート自体は続行可能
+- チャンネル/ロール ID が見つからない場合は警告表示のみでインポート自体は続行可能
+- マージ方式は下記「インポートマージ方式」に従う
+- インポート全体（設定系の上書き + stateful の insert 群）は単一トランザクション (`prisma.$transaction`) でラップし、部分失敗時は全体をロールバックする
+- JSON 文字列カラムの内容（`embedData` / `buttons` 等）に対する深いスキーマ検証は行わない（export 元が同一インスタンスのため有効データ前提。不正データは実利用時に既存のエラーハンドリング経路で検知される）
+
+### インポートマージ方式
+
+**設定系（`config.*`）: export 上書き**
+
+- `locale` / `errorChannelId` / `afk` / `bumpReminder` / `vac.enabled` / `vac.triggerChannelIds` / `memberLog` / `vcRecruit` を現在の DB 値に関係なく export 値で上書き
+- 既存レコードがなければ insert、あれば update
+
+**stateful データ（`state.*`）: 現 DB 優先 + 欠落分のみ insert（削除はしない）**
+
+import 時は現 DB に存在しないものだけを追加し、既存レコードには触れない（更新も削除もしない）。これにより、import 後でも進行中の運用データ（チケット番号進捗・open チケットの本文修正・パネルの最新メッセージ等）が失われない。
+
+| 対象 | マージキー | 動作 |
+| --- | --- | --- |
+| `state.ticketConfigs[]` (`GuildTicketConfig`) | `(guildId, categoryId)` | 同一 `categoryId` の設定が DB にあればスキップ。なければ insert（`ticketCounter` は JSON 値で初期化） |
+| `state.openTickets[]` (`Ticket` open のみ) | `channelId` | 同一 `channelId` に open チケットが DB にあればスキップ。なければ insert（`id` は新規 cuid、`status="open"` 固定） |
+| `state.stickyMessages[]` (`StickyMessage`) | `channelId` | 同一 `channelId` のレコードが DB にあればスキップ。なければ insert（`id` は新規 cuid） |
+| `state.reactionRolePanels[]` (`GuildReactionRolePanel`) | `(channelId, messageId)` | 同一の組のレコードが DB にあればスキップ。なければ insert（`id` は新規 cuid、`buttonCounter` は JSON 値で初期化） |
+| `state.vacCreatedChannels[]` (`GuildVacConfig.createdChannels`) | `voiceChannelId` | 同一 `voiceChannelId` が DB の配列にあればスキップ。なければ追加（既存配列に union） |
+
+> マージキーの設計指針: `id` (cuid) は Discord 外部から参照されない内部識別子のため import 時に新規生成し、衝突リスクを排除する。マージキーには Discord 側で実体を識別する値（`channelId` / `messageId` / `categoryId` / `voiceChannelId`）を使う。open Ticket は 1 チャンネル ≒ 1 オープンチケットの運用前提があるため `channelId` をマージキーとする（DB 上は `@@index` のみで unique 制約はないが、運用上は重複しない）。
+
+**チケット番号の整合性:**
+
+`Ticket.ticketNumber` は表示用の連番（DB 上 unique 制約なし、チャンネル名生成用）であり、衝突しても機能影響はない。マージ時の挙動は以下のとおり:
+
+- 新規 insert 時は JSON の `ticketCounter` / `ticketNumber` をそのまま採用する
+- `GuildTicketConfig` がスキップ（既存維持）されると、export 側の `ticketCounter` は反映されない。同カテゴリで `state.openTickets[]` が追加されると、表示番号が局所的に非連続になる可能性があるが、チャンネル名や `ticketNumber` の重複は発生しない（次回採番は既存 `ticketCounter + 1` から再開）。
 
 ### UI
 
@@ -358,8 +475,9 @@
 | 項目 | 内容 |
 | --- | --- |
 | タイトル | ギルド設定インポート確認 |
-| 説明 | 現在の設定が上書きされます。この操作は元に戻せません。 |
-| フィールド | インポート内容（各機能の設定有無サマリー） |
+| 説明 | 設定系は上書き、stateful データはマージ（既存優先）で取り込みます。この操作は元に戻せません。 |
+| フィールド「設定系」 | 各機能の設定有無サマリー（言語 / エラー通知 / AFK / Bump リマインダー / VAC / メンバーログ / VC 募集） |
+| フィールド「stateful（新規追加予定）」 | チケット設定 N 件 / open チケット N 件 / スティッキー N 件 / リアクションロールパネル N 件 / VAC 作成済み VC N 件 |
 
 **ボタン:**
 
@@ -381,34 +499,59 @@
 
 ## データモデル
 
-### GuildConfig（既存 + 拡張）
+### GuildConfig
 
 | フィールド | 型 | 説明 |
 | --- | --- | --- |
-| `guildId` | String | ギルドID（主キー） |
+| `guildId` | String | ギルド ID（主キー） |
 | `locale` | String | Bot 応答言語（デフォルト: `"ja"`） |
-| `errorChannelId` | String? | エラー通知チャンネルID（新規追加） |
+| `errorChannelId` | String? | エラー通知チャンネル ID |
 | `createdAt` | DateTime | 作成日時 |
 | `updatedAt` | DateTime | 更新日時 |
 
-> `locale` フィールドは Prisma スキーマ・`IBaseGuildRepository` インターフェース・`LocaleManager` のいずれも既に実装済み。`errorChannelId` は新規追加。
-
-### エクスポートJSON スキーマ
+### エクスポート JSON スキーマ（v1）
 
 | フィールド | 型 | 説明 |
 | --- | --- | --- |
 | `version` | number | スキーマバージョン（現在: `1`） |
 | `exportedAt` | string (ISO 8601) | エクスポート日時 |
-| `guildId` | string | エクスポート元のギルドID |
-| `config` | object | 全設定データ（locale + errorChannelId + 各機能設定） |
+| `guildId` | string | エクスポート元のギルド ID |
+| `config` | object | 設定系データ（locale / errorChannelId / 各機能設定） |
+| `state` | object | stateful データ（チケット設定・open チケット・スティッキー・リアクションロールパネル・VAC 作成済み VC） |
+
+**`config` フィールドの内訳:**
+
+| キー | 型 | 説明 |
+| --- | --- | --- |
+| `locale` | string | Bot 応答言語 |
+| `errorChannelId` | string? | エラー通知チャンネル ID |
+| `afk` | `AfkConfig`? | AFK 設定（[AFK_SPEC](AFK_SPEC.md) 参照） |
+| `bumpReminder` | `BumpReminderConfig`? | Bump リマインダー設定 |
+| `vac` | `{enabled, triggerChannelIds[]}`? | VAC 設定（createdChannels は `state` 側） |
+| `memberLog` | `MemberLogConfig`? | メンバーログ設定 |
+| `vcRecruit` | `VcRecruitConfig`? | VC 募集設定（[VC_RECRUIT_SPEC](VC_RECRUIT_SPEC.md) 参照） |
+
+**`state` フィールドの内訳:**
+
+| キー | 型 | 説明 |
+| --- | --- | --- |
+| `ticketConfigs[]` | `GuildTicketConfig[]` | チケット設定パネル（[TICKET_SPEC](TICKET_SPEC.md) 参照） |
+| `openTickets[]` | `Ticket[]` | open 状態のチケットのみ（closed は対象外）。`categoryId` で `ticketConfigs[]` と紐付く |
+| `stickyMessages[]` | `StickyMessage[]` | スティッキーメッセージ（[STICKY_MESSAGE_SPEC](STICKY_MESSAGE_SPEC.md) 参照）。`embedData` は DB 上の JSON 文字列をそのまま保持 |
+| `reactionRolePanels[]` | `GuildReactionRolePanel[]` | リアクションロールパネル（[REACTION_ROLE_SPEC](REACTION_ROLE_SPEC.md) 参照） |
+| `vacCreatedChannels[]` | `VacChannelPair[]` | VAC（ボイス自動作成）が自動生成した VC の追跡情報（`GuildVacConfig.createdChannels`）。Bot 再起動後も VC 管理を継続するために必要 |
+
+> 各 stateful データの配列要素では `guildId` を省略する（トップレベルの `guildId` と一致するため）。`id` (cuid) / `createdAt` / `updatedAt` も export には含めない（import 時に DB 側で再生成）。
 
 ---
 
 ## 制約・制限事項
 
-- reset / reset-all / import の確認ダイアログタイムアウト: 60秒
-- import は同一サーバーの設定ファイルのみ対応（異サーバー間のコピーは非対応）
+- reset / reset-all / import の確認ダイアログタイムアウト: 60 秒
+- import は**同一サーバー**の設定ファイルのみ対応（異サーバー間のコピーは非対応）
+- import は**バックアップ復元・DB 移行**を想定。設定系は上書き、stateful データはマージ（既存優先、削除なし）の簡素化方式
 - Bot がギルドからキック・BAN・退出した場合、そのギルドの全設定データ（全機能の設定テーブル・ランタイムデータ）が自動削除される。退出前に設定を保持したい場合は `/guild-config export` でエクスポートしておくこと
+- export 対象外データの一覧は [export セクション](#export) の「export 対象外」表を参照
 
 ---
 
@@ -468,7 +611,10 @@
 | `embed.field.name.reset_all_target` | 削除対象フィールド名 | 削除対象 | Targets |
 | `embed.field.value.reset_all_target` | 削除対象フィールド値 | 言語設定 / エラー通知チャンネル / AFK / VAC / VC募集 / メッセージ固定 / メンバーログ / Bumpリマインダー | Language / Error Channel / AFK / VAC / VC Recruit / Sticky Message / Member Log / Bump Reminder |
 | `embed.title.import_confirm` | インポート確認タイトル | ギルド設定インポート確認 | Import Guild Settings |
-| `embed.description.import_confirm` | インポート確認説明 | 現在の設定が上書きされます。この操作は元に戻せません。 | Current settings will be overwritten. This action cannot be undone. |
+| `embed.description.import_confirm` | インポート確認説明 | 設定系は上書き、stateful データはマージ（既存優先）で取り込みます。この操作は元に戻せません。 | Settings will be overwritten and stateful data will be merged (existing rows kept). This action cannot be undone. |
+| `embed.field.name.import_config` | 設定系フィールド名 | 設定系 | Settings |
+| `embed.field.name.import_state` | stateful フィールド名 | stateful（新規追加予定） | Stateful (new inserts) |
+| `embed.field.value.import_state_summary` | stateful 件数サマリー | チケット設定: {{ticketConfigs}} 件 / open チケット: {{openTickets}} 件 / スティッキー: {{stickyMessages}} 件 / リアクションロール: {{reactionRolePanels}} 件 / VAC 作成 VC: {{vacCreatedChannels}} 件 | Ticket configs: {{ticketConfigs}} / Open tickets: {{openTickets}} / Sticky messages: {{stickyMessages}} / Reaction role panels: {{reactionRolePanels}} / VAC created VCs: {{vacCreatedChannels}} |
 
 ### UIラベル
 
@@ -508,17 +654,25 @@
 
 ### ユニットテスト
 
-- [x] set-locale: ja/enロケール設定
+- [x] set-locale: ja/en ロケール設定
 - [x] set-error-channel: テキストチャンネル正常設定、非テキストチャンネルエラー
 - [x] view: ギルド設定値（言語・エラーチャンネル）の単一 Embed 表示（設定あり/なし）
 - [x] reset: 確認ダイアログ、確認→設定リセット+キャッシュ無効化、キャンセル、タイムアウト
 - [x] reset-all: 確認ダイアログ（削除対象フィールド表示）、確認→全削除+キャッシュ無効化、キャンセル
-- [x] export: 設定あり→JSON添付、設定なし→エラー
-- [x] import: JSONパース/バリデーションエラー、確認ダイアログ、リソース不在警告、正常インポート
+- [x] export: 設定あり→ JSON 添付、設定なし→エラー
+- [x] import: JSON パース/バリデーションエラー、確認ダイアログ、リソース不在警告、正常インポート
+- [ ] export: stateful データ（ticketConfigs / openTickets / stickyMessages / reactionRolePanels / vacCreatedChannels）が JSON `state` フィールドに含まれる
+- [ ] export: `BumpReminder` / closed Ticket / `VcRecruitConfig.setups[].createdVoiceChannelIds` が export 対象外であること
+- [ ] export: `StickyMessage.embedData` が JSON 文字列のままシリアライズされる
+- [ ] import: stateful データのマージ（マージキー一致時スキップ・不一致時 insert）が各モデルで動作
+- [ ] import: 確認ダイアログに「設定系サマリー」「stateful 新規追加予定件数」が表示される
+- [ ] import: `setups[].createdVoiceChannelIds` が空配列で書き込まれる
 
 ### インテグレーションテスト
 
-- [x] リポジトリ: getConfig/saveConfig/updateConfig/deleteConfig/exists/getLocale
+- [x] リポジトリ: getConfig / saveConfig / updateConfig / deleteConfig / exists / getLocale
+- [ ] `IGuildConfigAggregateRepository.getFullConfig`: stateful データ含む全件取得
+- [ ] `IGuildConfigAggregateRepository.importFullConfig`: マージ方式（既存スキップ + 新規 insert）が各 stateful モデルで動作
 
 ---
 

@@ -122,6 +122,25 @@ export class TicketRepository implements ITicketRepository {
   }
 
   /**
+   * ギルド内のオープン中チケットを全カテゴリ横断で取得する（export 用）
+   * @param guildId ギルドID
+   * @returns オープン状態のチケット一覧
+   */
+  async findAllOpenByGuild(guildId: string): Promise<Ticket[]> {
+    return executeWithDatabaseError(
+      () =>
+        this.prisma.ticket.findMany({
+          where: { guildId, status: TICKET_STATUS.OPEN },
+        }),
+      tDefault("ticket:log.database_ticket_find_open_failed", {
+        guildId,
+        categoryId: "",
+        userId: "",
+      }),
+    );
+  }
+
+  /**
    * ギルド内のクローズ済みチケットを全取得する
    * @param guildId ギルドID
    * @returns クローズ状態のチケット一覧

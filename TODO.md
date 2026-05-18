@@ -2,7 +2,7 @@
 
 > タスク管理・進捗状況・残件リスト
 
-最終更新: 2026年5月17日
+最終更新: 2026年5月18日
 
 ---
 
@@ -10,14 +10,13 @@
 
 | # | セクション | 概要 | 残件 |
 | --- | --- | --- | ---: |
-| 3 | guild-config export/import 完全対応化 | Postgres 移行前のデータ保全 | 2 |
 | 4 | shared への外出し | saika 内のインフラコードを `@ayasono/shared` に移行 | 4 |
 | 5 | Postgres 移行 | SQLite → PostgreSQL + 2 件のリネーム合体 | 6 |
 | 6 | ディレクトリ再編 | `src/{bot,api,features,shared}/` 構造に整理 | 5 |
 | 7 | 自動キック機能(非アクティブメンバー整理) | 指定期間テキスト/VC 未活動メンバーの自動キック + 事前通知 | 3 |
 | 8 | Fastify API 実装 | web フロントエンド完成後、契約通りに実装 | 5 |
 | 9 | Bot 一般公開準備 | コマンド追加・認証申請 | 3 |
-| **合計** | | | **28** |
+| **合計** | | | **26** |
 
 > インフラ側(VPS / Cloudflare / Coolify 本体)の作業は [`../infra/TODO.md`](../infra/TODO.md)、web ダッシュボード側の作業は [`../web/TODO.md`](../web/TODO.md) で管理。
 > 作業順序は上から順に進める前提。セクション 5 以降は web 側の進行状況と依存関係あり:
@@ -32,8 +31,8 @@
 
 Postgres 移行前のデータ保全前提。stateful モデル(`GuildTicketConfig` / open 状態の `Ticket` / `StickyMessage` / `GuildReactionRolePanel` / `GuildVacConfig.createdChannels`)を export に追加。import は「設定系=export 上書き」「stateful=現 DB 優先+欠落分のみ insert、削除はしない」の簡素化マージ方式。同一ギルド内バックアップ・DB 移行専用。`version: 1` 付与。
 
-- [ ] 仕様書更新: [GUILD_CONFIG_SPEC.md](docs/specs/GUILD_CONFIG_SPEC.md)
-- [ ] 実装
+- [x] 仕様書更新: [GUILD_CONFIG_SPEC.md](docs/specs/GUILD_CONFIG_SPEC.md)
+- [x] 実装
 
 ### 4. shared への外出し
 

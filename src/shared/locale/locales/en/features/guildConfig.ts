@@ -65,7 +65,11 @@ export const guildConfig = {
   // ── embed: import_confirm ─────────────────────
   "embed.title.import_confirm": "Import Guild Settings",
   "embed.description.import_confirm":
-    "Current settings will be overwritten. This action cannot be undone.",
+    "Settings will be overwritten and stateful data will be merged (existing rows kept). This action cannot be undone.",
+  "embed.field.name.import_config": "Settings",
+  "embed.field.name.import_state": "Stateful (new inserts)",
+  "embed.field.value.import_state_summary":
+    "Ticket configs: {{ticketConfigs}} / Open tickets: {{openTickets}} / Sticky messages: {{stickyMessages}} / Reaction role panels: {{reactionRolePanels}} / VAC created VCs: {{vacCreatedChannels}}",
 
   // ── UI labels ─────────────────────────────────
   "ui.button.reset_all_confirm": "Reset",

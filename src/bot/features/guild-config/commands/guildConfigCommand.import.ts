@@ -6,8 +6,10 @@ import {
   ButtonBuilder,
   ButtonStyle,
   type ChatInputCommandInteraction,
+  type EmbedField,
   MessageFlags,
 } from "discord.js";
+import type { ImportMergePlan } from "../../../../shared/database/types";
 import type { GuildConfigExportData } from "../../../../shared/features/guild-config/guildConfigDefaults";
 import type { AllParseKeys } from "../../../../shared/locale/i18n";
 import {
@@ -32,6 +34,7 @@ import {
 interface ImportSession {
   data: GuildConfigExportData;
   warnings: string[];
+  plan: ImportMergePlan;
 }
 
 /** TTL付きセッション管理（確認ダイアログのタイムアウトと合わせる） */
@@ -92,9 +95,12 @@ export async function handleImport(
     }
   }
 
+  // マージ計画を事前計算（確認ダイアログの「新規追加予定件数」表示用）
+  const plan = await service.planImport(guildId, importData);
+
   // セッションに保存
   const sessionKey = `${guildId}:${interaction.user.id}`;
-  importSessions.set(sessionKey, { data: importData, warnings });
+  importSessions.set(sessionKey, { data: importData, warnings, plan });
 
   // 確認ダイアログを表示
   const description =
@@ -104,7 +110,7 @@ export async function handleImport(
 
   const confirmEmbed = createWarningEmbed(description, {
     title: tInteraction(locale, "guildConfig:embed.title.import_confirm"),
-  });
+  }).addFields(buildSummaryFields(importData, plan, locale));
 
   const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
     new ButtonBuilder()
@@ -186,6 +192,52 @@ export async function handleImport(
 }
 
 /**
+ * 確認ダイアログに表示する「設定系」と「stateful（新規追加予定）」のフィールドを生成する。
+ */
+function buildSummaryFields(
+  data: GuildConfigExportData,
+  plan: ImportMergePlan,
+  locale: string,
+): EmbedField[] {
+  return [
+    {
+      name: tInteraction(locale, "guildConfig:embed.field.name.import_config"),
+      value: buildConfigSummary(data),
+      inline: false,
+    },
+    {
+      name: tInteraction(locale, "guildConfig:embed.field.name.import_state"),
+      value: tInteraction(
+        locale,
+        "guildConfig:embed.field.value.import_state_summary",
+        {
+          ticketConfigs: plan.ticketConfigsToInsert,
+          openTickets: plan.openTicketsToInsert,
+          stickyMessages: plan.stickyMessagesToInsert,
+          reactionRolePanels: plan.reactionRolePanelsToInsert,
+          vacCreatedChannels: plan.vacCreatedChannelsToInsert,
+        },
+      ),
+      inline: false,
+    },
+  ];
+}
+
+/** 設定系の有無サマリーを返す（言語 / エラー通知 / 各機能の有無を簡潔に列挙） */
+function buildConfigSummary(data: GuildConfigExportData): string {
+  const c = data.config;
+  const items: string[] = [];
+  items.push(`locale: ${c.locale}`);
+  items.push(`errorChannel: ${c.errorChannelId ? "○" : "—"}`);
+  items.push(`afk: ${c.afk ? "○" : "—"}`);
+  items.push(`bumpReminder: ${c.bumpReminder ? "○" : "—"}`);
+  items.push(`vac: ${c.vac ? "○" : "—"}`);
+  items.push(`memberLog: ${c.memberLog ? "○" : "—"}`);
+  items.push(`vcRecruit: ${c.vcRecruit ? "○" : "—"}`);
+  return items.join(" / ");
+}
+
+/**
  * インポートデータ内のチャンネル/ロールIDがサーバーに存在するか確認する
  * @param data インポートデータ
  * @param guild 対象ギルド
@@ -199,44 +251,64 @@ function checkMissingResources(
   },
 ): string[] {
   const missing: string[] = [];
-  const config = data.config as Record<string, unknown>;
+  const c = data.config;
 
-  // エラー通知チャンネル
+  // 設定系のチャンネル/ロール
+  if (c.errorChannelId && !guild.channels.cache.has(c.errorChannelId)) {
+    missing.push(c.errorChannelId);
+  }
+  if (c.afk?.channelId && !guild.channels.cache.has(c.afk.channelId)) {
+    missing.push(c.afk.channelId);
+  }
   if (
-    typeof config.errorChannelId === "string" &&
-    !guild.channels.cache.has(config.errorChannelId)
+    c.memberLog?.channelId &&
+    !guild.channels.cache.has(c.memberLog.channelId)
   ) {
-    missing.push(config.errorChannelId);
+    missing.push(c.memberLog.channelId);
+  }
+  if (
+    c.bumpReminder?.mentionRoleId &&
+    !guild.roles.cache.has(c.bumpReminder.mentionRoleId)
+  ) {
+    missing.push(c.bumpReminder.mentionRoleId);
   }
 
-  // AFK チャンネル
-  const afk = config.afk as Record<string, unknown> | undefined;
-  if (
-    afk?.channelId &&
-    typeof afk.channelId === "string" &&
-    !guild.channels.cache.has(afk.channelId)
-  ) {
-    missing.push(afk.channelId);
-  }
-
-  // メンバーログ チャンネル
-  const memberLog = config.memberLog as Record<string, unknown> | undefined;
-  if (
-    memberLog?.channelId &&
-    typeof memberLog.channelId === "string" &&
-    !guild.channels.cache.has(memberLog.channelId)
-  ) {
-    missing.push(memberLog.channelId);
-  }
-
-  // Bumpリマインダー メンションロール
-  const bump = config.bumpReminder as Record<string, unknown> | undefined;
-  if (
-    bump?.mentionRoleId &&
-    typeof bump.mentionRoleId === "string" &&
-    !guild.roles.cache.has(bump.mentionRoleId)
-  ) {
-    missing.push(bump.mentionRoleId);
+  // stateful データのチャンネル/ロール
+  const state = data.state;
+  if (state) {
+    for (const cfg of state.ticketConfigs) {
+      if (!guild.channels.cache.has(cfg.panelChannelId)) {
+        missing.push(cfg.panelChannelId);
+      }
+      for (const roleId of cfg.staffRoleIds) {
+        if (!guild.roles.cache.has(roleId)) missing.push(roleId);
+      }
+    }
+    for (const ticket of state.openTickets) {
+      if (!guild.channels.cache.has(ticket.channelId)) {
+        missing.push(ticket.channelId);
+      }
+    }
+    for (const sticky of state.stickyMessages) {
+      if (!guild.channels.cache.has(sticky.channelId)) {
+        missing.push(sticky.channelId);
+      }
+    }
+    for (const panel of state.reactionRolePanels) {
+      if (!guild.channels.cache.has(panel.channelId)) {
+        missing.push(panel.channelId);
+      }
+      for (const btn of panel.buttons) {
+        for (const roleId of btn.roleIds) {
+          if (!guild.roles.cache.has(roleId)) missing.push(roleId);
+        }
+      }
+    }
+    for (const vc of state.vacCreatedChannels) {
+      if (!guild.channels.cache.has(vc.voiceChannelId)) {
+        missing.push(vc.voiceChannelId);
+      }
+    }
   }
 
   return missing;

@@ -6,12 +6,15 @@ import type {
   GuildConfig,
   IGuildConfigAggregateRepository,
   IGuildCoreRepository,
+  ImportMergePlan,
 } from "../../database/types";
+import { emptyFullGuildState } from "../../database/types";
 import { logPrefixed, tDefault } from "../../locale/localeManager";
 import { executeWithDatabaseError } from "../../utils/errorHandling";
 import { logger } from "../../utils/logger";
 import {
   EXPORT_SCHEMA_VERSION,
+  type GuildConfigExportConfig,
   type GuildConfigExportData,
 } from "./guildConfigDefaults";
 
@@ -130,12 +133,13 @@ export class GuildConfigService {
     const fullConfig = await this.aggregateRepo.getFullConfig(guildId);
     if (!fullConfig) return null;
 
+    const { state, ...configPart } = fullConfig;
     return {
       version: EXPORT_SCHEMA_VERSION,
       exportedAt: new Date().toISOString(),
       guildId,
-      // FullGuildConfig → JSON 互換型へのシリアライズ境界キャスト
-      config: fullConfig as unknown as Record<string, unknown>,
+      config: configPart,
+      state: state ?? emptyFullGuildState(),
     };
   }
 
@@ -172,6 +176,18 @@ export class GuildConfigService {
   }
 
   /**
+   * import 実行前にマージ計画（新規追加予定件数）を算出する
+   * @param guildId 対象ギルドID
+   * @param data インポートデータ
+   */
+  async planImport(
+    guildId: string,
+    data: GuildConfigExportData,
+  ): Promise<ImportMergePlan> {
+    return this.aggregateRepo.planImportMerge(guildId, toFullGuildConfig(data));
+  }
+
+  /**
    * エクスポートJSONからインポートする
    * @param guildId 対象ギルドID
    * @param data インポートデータ
@@ -184,8 +200,7 @@ export class GuildConfigService {
       async () => {
         await this.aggregateRepo.importFullConfig(
           guildId,
-          // JSON 互換型 → FullGuildConfig へのデシリアライズ境界キャスト
-          data.config as unknown as FullGuildConfig,
+          toFullGuildConfig(data),
         );
         logger.debug(
           logPrefixed(
@@ -198,6 +213,18 @@ export class GuildConfigService {
       tDefault("guildConfig:log.imported", { guildId }),
     );
   }
+}
+
+/**
+ * エクスポートJSON 構造を FullGuildConfig に組み直す。
+ * state 不在時は空構造でフォールバック（v0 互換）。
+ */
+function toFullGuildConfig(data: GuildConfigExportData): FullGuildConfig {
+  const config: GuildConfigExportConfig = data.config;
+  return {
+    ...config,
+    state: data.state ?? emptyFullGuildState(),
+  };
 }
 
 /**

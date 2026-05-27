@@ -15,6 +15,7 @@ import type {
   MemberLogConfig,
   VacConfig,
 } from "./entities";
+import type { FullGuildState, ImportMergePlan } from "./guildConfigExportTypes";
 import type { GuildReactionRolePanel } from "./reactionRoleTypes";
 import type { StickyMessage } from "./stickyMessageTypes";
 import type { GuildTicketConfig, Ticket } from "./ticketTypes";
@@ -37,6 +38,11 @@ export interface IGuildCoreRepository {
 export interface IGuildConfigAggregateRepository {
   getFullConfig(guildId: string): Promise<FullGuildConfig | null>;
   importFullConfig(guildId: string, data: FullGuildConfig): Promise<void>;
+  /** import 実行前にマージ計画（新規 insert 予定件数）を算出する */
+  planImportMerge(
+    guildId: string,
+    data: FullGuildConfig,
+  ): Promise<ImportMergePlan>;
   deleteAllConfigs(guildId: string): Promise<void>;
 }
 
@@ -54,6 +60,8 @@ export interface FullGuildConfig {
   vac?: Pick<VacConfig, "enabled" | "triggerChannelIds">;
   memberLog?: MemberLogConfig;
   vcRecruit?: VcRecruitConfig;
+  /** stateful データ（チケット設定 / open チケット / スティッキー / リアクションロールパネル / VAC 作成済み VC） */
+  state?: FullGuildState;
 }
 
 export interface IAfkConfigRepository {
@@ -176,6 +184,7 @@ export interface ITicketRepository {
   ): Promise<Ticket[]>;
   findAllByCategory(guildId: string, categoryId: string): Promise<Ticket[]>;
   findOpenByCategory(guildId: string, categoryId: string): Promise<Ticket[]>;
+  findAllOpenByGuild(guildId: string): Promise<Ticket[]>;
   findAllClosedByGuild(guildId: string): Promise<Ticket[]>;
   create(data: Omit<Ticket, "id" | "createdAt" | "updatedAt">): Promise<Ticket>;
   update(id: string, data: Partial<Ticket>): Promise<Ticket>;

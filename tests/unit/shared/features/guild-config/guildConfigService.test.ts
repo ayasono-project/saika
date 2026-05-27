@@ -29,6 +29,7 @@ describe("shared/features/guild-config/guildConfigService", () => {
     deleteAllConfigs: Mock;
     getFullConfig: Mock;
     importFullConfig: Mock;
+    planImportMerge: Mock;
   };
 
   // 各ケースで新しいモックとサービスインスタンスを生成する
@@ -44,6 +45,7 @@ describe("shared/features/guild-config/guildConfigService", () => {
       deleteAllConfigs: vi.fn(),
       getFullConfig: vi.fn(),
       importFullConfig: vi.fn(),
+      planImportMerge: vi.fn(),
     };
     service = new GuildConfigService(
       coreRepoMock as any,
@@ -115,14 +117,42 @@ describe("shared/features/guild-config/guildConfigService", () => {
 
   // exportConfig のテスト
   describe("exportConfig", () => {
-    it("設定が存在する場合はエクスポートデータを返すこと", async () => {
-      aggregateRepoMock.getFullConfig.mockResolvedValue({ locale: "ja" });
+    it("設定が存在する場合は state を含むエクスポートデータを返すこと", async () => {
+      aggregateRepoMock.getFullConfig.mockResolvedValue({
+        locale: "ja",
+        state: {
+          ticketConfigs: [],
+          openTickets: [],
+          stickyMessages: [],
+          reactionRolePanels: [],
+          vacCreatedChannels: [],
+        },
+      });
       const result = await service.exportConfig("g1");
       expect(result).toEqual({
         version: EXPORT_SCHEMA_VERSION,
         exportedAt: expect.any(String),
         guildId: "g1",
         config: { locale: "ja" },
+        state: {
+          ticketConfigs: [],
+          openTickets: [],
+          stickyMessages: [],
+          reactionRolePanels: [],
+          vacCreatedChannels: [],
+        },
+      });
+    });
+
+    it("state が無い場合は空構造でフォールバックすること", async () => {
+      aggregateRepoMock.getFullConfig.mockResolvedValue({ locale: "ja" });
+      const result = await service.exportConfig("g1");
+      expect(result?.state).toEqual({
+        ticketConfigs: [],
+        openTickets: [],
+        stickyMessages: [],
+        reactionRolePanels: [],
+        vacCreatedChannels: [],
       });
     });
 
@@ -170,7 +200,7 @@ describe("shared/features/guild-config/guildConfigService", () => {
 
   // importConfig のテスト
   describe("importConfig", () => {
-    it("リポジトリの importFullConfig を呼び出すこと", async () => {
+    it("リポジトリの importFullConfig を呼び出すこと（state 不在時は空構造でフォールバック）", async () => {
       const data = {
         version: 1,
         exportedAt: "",
@@ -180,7 +210,72 @@ describe("shared/features/guild-config/guildConfigService", () => {
       await service.importConfig("g1", data);
       expect(aggregateRepoMock.importFullConfig).toHaveBeenCalledWith("g1", {
         locale: "ja",
+        state: {
+          ticketConfigs: [],
+          openTickets: [],
+          stickyMessages: [],
+          reactionRolePanels: [],
+          vacCreatedChannels: [],
+        },
       });
+    });
+
+    it("state がある場合はそのまま渡すこと", async () => {
+      const data = {
+        version: 1,
+        exportedAt: "",
+        guildId: "g1",
+        config: { locale: "ja" },
+        state: {
+          ticketConfigs: [],
+          openTickets: [],
+          stickyMessages: [
+            {
+              channelId: "ch-1",
+              content: "x",
+              embedData: null,
+              updatedBy: null,
+              lastMessageId: null,
+            },
+          ],
+          reactionRolePanels: [],
+          vacCreatedChannels: [],
+        },
+      };
+      await service.importConfig("g1", data);
+      expect(aggregateRepoMock.importFullConfig).toHaveBeenCalledWith(
+        "g1",
+        expect.objectContaining({
+          state: expect.objectContaining({
+            stickyMessages: data.state.stickyMessages,
+          }),
+        }),
+      );
+    });
+  });
+
+  // planImport のテスト
+  describe("planImport", () => {
+    it("リポジトリの planImportMerge にデータを渡して計画を返すこと", async () => {
+      const plan = {
+        ticketConfigsToInsert: 2,
+        openTicketsToInsert: 0,
+        stickyMessagesToInsert: 1,
+        reactionRolePanelsToInsert: 0,
+        vacCreatedChannelsToInsert: 0,
+      };
+      aggregateRepoMock.planImportMerge.mockResolvedValue(plan);
+      const result = await service.planImport("g1", {
+        version: 1,
+        exportedAt: "",
+        guildId: "g1",
+        config: { locale: "ja" },
+      });
+      expect(result).toBe(plan);
+      expect(aggregateRepoMock.planImportMerge).toHaveBeenCalledWith(
+        "g1",
+        expect.objectContaining({ locale: "ja", state: expect.any(Object) }),
+      );
     });
   });
 });

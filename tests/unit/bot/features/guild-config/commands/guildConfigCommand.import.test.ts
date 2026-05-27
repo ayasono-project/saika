@@ -19,20 +19,30 @@ vi.mock("@/shared/utils/logger", () => ({ logger: loggerMock }));
 
 const validateImportDataMock = vi.fn();
 const importConfigMock = vi.fn();
+const planImportMock = vi.fn();
 vi.mock("@/bot/services/botCompositionRoot", () => ({
   getBotGuildConfigService: () => ({
     validateImportData: validateImportDataMock,
     importConfig: importConfigMock,
+    planImport: planImportMock,
   }),
 }));
 
 vi.mock("@/bot/utils/messageResponse", () => ({
   createSuccessEmbed: (d: string) => ({ kind: "success", description: d }),
   createErrorEmbed: (d: string) => ({ kind: "error", description: d }),
-  createWarningEmbed: (d: string, _o?: unknown) => ({
-    kind: "warning",
-    description: d,
-  }),
+  createWarningEmbed: (d: string, _o?: unknown) => {
+    const embed = {
+      kind: "warning",
+      description: d,
+      fields: [] as unknown[],
+      addFields(fields: unknown[]) {
+        embed.fields.push(...fields);
+        return embed;
+      },
+    };
+    return embed;
+  },
 }));
 
 // fetch モック
@@ -76,6 +86,13 @@ describe("bot/features/guild-config/commands/guildConfigCommand.import", () => {
   // 各ケースでモック呼び出し記録をリセットする
   beforeEach(() => {
     vi.clearAllMocks();
+    planImportMock.mockResolvedValue({
+      ticketConfigsToInsert: 0,
+      openTicketsToInsert: 0,
+      stickyMessagesToInsert: 0,
+      reactionRolePanelsToInsert: 0,
+      vacCreatedChannelsToInsert: 0,
+    });
   });
 
   it("JSONパースエラーの場合はエラーメッセージを返すこと", async () => {
@@ -218,6 +235,89 @@ describe("bot/features/guild-config/commands/guildConfigCommand.import", () => {
 
     expect(interaction.reply).toHaveBeenCalledWith(
       expect.objectContaining({ flags: 64 }),
+    );
+  });
+
+  it("確認ダイアログに stateful 新規追加予定件数のフィールドが追加されること", async () => {
+    const data = {
+      version: 1,
+      guildId: "guild-1",
+      config: { locale: "ja" },
+      state: {
+        ticketConfigs: [],
+        openTickets: [],
+        stickyMessages: [],
+        reactionRolePanels: [],
+        vacCreatedChannels: [],
+      },
+    };
+    fetchMock.mockResolvedValue({
+      text: () => Promise.resolve(JSON.stringify(data)),
+    });
+    validateImportDataMock.mockReturnValue(null);
+    planImportMock.mockResolvedValue({
+      ticketConfigsToInsert: 3,
+      openTicketsToInsert: 2,
+      stickyMessagesToInsert: 1,
+      reactionRolePanelsToInsert: 0,
+      vacCreatedChannelsToInsert: 4,
+    });
+
+    const { interaction } = createInteraction();
+    await handleImport(interaction, "guild-1");
+
+    expect(planImportMock).toHaveBeenCalledWith("guild-1", expect.any(Object));
+    const replyArgs = (interaction.reply as ReturnType<typeof vi.fn>).mock
+      .calls[0]?.[0] as { embeds: { fields: { name: string }[] }[] };
+    expect(replyArgs.embeds[0]?.fields).toHaveLength(2);
+    expect(replyArgs.embeds[0]?.fields[0]?.name).toBe(
+      "guildConfig:embed.field.name.import_config",
+    );
+    expect(replyArgs.embeds[0]?.fields[1]?.name).toBe(
+      "guildConfig:embed.field.name.import_state",
+    );
+  });
+
+  it("stateful リソース不在（チケットパネルチャンネル）も警告対象になること", async () => {
+    const data = {
+      version: 1,
+      guildId: "guild-1",
+      config: { locale: "ja" },
+      state: {
+        ticketConfigs: [
+          {
+            categoryId: "cat-1",
+            enabled: true,
+            staffRoleIds: ["missing-role"],
+            panelChannelId: "missing-panel",
+            panelMessageId: "m-1",
+            panelTitle: "T",
+            panelDescription: "D",
+            panelColor: "#000",
+            autoDeleteDays: 7,
+            maxTicketsPerUser: 1,
+            ticketCounter: 0,
+          },
+        ],
+        openTickets: [],
+        stickyMessages: [],
+        reactionRolePanels: [],
+        vacCreatedChannels: [],
+      },
+    };
+    fetchMock.mockResolvedValue({
+      text: () => Promise.resolve(JSON.stringify(data)),
+    });
+    validateImportDataMock.mockReturnValue(null);
+
+    const { interaction } = createInteraction([]);
+    await handleImport(interaction, "guild-1");
+
+    const replyArgs = (interaction.reply as ReturnType<typeof vi.fn>).mock
+      .calls[0]?.[0] as { embeds: { description: string }[] };
+    // 警告が description に追記されている
+    expect(replyArgs.embeds[0]?.description).toContain(
+      "guildConfig:user-response.import_missing_channels",
     );
   });
 

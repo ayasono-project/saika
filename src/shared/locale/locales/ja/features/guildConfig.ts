@@ -65,7 +65,11 @@ export const guildConfig = {
   // ── embed: import_confirm ─────────────────────
   "embed.title.import_confirm": "ギルド設定インポート確認",
   "embed.description.import_confirm":
-    "現在の設定が上書きされます。この操作は元に戻せません。",
+    "設定系は上書き、stateful データはマージ（既存優先）で取り込みます。この操作は元に戻せません。",
+  "embed.field.name.import_config": "設定系",
+  "embed.field.name.import_state": "stateful（新規追加予定）",
+  "embed.field.value.import_state_summary":
+    "チケット設定: {{ticketConfigs}} 件 / open チケット: {{openTickets}} 件 / スティッキー: {{stickyMessages}} 件 / リアクションロール: {{reactionRolePanels}} 件 / VAC 作成 VC: {{vacCreatedChannels}} 件",
 
   // ── UIラベル ──────────────────────────────────
   "ui.button.reset_all_confirm": "リセットする",

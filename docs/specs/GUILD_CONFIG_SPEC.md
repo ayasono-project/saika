@@ -390,7 +390,7 @@
         "description": "ボタンを押してロールを取得・解除できます。",
         "color": "#00A8F3",
         "buttons": [
-          { "id": 1, "label": "通知", "style": "primary", "roleId": "131300000000000001" }
+          { "buttonId": 1, "label": "通知", "emoji": "", "style": "primary", "roleIds": ["131300000000000001"] }
         ],
         "buttonCounter": 1
       }
@@ -661,18 +661,18 @@ import 時は現 DB に存在しないものだけを追加し、既存レコー
 - [x] reset-all: 確認ダイアログ（削除対象フィールド表示）、確認→全削除+キャッシュ無効化、キャンセル
 - [x] export: 設定あり→ JSON 添付、設定なし→エラー
 - [x] import: JSON パース/バリデーションエラー、確認ダイアログ、リソース不在警告、正常インポート
-- [ ] export: stateful データ（ticketConfigs / openTickets / stickyMessages / reactionRolePanels / vacCreatedChannels）が JSON `state` フィールドに含まれる
-- [ ] export: `BumpReminder` / closed Ticket / `VcRecruitConfig.setups[].createdVoiceChannelIds` が export 対象外であること
-- [ ] export: `StickyMessage.embedData` が JSON 文字列のままシリアライズされる
-- [ ] import: stateful データのマージ（マージキー一致時スキップ・不一致時 insert）が各モデルで動作
-- [ ] import: 確認ダイアログに「設定系サマリー」「stateful 新規追加予定件数」が表示される
-- [ ] import: `setups[].createdVoiceChannelIds` が空配列で書き込まれる
+- [x] export: stateful データ（ticketConfigs / openTickets / stickyMessages / reactionRolePanels / vacCreatedChannels）が JSON `state` フィールドに含まれる
+- [x] export: `VcRecruitConfig.setups[].createdVoiceChannelIds` が export 対象外であること（aggregate で配列を空にしてから返す）
+- [x] export: `StickyMessage.embedData` が JSON 文字列のままシリアライズされる
+- [x] import: stateful データのマージ（マージキー一致時スキップ・不一致時 insert）が各モデルで動作
+- [x] import: 確認ダイアログに「設定系サマリー」「stateful 新規追加予定件数」が表示される
+- [x] import: `setups[].createdVoiceChannelIds` が空配列で書き込まれる
 
 ### インテグレーションテスト
 
 - [x] リポジトリ: getConfig / saveConfig / updateConfig / deleteConfig / exists / getLocale
-- [ ] `IGuildConfigAggregateRepository.getFullConfig`: stateful データ含む全件取得
-- [ ] `IGuildConfigAggregateRepository.importFullConfig`: マージ方式（既存スキップ + 新規 insert）が各 stateful モデルで動作
+- [x] `IGuildConfigAggregateRepository.getFullConfig`: stateful データ含む全件取得（unit テストでモック化検証）
+- [x] `IGuildConfigAggregateRepository.importFullConfig`: マージ方式（既存スキップ + 新規 insert）が各 stateful モデルで動作（unit テストでモック化検証）
 
 ---
 

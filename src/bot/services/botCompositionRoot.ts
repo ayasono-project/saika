@@ -193,6 +193,10 @@ export function initializeBotCompositionRoot(
   const vacRepo = getVacConfigRepository(prisma);
   const memberLogRepo = getMemberLogConfigRepository(prisma);
   const vcRecruitConfigRepo = getVcRecruitConfigRepository(prisma);
+  const stickyMessageRepository = getStickyMessageRepository(prisma);
+  const reactionRolePanelRepository = getReactionRolePanelRepository(prisma);
+  const ticketConfigRepository = getTicketConfigRepository(prisma);
+  const ticketRepository = getTicketRepository(prisma);
 
   // 一括操作リポジトリ（各スタンドアロンリポジトリを集約）
   const aggregateRepo = new GuildConfigAggregateRepository(
@@ -202,6 +206,10 @@ export function initializeBotCompositionRoot(
     vacRepo,
     memberLogRepo,
     vcRecruitConfigRepo,
+    stickyMessageRepository,
+    reactionRolePanelRepository,
+    ticketConfigRepository,
+    ticketRepository,
     prisma,
   );
 
@@ -232,7 +240,6 @@ export function initializeBotCompositionRoot(
   setBotVacService(vacService);
 
   // StickyMessage
-  const stickyMessageRepository = getStickyMessageRepository(prisma);
   const stickyMessageConfigService = createStickyMessageConfigService(
     stickyMessageRepository,
   );
@@ -247,14 +254,11 @@ export function initializeBotCompositionRoot(
   setBotMemberLogConfigService(memberLogConfigService);
 
   // Ticket
-  const ticketConfigRepository = getTicketConfigRepository(prisma);
   const ticketConfigService = createTicketConfigService(ticketConfigRepository);
-  const ticketRepository = getTicketRepository(prisma);
   setBotTicketConfigService(ticketConfigService);
   setBotTicketRepository(ticketRepository);
 
   // ReactionRole
-  const reactionRolePanelRepository = getReactionRolePanelRepository(prisma);
   const reactionRolePanelConfigService = createReactionRolePanelConfigService(
     reactionRolePanelRepository,
   );

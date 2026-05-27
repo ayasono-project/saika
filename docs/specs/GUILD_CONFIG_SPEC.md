@@ -390,7 +390,7 @@
         "description": "ボタンを押してロールを取得・解除できます。",
         "color": "#00A8F3",
         "buttons": [
-          { "id": 1, "label": "通知", "style": "primary", "roleId": "131300000000000001" }
+          { "buttonId": 1, "label": "通知", "emoji": "", "style": "primary", "roleIds": ["131300000000000001"] }
         ],
         "buttonCounter": 1
       }

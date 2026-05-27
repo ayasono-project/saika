@@ -2,7 +2,7 @@
 
 > タスク管理・進捗状況・残件リスト
 
-最終更新: 2026年5月18日
+最終更新: 2026年5月27日
 
 ---
 
@@ -21,8 +21,7 @@
 | **合計** | | | **33** |
 
 > web ダッシュボード側の作業は別リポジトリ(ローカル開発中)、インフラ側(VPS / Cloudflare / Coolify 本体)の作業は別リポジトリ(プライベート)で管理。
-> 作業順序は上から順に進める前提。セクション 5 以降は web 側の進行状況と依存関係あり:
-> - セクション 5(Postgres 移行)着手前に web 側で API 契約(`@ayasono/shared/api/types`)が確定していること
+> 作業順序は上から順に進める前提。セクション 10 以降は web 側の進行状況と依存関係あり:
 > - セクション 10(Fastify API 実装)着手前に web フロントエンドがモック駆動で完成していること
 
 ---
@@ -42,7 +41,7 @@ saika 内のインフラコードを `@ayasono/shared` v0.1.0 に移行する。
 
 ### 5. Postgres 移行
 
-SQLite → PostgreSQL + `-config → -settings` + `vc-recruit → instant-recruit` の合体。インフラ側で別途 Postgres 導入作業あり(別管理)。**web 側で API 契約(`@ayasono/shared/api/types`)が確定した後に着手**(契約から逆算した schema で migration を一度で済ませる)。
+SQLite → PostgreSQL + `-config → -settings` + `vc-recruit → instant-recruit` の合体。インフラ側で別途 Postgres 導入作業あり(別管理)。schema は Bot 内部要件で確定する(web 契約待ちはしない)。
 
 - [ ] `schema.prisma` の provider 切替(sqlite → postgresql)
 - [ ] JSON 文字列カラムを jsonb 化(7 箇所)+ アプリ側の `JSON.parse/stringify` 除去

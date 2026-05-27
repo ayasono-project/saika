@@ -62,24 +62,27 @@ Bot リポジトリ標準の内部構成(`src/{bot,api,features,shared}/`)に揃
 
 ### 7. `/vc disconnect` 実装 & ephemeral / public 監査
 
-VC 完全切断/移動コマンドの追加と、既存コマンドの ephemeral / public 設定の全面見直し。詳細仕様は Notion: [Saika: /vc disconnect 実装 & ephemeral監査 引き継ぎ](https://www.notion.so/3628e698a892815f9c82ddb82b97e813) を参照。
+VC 完全切断/移動コマンドの追加と、既存コマンドの ephemeral / public 設定の全面見直し。詳細仕様は [VC_COMMAND_SPEC.md](docs/specs/VC_COMMAND_SPEC.md) (`/vc disconnect` / `/vc move` + 共通ユーティリティ)および [AFK_SPEC.md](docs/specs/AFK_SPEC.md) (target 拡張 + public 化) を参照。
 
 **確定事項(2026-05-18 議論):**
 - 出力フォーマット: **Embed で統一**(本セクション + セクション 9 の両方)
 - 一括 target 拡張: **`/vc disconnect` / `/vc move` / `/afk` の 3 コマンドすべて** `target:<member|channel>` に対応
 - 誤爆防止 UI: **`target` が channel の時のみボタン確認ダイアログ**(member 時は即実行)
 - `/afk` の `target=channel`: 当該 channel 内全員を **サーバー設定の AFK チャンネルに移動**
-- 仕様書構成: `docs/specs/VC_MANAGEMENT_SPEC.md` 1 本に統合(disconnect / move / afk 拡張)
+- 仕様書構成: VC_COMMAND_SPEC.md に `/vc disconnect` / `/vc move` + 共通ユーティリティを統合、AFK_SPEC.md は target 拡張を差分追記(2026-05-28 確定 — たたき台あり)
 - ephemeral 判定原則は仕様書ではなく `docs/guides/IMPLEMENTATION_GUIDELINES.md` の「コマンド設計原則(ephemeral / public)」(新セクション)に記述。実装細則扱いとし、ARCHITECTURE.md のスコープ外
-- 内部権限チェックなし・Saika 内部監査ログチャンネルは初期実装に含めない(Notion §1.4 / §1.7)
-- 出力可視性は public(非 ephemeral)で統一(Notion §1.6)
+- 内部権限チェックなし・Saika 内部監査ログチャンネルは初期実装に含めない
+- 出力可視性は public(非 ephemeral)で統一
+- 事前合意済みの ephemeral → public 移行対象: `/afk` / `/vc rename` / `/vc limit`(各 spec に注記)
 
 検討中(仕様書で確定):
-- 共通ユーティリティ `formatActionLog({action, invoker, target, reason, destinationChannel?})` の Embed フィールド構成
-- 一括時の確認ダイアログ文言(対象人数表示・タイムアウト・キャンセル時の挙動)
+- `target` の型表現(User|Channel 表現方式 3 案 — VC_COMMAND_SPEC.md オープン項目)
+- 共通ユーティリティ `formatActionLog` の Embed テンプレート文言・カラー
+- 一括時の確認ダイアログ文言・タイムアウト秒数
 - リリースノート文言(既存ユーザー向け挙動変更の周知)
+- `formatActionLog` の配置場所(`src/shared/` / `src/features/vc-command/`)
 
-- [ ] 仕様書作成: `docs/specs/VC_MANAGEMENT_SPEC.md`(新規 — disconnect / move / afk 拡張を統合)
+- [ ] 仕様書(たたき台 → 確定): [VC_COMMAND_SPEC.md](docs/specs/VC_COMMAND_SPEC.md) / [AFK_SPEC.md](docs/specs/AFK_SPEC.md) のオープン項目を埋める
 - [ ] [IMPLEMENTATION_GUIDELINES.md](docs/guides/IMPLEMENTATION_GUIDELINES.md) に「コマンド設計原則(ephemeral / public)」セクション追加 + 全スラッシュコマンドの一次分類 → レビュー → 確定
 - [ ] 実装(`/vc disconnect` 個別+一括 / `/vc move` 個別+一括 / `/afk` target 拡張 / 既存コマンドの ephemeral 修正 / Embed 共通ユーティリティ)
 - [ ] テスト(権限・ロール階層エラー / 一括系のキャンセル動作 / target=channel の対象抽出 / `/afk` の AFK チャンネル未設定エラー)

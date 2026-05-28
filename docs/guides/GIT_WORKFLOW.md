@@ -271,32 +271,37 @@ git commit -m "test(afk): AFK自動解除のユニットテストを追加"
 
 ---
 
-## ブランチ保護の設定（Branch Protection Rules）
+## ブランチ保護の設定（Rulesets）
 
-[Settings > Branches](https://github.com/ayasono-project/saika/settings/branches) で管理。
+[Settings > Rules > Rulesets](https://github.com/ayasono-project/saika/rules) で管理（**Rulesets** ベース。旧 Branch Protection Rules ではない）。
 
-### `main` ブランチ
+### `main` ブランチ（ruleset: `protect-main`）
 
-直接pushは禁止。PR経由でのみ変更可能で、CIが通らないとマージできない。
+直接 push は禁止。PR 経由でのみ変更可能で、CI が通らないとマージできない。
 
-| 設定                                  | 値                               |
-| ------------------------------------- | -------------------------------- |
-| Require a pull request before merging | ✅（レビュー承認は不要）         |
-| Require status checks to pass: `Test` | ✅（strict: ベース最新化が必要） |
-| Block force pushes                    | ✅                               |
-| Allow auto-merge                      | ✅                               |
+| ルール                                       | 状態 |
+| -------------------------------------------- | ---- |
+| Require a pull request before merging        | ✅（レビュー承認は不要） |
+| Require status checks to pass: `Test`        | ✅   |
+| Block force pushes (non-fast-forward)        | ✅   |
+| Restrict deletions（ブランチ削除禁止）       | ✅   |
 
-### `develop` ブランチ
+### `develop` ブランチ（ruleset: `protect-develop`）
 
-直接 push 可。ブランチ保護は設定しない。
+直接 push は可（PR は必須ではない）。ただし **force push と削除は禁止**されている。
 
-| 設定                                  | 値  |
-| ------------------------------------- | --- |
-| Require a pull request before merging | ❌  |
-| Require status checks to pass         | ❌  |
-| Block force pushes                    | ❌  |
+| ルール                                       | 状態 |
+| -------------------------------------------- | ---- |
+| Require a pull request before merging        | ❌（直接 push 可） |
+| Require status checks to pass                | ❌   |
+| Block force pushes (non-fast-forward)        | ✅   |
+| Restrict deletions（ブランチ削除禁止）       | ✅   |
 
 > commit・push 時は husky フックが自動実行される（pre-commit: typecheck・lint、commit-msg: commitlint、pre-push: test）。`--no-verify` オプションで強制スキップも可能だが、基本不要。
+
+### マージ後の head ブランチ自動削除
+
+リポジトリ設定「Automatically delete head branches」（`delete_branch_on_merge`）と auto-merge（`--auto`）を**有効**にしている。PR をマージすると head ブランチ（`feature/*` / `fix/*` 等）は**自動削除**される。`develop` / `main` は Restrict deletions ルールで保護されているため、`develop → main` のリリース PR をマージしても `develop` は削除されない。
 
 ---
 

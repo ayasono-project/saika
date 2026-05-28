@@ -1,6 +1,7 @@
 // tests/unit/bot/features/bump-reminder/commands/bumpReminderConfigCommand.setMention.test.ts
+
+import { ValidationError } from "@ayasono/shared/core";
 import { handleBumpReminderConfigSetMention } from "@/bot/features/bump-reminder/commands/bumpReminderConfigCommand.setMention";
-import { ValidationError } from "@/shared/errors/customErrors";
 import { BUMP_REMINDER_MENTION_ROLE_RESULT } from "@/shared/features/bump-reminder/bumpReminderConfigService";
 
 const setBumpReminderMentionRoleMock = vi.fn();

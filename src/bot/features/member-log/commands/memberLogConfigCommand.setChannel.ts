@@ -1,12 +1,12 @@
 // src/bot/features/member-log/commands/memberLogConfigCommand.setChannel.ts
 // member-log-config set-channel 実行処理
 
+import { ValidationError } from "@ayasono/shared/core";
 import {
   ChannelType,
   type ChatInputCommandInteraction,
   MessageFlags,
 } from "discord.js";
-import { ValidationError } from "../../../../shared/errors/customErrors";
 import {
   logPrefixed,
   tInteraction,

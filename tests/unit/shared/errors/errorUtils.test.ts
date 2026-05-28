@@ -37,7 +37,7 @@ describe("shared/errors/errorUtils", () => {
     }));
 
     const errorUtils = await import("@/shared/errors/errorUtils");
-    const { BaseError } = await import("@/shared/errors/customErrors");
+    const { BaseError } = await import("@ayasono/shared/core");
 
     return { errorUtils, BaseError };
   };

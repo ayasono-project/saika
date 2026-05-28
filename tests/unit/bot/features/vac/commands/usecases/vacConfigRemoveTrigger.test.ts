@@ -1,8 +1,8 @@
 // tests/unit/bot/features/vac/commands/usecases/vacConfigRemoveTrigger.test.ts
 
+import { ValidationError } from "@ayasono/shared/core";
 import { ChannelType } from "discord.js";
 import { handleVacConfigRemoveTrigger } from "@/bot/features/vac/commands/usecases/vacConfigRemoveTrigger";
-import { ValidationError } from "@/shared/errors/customErrors";
 
 const removeTriggerChannelMock = vi.fn();
 const getVacConfigOrDefaultMock = vi.fn();

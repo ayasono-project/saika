@@ -1,6 +1,7 @@
 // tests/unit/bot/features/member-log/commands/memberLogConfigCommand.view.test.ts
+
+import { ValidationError } from "@ayasono/shared/core";
 import { handleMemberLogConfigView } from "@/bot/features/member-log/commands/memberLogConfigCommand.view";
-import { ValidationError } from "@/shared/errors/customErrors";
 
 // ---- モック定義 ----
 const ensurePermissionMock = vi.fn();

@@ -1,8 +1,8 @@
 // src/bot/features/vc-command/commands/vcCommand.execute.ts
 // VC操作コマンド実行処理
 
+import { ValidationError } from "@ayasono/shared/core";
 import { ChatInputCommandInteraction } from "discord.js";
-import { ValidationError } from "../../../../shared/errors/customErrors";
 import { handleCommandError } from "../../../errors/interactionErrorHandler";
 import { COMMON_I18N_KEYS } from "../../../shared/i18nKeys";
 import { executeVcLimit } from "./usecases/vcLimit";

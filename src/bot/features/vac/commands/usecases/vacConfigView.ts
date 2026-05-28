@@ -1,8 +1,8 @@
 // src/bot/features/vac/commands/usecases/vacConfigView.ts
 // vac-config view のユースケース処理
 
+import { ValidationError } from "@ayasono/shared/core";
 import { type ChatInputCommandInteraction, MessageFlags } from "discord.js";
-import { ValidationError } from "../../../../../shared/errors/customErrors";
 import { getBotVacConfigService } from "../../../../services/botCompositionRoot";
 import { COMMON_I18N_KEYS } from "../../../../shared/i18nKeys";
 import { createInfoEmbed } from "../../../../utils/messageResponse";

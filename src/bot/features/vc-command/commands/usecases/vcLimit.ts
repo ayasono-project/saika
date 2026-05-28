@@ -1,8 +1,8 @@
 // src/bot/features/vc-command/commands/usecases/vcLimit.ts
 // VC人数制限変更ユースケース
 
+import { ValidationError } from "@ayasono/shared/core";
 import { type ChatInputCommandInteraction, MessageFlags } from "discord.js";
-import { ValidationError } from "../../../../../shared/errors/customErrors";
 import { tInteraction } from "../../../../../shared/locale/localeManager";
 import { createSuccessEmbed } from "../../../../utils/messageResponse";
 import { resolveVoiceChannelForEdit } from "../helpers/vcVoiceChannelResolver";

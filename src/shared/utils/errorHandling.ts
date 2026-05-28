@@ -1,7 +1,7 @@
 // src/shared/utils/errorHandling.ts
 // 共通エラーハンドリングユーティリティ
 
-import { DatabaseError } from "../errors/customErrors";
+import { DatabaseError } from "@ayasono/shared/core";
 import { logger } from "./logger";
 
 /**

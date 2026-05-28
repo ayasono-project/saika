@@ -4,11 +4,11 @@
  * GuildCoreRepository + 各機能リポジトリの Prisma 委譲を検証
  */
 
+import { DatabaseError } from "@ayasono/shared/core";
 import { AfkConfigRepository } from "@/shared/database/repositories/afkConfigRepository";
 import { BumpReminderConfigRepository } from "@/shared/database/repositories/bumpReminderConfigRepository";
 import { GuildCoreRepository } from "@/shared/database/repositories/guildCoreRepository";
 import type { GuildConfig } from "@/shared/database/types";
-import { DatabaseError } from "@/shared/errors/customErrors";
 
 // Logger のモック
 vi.mock("@/shared/utils/logger", () => ({

@@ -1,8 +1,8 @@
 // src/bot/features/afk/commands/afkCommand.execute.ts
 // afk コマンド実行処理
 
+import { ValidationError } from "@ayasono/shared/core";
 import { ChannelType, type ChatInputCommandInteraction } from "discord.js";
-import { ValidationError } from "../../../../shared/errors/customErrors";
 import { getAfkConfig } from "../../../../shared/features/afk/afkConfigService";
 import {
   logPrefixed,

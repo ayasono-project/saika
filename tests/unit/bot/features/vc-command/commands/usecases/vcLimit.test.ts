@@ -1,11 +1,11 @@
 // tests/unit/bot/features/vc-command/commands/usecases/vcLimit.test.ts
 
+import { ValidationError } from "@ayasono/shared/core";
 import { DiscordAPIError, MessageFlags, RESTJSONErrorCodes } from "discord.js";
 import type { Mock } from "vitest";
 import { resolveVoiceChannelForEdit } from "@/bot/features/vc-command/commands/helpers/vcVoiceChannelResolver";
 import { executeVcLimit } from "@/bot/features/vc-command/commands/usecases/vcLimit";
 import { createSuccessEmbed } from "@/bot/utils/messageResponse";
-import { ValidationError } from "@/shared/errors/customErrors";
 
 vi.mock("@/shared/locale/localeManager", () => ({
   logPrefixed: (

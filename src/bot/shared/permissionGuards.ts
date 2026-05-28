@@ -1,11 +1,11 @@
 // src/bot/shared/permissionGuards.ts
 // コマンド共通権限ガード
 
+import { PermissionError } from "@ayasono/shared/core";
 import {
   type ChatInputCommandInteraction,
   PermissionFlagsBits,
 } from "discord.js";
-import { PermissionError } from "../../shared/errors/customErrors";
 import { tInteraction } from "../../shared/locale/localeManager";
 import { COMMON_I18N_KEYS } from "./i18nKeys";
 

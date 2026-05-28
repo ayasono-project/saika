@@ -1,6 +1,7 @@
 // tests/unit/bot/features/bump-reminder/commands/bumpReminderConfigCommand.removeUsers.test.ts
+
+import { ValidationError } from "@ayasono/shared/core";
 import { handleBumpReminderConfigRemoveUsers } from "@/bot/features/bump-reminder/commands/bumpReminderConfigCommand.removeUsers";
-import { ValidationError } from "@/shared/errors/customErrors";
 
 const getBumpReminderConfigOrDefaultMock = vi.fn();
 const saveBumpReminderConfigMock = vi.fn();

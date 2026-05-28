@@ -1,8 +1,8 @@
 // tests/unit/bot/features/vc-recruit/commands/usecases/vcRecruitConfigSetup.test.ts
 
+import { ValidationError } from "@ayasono/shared/core";
 import { ChannelType, DiscordAPIError, RESTJSONErrorCodes } from "discord.js";
 import { handleVcRecruitConfigSetup } from "@/bot/features/vc-recruit/commands/usecases/vcRecruitConfigSetup";
-import { ValidationError } from "@/shared/errors/customErrors";
 
 // ---- モック定義 ----
 

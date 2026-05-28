@@ -1,12 +1,12 @@
 // src/bot/features/vc-command/commands/helpers/vcVoiceChannelResolver.ts
 // VC操作コマンド向けVC解決ヘルパー
 
+import { ValidationError } from "@ayasono/shared/core";
 import {
   ChannelType,
   type ChatInputCommandInteraction,
   type VoiceChannel,
 } from "discord.js";
-import { ValidationError } from "../../../../../shared/errors/customErrors";
 import { tInteraction } from "../../../../../shared/locale/localeManager";
 
 /**

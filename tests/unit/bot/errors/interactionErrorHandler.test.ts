@@ -5,6 +5,16 @@
  */
 
 import {
+  BaseError,
+  ConfigurationError,
+  DatabaseError,
+  NotFoundError,
+  PermissionError,
+  RateLimitError,
+  TimeoutError,
+  ValidationError,
+} from "@ayasono/shared/core";
+import {
   type ChatInputCommandInteraction,
   DiscordAPIError,
   MessageFlags,
@@ -16,16 +26,6 @@ import {
   handleInteractionError,
 } from "@/bot/errors/interactionErrorHandler";
 import { env, NODE_ENV } from "@/shared/config/env";
-import {
-  BaseError,
-  ConfigurationError,
-  DatabaseError,
-  NotFoundError,
-  PermissionError,
-  RateLimitError,
-  TimeoutError,
-  ValidationError,
-} from "@/shared/errors/customErrors";
 import { getUserFriendlyMessage, logError } from "@/shared/errors/errorHandler";
 import { logger } from "@/shared/utils/logger";
 

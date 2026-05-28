@@ -1,7 +1,8 @@
 // tests/unit/bot/features/member-log/commands/memberLogConfigCommand.setLeaveMessage.test.ts
+
+import { ValidationError } from "@ayasono/shared/core";
 import { MEMBER_LOG_CONFIG_COMMAND } from "@/bot/features/member-log/commands/memberLogConfigCommand.constants";
 import { handleMemberLogConfigSetLeaveMessage } from "@/bot/features/member-log/commands/memberLogConfigCommand.setLeaveMessage";
-import { ValidationError } from "@/shared/errors/customErrors";
 
 // ---- モック定義 ----
 const ensurePermissionMock = vi.fn();

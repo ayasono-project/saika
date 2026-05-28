@@ -1,8 +1,8 @@
 // tests/unit/bot/features/vc-recruit/commands/vcRecruitConfigCommand.execute.test.ts
 
+import { PermissionError, ValidationError } from "@ayasono/shared/core";
 import { PermissionFlagsBits } from "discord.js";
 import { executeVcRecruitConfigCommand } from "@/bot/features/vc-recruit/commands/vcRecruitConfigCommand.execute";
-import { PermissionError, ValidationError } from "@/shared/errors/customErrors";
 
 // ---- モック定義 ----
 

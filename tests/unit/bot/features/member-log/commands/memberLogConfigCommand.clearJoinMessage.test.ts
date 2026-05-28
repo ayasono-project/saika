@@ -1,6 +1,7 @@
 // tests/unit/bot/features/member-log/commands/memberLogConfigCommand.clearJoinMessage.test.ts
+
+import { ValidationError } from "@ayasono/shared/core";
 import { handleMemberLogConfigClearJoinMessage } from "@/bot/features/member-log/commands/memberLogConfigCommand.clearJoinMessage";
-import { ValidationError } from "@/shared/errors/customErrors";
 
 // ---- モック定義 ----
 const ensurePermissionMock = vi.fn();

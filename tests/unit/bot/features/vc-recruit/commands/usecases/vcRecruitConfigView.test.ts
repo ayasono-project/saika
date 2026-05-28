@@ -1,6 +1,7 @@
 // tests/unit/bot/features/vc-recruit/commands/usecases/vcRecruitConfigView.test.ts
+
+import { ValidationError } from "@ayasono/shared/core";
 import { handleVcRecruitConfigView } from "@/bot/features/vc-recruit/commands/usecases/vcRecruitConfigView";
-import { ValidationError } from "@/shared/errors/customErrors";
 
 // ---- モック定義 ----
 

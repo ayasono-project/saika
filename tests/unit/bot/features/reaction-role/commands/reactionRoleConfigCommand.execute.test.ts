@@ -1,7 +1,8 @@
 // tests/unit/bot/features/reaction-role/commands/reactionRoleConfigCommand.execute.test.ts
+
+import { ValidationError } from "@ayasono/shared/core";
 import { REACTION_ROLE_CONFIG_COMMAND } from "@/bot/features/reaction-role/commands/reactionRoleCommand.constants";
 import { executeReactionRoleConfigCommand } from "@/bot/features/reaction-role/commands/reactionRoleConfigCommand.execute";
-import { ValidationError } from "@/shared/errors/customErrors";
 
 const ensureManageGuildPermissionMock = vi.fn();
 const setupMock = vi.fn();

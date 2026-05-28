@@ -1,12 +1,12 @@
 // src/bot/features/vac/commands/usecases/vacConfigCreateTrigger.ts
 // vac-config create-trigger-vc のユースケース処理
 
+import { ValidationError } from "@ayasono/shared/core";
 import {
   ChannelType,
   type ChatInputCommandInteraction,
   MessageFlags,
 } from "discord.js";
-import { ValidationError } from "../../../../../shared/errors/customErrors";
 import { tInteraction } from "../../../../../shared/locale/localeManager";
 import { getBotVacConfigService } from "../../../../services/botCompositionRoot";
 import { COMMON_I18N_KEYS } from "../../../../shared/i18nKeys";

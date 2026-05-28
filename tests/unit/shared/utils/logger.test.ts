@@ -1,7 +1,7 @@
 // tests/unit/shared/utils/logger.test.ts
-// NODE_ENV と LOG_LEVEL の組み合わせに応じてトランスポート構成・ログレベル・
-// フォーマット関数の出力が正しく切り替わるかを検証する。
-// DISCORD_ERROR_WEBHOOK_URL 設定時の DiscordWebhookTransport 追加も確認する
+// saika の logger.ts が @ayasono/shared/core の createLogger / DiscordWebhookTransport を
+// env に基づいて正しく wiring することを検証する。
+// NOTE: フォーマット/トランスポート構成ロジック本体は @ayasono/shared 側の責務（shared 側でテストする）。
 describe("Logger", () => {
   // グローバルsetupのloggerモックを解除し、doMock で独自に差し替える
   vi.doUnmock("@/shared/utils/logger");
@@ -13,32 +13,21 @@ describe("Logger", () => {
   ) => {
     vi.resetModules();
 
-    const consoleTransportMock = vi.fn();
-    const dailyRotateMock = vi.fn();
     const createLoggerMock = vi.fn((options) => ({ ...options }));
     const discordWebhookTransportMock = vi.fn();
 
-    const winstonMock = {
+    vi.doMock("@ayasono/shared/core", () => ({
       createLogger: createLoggerMock,
-      format: {
-        combine: vi.fn((...parts) => ({ type: "combine", parts })),
-        timestamp: vi.fn((opts) => ({ type: "timestamp", opts })),
-        printf: vi.fn((fn) => ({ type: "printf", fn })),
-        colorize: vi.fn(() => ({ type: "colorize" })),
-      },
-      transports: {
-        Console: consoleTransportMock,
-      },
-      Transport: class {},
-    };
-
-    vi.doMock("winston", () => ({ __esModule: true, default: winstonMock }));
-    vi.doMock("winston-daily-rotate-file", () => ({
-      __esModule: true,
-      default: dailyRotateMock,
-    }));
-    vi.doMock("@/shared/utils/discordWebhookTransport", () => ({
       DiscordWebhookTransport: discordWebhookTransportMock,
+    }));
+    vi.doMock("i18next", () => ({
+      default: {
+        t: vi.fn((key: string, opts?: Record<string, unknown>) =>
+          key === "system:discord.error_notification_title"
+            ? `🚨 ${String(opts?.appName ?? "")} エラー通知`
+            : key,
+        ),
+      },
     }));
     vi.doMock("@/shared/config/env", () => ({
       NODE_ENV: {
@@ -54,127 +43,34 @@ describe("Logger", () => {
     }));
 
     const module = await import("@/shared/utils/logger");
-    return {
-      module,
-      winstonMock,
-      createLoggerMock,
-      consoleTransportMock,
-      dailyRotateMock,
-      discordWebhookTransportMock,
-    };
+    return { module, createLoggerMock, discordWebhookTransportMock };
   };
 
-  it("development 環境では Console + DailyRotateFile×2 の計3トランスポートと debug レベルが設定されること", async () => {
-    const { module, createLoggerMock, consoleTransportMock, dailyRotateMock } =
-      await loadLoggerModule("development", "debug");
+  it("development 環境では isDevelopment=true・指定 logLevel で createLogger が呼ばれること", async () => {
+    const { module, createLoggerMock } = await loadLoggerModule(
+      "development",
+      "debug",
+    );
 
     expect(module.logger).toBeDefined();
-    expect(dailyRotateMock).toHaveBeenCalledTimes(2);
-    expect(consoleTransportMock).toHaveBeenCalledTimes(1);
-    expect(consoleTransportMock).toHaveBeenCalledWith(
-      expect.objectContaining({ level: "debug" }),
-    );
-
-    const createLoggerArgs = createLoggerMock.mock.calls[0][0];
-    expect(createLoggerArgs.level).toBe("debug");
-    expect(createLoggerArgs.exitOnError).toBe(false);
-    expect(createLoggerArgs.transports).toHaveLength(3);
+    expect(createLoggerMock).toHaveBeenCalledTimes(1);
+    const args = createLoggerMock.mock.calls[0][0];
+    expect(args.isDevelopment).toBe(true);
+    expect(args.logLevel).toBe("debug");
   });
 
-  it("非 development 環境では info レベルのコンソールトランスポートとデフォルト設定が適用されること", async () => {
-    const { createLoggerMock, consoleTransportMock, dailyRotateMock } =
-      await loadLoggerModule("production", undefined);
-
-    expect(dailyRotateMock).toHaveBeenCalledTimes(2);
-    expect(consoleTransportMock).toHaveBeenCalledTimes(1);
-    expect(consoleTransportMock).toHaveBeenCalledWith(
-      expect.objectContaining({ level: "info" }),
-    );
-
-    const createLoggerArgs = createLoggerMock.mock.calls[0][0];
-    expect(createLoggerArgs.level).toBe("info");
-    expect(createLoggerArgs.transports).toHaveLength(3);
-  });
-
-  // コンソール用 printf が stack の有無でフォーマットを切り替えること、
-  // stack がある場合は改行で続けて出力されることを検証する
-  it("development 環境でコンソール出力が stack の有無でフォーマットを切り替えること", async () => {
-    const { winstonMock } = await loadLoggerModule("development", "debug");
-
-    const printfCalls = winstonMock.format.printf.mock.calls;
-    const consolePrintf = printfCalls[1]?.[0] as
-      | ((entry: {
-          timestamp: string;
-          level: string;
-          message: string;
-          stack?: string;
-        }) => string)
-      | undefined;
-
-    expect(consolePrintf).toBeDefined();
-    expect(
-      consolePrintf?.({
-        timestamp: "2026-02-21 00:00:00",
-        level: "info",
-        message: "hello",
-      }),
-    ).toBe("2026-02-21 00:00:00 [info]: hello");
-    expect(
-      consolePrintf?.({
-        timestamp: "2026-02-21 00:00:00",
-        level: "error",
-        message: "boom",
-        stack: "STACK_TRACE",
-      }),
-    ).toBe("2026-02-21 00:00:00 [error]: boom\nSTACK_TRACE");
-  });
-
-  // ファイル用 printf が余剰メタフィールドを JSON 文字列として末尾に付加し、
-  // stack は改行区切りで最後に出力されることを確認する
-  it("ファイル出力がメタフィールドと stack を正しくフォーマットすること", async () => {
-    const { winstonMock } = await loadLoggerModule("development", "debug");
-
-    const printfCalls = winstonMock.format.printf.mock.calls;
-    const filePrintf = printfCalls[0]?.[0] as
-      | ((entry: {
-          timestamp: string;
-          level: string;
-          message: string;
-          stack?: string;
-          [key: string]: unknown;
-        }) => string)
-      | undefined;
-
-    expect(
-      filePrintf?.({
-        timestamp: "2026-02-21 00:00:00",
-        level: "info",
-        message: "hello",
-      }),
-    ).toBe("2026-02-21 00:00:00 [INFO]: hello");
-    expect(
-      filePrintf?.({
-        timestamp: "2026-02-21 00:00:00",
-        level: "error",
-        message: "boom",
-        stack: "STACK_TRACE",
-        guildId: "g1",
-      }),
-    ).toBe('2026-02-21 00:00:00 [ERROR]: boom{"guildId":"g1"}\nSTACK_TRACE');
-  });
-
-  it("LOG_LEVEL が未設定の開発環境ではデフォルト値として debug が適用されること", async () => {
-    const { consoleTransportMock } = await loadLoggerModule(
-      "development",
+  it("非 development 環境では isDevelopment=false で createLogger が呼ばれること", async () => {
+    const { createLoggerMock } = await loadLoggerModule(
+      "production",
       undefined,
     );
 
-    expect(consoleTransportMock).toHaveBeenCalledWith(
-      expect.objectContaining({ level: "debug" }),
-    );
+    const args = createLoggerMock.mock.calls[0][0];
+    expect(args.isDevelopment).toBe(false);
+    expect(args.logLevel).toBeUndefined();
   });
 
-  it("DISCORD_ERROR_WEBHOOK_URL が設定されている場合に DiscordWebhookTransport が追加されて4トランスポートになること", async () => {
+  it("DISCORD_ERROR_WEBHOOK_URL 設定時に DiscordWebhookTransport が URL と getTitle で生成され extraTransports に渡されること", async () => {
     const { createLoggerMock, discordWebhookTransportMock } =
       await loadLoggerModule(
         "production",
@@ -185,17 +81,31 @@ describe("Logger", () => {
     expect(discordWebhookTransportMock).toHaveBeenCalledTimes(1);
     expect(discordWebhookTransportMock).toHaveBeenCalledWith(
       "https://discord.com/api/webhooks/123/token",
+      expect.objectContaining({ getTitle: expect.any(Function) }),
     );
-    const createLoggerArgs = createLoggerMock.mock.calls[0][0];
-    expect(createLoggerArgs.transports).toHaveLength(4);
+    const args = createLoggerMock.mock.calls[0][0];
+    expect(args.extraTransports).toHaveLength(1);
   });
 
-  it("DISCORD_ERROR_WEBHOOK_URL が未設定の場合は DiscordWebhookTransport が追加されないこと", async () => {
+  it("DISCORD_ERROR_WEBHOOK_URL 未設定時は DiscordWebhookTransport が生成されず extraTransports が空になること", async () => {
     const { createLoggerMock, discordWebhookTransportMock } =
       await loadLoggerModule("production", undefined);
 
     expect(discordWebhookTransportMock).not.toHaveBeenCalled();
-    const createLoggerArgs = createLoggerMock.mock.calls[0][0];
-    expect(createLoggerArgs.transports).toHaveLength(3);
+    const args = createLoggerMock.mock.calls[0][0];
+    expect(args.extraTransports).toHaveLength(0);
+  });
+
+  it("getTitle が i18n タイトルキーを appName 付きで解決すること", async () => {
+    const { discordWebhookTransportMock } = await loadLoggerModule(
+      "production",
+      undefined,
+      "https://discord.com/api/webhooks/123/token",
+    );
+
+    const options = discordWebhookTransportMock.mock.calls[0][1] as {
+      getTitle: () => string;
+    };
+    expect(options.getTitle()).toContain("エラー通知");
   });
 });

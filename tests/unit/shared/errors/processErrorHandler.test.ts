@@ -122,7 +122,7 @@ describe("shared/errors/processErrorHandler", () => {
       .spyOn(process, "exit")
       .mockImplementation((() => undefined as never) as typeof process.exit);
 
-    const { BaseError } = await import("@/shared/errors/customErrors");
+    const { BaseError } = await import("@ayasono/shared/core");
     const { setupGlobalErrorHandlers } = await import(
       "@/shared/errors/processErrorHandler"
     );
@@ -155,7 +155,7 @@ describe("shared/errors/processErrorHandler", () => {
       .spyOn(process, "exit")
       .mockImplementation((() => undefined as never) as typeof process.exit);
 
-    const { BaseError } = await import("@/shared/errors/customErrors");
+    const { BaseError } = await import("@ayasono/shared/core");
     const { setupGlobalErrorHandlers } = await import(
       "@/shared/errors/processErrorHandler"
     );

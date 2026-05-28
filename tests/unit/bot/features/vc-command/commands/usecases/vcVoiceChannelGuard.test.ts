@@ -1,5 +1,6 @@
 // tests/unit/bot/features/vc-command/commands/usecases/vcVoiceChannelGuard.test.ts
 
+import { ValidationError } from "@ayasono/shared/core";
 import { ChannelType } from "discord.js";
 import type { Mock } from "vitest";
 import { getManagedVoiceChannel } from "@/bot/features/vc-command/commands/usecases/vcVoiceChannelGuard";
@@ -7,7 +8,6 @@ import {
   getBotVacConfigService,
   getBotVcRecruitRepository,
 } from "@/bot/services/botCompositionRoot";
-import { ValidationError } from "@/shared/errors/customErrors";
 
 vi.mock("@/shared/locale/localeManager", () => ({
   logPrefixed: (

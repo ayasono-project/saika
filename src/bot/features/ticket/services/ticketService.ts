@@ -1,6 +1,7 @@
 // src/bot/features/ticket/services/ticketService.ts
 // チケット操作のビジネスロジック
 
+import { ValidationError } from "@ayasono/shared/core";
 import {
   ActionRowBuilder,
   ButtonBuilder,
@@ -16,7 +17,6 @@ import type {
   ITicketRepository,
   Ticket,
 } from "../../../../shared/database/types";
-import { ValidationError } from "../../../../shared/errors/customErrors";
 import type { TicketConfigService } from "../../../../shared/features/ticket/ticketConfigService";
 import { tDefault } from "../../../../shared/locale/localeManager";
 import { createInfoEmbed } from "../../../utils/messageResponse";

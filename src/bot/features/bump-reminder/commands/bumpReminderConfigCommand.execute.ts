@@ -1,8 +1,8 @@
 // src/bot/features/bump-reminder/commands/bumpReminderConfigCommand.execute.ts
 // bump-reminder-config コマンドのルーター
 
+import { ValidationError } from "@ayasono/shared/core";
 import { type ChatInputCommandInteraction } from "discord.js";
-import { ValidationError } from "../../../../shared/errors/customErrors";
 import { handleCommandError } from "../../../errors/interactionErrorHandler";
 import { COMMON_I18N_KEYS } from "../../../shared/i18nKeys";
 import { BUMP_REMINDER_CONFIG_COMMAND } from "./bumpReminderConfigCommand.constants";

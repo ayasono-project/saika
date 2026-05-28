@@ -1,6 +1,7 @@
 // src/bot/features/bump-reminder/commands/bumpReminderConfigCommand.removeUsers.ts
 // bump-reminder-config remove-mention-users 実行処理
 
+import { ValidationError } from "@ayasono/shared/core";
 import {
   ActionRowBuilder,
   ButtonBuilder,
@@ -9,7 +10,6 @@ import {
   MessageFlags,
   StringSelectMenuBuilder,
 } from "discord.js";
-import { ValidationError } from "../../../../shared/errors/customErrors";
 import {
   logPrefixed,
   tInteraction,

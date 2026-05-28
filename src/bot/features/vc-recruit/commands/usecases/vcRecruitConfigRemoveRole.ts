@@ -1,6 +1,7 @@
 // src/bot/features/vc-recruit/commands/usecases/vcRecruitConfigRemoveRole.ts
 // vc-recruit-config remove-role のユースケース処理
 
+import { ValidationError } from "@ayasono/shared/core";
 import {
   ActionRowBuilder,
   ButtonBuilder,
@@ -10,7 +11,6 @@ import {
   StringSelectMenuBuilder,
   StringSelectMenuOptionBuilder,
 } from "discord.js";
-import { ValidationError } from "../../../../../shared/errors/customErrors";
 import { tInteraction } from "../../../../../shared/locale/localeManager";
 import { getBotVcRecruitConfigService } from "../../../../services/botCompositionRoot";
 import { disableComponentsAfterTimeout } from "../../../../shared/disableComponentsAfterTimeout";

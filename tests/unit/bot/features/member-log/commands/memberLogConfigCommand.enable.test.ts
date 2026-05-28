@@ -1,6 +1,7 @@
 // tests/unit/bot/features/member-log/commands/memberLogConfigCommand.enable.test.ts
+
+import { ValidationError } from "@ayasono/shared/core";
 import { handleMemberLogConfigEnable } from "@/bot/features/member-log/commands/memberLogConfigCommand.enable";
-import { ValidationError } from "@/shared/errors/customErrors";
 
 // ---- モック定義 ----
 const ensurePermissionMock = vi.fn();

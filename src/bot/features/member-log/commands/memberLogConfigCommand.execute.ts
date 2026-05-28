@@ -1,8 +1,8 @@
 // src/bot/features/member-log/commands/memberLogConfigCommand.execute.ts
 // member-log-config コマンドのルーター
 
+import { ValidationError } from "@ayasono/shared/core";
 import { type ChatInputCommandInteraction } from "discord.js";
-import { ValidationError } from "../../../../shared/errors/customErrors";
 import { handleCommandError } from "../../../errors/interactionErrorHandler";
 import { COMMON_I18N_KEYS } from "../../../shared/i18nKeys";
 import { ensureManageGuildPermission } from "../../../shared/permissionGuards";

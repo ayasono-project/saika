@@ -1,8 +1,8 @@
 // src/bot/features/vc-recruit/commands/usecases/vcRecruitConfigView.ts
 // vc-recruit-config view のユースケース処理
 
+import { ValidationError } from "@ayasono/shared/core";
 import { type ChatInputCommandInteraction, MessageFlags } from "discord.js";
-import { ValidationError } from "../../../../../shared/errors/customErrors";
 import { tInteraction } from "../../../../../shared/locale/localeManager";
 import { getBotVcRecruitRepository } from "../../../../services/botCompositionRoot";
 import { COMMON_I18N_KEYS } from "../../../../shared/i18nKeys";

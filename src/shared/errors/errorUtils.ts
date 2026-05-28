@@ -1,10 +1,10 @@
 // src/shared/errors/errorUtils.ts
 // Discord非依存のエラー共通ユーティリティ
 
+import { BaseError } from "@ayasono/shared/core";
 import { env, NODE_ENV } from "../config/env";
 import { tDefault } from "../locale/localeManager";
 import { logger } from "../utils/logger";
-import { BaseError } from "./customErrors";
 
 const ERROR_I18N_KEYS = {
   BASE_ERROR_LOG: "system:error.base_error_log",

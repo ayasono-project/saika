@@ -3,3 +3,9 @@ allowBuilds:
   better-sqlite3: true
   esbuild: true
   prisma: true
+
+# 開発用: @ayasono/shared をローカルディレクトリにリンクする。
+# 本番/CI では dependencies の git タグ参照 (#v0.2.0) を使うため、
+# リリース確定後はこの override を外す。詳細は infra/docs/LOCAL_DEV.md。
+overrides:
+  "@ayasono/shared": "link:../shared"

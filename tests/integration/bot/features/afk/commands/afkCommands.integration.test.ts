@@ -5,13 +5,13 @@
  * 設定→表示→利用のフロー、および各エラーパスを検証する
  */
 
+import { PermissionError, ValidationError } from "@ayasono/shared/core";
 import {
   ChannelType,
   PermissionFlagsBits,
   PermissionsBitField,
 } from "discord.js";
 import type { Mock } from "vitest";
-import { PermissionError, ValidationError } from "@/shared/errors/customErrors";
 
 // Logger のモック
 vi.mock("@/shared/utils/logger", () => ({

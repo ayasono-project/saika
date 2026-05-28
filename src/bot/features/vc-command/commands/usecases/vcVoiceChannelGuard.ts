@@ -1,8 +1,8 @@
 // src/bot/features/vc-command/commands/usecases/vcVoiceChannelGuard.ts
 // VC操作コマンドの操作対象VCガード
 
+import { ValidationError } from "@ayasono/shared/core";
 import { ChannelType, type ChatInputCommandInteraction } from "discord.js";
-import { ValidationError } from "../../../../../shared/errors/customErrors";
 import { tInteraction } from "../../../../../shared/locale/localeManager";
 import {
   getBotVacConfigService,

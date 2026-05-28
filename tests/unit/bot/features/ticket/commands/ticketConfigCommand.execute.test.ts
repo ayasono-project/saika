@@ -1,8 +1,9 @@
 // tests/unit/bot/features/ticket/commands/ticketConfigCommand.execute.test.ts
+
+import { ValidationError } from "@ayasono/shared/core";
 import { handleCommandError } from "@/bot/errors/interactionErrorHandler";
 import { TICKET_CONFIG_COMMAND } from "@/bot/features/ticket/commands/ticketCommand.constants";
 import { executeTicketConfigCommand } from "@/bot/features/ticket/commands/ticketConfigCommand.execute";
-import { ValidationError } from "@/shared/errors/customErrors";
 
 const ensureManageGuildPermissionMock = vi.fn();
 const setupMock = vi.fn();

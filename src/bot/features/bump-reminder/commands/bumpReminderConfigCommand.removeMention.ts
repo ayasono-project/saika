@@ -1,8 +1,8 @@
 // src/bot/features/bump-reminder/commands/bumpReminderConfigCommand.removeMention.ts
 // bump-reminder-config remove-mention 実行処理
 
+import { ValidationError } from "@ayasono/shared/core";
 import { type ChatInputCommandInteraction, MessageFlags } from "discord.js";
-import { ValidationError } from "../../../../shared/errors/customErrors";
 import { BUMP_REMINDER_MENTION_ROLE_RESULT } from "../../../../shared/features/bump-reminder/bumpReminderConfigService";
 import {
   logPrefixed,

@@ -4,16 +4,13 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
-overrides:
-  '@ayasono/shared': link:../shared
-
 importers:
 
   .:
     dependencies:
       '@ayasono/shared':
-        specifier: link:../shared
-        version: link:../shared
+        specifier: https://github.com/ayasono-project/shared/releases/download/v0.2.1/ayasono-shared-0.2.1.tgz
+        version: https://github.com/ayasono-project/shared/releases/download/v0.2.1/ayasono-shared-0.2.1.tgz(winston-daily-rotate-file@5.0.0(winston@3.19.0))(winston-transport@4.9.0)(winston@3.19.0)
       '@libsql/client':
         specifier: ^0.17.3
         version: 0.17.3
@@ -92,6 +89,15 @@ importers:
         version: 4.1.6(@types/node@25.7.0)(@vitest/coverage-istanbul@4.1.6)(vite@7.3.1(@types/node@25.7.0)(jiti@2.7.0)(tsx@4.22.0)(yaml@2.9.0))
 
 packages:
+
+  '@ayasono/shared@https://github.com/ayasono-project/shared/releases/download/v0.2.1/ayasono-shared-0.2.1.tgz':
+    resolution: {integrity: sha512-ANk1gISOUKqP92IzPANSS4LLZ2EuYHa6V2DupPdSympqZOC87W2F17AVIZtrRKz8NrxxyMhWQq1AAJTMy/m22Q==, tarball: https://github.com/ayasono-project/shared/releases/download/v0.2.1/ayasono-shared-0.2.1.tgz}
+    version: 0.2.1
+    engines: {node: '>=24'}
+    peerDependencies:
+      winston: ^3.19.0
+      winston-daily-rotate-file: ^5.0.0
+      winston-transport: ^4.9.0
 
   '@babel/code-frame@7.29.0':
     resolution: {integrity: sha512-9NhCeYjq9+3uxgdtp20LSiJXJvN0FeCtNGpJxuMFZ1Kv3cWUNb6DOhJwUvcVCzKGR66cw4njwM6hrJLqgOwbcw==}
@@ -2226,6 +2232,12 @@ packages:
     resolution: {integrity: sha512-ytENFjIJFl2UwYglde2jchW2Hwm4GJFLDiSXWdTrJQBIN9Fcyp7n4DhxJEiWNAJMV1/BqWfW/kkg71UDcHJyTQ==}
 
 snapshots:
+
+  '@ayasono/shared@https://github.com/ayasono-project/shared/releases/download/v0.2.1/ayasono-shared-0.2.1.tgz(winston-daily-rotate-file@5.0.0(winston@3.19.0))(winston-transport@4.9.0)(winston@3.19.0)':
+    dependencies:
+      winston: 3.19.0
+      winston-daily-rotate-file: 5.0.0(winston@3.19.0)
+      winston-transport: 4.9.0
 
   '@babel/code-frame@7.29.0':
     dependencies:

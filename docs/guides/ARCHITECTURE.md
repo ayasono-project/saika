@@ -85,11 +85,11 @@ src/
 │   │   ├── types/             # ドメイン型・リポジトリインターフェース定義
 │   │   ├── repositories/      # リポジトリ実装・シリアライザ
 │   │   └── (各リポジトリにシングルトンゲッターを内包)
-│   ├── errors/                # カスタムエラークラス・グローバルハンドラ
+│   ├── errors/                # エラーユーティリティ・グローバルハンドラ（BaseError 階層は @ayasono/shared/core）
 │   ├── features/<feature>/    # ギルド設定サービス（ConfigService + Defaults）
 │   ├── locale/                # i18n（i18next）
 │   ├── scheduler/             # JobScheduler（cron + setTimeout）
-│   └── utils/                 # logger, prisma, serviceFactory 等
+│   └── utils/                 # logger（@ayasono/shared/core の createLogger を wiring）, prisma, serviceFactory 等
 │
 ```
 
@@ -314,7 +314,7 @@ Bot 起動
 
 ### カスタムエラークラス一覧
 
-すべて `BaseError` を継承しています。
+`BaseError` 階層は `@ayasono/shared/core` から提供されます（全 ayasono アプリ共通）。すべて `BaseError` を継承しています。
 
 | クラス               | statusCode | 用途                     |
 | -------------------- | ---------- | ------------------------ |

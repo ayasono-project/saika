@@ -10,7 +10,7 @@
 
 | # | セクション | 概要 | 残件 |
 | --- | --- | --- | ---: |
-| 4 | shared への外出し | saika 内のインフラコードを `@ayasono/shared` に移行 | 4 |
+| 4 | shared への外出し | 汎用インフラ（logger / webhook transport / errors）を `@ayasono/shared` v0.2.0 に移行 | 1 |
 | 5 | Postgres 移行 | SQLite → PostgreSQL + 2 件のリネーム合体 | 6 |
 | 6 | ディレクトリ再編 | `src/{bot,api,features,shared}/` 構造に整理 | 5 |
 | 7 | `/vc disconnect` 実装 & ephemeral 監査 | 個別/一括切断・一括移動 + 既存コマンドの ephemeral/public 見直し | 4 |
@@ -18,7 +18,7 @@
 | 9 | 未承認ユーザー自動キック | 認証ロール未取得ユーザーの自動キック + 警告 DM | 3 |
 | 10 | Fastify API 実装 | web フロントエンド完成後、契約通りに実装 | 5 |
 | 11 | Bot 一般公開準備 | コマンド追加・認証申請 | 3 |
-| **合計** | | | **33** |
+| **合計** | | | **30** |
 
 > web ダッシュボード側の作業は別リポジトリ(ローカル開発中)、インフラ側(VPS / Cloudflare / Coolify 本体)の作業は別リポジトリ(プライベート)で管理。
 > 作業順序は上から順に進める前提。セクション 10 以降は web 側の進行状況と依存関係あり:
@@ -30,14 +30,20 @@
 
 ### 4. shared への外出し
 
-saika 内のインフラコードを `@ayasono/shared` v0.1.0 に移行する。shared パッケージ自体のセットアップは別リポジトリ管理。
+**「他 bot でもそのまま流用できる汎用コードのみ外出し」方針**で、汎用3点だけを `@ayasono/shared` v0.2.0 に移行する。shared パッケージ自体のセットアップは別リポジトリ管理。
 
-対象: logger / discordWebhookTransport / prisma / errors / locale セットアップ
+**外出し対象（汎用3点）**: `createLogger`（winston ロガー factory）/ `DiscordWebhookTransport`（appName/title を注入で汎用化）/ `errors` の `BaseError` 階層。
 
-- [ ] `package.json` に `@ayasono/shared`(git URL + タグ `v0.1.0`)を追加
-- [ ] `src/shared/utils/logger.ts` / `discordWebhookTransport.ts` / `prisma.ts`、`src/shared/errors/`、`src/shared/locale/` のセットアップ部分を `@ayasono/shared/core/*` の import に置き換え
-- [ ] 移行済みファイルを saika 側から削除
-- [ ] [ARCHITECTURE.md](docs/guides/ARCHITECTURE.md) の該当箇所を `@ayasono/shared/core` 経由に更新
+**saika に残すもの（saika 固有が濃い）**: `locale/*`（saika 名前空間・`AllParseKeys` 型に密結合）/ `utils/prisma.ts`（i18n キー依存の極小グルー）/ `errors/errorUtils.ts`・`errors/processErrorHandler.ts`（ログ文言が saika ローカライズ済み）。
+
+- [x] `package.json` に `@ayasono/shared`(git URL + タグ `v0.2.0`)を追加 + 開発用 `pnpm-workspace.yaml` overrides（`link:../shared`）
+- [x] `src/shared/utils/logger.ts` を `@ayasono/shared/core` の `createLogger` を env で wiring する薄い層に置換（call site は無変更）
+- [x] `src/shared/utils/discordWebhookTransport.ts` を削除（shared に移設）
+- [x] `src/shared/errors/customErrors.ts` を削除し、`BaseError` 階層の import（約73箇所）を `@ayasono/shared/core` に全置換
+- [x] [ARCHITECTURE.md](docs/guides/ARCHITECTURE.md) の該当箇所を `@ayasono/shared/core` 経由に更新
+- [ ] **リリース**: shared を `v0.2.0` でタグ発行 → saika の `pnpm-workspace.yaml` の dev override（`link:../shared`）を外し、`#v0.2.0` タグ参照に切替 → `pnpm install` → CI/本番デプロイ確認
+
+> NOTE: webhook transport の単体テストは暫定的に saika 側（`tests/unit/shared/utils/discordWebhookTransport.test.ts`）に残置。shared にテスト基盤を整えたら shared 側へ移す。
 
 ### 5. Postgres 移行
 

@@ -48,6 +48,7 @@
 - **Language**: TypeScript 6.x - 厳格な型チェックで品質向上
 - **Framework**: Discord.js 14.x - Discord Bot開発フレームワーク
 - **Package Manager**: pnpm - 高速で効率的なパッケージ管理
+- **共通基盤**: `@ayasono/shared/core` - logger / エラークラス（`BaseError` 階層）/ Discord Webhook 通知を提供する ayasono 共通パッケージ（git タグ参照で取り込み）
 
 ### データベース
 
@@ -56,7 +57,7 @@
 
 ### ロガー・ユーティリティ
 
-- **Winston** - ログ管理（ローテーション、レベル制御）
+- **Winston** - ログ管理（ローテーション、レベル制御）。`@ayasono/shared/core` の `createLogger` を env で wiring して初期化
 - **i18next** - 多言語対応システム
 - **node-cron** - タイマー・スケジューリング処理
 
@@ -87,6 +88,8 @@ cp .env.example .env
 # 開発モード起動
 pnpm dev
 ```
+
+> `@ayasono/shared` に依存します。リリース版は `package.json` の git タグ参照（`#vX.Y.Z`）で自動取得されますが、**未公開の shared 変更をローカル検証する場合**は shared リポジトリを兄弟ディレクトリ `../shared` にクローン＆ビルドし、`pnpm-workspace.yaml` の `overrides`（`link:../shared`）を有効にします（手順は infra リポの `docs/LOCAL_DEV.md`）。
 
 ### スクリプト
 

@@ -48,7 +48,7 @@
 - **Language**: TypeScript 6.x - 厳格な型チェックで品質向上
 - **Framework**: Discord.js 14.x - Discord Bot開発フレームワーク
 - **Package Manager**: pnpm - 高速で効率的なパッケージ管理
-- **共通基盤**: `@ayasono/shared/core` - logger / エラークラス（`BaseError` 階層）/ Discord Webhook 通知を提供する ayasono 共通パッケージ（GitHub Release の prebuilt tarball で取り込み）
+- **共通基盤**: `@ayasono/shared/core` - logger / エラークラス（`BaseError` 階層）/ Discord Webhook 通知を提供する ayasono 共通パッケージ（git タグ + コミット済み dist で取り込み）
 
 ### データベース
 
@@ -89,7 +89,7 @@ cp .env.example .env
 pnpm dev
 ```
 
-> `@ayasono/shared` に依存します。リリース版は `package.json` の GitHub Release tarball URL（`.../releases/download/vX.Y.Z/ayasono-shared-X.Y.Z.tgz`）で取得され、インストール時ビルドは発生しません。**未公開の shared 変更をローカル検証する場合**は shared リポジトリを兄弟ディレクトリ `../shared` にクローン＆ビルドし、`pnpm-workspace.yaml` の `overrides`（`link:../shared`）を有効にします（手順は infra リポの `docs/LOCAL_DEV.md`）。
+> `@ayasono/shared` に依存します。リリース版は `package.json` の git タグ参照（`github:ayasono-project/shared#vX.Y.Z`）で取得し、shared 側が dist をコミットしているためインストール時ビルドは発生しません。**未公開の shared 変更をローカル検証する場合**は shared リポジトリを兄弟ディレクトリ `../shared` にクローン＆ビルドし、`pnpm-workspace.yaml` の `overrides`（`link:../shared`）を有効にします（手順は infra リポの `docs/LOCAL_DEV.md`）。
 
 ### スクリプト
 

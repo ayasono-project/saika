@@ -1,8 +1,8 @@
 // tests/unit/bot/features/vc-command/commands/helpers/vcVoiceChannelResolver.test.ts
 
+import { ValidationError } from "@ayasono/shared/core";
 import { ChannelType } from "discord.js";
 import { resolveVoiceChannelForEdit } from "@/bot/features/vc-command/commands/helpers/vcVoiceChannelResolver";
-import { ValidationError } from "@/shared/errors/customErrors";
 
 vi.mock("@/shared/locale/localeManager", () => ({
   logPrefixed: (

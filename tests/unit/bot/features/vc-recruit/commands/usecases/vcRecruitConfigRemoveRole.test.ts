@@ -1,7 +1,8 @@
 // tests/unit/bot/features/vc-recruit/commands/usecases/vcRecruitConfigRemoveRole.test.ts
+
+import { ValidationError } from "@ayasono/shared/core";
 import { handleVcRecruitConfigRemoveRole } from "@/bot/features/vc-recruit/commands/usecases/vcRecruitConfigRemoveRole";
 import { VC_RECRUIT_ROLE_CUSTOM_ID } from "@/bot/features/vc-recruit/commands/vcRecruitConfigCommand.constants";
-import { ValidationError } from "@/shared/errors/customErrors";
 
 // ---- モック定義 ----
 

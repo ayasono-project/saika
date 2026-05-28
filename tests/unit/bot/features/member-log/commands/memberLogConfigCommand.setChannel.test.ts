@@ -1,9 +1,9 @@
 // tests/unit/bot/features/member-log/commands/memberLogConfigCommand.setChannel.test.ts
 
+import { ValidationError } from "@ayasono/shared/core";
 import { ChannelType } from "discord.js";
 import { MEMBER_LOG_CONFIG_COMMAND } from "@/bot/features/member-log/commands/memberLogConfigCommand.constants";
 import { handleMemberLogConfigSetChannel } from "@/bot/features/member-log/commands/memberLogConfigCommand.setChannel";
-import { ValidationError } from "@/shared/errors/customErrors";
 
 // ---- モック定義 ----
 const ensurePermissionMock = vi.fn();

@@ -1,8 +1,9 @@
 // tests/unit/bot/features/member-log/commands/memberLogConfigCommand.execute.test.ts
+
+import { ValidationError } from "@ayasono/shared/core";
 import { handleCommandError } from "@/bot/errors/interactionErrorHandler";
 import { MEMBER_LOG_CONFIG_COMMAND } from "@/bot/features/member-log/commands/memberLogConfigCommand.constants";
 import { executeMemberLogConfigCommand } from "@/bot/features/member-log/commands/memberLogConfigCommand.execute";
-import { ValidationError } from "@/shared/errors/customErrors";
 
 // ---- モック定義 ----
 const setChannelMock = vi.fn();

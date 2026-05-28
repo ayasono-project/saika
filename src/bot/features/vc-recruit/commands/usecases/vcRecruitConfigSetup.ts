@@ -1,6 +1,7 @@
 // src/bot/features/vc-recruit/commands/usecases/vcRecruitConfigSetup.ts
 // vc-recruit-config setup のユースケース処理
 
+import { ValidationError } from "@ayasono/shared/core";
 import {
   ChannelType,
   type ChatInputCommandInteraction,
@@ -9,7 +10,6 @@ import {
   PermissionFlagsBits,
   type TextChannel,
 } from "discord.js";
-import { ValidationError } from "../../../../../shared/errors/customErrors";
 import { tInteraction } from "../../../../../shared/locale/localeManager";
 import { getBotVcRecruitRepository } from "../../../../services/botCompositionRoot";
 import { COMMON_I18N_KEYS } from "../../../../shared/i18nKeys";

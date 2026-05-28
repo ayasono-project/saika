@@ -1,6 +1,7 @@
 // src/bot/features/vac/commands/usecases/vacConfigRemoveTrigger.ts
 // vac-config remove-trigger-vc のユースケース処理（セレクトメニュー複数選択版）
 
+import { ValidationError } from "@ayasono/shared/core";
 import {
   ActionRowBuilder,
   ButtonBuilder,
@@ -10,7 +11,6 @@ import {
   MessageFlags,
   StringSelectMenuBuilder,
 } from "discord.js";
-import { ValidationError } from "../../../../../shared/errors/customErrors";
 import {
   logPrefixed,
   tInteraction,

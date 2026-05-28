@@ -2,13 +2,6 @@
 // コマンド/インタラクション向けエラーハンドリング
 
 import {
-  ChatInputCommandInteraction,
-  DiscordAPIError,
-  MessageFlags,
-  RESTJSONErrorCodes,
-  type RepliableInteraction,
-} from "discord.js";
-import {
   BaseError,
   ConfigurationError,
   DatabaseError,
@@ -18,7 +11,14 @@ import {
   RateLimitError,
   TimeoutError,
   ValidationError,
-} from "../../shared/errors/customErrors";
+} from "@ayasono/shared/core";
+import {
+  ChatInputCommandInteraction,
+  DiscordAPIError,
+  MessageFlags,
+  RESTJSONErrorCodes,
+  type RepliableInteraction,
+} from "discord.js";
 import {
   getUserFriendlyMessage,
   logError,

@@ -1,13 +1,13 @@
 // src/bot/features/sticky-message/handlers/ui/stickyMessageSetModalHandler.ts
 // sticky-message set モーダル送信処理（プレーンテキスト入力）
 
+import { ValidationError } from "@ayasono/shared/core";
 import {
   ChannelType,
   MessageFlags,
   type ModalSubmitInteraction,
   type TextChannel,
 } from "discord.js";
-import { ValidationError } from "../../../../../shared/errors/customErrors";
 import {
   logPrefixed,
   tInteraction,

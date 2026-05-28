@@ -1,8 +1,8 @@
 // tests/unit/bot/features/afk/commands/afkConfigCommand.execute.test.ts
 
+import { PermissionError } from "@ayasono/shared/core";
 import { ChannelType } from "discord.js";
 import { executeAfkConfigCommand } from "@/bot/features/afk/commands/afkConfigCommand.execute";
-import { PermissionError } from "@/shared/errors/customErrors";
 
 const setAfkChannelMock = vi.fn();
 const getAfkConfigMock = vi.fn();

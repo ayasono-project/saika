@@ -1,8 +1,8 @@
 // src/shared/database/repositories/guildCoreRepository.ts
 // ギルド設定コアリポジトリ（guild_configs テーブル）
 
+import { DatabaseError } from "@ayasono/shared/core";
 import type { PrismaClient } from "@prisma/client";
-import { DatabaseError } from "../../errors/customErrors";
 import { DEFAULT_LOCALE } from "../../locale/i18n";
 import { createRepositoryGetter } from "../../utils/serviceFactory";
 import type { GuildConfig, IGuildCoreRepository } from "../types";

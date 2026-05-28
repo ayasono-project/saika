@@ -1,6 +1,7 @@
 // tests/unit/bot/features/member-log/commands/memberLogConfigCommand.guard.test.ts
+
+import { PermissionError } from "@ayasono/shared/core";
 import { ensureMemberLogManageGuildPermission } from "@/bot/features/member-log/commands/memberLogConfigCommand.guard";
-import { PermissionError } from "@/shared/errors/customErrors";
 
 // ---- モック定義 ----
 const tGuildMock = vi.fn(async (_guildId: string, key: string) => key);

@@ -1,7 +1,8 @@
 // tests/unit/bot/features/afk/commands/afkCommand.execute.test.ts
+
+import { ValidationError } from "@ayasono/shared/core";
 import { DiscordAPIError, RESTJSONErrorCodes } from "discord.js";
 import { executeAfkCommand } from "@/bot/features/afk/commands/afkCommand.execute";
-import { ValidationError } from "@/shared/errors/customErrors";
 
 const getAfkConfigMock = vi.fn();
 const tGuildMock = vi.fn();

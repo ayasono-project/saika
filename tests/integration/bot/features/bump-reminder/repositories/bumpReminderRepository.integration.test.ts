@@ -4,11 +4,11 @@
  * Bumpリマインダー永続化の統合テスト
  */
 
+import { DatabaseError } from "@ayasono/shared/core";
 import {
   BumpReminderRepository,
   getBumpReminderRepository,
 } from "@/bot/features/bump-reminder/repositories/bumpReminderRepository";
-import { DatabaseError } from "@/shared/errors/customErrors";
 
 // Logger のモック
 vi.mock("@/shared/utils/logger", () => ({

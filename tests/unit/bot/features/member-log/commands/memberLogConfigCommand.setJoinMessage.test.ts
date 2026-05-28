@@ -1,7 +1,8 @@
 // tests/unit/bot/features/member-log/commands/memberLogConfigCommand.setJoinMessage.test.ts
+
+import { ValidationError } from "@ayasono/shared/core";
 import { MEMBER_LOG_CONFIG_COMMAND } from "@/bot/features/member-log/commands/memberLogConfigCommand.constants";
 import { handleMemberLogConfigSetJoinMessage } from "@/bot/features/member-log/commands/memberLogConfigCommand.setJoinMessage";
-import { ValidationError } from "@/shared/errors/customErrors";
 
 // ---- モック定義 ----
 const ensurePermissionMock = vi.fn();

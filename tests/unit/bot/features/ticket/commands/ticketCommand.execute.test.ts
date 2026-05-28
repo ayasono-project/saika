@@ -1,8 +1,9 @@
 // tests/unit/bot/features/ticket/commands/ticketCommand.execute.test.ts
+
+import { ValidationError } from "@ayasono/shared/core";
 import { handleCommandError } from "@/bot/errors/interactionErrorHandler";
 import { TICKET_COMMAND } from "@/bot/features/ticket/commands/ticketCommand.constants";
 import { executeTicketCommand } from "@/bot/features/ticket/commands/ticketCommand.execute";
-import { ValidationError } from "@/shared/errors/customErrors";
 
 const handleTicketCloseMock = vi.fn();
 const handleTicketOpenMock = vi.fn();

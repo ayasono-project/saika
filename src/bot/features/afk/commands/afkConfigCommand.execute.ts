@@ -1,12 +1,12 @@
 // src/bot/features/afk/commands/afkConfigCommand.execute.ts
 // afk-config コマンド実行処理
 
+import { ValidationError } from "@ayasono/shared/core";
 import {
   ChannelType,
   type ChatInputCommandInteraction,
   MessageFlags,
 } from "discord.js";
-import { ValidationError } from "../../../../shared/errors/customErrors";
 import { createDefaultAfkConfig } from "../../../../shared/features/afk/afkConfigDefaults";
 import {
   getAfkConfig,

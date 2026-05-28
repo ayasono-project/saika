@@ -1,9 +1,9 @@
 // src/shared/errors/processErrorHandler.ts
 // プロセス全体の未処理例外とシャットダウン制御
 
+import { BaseError } from "@ayasono/shared/core";
 import { logPrefixed } from "../locale/localeManager";
 import { logger } from "../utils/logger";
-import { BaseError } from "./customErrors";
 import { logError } from "./errorUtils";
 
 // プロセスイベント名・シグナル名・終了コードを集約する定数

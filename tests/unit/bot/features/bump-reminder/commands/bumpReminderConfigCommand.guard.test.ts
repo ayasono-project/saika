@@ -1,8 +1,8 @@
 // tests/unit/bot/features/bump-reminder/commands/bumpReminderConfigCommand.guard.test.ts
 
+import { PermissionError } from "@ayasono/shared/core";
 import { PermissionFlagsBits } from "discord.js";
 import { ensureManageGuildPermission } from "@/bot/features/bump-reminder/commands/bumpReminderConfigCommand.guard";
-import { PermissionError } from "@/shared/errors/customErrors";
 
 vi.mock("@/shared/locale/localeManager", () => ({
   logPrefixed: (

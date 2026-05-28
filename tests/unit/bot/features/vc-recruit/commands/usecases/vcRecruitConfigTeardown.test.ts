@@ -1,8 +1,9 @@
 // tests/unit/bot/features/vc-recruit/commands/usecases/vcRecruitConfigTeardown.test.ts
+
+import { ValidationError } from "@ayasono/shared/core";
 import { handleVcRecruitConfigTeardown } from "@/bot/features/vc-recruit/commands/usecases/vcRecruitConfigTeardown";
 import { VC_RECRUIT_TIMEOUT } from "@/bot/features/vc-recruit/commands/vcRecruitConfigCommand.constants";
 import { disableComponentsAfterTimeout } from "@/bot/shared/disableComponentsAfterTimeout";
-import { ValidationError } from "@/shared/errors/customErrors";
 
 // ---- モック定義 ----
 

@@ -1,8 +1,8 @@
 // src/bot/features/guild-config/commands/guildConfigCommand.execute.ts
 // guild-config コマンドのサブコマンドルーティング
 
+import { ValidationError } from "@ayasono/shared/core";
 import { type ChatInputCommandInteraction } from "discord.js";
-import { ValidationError } from "../../../../shared/errors/customErrors";
 import { COMMON_I18N_KEYS } from "../../../shared/i18nKeys";
 import { ensureManageGuildPermission } from "../../../shared/permissionGuards";
 import { handleExport } from "./guildConfigCommand.export";

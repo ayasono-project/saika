@@ -1,12 +1,12 @@
 // src/bot/features/guild-config/commands/guildConfigCommand.setErrorChannel.ts
 // guild-config set-error-channel サブコマンド実行処理
 
+import { ValidationError } from "@ayasono/shared/core";
 import {
   ChannelType,
   type ChatInputCommandInteraction,
   MessageFlags,
 } from "discord.js";
-import { ValidationError } from "../../../../shared/errors/customErrors";
 import {
   logPrefixed,
   tInteraction,

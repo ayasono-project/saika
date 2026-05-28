@@ -51,7 +51,7 @@ jobs:
       - uses: actions/setup-node@v6
         if: needs.changes.outputs.should_test == 'true'
         with:
-          node-version: "24"
+          node-version-file: ".node-version"
           cache: "pnpm"
 
       - name: 依存関係のインストール

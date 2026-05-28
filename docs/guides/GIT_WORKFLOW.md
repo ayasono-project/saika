@@ -2,7 +2,7 @@
 
 > Git Workflow & Commit Convention Guide
 
-最終更新: 2026年3月4日（husky で commit/push 時のローカルチェックに統一）
+最終更新: 2026年5月29日（ブランチ保護を Rulesets 実態に追従・head ブランチ自動削除を追記）
 
 ---
 

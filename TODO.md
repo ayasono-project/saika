@@ -30,18 +30,19 @@
 
 ### 4. shared への外出し
 
-**「他 bot でもそのまま流用できる汎用コードのみ外出し」方針**で、汎用3点だけを `@ayasono/shared` v0.2.0 に移行する。shared パッケージ自体のセットアップは別リポジトリ管理。
+**「他 bot でもそのまま流用できる汎用コードのみ外出し」方針**で、汎用3点だけを `@ayasono/shared`（GitHub Release の prebuilt tarball 配布）に移行する。shared パッケージ自体のセットアップは別リポジトリ管理。
 
 **外出し対象（汎用3点）**: `createLogger`（winston ロガー factory）/ `DiscordWebhookTransport`（appName/title を注入で汎用化）/ `errors` の `BaseError` 階層。
 
 **saika に残すもの（saika 固有が濃い）**: `locale/*`（saika 名前空間・`AllParseKeys` 型に密結合）/ `utils/prisma.ts`（i18n キー依存の極小グルー）/ `errors/errorUtils.ts`・`errors/processErrorHandler.ts`（ログ文言が saika ローカライズ済み）。
 
-- [x] `package.json` に `@ayasono/shared`(git URL + タグ `v0.2.0`)を追加 + 開発用 `pnpm-workspace.yaml` overrides（`link:../shared`）
+- [x] `package.json` に `@ayasono/shared`(GitHub Release tarball URL `v0.2.1`)を追加 + 開発用 `pnpm-workspace.yaml` overrides（`link:../shared`）
 - [x] `src/shared/utils/logger.ts` を `@ayasono/shared/core` の `createLogger` を env で wiring する薄い層に置換（call site は無変更）
 - [x] `src/shared/utils/discordWebhookTransport.ts` を削除（shared に移設）
 - [x] `src/shared/errors/customErrors.ts` を削除し、`BaseError` 階層の import（約73箇所）を `@ayasono/shared/core` に全置換
 - [x] [ARCHITECTURE.md](docs/guides/ARCHITECTURE.md) の該当箇所を `@ayasono/shared/core` 経由に更新
-- [ ] **リリース**: shared を `v0.2.0` でタグ発行 → saika の `pnpm-workspace.yaml` の dev override（`link:../shared`）を外し、`#v0.2.0` タグ参照に切替 → `pnpm install` → CI/本番デプロイ確認
+- [x] shared を v0.2.1 タグ発行 → CI が prebuilt tarball を Release 添付 → saika 依存を tarball URL に切替（dev override は外す）→ docker build/run で本番同等起動を検証
+- [ ] **デプロイ**: refactor → develop → main（release PR）→ Coolify 自動デプロイ → 本番起動ログ確認
 
 > NOTE: webhook transport の単体テストは暫定的に saika 側（`tests/unit/shared/utils/discordWebhookTransport.test.ts`）に残置。shared にテスト基盤を整えたら shared 側へ移す。
 

@@ -3,3 +3,9 @@ allowBuilds:
   better-sqlite3: true
   esbuild: true
   prisma: true
+
+# @ayasono/shared は GitHub Release tarball 配布で npm に存在しないため、
+# pnpm 11.4+ のサプライチェーン待機（minimumReleaseAge）のレジストリ照会が 404 になる。
+# 自前パッケージなので age チェックから除外する（npm 由来の依存には保護を維持）。
+minimumReleaseAgeExclude:
+  - "@ayasono/shared"

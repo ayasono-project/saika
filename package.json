@@ -43,7 +43,7 @@
     ]
   },
   "dependencies": {
-    "@ayasono/shared": "github:ayasono-project/shared#v0.2.2",
+    "@ayasono/shared": "github:ayasono-project/shared#v0.2.3",
     "@libsql/client": "^0.17.3",
     "@prisma/adapter-libsql": "^7.8.0",
     "@prisma/client": "^7.8.0",

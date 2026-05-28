@@ -47,10 +47,10 @@
     "@libsql/client": "^0.17.3",
     "@prisma/adapter-libsql": "^7.8.0",
     "@prisma/client": "^7.8.0",
-    "date-fns": "^4.1.0",
+    "date-fns": "^4.3.0",
     "discord.js": "^14.26.4",
     "dotenv": "^17.4.2",
-    "i18next": "^26.1.0",
+    "i18next": "^26.3.0",
     "node-cron": "^4.2.1",
     "prisma": "^7.8.0",
     "winston": "^3.19.0",
@@ -59,17 +59,17 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.4.15",
+    "@biomejs/biome": "^2.4.16",
     "@commitlint/cli": "^21.0.1",
     "@commitlint/config-conventional": "^21.0.1",
-    "@types/node": "^25.7.0",
+    "@types/node": "^25.9.1",
     "@types/node-cron": "^3.0.11",
-    "@vitest/coverage-istanbul": "^4.1.6",
+    "@vitest/coverage-istanbul": "^4.1.7",
     "husky": "^9.1.7",
-    "lint-staged": "^17.0.4",
+    "lint-staged": "^17.0.5",
     "tsup": "^8.5.1",
-    "tsx": "^4.22.0",
+    "tsx": "^4.22.3",
     "typescript": "^6.0.3",
-    "vitest": "^4.1.6"
+    "vitest": "^4.1.7"
   }
 }

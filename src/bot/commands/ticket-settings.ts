@@ -7,10 +7,10 @@ import {
   PermissionFlagsBits,
   SlashCommandBuilder,
 } from "discord.js";
+import { TICKET_SETTINGS_COMMAND } from "../../features/ticket/commands/ticketCommand.constants";
+import { executeTicketSettingsCommand } from "../../features/ticket/commands/ticketSettingsCommand.execute";
 import { getCommandLocalizations } from "../../shared/locale/commandLocalizations";
 import { handleCommandError } from "../errors/interactionErrorHandler";
-import { TICKET_SETTINGS_COMMAND } from "../features/ticket/commands/ticketCommand.constants";
-import { executeTicketSettingsCommand } from "../features/ticket/commands/ticketSettingsCommand.execute";
 import type { Command } from "../types/discord";
 
 /**

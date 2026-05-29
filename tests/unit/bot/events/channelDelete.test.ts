@@ -8,35 +8,32 @@ const handleStickyMessageChannelDeleteMock = vi.fn();
 const handleVcRecruitChannelDeleteMock = vi.fn();
 const handleTicketChannelDeleteMock = vi.fn();
 
-vi.mock("@/bot/features/vac/handlers/vacChannelDelete", () => ({
+vi.mock("@/features/vac/handlers/vacChannelDelete", () => ({
   handleVacChannelDelete: (...args: unknown[]) =>
     handleVacChannelDeleteMock(...args),
 }));
 
 vi.mock(
-  "@/bot/features/sticky-message/handlers/stickyMessageChannelDeleteHandler",
+  "@/features/sticky-message/handlers/stickyMessageChannelDeleteHandler",
   () => ({
     handleStickyMessageChannelDelete: (...args: unknown[]) =>
       handleStickyMessageChannelDeleteMock(...args),
   }),
 );
 
-vi.mock(
-  "@/bot/features/vc-recruit/handlers/vcRecruitChannelDeleteHandler",
-  () => ({
-    handleVcRecruitChannelDelete: (...args: unknown[]) =>
-      handleVcRecruitChannelDeleteMock(...args),
-  }),
-);
+vi.mock("@/features/vc-recruit/handlers/vcRecruitChannelDeleteHandler", () => ({
+  handleVcRecruitChannelDelete: (...args: unknown[]) =>
+    handleVcRecruitChannelDeleteMock(...args),
+}));
 
-vi.mock("@/bot/features/ticket/handlers/ticketChannelDeleteHandler", () => ({
+vi.mock("@/features/ticket/handlers/ticketChannelDeleteHandler", () => ({
   handleTicketChannelDelete: (...args: unknown[]) =>
     handleTicketChannelDeleteMock(...args),
 }));
 
 const handleReactionRoleChannelDeleteMock = vi.fn();
 vi.mock(
-  "@/bot/features/reaction-role/handlers/reactionRoleChannelDeleteHandler",
+  "@/features/reaction-role/handlers/reactionRoleChannelDeleteHandler",
   () => ({
     handleReactionRoleChannelDelete: (...args: unknown[]) =>
       handleReactionRoleChannelDeleteMock(...args),

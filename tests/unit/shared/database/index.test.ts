@@ -6,22 +6,22 @@ describe("shared/database standalone repository getters", () => {
 
   it("各スタンドアロンリポジトリのシングルトンゲッターが prisma 未指定で例外をスローすること", async () => {
     const { getGuildCoreRepository } = await import(
-      "@/shared/database/repositories/guildCoreRepository"
+      "@/features/guild-settings/guildCoreRepository"
     );
     const { getAfkSettingsRepository } = await import(
-      "@/shared/database/repositories/afkSettingsRepository"
+      "@/features/afk/afkSettingsRepository"
     );
     const { getBumpReminderSettingsRepository } = await import(
-      "@/shared/database/repositories/bumpReminderSettingsRepository"
+      "@/features/bump-reminder/bumpReminderSettingsRepository"
     );
     const { getVacSettingsRepository } = await import(
-      "@/shared/database/repositories/vacSettingsRepository"
+      "@/features/vac/vacSettingsRepository"
     );
     const { getMemberLogSettingsRepository } = await import(
-      "@/shared/database/repositories/memberLogSettingsRepository"
+      "@/features/member-log/memberLogSettingsRepository"
     );
     const { getVcRecruitSettingsRepository } = await import(
-      "@/shared/database/repositories/vcRecruitSettingsRepository"
+      "@/features/vc-recruit/vcRecruitSettingsRepository"
     );
 
     expect(() => getGuildCoreRepository()).toThrow("not initialized");

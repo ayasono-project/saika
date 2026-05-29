@@ -6,10 +6,10 @@ import {
   PermissionFlagsBits,
   SlashCommandBuilder,
 } from "discord.js";
+import { MEMBER_LOG_SETTINGS_COMMAND } from "../../features/member-log/commands/memberLogSettingsCommand.constants";
+import { executeMemberLogSettingsCommand } from "../../features/member-log/commands/memberLogSettingsCommand.execute";
 import { getCommandLocalizations } from "../../shared/locale/commandLocalizations";
 import { handleCommandError } from "../errors/interactionErrorHandler";
-import { MEMBER_LOG_SETTINGS_COMMAND } from "../features/member-log/commands/memberLogSettingsCommand.constants";
-import { executeMemberLogSettingsCommand } from "../features/member-log/commands/memberLogSettingsCommand.execute";
 import type { Command } from "../types/discord";
 
 /**

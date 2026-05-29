@@ -54,7 +54,7 @@ git checkout develop
 git pull origin develop
 
 # 開発・コミット
-git add src/bot/features/bump-reminder/
+git add src/features/bump-reminder/
 git commit -m "feat(bump-reminder): メンションロール設定機能を追加"
 
 # develop に直接 push（push 前に husky が pnpm test を自動実行してブロック）

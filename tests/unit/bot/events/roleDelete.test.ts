@@ -6,7 +6,7 @@ import { roleDeleteEvent } from "@/bot/events/roleDelete";
 const handleBumpReminderRoleDeleteMock = vi.fn();
 
 vi.mock(
-  "@/bot/features/bump-reminder/handlers/bumpReminderRoleDeleteHandler",
+  "@/features/bump-reminder/handlers/bumpReminderRoleDeleteHandler",
   () => ({
     handleBumpReminderRoleDelete: (...args: unknown[]) =>
       handleBumpReminderRoleDeleteMock(...args),

@@ -7,11 +7,11 @@ import {
   PermissionFlagsBits,
   SlashCommandBuilder,
 } from "discord.js";
+import { autocompleteVcRecruitSettingsCommand } from "../../features/vc-recruit/commands/vcRecruitSettingsCommand.autocomplete";
+import { VC_RECRUIT_SETTINGS_COMMAND } from "../../features/vc-recruit/commands/vcRecruitSettingsCommand.constants";
+import { executeVcRecruitSettingsCommand } from "../../features/vc-recruit/commands/vcRecruitSettingsCommand.execute";
 import { getCommandLocalizations } from "../../shared/locale/commandLocalizations";
 import { handleCommandError } from "../errors/interactionErrorHandler";
-import { autocompleteVcRecruitSettingsCommand } from "../features/vc-recruit/commands/vcRecruitSettingsCommand.autocomplete";
-import { VC_RECRUIT_SETTINGS_COMMAND } from "../features/vc-recruit/commands/vcRecruitSettingsCommand.constants";
-import { executeVcRecruitSettingsCommand } from "../features/vc-recruit/commands/vcRecruitSettingsCommand.execute";
 import type { Command } from "../types/discord";
 
 /**

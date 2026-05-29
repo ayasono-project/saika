@@ -51,12 +51,12 @@ vi.mock("@/bot/services/botCompositionRoot", () => ({
   getBotTicketSettingsService: vi.fn(() => ({})),
   getBotTicketRepository: vi.fn(() => ({})),
 }));
-vi.mock("@/bot/features/ticket/services/ticketAutoDeleteService", () => ({
+vi.mock("@/features/ticket/services/ticketAutoDeleteService", () => ({
   restoreAutoDeleteTimers: vi.fn(),
   scheduleTicketAutoDelete: vi.fn(),
   cancelTicketAutoDelete: vi.fn(),
 }));
-vi.mock("@/bot/features/ticket/services/ticketService", () => ({
+vi.mock("@/features/ticket/services/ticketService", () => ({
   createTicketChannel: vi.fn(),
   closeTicket: vi.fn(),
   reopenTicket: vi.fn(),

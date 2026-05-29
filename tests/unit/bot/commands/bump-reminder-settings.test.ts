@@ -14,7 +14,7 @@ const createSuccessEmbedMock = vi.fn((description: string) => ({
 }));
 
 // Bump設定サービス依存を置き換えてコマンド分岐を直接検証する
-vi.mock("@/shared/features/bump-reminder/bumpReminderSettingsService", () => ({
+vi.mock("@/features/bump-reminder/bumpReminderSettingsService", () => ({
   BUMP_REMINDER_MENTION_ROLE_RESULT: {
     UPDATED: "updated",
     CLEARED: "cleared",

@@ -2,9 +2,9 @@
 // メッセージ削除イベント（VC募集パネル自己修復）
 
 import { Events } from "discord.js";
-import { handleReactionRoleMessageDelete } from "../features/reaction-role/handlers/reactionRoleMessageDeleteHandler";
-import { handleTicketMessageDelete } from "../features/ticket/handlers/ticketMessageDeleteHandler";
-import { handleVcRecruitMessageDelete } from "../features/vc-recruit/handlers/vcRecruitMessageDeleteHandler";
+import { handleReactionRoleMessageDelete } from "../../features/reaction-role/handlers/reactionRoleMessageDeleteHandler";
+import { handleTicketMessageDelete } from "../../features/ticket/handlers/ticketMessageDeleteHandler";
+import { handleVcRecruitMessageDelete } from "../../features/vc-recruit/handlers/vcRecruitMessageDeleteHandler";
 import type { BotEvent } from "../types/discord";
 
 export const messageDeleteEvent: BotEvent<typeof Events.MessageDelete> = {

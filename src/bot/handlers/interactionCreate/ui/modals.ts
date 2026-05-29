@@ -1,23 +1,23 @@
 // src/bot/handlers/interactionCreate/ui/modals.ts
 // モーダルハンドラーレジストリ
 
-import { memberLogSetJoinMessageModalHandler } from "../../../features/member-log/handlers/ui/memberLogSetJoinMessageModalHandler";
-import { memberLogSetLeaveMessageModalHandler } from "../../../features/member-log/handlers/ui/memberLogSetLeaveMessageModalHandler";
-import { reactionRoleAddButtonModalHandler } from "../../../features/reaction-role/handlers/ui/reactionRoleAddButtonHandler";
-import { reactionRoleEditButtonModalHandler } from "../../../features/reaction-role/handlers/ui/reactionRoleEditButtonHandler";
-import { reactionRoleEditPanelModalHandler } from "../../../features/reaction-role/handlers/ui/reactionRoleEditPanelHandler";
-import { reactionRoleSetupButtonModalHandler } from "../../../features/reaction-role/handlers/ui/reactionRoleSetupButtonModalHandler";
-import { reactionRoleSetupModalHandler } from "../../../features/reaction-role/handlers/ui/reactionRoleSetupModalHandler";
-import { stickyMessageSetEmbedModalHandler } from "../../../features/sticky-message/handlers/ui/stickyMessageSetEmbedModalHandler";
-import { stickyMessageSetModalHandler } from "../../../features/sticky-message/handlers/ui/stickyMessageSetModalHandler";
-import { stickyMessageUpdateEmbedModalHandler } from "../../../features/sticky-message/handlers/ui/stickyMessageUpdateEmbedModalHandler";
-import { stickyMessageUpdateModalHandler } from "../../../features/sticky-message/handlers/ui/stickyMessageUpdateModalHandler";
-import { ticketCreateModalHandler } from "../../../features/ticket/handlers/ui/ticketCreateModalHandler";
-import { ticketEditPanelModalHandler } from "../../../features/ticket/handlers/ui/ticketEditPanelModalHandler";
-import { ticketSetupModalHandler } from "../../../features/ticket/handlers/ui/ticketSetupModalHandler";
-import { vcPanelModalHandler } from "../../../features/vc-panel/handlers/ui/vcPanelModal";
-import { vcRecruitModalHandler } from "../../../features/vc-recruit/handlers/ui/vcRecruitModal";
-import { vcRecruitRenameModalHandler } from "../../../features/vc-recruit/handlers/ui/vcRecruitRenameModal";
+import { memberLogSetJoinMessageModalHandler } from "../../../../features/member-log/handlers/ui/memberLogSetJoinMessageModalHandler";
+import { memberLogSetLeaveMessageModalHandler } from "../../../../features/member-log/handlers/ui/memberLogSetLeaveMessageModalHandler";
+import { reactionRoleAddButtonModalHandler } from "../../../../features/reaction-role/handlers/ui/reactionRoleAddButtonHandler";
+import { reactionRoleEditButtonModalHandler } from "../../../../features/reaction-role/handlers/ui/reactionRoleEditButtonHandler";
+import { reactionRoleEditPanelModalHandler } from "../../../../features/reaction-role/handlers/ui/reactionRoleEditPanelHandler";
+import { reactionRoleSetupButtonModalHandler } from "../../../../features/reaction-role/handlers/ui/reactionRoleSetupButtonModalHandler";
+import { reactionRoleSetupModalHandler } from "../../../../features/reaction-role/handlers/ui/reactionRoleSetupModalHandler";
+import { stickyMessageSetEmbedModalHandler } from "../../../../features/sticky-message/handlers/ui/stickyMessageSetEmbedModalHandler";
+import { stickyMessageSetModalHandler } from "../../../../features/sticky-message/handlers/ui/stickyMessageSetModalHandler";
+import { stickyMessageUpdateEmbedModalHandler } from "../../../../features/sticky-message/handlers/ui/stickyMessageUpdateEmbedModalHandler";
+import { stickyMessageUpdateModalHandler } from "../../../../features/sticky-message/handlers/ui/stickyMessageUpdateModalHandler";
+import { ticketCreateModalHandler } from "../../../../features/ticket/handlers/ui/ticketCreateModalHandler";
+import { ticketEditPanelModalHandler } from "../../../../features/ticket/handlers/ui/ticketEditPanelModalHandler";
+import { ticketSetupModalHandler } from "../../../../features/ticket/handlers/ui/ticketSetupModalHandler";
+import { vcPanelModalHandler } from "../../../../features/vc-panel/handlers/ui/vcPanelModal";
+import { vcRecruitModalHandler } from "../../../../features/vc-recruit/handlers/ui/vcRecruitModal";
+import { vcRecruitRenameModalHandler } from "../../../../features/vc-recruit/handlers/ui/vcRecruitRenameModal";
 import type { ModalHandler } from "./types";
 
 export const modalHandlers: ModalHandler[] = [

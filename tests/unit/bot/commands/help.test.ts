@@ -10,7 +10,7 @@ vi.mock("@/shared/locale/commandLocalizations", () => ({
   }),
 }));
 
-vi.mock("@/bot/features/help/commands/helpCommand.execute", () => ({
+vi.mock("@/features/help/commands/helpCommand.execute", () => ({
   executeHelpCommand: (...args: unknown[]) => executeHelpCommandMock(...args),
 }));
 

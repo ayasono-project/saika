@@ -10,14 +10,13 @@
 
 | # | セクション | 概要 | 残件 |
 | --- | --- | --- | ---: |
-| 5 | ディレクトリ再編 + 命名整理 | `src/{bot,api,features,shared}/` 化（`-config`→`-settings` 完了） | 5 |
 | 6 | Postgres 移行 | SQLite → PostgreSQL（データ層移行 + テーブル名 settings 化） | 5 |
 | 7 | `/vc disconnect` 実装 & ephemeral 監査 | 個別/一括の切断・移動 + ephemeral/public 見直し | 4 |
 | 8 | 自動キック（非アクティブ整理） | 一定期間未活動メンバーの自動キック + 事前通知 | 3 |
 | 9 | 未承認ユーザー自動キック | 認証ロール未取得ユーザーの自動キック + 警告 DM | 3 |
 | 10 | Fastify API 実装 | web 完成後に契約通り実装 | 5 |
 | 11 | Bot 一般公開準備 | コマンド追加・認証申請 | 3 |
-| **合計** | | | **28** |
+| **合計** | | | **23** |
 
 > web ダッシュボード・インフラ（VPS / Cloudflare / Coolify）は別リポジトリで管理。
 > 作業順序は上から順（§5 → §6 → …）。§10 以降は web 側の進行に依存（§10 着手前に web がモック駆動で完成していること）。
@@ -25,22 +24,6 @@
 ---
 
 ## タスク一覧
-
-### 5. ディレクトリ再編 + 命名整理
-
-§6 Postgres より先に実施（構造変更はデータ無リスク。先に整え、Postgres はクリーンな構造で一度だけ流す）。開発環境（mise=Node + `.node-version` / pnpm=corepack）はバージョン管理移行で現行化済み。
-
-ディレクトリ再編（`src/{bot,api,features,shared}/` 標準構成へ）:
-
-- [ ] エントリポイント移動: `src/bot/main.ts` → `src/main.ts`
-- [ ] `src/bot/features/<f>/` と `src/shared/features/<f>/` を `src/features/<f>/` に統合
-- [ ] `src/shared/database/repositories/` を `src/features/<f>/repository.ts` に分散
-- [ ] `src/shared/scheduler/` は saika 固有として `src/shared/` に維持
-- [ ] [ARCHITECTURE.md](docs/guides/ARCHITECTURE.md) を新構造で書き直し
-
-命名整理:
-
-- [x] `-config` → `-settings` リネーム（全 8 コマンド・変数・ファイル・DB モデル名・ドキュメント・仕様書 `GUILD_SETTINGS_SPEC.md`）。DB **テーブル名**（`@@map` の `guild_*_configs`）は migration を避けるため据え置き、§6 でリネーム。`vc-recruit`→`instant-recruit` は実態が VC 中心のため**見送り**（VC募集名を維持）。
 
 ### 6. Postgres 移行
 
@@ -108,6 +91,16 @@ web フロントエンドがモック駆動（MSW 等）で完成した後、契
 ## 完了済み
 
 > 詳細な作業経過は git log を参照。
+
+### ディレクトリ再編 + 命名整理（§5・2026-05-29 完了）
+
+`src/{bot,api,features,shared}/` 標準構成へ再編し、命名を `-settings` に統一。
+
+- [x] `-config` → `-settings` リネーム（全 8 コマンド・変数・ファイル・DB **モデル名**・export 形式の `config`→`settings` フィールド・ドキュメント・仕様書 `GUILD_SETTINGS_SPEC.md`）。DB **テーブル名**（`@@map` の `guild_*_configs`）は migration 回避のため据え置き、§6 でリネーム。`vc-recruit`→`instant-recruit` は実態が VC 中心のため見送り（VC募集名を維持）
+- [x] エントリポイント移動: `src/bot/main.ts` → `src/main.ts`
+- [x] `src/bot/features/<f>/` と `src/shared/features/<f>/` を `src/features/<f>/` に統合（記述的ファイル名を維持。設定リポジトリも各 `src/features/<f>/<f>SettingsRepository.ts` に分散）
+- [x] `src/shared/scheduler/` は saika 固有として `src/shared/` に維持、`src/shared/database/types/` も維持
+- [x] [ARCHITECTURE.md](docs/guides/ARCHITECTURE.md) / [IMPLEMENTATION_GUIDELINES.md](docs/guides/IMPLEMENTATION_GUIDELINES.md) を新構造で更新
 
 ### shared への外出し（§4・2026-05-29 完了・本番デプロイ済み）
 

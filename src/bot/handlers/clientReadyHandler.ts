@@ -2,13 +2,13 @@
 // clientReady 時のBot共通ハンドラー
 
 import { ActivityType, PresenceUpdateStatus } from "discord.js";
+import { restoreBumpRemindersOnStartup } from "../../features/bump-reminder/handlers/bumpReminderStartup";
+import { initGuildInviteCache } from "../../features/member-log/handlers/inviteTracker";
+import { restoreAutoDeleteTimers } from "../../features/ticket/services/ticketAutoDeleteService";
+import { cleanupVacOnStartup } from "../../features/vac/handlers/vacStartupCleanup";
 import { logPrefixed, tDefault } from "../../shared/locale/localeManager";
 import { logger } from "../../shared/utils/logger";
 import type { BotClient } from "../client";
-import { restoreBumpRemindersOnStartup } from "../features/bump-reminder/handlers/bumpReminderStartup";
-import { initGuildInviteCache } from "../features/member-log/handlers/inviteTracker";
-import { restoreAutoDeleteTimers } from "../features/ticket/services/ticketAutoDeleteService";
-import { cleanupVacOnStartup } from "../features/vac/handlers/vacStartupCleanup";
 import { getBotTicketRepository } from "../services/botCompositionRoot";
 
 /**

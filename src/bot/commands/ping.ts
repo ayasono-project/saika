@@ -2,9 +2,9 @@
 // Pingコマンド - ボットの応答速度を確認
 
 import { ChatInputCommandInteraction, SlashCommandBuilder } from "discord.js";
+import { executePingCommand } from "../../features/ping/commands/pingCommand.execute";
 import { getCommandLocalizations } from "../../shared/locale/commandLocalizations";
 import { handleCommandError } from "../errors/interactionErrorHandler";
-import { executePingCommand } from "../features/ping/commands/pingCommand.execute";
 import type { Command } from "../types/discord";
 
 // Ping コマンドで使用するコマンド名定数

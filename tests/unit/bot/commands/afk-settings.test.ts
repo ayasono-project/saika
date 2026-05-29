@@ -28,7 +28,7 @@ const createWarningEmbedMock = vi.fn(
 
 // afkSettingsService が使う DB レイヤーのみモック
 const saveAfkSettingsMock = vi.fn();
-vi.mock("@/shared/database/repositories/afkSettingsRepository", () => ({
+vi.mock("@/features/afk/afkSettingsRepository", () => ({
   getAfkSettingsRepository: () => ({
     setAfkChannel: (...args: unknown[]) => setAfkChannelMock(...args),
     getAfkSettings: (...args: unknown[]) => getAfkSettingsMock(...args),

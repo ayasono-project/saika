@@ -1,7 +1,11 @@
 // tests/unit/bot/features/reaction-role/handlers/ui/reactionRoleClickHandler.test.ts
 // リアクションロールパネルボタンクリックハンドラのテスト
 
-const mockConfigService = { findById: vi.fn(), findAllByGuild: vi.fn() };
+const mockConfigService = {
+  findById: vi.fn(),
+  findByMessageId: vi.fn(),
+  findAllByGuild: vi.fn(),
+};
 
 vi.mock("@/shared/locale/localeManager", () => ({
   logPrefixed: (p: string, m: string, params?: Record<string, unknown>) =>
@@ -39,6 +43,7 @@ function createMockButtonInteraction(
     customId,
     locale: "ja",
     guildId: "guild-1",
+    message: { id: "msg-1" },
     deferReply: vi.fn().mockResolvedValue(undefined),
     editReply: vi.fn().mockResolvedValue(undefined),
     deleteReply: vi.fn().mockResolvedValue(undefined),
@@ -114,11 +119,11 @@ describe("bot/features/reaction-role/handlers/ui/reactionRoleClickHandler", () =
       const interaction = createMockButtonInteraction(
         "reaction-role:click:panel-1:1",
       );
-      mockConfigService.findById.mockResolvedValue(null);
+      mockConfigService.findByMessageId.mockResolvedValue(null);
 
       await reactionRoleClickHandler.execute(interaction as never);
 
-      expect(mockConfigService.findById).toHaveBeenCalledWith("panel-1");
+      expect(mockConfigService.findByMessageId).toHaveBeenCalledWith("msg-1");
       expect(createErrorEmbed).toHaveBeenCalled();
       expect(interaction.editReply).toHaveBeenCalledWith({
         embeds: [{ type: "error" }],
@@ -135,7 +140,7 @@ describe("bot/features/reaction-role/handlers/ui/reactionRoleClickHandler", () =
           roleIds: ["role-1"],
         },
       ]);
-      mockConfigService.findById.mockResolvedValue(panel);
+      mockConfigService.findByMessageId.mockResolvedValue(panel);
       // buttonId 99 は存在しない
       const interaction = createMockButtonInteraction(
         "reaction-role:click:panel-1:99",
@@ -156,7 +161,7 @@ describe("bot/features/reaction-role/handlers/ui/reactionRoleClickHandler", () =
           roleIds: ["high-role"],
         },
       ]);
-      mockConfigService.findById.mockResolvedValue(panel);
+      mockConfigService.findByMessageId.mockResolvedValue(panel);
 
       const interaction = createMockButtonInteraction(
         "reaction-role:click:panel-1:1",
@@ -192,7 +197,7 @@ describe("bot/features/reaction-role/handlers/ui/reactionRoleClickHandler", () =
 
     it("ユーザーが全ロールを持っている場合はロールを解除する", async () => {
       const panel = createPanel("toggle", buttons);
-      mockConfigService.findById.mockResolvedValue(panel);
+      mockConfigService.findByMessageId.mockResolvedValue(panel);
       const interaction = createMockButtonInteraction(
         "reaction-role:click:panel-1:1",
         ["role-1", "role-2"],
@@ -212,7 +217,7 @@ describe("bot/features/reaction-role/handlers/ui/reactionRoleClickHandler", () =
 
     it("ユーザーが一部のロールを持っていない場合は不足分を付与する", async () => {
       const panel = createPanel("toggle", buttons);
-      mockConfigService.findById.mockResolvedValue(panel);
+      mockConfigService.findByMessageId.mockResolvedValue(panel);
       // role-1 のみ所有
       const interaction = createMockButtonInteraction(
         "reaction-role:click:panel-1:1",
@@ -230,7 +235,7 @@ describe("bot/features/reaction-role/handlers/ui/reactionRoleClickHandler", () =
 
     it("ロール操作で例外が発生した場合は role_too_high エラーを返す", async () => {
       const panel = createPanel("toggle", buttons);
-      mockConfigService.findById.mockResolvedValue(panel);
+      mockConfigService.findByMessageId.mockResolvedValue(panel);
       const interaction = createMockButtonInteraction(
         "reaction-role:click:panel-1:1",
       );
@@ -262,7 +267,7 @@ describe("bot/features/reaction-role/handlers/ui/reactionRoleClickHandler", () =
 
     it("ユーザーが全ロールを持っている場合は既に付与済みメッセージを返す", async () => {
       const panel = createPanel("one-action", buttons);
-      mockConfigService.findById.mockResolvedValue(panel);
+      mockConfigService.findByMessageId.mockResolvedValue(panel);
       const interaction = createMockButtonInteraction(
         "reaction-role:click:panel-1:1",
         ["role-1", "role-2"],
@@ -279,7 +284,7 @@ describe("bot/features/reaction-role/handlers/ui/reactionRoleClickHandler", () =
 
     it("ユーザーが一部のロールを持っていない場合は不足分を付与する", async () => {
       const panel = createPanel("one-action", buttons);
-      mockConfigService.findById.mockResolvedValue(panel);
+      mockConfigService.findByMessageId.mockResolvedValue(panel);
       const interaction = createMockButtonInteraction(
         "reaction-role:click:panel-1:1",
         ["role-1"],
@@ -296,7 +301,7 @@ describe("bot/features/reaction-role/handlers/ui/reactionRoleClickHandler", () =
 
     it("ロール操作で例外が発生した場合は role_too_high エラーを返す", async () => {
       const panel = createPanel("one-action", buttons);
-      mockConfigService.findById.mockResolvedValue(panel);
+      mockConfigService.findByMessageId.mockResolvedValue(panel);
       const interaction = createMockButtonInteraction(
         "reaction-role:click:panel-1:1",
       );
@@ -342,7 +347,7 @@ describe("bot/features/reaction-role/handlers/ui/reactionRoleClickHandler", () =
 
     it("ユーザーがクリックしたボタンの全ロールを既に持っている場合は既に選択済みメッセージを返す", async () => {
       const panel = createPanel("exclusive", buttons);
-      mockConfigService.findById.mockResolvedValue(panel);
+      mockConfigService.findByMessageId.mockResolvedValue(panel);
       const interaction = createMockButtonInteraction(
         "reaction-role:click:panel-1:1",
         ["role-1"],
@@ -360,7 +365,7 @@ describe("bot/features/reaction-role/handlers/ui/reactionRoleClickHandler", () =
 
     it("ユーザーがクリックしたボタンのロールを持っていない場合は他ボタンのロールを解除して付与する", async () => {
       const panel = createPanel("exclusive", buttons);
-      mockConfigService.findById.mockResolvedValue(panel);
+      mockConfigService.findByMessageId.mockResolvedValue(panel);
       // role-2 を所有、ボタン1 (role-1) をクリック
       const interaction = createMockButtonInteraction(
         "reaction-role:click:panel-1:1",
@@ -381,7 +386,7 @@ describe("bot/features/reaction-role/handlers/ui/reactionRoleClickHandler", () =
 
     it("他ボタンのロールを所有していない場合は remove を呼ばずに付与のみ行う", async () => {
       const panel = createPanel("exclusive", buttons);
-      mockConfigService.findById.mockResolvedValue(panel);
+      mockConfigService.findByMessageId.mockResolvedValue(panel);
       // ロールなし、ボタン1 (role-1) をクリック
       const interaction = createMockButtonInteraction(
         "reaction-role:click:panel-1:1",
@@ -396,7 +401,7 @@ describe("bot/features/reaction-role/handlers/ui/reactionRoleClickHandler", () =
 
     it("ロール操作で例外が発生した場合は role_too_high エラーを返す", async () => {
       const panel = createPanel("exclusive", buttons);
-      mockConfigService.findById.mockResolvedValue(panel);
+      mockConfigService.findByMessageId.mockResolvedValue(panel);
       const interaction = createMockButtonInteraction(
         "reaction-role:click:panel-1:1",
       );

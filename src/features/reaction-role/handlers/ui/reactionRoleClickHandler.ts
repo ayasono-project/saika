@@ -42,12 +42,13 @@ export const reactionRoleClickHandler: ButtonHandler = {
       return;
     }
 
-    const panelId = suffix.slice(0, lastColon);
     const buttonId = Number(suffix.slice(lastColon + 1));
 
-    // パネル設定をDBから取得
+    // パネルは「ボタンが乗っているメッセージ（messageId）」で特定する。
+    // customId に埋めた panelId(cuid) は DB 移行等で id が再生成されると陳腐化するが、
+    // messageId は不変かつ import でも保持されるため、こちらを正とする。
     const settingsService = getBotReactionRolePanelSettingsService();
-    const panel = await settingsService.findById(panelId);
+    const panel = await settingsService.findByMessageId(interaction.message.id);
     if (!panel) {
       const embed = createErrorEmbed(
         tInteraction(

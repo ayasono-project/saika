@@ -14,7 +14,8 @@
 
 services:
   postgres:
-    image: postgres:17
+    # 本番（Coolify マネージド DB）と揃えて alpine タグを使う
+    image: postgres:17-alpine
     container_name: saika-dev-db
     restart: unless-stopped
     environment:

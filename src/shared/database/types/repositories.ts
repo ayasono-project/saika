@@ -153,6 +153,8 @@ export interface IStickyMessageRepository {
 
 export interface IReactionRolePanelRepository {
   findById(id: string): Promise<GuildReactionRolePanel | null>;
+  /** パネルが貼られているメッセージ ID で取得する（ライブボタンの特定に使う） */
+  findByMessageId(messageId: string): Promise<GuildReactionRolePanel | null>;
   findAllByGuild(guildId: string): Promise<GuildReactionRolePanel[]>;
   create(
     data: Omit<GuildReactionRolePanel, "id" | "createdAt" | "updatedAt">,

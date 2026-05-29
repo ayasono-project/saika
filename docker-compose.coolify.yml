@@ -4,9 +4,8 @@
 # Coolify が Git push をトリガーに自動でビルド・デプロイする。
 # 環境変数は Coolify の管理画面「Environment Variables」で設定すること。
 #
-# ボリューム名は Coolify がアプリ ID をプレフィックスとして付与する。
-# 例: sqlite_data → <app-id>_sqlite_data
-# Coolify 管理画面 > Storages でマッピングを確認できる。
+# DB は同一 Coolify プロジェクト内のマネージド PostgreSQL に接続する。
+# DATABASE_URL は Coolify の Environment Variables で接続文字列を設定すること。
 
 services:
   bot:
@@ -20,7 +19,9 @@ services:
       # --- 必須（Coolify の Environment Variables で設定） ---
       DISCORD_TOKEN: ${DISCORD_TOKEN}
       DISCORD_APP_ID: ${DISCORD_APP_ID}
-      DATABASE_URL: ${DATABASE_URL:-file:./storage/db.sqlite}
+      # PostgreSQL 接続文字列（マネージド DB）。例:
+      #   postgresql://saika_app:****@<db-host>:5432/saika?schema=public
+      DATABASE_URL: ${DATABASE_URL}
       LOCALE: ${LOCALE:-ja}
       NODE_ENV: ${NODE_ENV:-production}
       # --- 任意 ---
@@ -28,8 +29,6 @@ services:
       DISCORD_ERROR_WEBHOOK_URL: ${DISCORD_ERROR_WEBHOOK_URL:-}
       USER_MANUAL_URL: ${USER_MANUAL_URL:-}
     volumes:
-      # SQLite データの永続化（Coolify が名前付きボリュームを管理）
-      - sqlite_data:/app/storage
       # ログファイルの永続化（ホストバインドマウント）
       - /opt/saika/logs:/app/logs
     logging:
@@ -37,6 +36,3 @@ services:
       options:
         max-size: "10m"
         max-file: "5"
-
-volumes:
-  sqlite_data:

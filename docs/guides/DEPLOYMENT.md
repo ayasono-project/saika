@@ -2,7 +2,7 @@
 
 > Coolify による saika の自動デプロイフロー
 
-最終更新: 2026年4月14日（Coolify 移行）
+最終更新: 2026年5月29日（PostgreSQL 移行）
 
 ---
 
@@ -58,7 +58,7 @@ Coolify の管理画面 **Environment Variables** で設定する。サーバー
 | --- | --- | --- |
 | `DISCORD_TOKEN` | Yes | Discord Developer Portal で取得 |
 | `DISCORD_APP_ID` | Yes | Discord Developer Portal で取得 |
-| `DATABASE_URL` | No | デフォルト: `file:./storage/db.sqlite` |
+| `DATABASE_URL` | Yes | マネージド PostgreSQL の接続文字列（例: `postgresql://saika_app:****@<db-host>:5432/saika?schema=public`） |
 | `LOCALE` | No | デフォルト: `ja` |
 | `NODE_ENV` | No | デフォルト: `production` |
 | `LOG_LEVEL` | No | デフォルト: `info` |
@@ -103,19 +103,19 @@ git push origin main
 docker logs saika-bot --tail 50
 ```
 
-- Coolify の環境変数が正しく設定されているか確認
-- `sqlite_data` ボリュームの権限エラーがないか確認
+- Coolify の環境変数が正しく設定されているか確認（特に `DATABASE_URL`）
+- マネージド PostgreSQL が起動済みで、Bot コンテナから接続可能か確認
 
-### DB データが初期値になっている
+### DB に接続できない / マイグレーションで起動失敗する
 
-Coolify がアプリを再作成した場合や、ボリュームが新規生成された場合に発生する。復旧手順は [DEV_TIPS.md](DEV_TIPS.md#coolify-で-db-データを復旧する) を参照。
+`docker-entrypoint.sh` は起動時に `prisma migrate deploy` を実行する。失敗する場合:
 
-### SQLITE_READONLY エラーが発生する
-
-`docker-entrypoint.sh` がコンテナ起動時に `chown -R node:node /app/storage` を自動実行するため、通常は発生しない。発生した場合は Coolify のコンテナ名を確認して実行:
+- `DATABASE_URL` のホスト・ポート・認証情報が正しいか確認
+- マネージド PostgreSQL と Bot が同一 Coolify プロジェクト内にあり、ネットワーク到達可能か確認
+- マイグレーション適用状況を確認:
 
 ```bash
-docker exec -u root <コンテナ名> chown -R node:node /app/storage
+docker exec <コンテナ名> pnpm prisma migrate status
 ```
 
 ### Coolify が GitHub リポジトリにアクセスできない

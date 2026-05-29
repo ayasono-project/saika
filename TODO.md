@@ -10,13 +10,13 @@
 
 | # | セクション | 概要 | 残件 |
 | --- | --- | --- | ---: |
-| 6 | Postgres 移行 | SQLite → PostgreSQL（データ層移行 + テーブル名 settings 化） | 5 |
+| 6 | Postgres 移行 | SQLite → PostgreSQL（コード・スキーマ・ローカル検証は完了。残=本番切替のみ、infra §B 依存） | 1 |
 | 7 | `/vc disconnect` 実装 & ephemeral 監査 | 個別/一括の切断・移動 + ephemeral/public 見直し | 4 |
 | 8 | 自動キック（非アクティブ整理） | 一定期間未活動メンバーの自動キック + 事前通知 | 3 |
 | 9 | 未承認ユーザー自動キック | 認証ロール未取得ユーザーの自動キック + 警告 DM | 3 |
 | 10 | Fastify API 実装 | web 完成後に契約通り実装 | 5 |
 | 11 | Bot 一般公開準備 | コマンド追加・認証申請 | 3 |
-| **合計** | | | **23** |
+| **合計** | | | **19** |
 
 > web ダッシュボード・インフラ（VPS / Cloudflare / Coolify）は別リポジトリで管理。
 > 作業順序は上から順（§5 → §6 → …）。§10 以降は web 側の進行に依存（§10 着手前に web がモック駆動で完成していること）。
@@ -27,13 +27,15 @@
 
 ### 6. Postgres 移行
 
-純粋な SQLite → PostgreSQL のデータ層移行（命名リネームは §5 に移動済み）。§5 完了後に着手。インフラ側で別途 Postgres 導入あり（別管理）。schema は Bot 内部要件で確定（web 契約待ちなし）。
+SQLite → PostgreSQL のデータ層移行（命名リネームは §5 で完了）。schema は Bot 内部要件で確定。**コード・スキーマ・ローカル検証は完了**。本番切替のみ infra 側 Postgres 構築（infra §B）後に実施する。
 
-- [ ] `schema.prisma` の provider 切替（sqlite → postgresql）
-- [ ] テーブル名 `@@map` を `guild_*_configs` → `guild_*_settings` にリネーム（§5 でモデル名は settings 化済み。クリーンな Postgres migration に同梱）
-- [ ] JSON 文字列カラムを jsonb 化（7 箇所）+ アプリ側の `JSON.parse/stringify` 除去
-- [ ] migration 再生成・ローカル検証・本番切替（export → import）
-- [ ] [ARCHITECTURE.md](docs/guides/ARCHITECTURE.md) / [DEPLOYMENT.md](docs/guides/DEPLOYMENT.md) 更新
+- [x] `schema.prisma` の provider 切替（sqlite → postgresql）+ 接続を `@prisma/adapter-pg` に変更（Prisma 7 は直接接続に driver adapter 必須のため「アダプタ無しネイティブ」は不可）
+- [x] テーブル名 `@@map` を `guild_*_configs` → `guild_*_settings` にリネーム
+- [x] JSON 文字列カラム 8 件を jsonb 化 + アプリ側の `JSON.parse`/`stringify`/`parseJsonArray` を全廃（ドメイン型を実体型化）
+- [x] migration を PostgreSQL 用に再生成 + ローカル Docker Postgres で検証（起動 / jsonb 往復 / docker build & run）
+- [x] Docker / Compose / `docker-entrypoint.sh` / `.env.example` を PostgreSQL 構成に変更
+- [x] [ARCHITECTURE.md](docs/guides/ARCHITECTURE.md) / [DEPLOYMENT.md](docs/guides/DEPLOYMENT.md) / [DEV_TIPS.md](docs/guides/DEV_TIPS.md) 更新
+- [ ] **本番切替（infra §B 完了後）**: saika 停止 → `/guild-settings export` → 新 Postgres へ import → `DATABASE_URL` 切替 → Coolify デプロイ → 起動確認
 
 ### 7. `/vc disconnect` 実装 & ephemeral / public 監査
 

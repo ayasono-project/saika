@@ -1,4 +1,5 @@
 // tests/unit/bot/features/sticky-message/repositories/stickyMessageRepository.test.ts
+import { Prisma } from "@prisma/client";
 import type { Mock } from "vitest";
 
 const executeWithDatabaseErrorMock: Mock = vi.fn(async (fn: () => unknown) =>
@@ -89,7 +90,7 @@ describe("bot/features/sticky-message/repositories/stickyMessageRepository", () 
       "guild-1",
       "ch-1",
       "hello",
-      '{"title":"t"}',
+      { title: "t" },
       "user-1",
     );
 
@@ -98,7 +99,7 @@ describe("bot/features/sticky-message/repositories/stickyMessageRepository", () 
         guildId: "guild-1",
         channelId: "ch-1",
         content: "hello",
-        embedData: '{"title":"t"}',
+        embedData: { title: "t" },
         updatedBy: "user-1",
       },
     });
@@ -118,7 +119,7 @@ describe("bot/features/sticky-message/repositories/stickyMessageRepository", () 
         guildId: "guild-1",
         channelId: "ch-1",
         content: "hello",
-        embedData: null,
+        embedData: Prisma.DbNull,
         updatedBy: null,
       },
     });
@@ -148,7 +149,7 @@ describe("bot/features/sticky-message/repositories/stickyMessageRepository", () 
     const result = await repo.updateContent(
       "s1",
       "new",
-      '{"title":"t"}',
+      { title: "t" },
       "user-1",
     );
 
@@ -156,7 +157,7 @@ describe("bot/features/sticky-message/repositories/stickyMessageRepository", () 
       where: { id: "s1" },
       data: {
         content: "new",
-        embedData: '{"title":"t"}',
+        embedData: { title: "t" },
         lastMessageId: null,
         updatedBy: "user-1",
       },
@@ -176,7 +177,7 @@ describe("bot/features/sticky-message/repositories/stickyMessageRepository", () 
       where: { id: "s1" },
       data: {
         content: "new",
-        embedData: null,
+        embedData: Prisma.DbNull,
         lastMessageId: null,
       },
     });

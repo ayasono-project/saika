@@ -154,7 +154,7 @@ const samplePanels = [
     title: "パネル1",
     description: "説明1",
     color: "#000000",
-    buttons: "[]",
+    buttons: [],
   },
   {
     id: "panel-2",
@@ -163,7 +163,7 @@ const samplePanels = [
     title: "パネル2",
     description: "説明2",
     color: "#FFFFFF",
-    buttons: "[]",
+    buttons: [],
   },
   {
     id: "panel-3",
@@ -172,7 +172,7 @@ const samplePanels = [
     title: "パネル3",
     description: "説明3",
     color: "#FF0000",
-    buttons: "[]",
+    buttons: [],
   },
 ];
 

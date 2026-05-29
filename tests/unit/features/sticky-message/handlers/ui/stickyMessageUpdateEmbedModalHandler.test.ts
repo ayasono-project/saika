@@ -204,7 +204,7 @@ describe("bot/features/sticky-message/handlers/ui/stickyMessageUpdateEmbedModalH
     expect(updateContentMock).toHaveBeenCalledWith(
       "sticky-1",
       expect.any(String),
-      expect.stringContaining("title"),
+      expect.objectContaining({ title: expect.any(String) }),
       "user-1",
     );
     expect(interaction._fetchMsgMock).toHaveBeenCalledWith("old-msg-id");

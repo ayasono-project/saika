@@ -23,7 +23,6 @@ import {
 } from "../../../../shared/locale/localeManager";
 import { logger } from "../../../../shared/utils/logger";
 import {
-  parseStaffRoleIds,
   TICKET_CUSTOM_ID,
   TICKET_STATUS,
 } from "../../commands/ticketCommand.constants";
@@ -141,9 +140,7 @@ async function handleClose(interaction: ButtonInteraction): Promise<void> {
     ticket.guildId,
     ticket.categoryId,
   );
-  const staffRoleIds: string[] = config
-    ? parseStaffRoleIds(config.staffRoleIds)
-    : [];
+  const staffRoleIds: string[] = config ? config.staffRoleIds : [];
   const memberRoleIds = getMemberRoleIds(interaction);
 
   if (
@@ -236,9 +233,7 @@ async function handleOpen(interaction: ButtonInteraction): Promise<void> {
     ticket.guildId,
     ticket.categoryId,
   );
-  const staffRoleIds: string[] = config
-    ? parseStaffRoleIds(config.staffRoleIds)
-    : [];
+  const staffRoleIds: string[] = config ? config.staffRoleIds : [];
   const memberRoleIds = getMemberRoleIds(interaction);
 
   if (
@@ -315,9 +310,7 @@ async function handleDelete(interaction: ButtonInteraction): Promise<void> {
     ticket.guildId,
     ticket.categoryId,
   );
-  const staffRoleIds: string[] = config
-    ? parseStaffRoleIds(config.staffRoleIds)
-    : [];
+  const staffRoleIds: string[] = config ? config.staffRoleIds : [];
   const memberRoleIds = getMemberRoleIds(interaction);
 
   if (!hasStaffRole(memberRoleIds, staffRoleIds)) {
@@ -400,9 +393,7 @@ async function handleDeleteConfirm(
     ticket.guildId,
     ticket.categoryId,
   );
-  const staffRoleIds: string[] = config
-    ? parseStaffRoleIds(config.staffRoleIds)
-    : [];
+  const staffRoleIds: string[] = config ? config.staffRoleIds : [];
   const memberRoleIds = getMemberRoleIds(interaction);
 
   if (!hasStaffRole(memberRoleIds, staffRoleIds)) {

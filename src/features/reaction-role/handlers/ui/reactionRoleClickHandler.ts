@@ -19,10 +19,7 @@ import {
   tInteraction,
 } from "../../../../shared/locale/localeManager";
 import { logger } from "../../../../shared/utils/logger";
-import {
-  parseButtons,
-  REACTION_ROLE_CUSTOM_ID,
-} from "../../commands/reactionRoleCommand.constants";
+import { REACTION_ROLE_CUSTOM_ID } from "../../commands/reactionRoleCommand.constants";
 
 /**
  * パネルボタンクリック時のロール操作を処理するハンドラ
@@ -64,7 +61,7 @@ export const reactionRoleClickHandler: ButtonHandler = {
     }
 
     // クリックされたボタンの割り当てロールを特定
-    const buttons = parseButtons(panel.buttons);
+    const buttons = panel.buttons;
     const clickedButton = buttons.find((b) => b.buttonId === buttonId);
     if (!clickedButton) {
       await interaction.deleteReply().catch(() => null);

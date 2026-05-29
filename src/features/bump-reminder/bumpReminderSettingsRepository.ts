@@ -1,5 +1,5 @@
-// src/shared/database/repositories/bumpReminderSettingsRepository.ts
-// Bumpリマインダー設定リポジトリ（guild_bump_reminder_configs テーブル）
+// src/features/bump-reminder/bumpReminderSettingsRepository.ts
+// Bumpリマインダー設定リポジトリ（guild_bump_reminder_settings テーブル）
 
 import type { PrismaClient } from "@prisma/client";
 import {
@@ -16,11 +16,10 @@ import {
   type BumpReminderSettings,
   type IBumpReminderSettingsRepository,
 } from "../../shared/database/types";
-import { parseJsonArray } from "../../shared/utils/jsonUtils";
 import { createRepositoryGetter } from "../../shared/utils/serviceFactory";
 
 /**
- * guild_bump_reminder_configs テーブルを使用した Bumpリマインダー設定リポジトリ
+ * guild_bump_reminder_settings テーブルを使用した Bumpリマインダー設定リポジトリ
  */
 export class BumpReminderSettingsRepository
   implements IBumpReminderSettingsRepository
@@ -41,7 +40,7 @@ export class BumpReminderSettingsRepository
       enabled: record.enabled,
       channelId: record.channelId ?? undefined,
       mentionRoleId: record.mentionRoleId ?? undefined,
-      mentionUserIds: parseJsonArray<string>(record.mentionUserIds),
+      mentionUserIds: record.mentionUserIds as string[],
     };
   }
 
@@ -56,7 +55,7 @@ export class BumpReminderSettingsRepository
         guildId,
         enabled,
         channelId: channelId ?? null,
-        mentionUserIds: "[]",
+        mentionUserIds: [],
       },
       update: {
         enabled,
@@ -76,13 +75,13 @@ export class BumpReminderSettingsRepository
         enabled: bumpReminderSettings.enabled,
         channelId: bumpReminderSettings.channelId ?? null,
         mentionRoleId: bumpReminderSettings.mentionRoleId ?? null,
-        mentionUserIds: JSON.stringify(bumpReminderSettings.mentionUserIds),
+        mentionUserIds: bumpReminderSettings.mentionUserIds,
       },
       update: {
         enabled: bumpReminderSettings.enabled,
         channelId: bumpReminderSettings.channelId ?? null,
         mentionRoleId: bumpReminderSettings.mentionRoleId ?? null,
-        mentionUserIds: JSON.stringify(bumpReminderSettings.mentionUserIds),
+        mentionUserIds: bumpReminderSettings.mentionUserIds,
       },
     });
   }
@@ -115,7 +114,7 @@ export class BumpReminderSettingsRepository
     });
     if (!record) return BUMP_REMINDER_MENTION_USER_ADD_RESULT.NOT_CONFIGURED;
 
-    const mentionUserIds = parseJsonArray<string>(record.mentionUserIds);
+    const mentionUserIds = record.mentionUserIds as string[];
     if (mentionUserIds.includes(userId)) {
       return BUMP_REMINDER_MENTION_USER_ADD_RESULT.ALREADY_EXISTS;
     }
@@ -123,7 +122,7 @@ export class BumpReminderSettingsRepository
     await this.prisma.guildBumpReminderSettings.update({
       where: { guildId },
       data: {
-        mentionUserIds: JSON.stringify([...mentionUserIds, userId]),
+        mentionUserIds: [...mentionUserIds, userId],
       },
     });
     return BUMP_REMINDER_MENTION_USER_ADD_RESULT.ADDED;
@@ -141,7 +140,7 @@ export class BumpReminderSettingsRepository
       return BUMP_REMINDER_MENTION_USER_REMOVE_RESULT.NOT_CONFIGURED;
     }
 
-    const mentionUserIds = parseJsonArray<string>(record.mentionUserIds);
+    const mentionUserIds = record.mentionUserIds as string[];
     if (!mentionUserIds.includes(userId)) {
       return BUMP_REMINDER_MENTION_USER_REMOVE_RESULT.NOT_FOUND;
     }
@@ -149,9 +148,7 @@ export class BumpReminderSettingsRepository
     await this.prisma.guildBumpReminderSettings.update({
       where: { guildId },
       data: {
-        mentionUserIds: JSON.stringify(
-          mentionUserIds.filter((id) => id !== userId),
-        ),
+        mentionUserIds: mentionUserIds.filter((id) => id !== userId),
       },
     });
     return BUMP_REMINDER_MENTION_USER_REMOVE_RESULT.REMOVED;
@@ -168,14 +165,14 @@ export class BumpReminderSettingsRepository
       return BUMP_REMINDER_MENTION_USERS_CLEAR_RESULT.NOT_CONFIGURED;
     }
 
-    const mentionUserIds = parseJsonArray<string>(record.mentionUserIds);
+    const mentionUserIds = record.mentionUserIds as string[];
     if (mentionUserIds.length === 0) {
       return BUMP_REMINDER_MENTION_USERS_CLEAR_RESULT.ALREADY_EMPTY;
     }
 
     await this.prisma.guildBumpReminderSettings.update({
       where: { guildId },
-      data: { mentionUserIds: "[]" },
+      data: { mentionUserIds: [] },
     });
     return BUMP_REMINDER_MENTION_USERS_CLEAR_RESULT.CLEARED;
   }
@@ -191,14 +188,14 @@ export class BumpReminderSettingsRepository
       return BUMP_REMINDER_MENTION_CLEAR_RESULT.NOT_CONFIGURED;
     }
 
-    const mentionUserIds = parseJsonArray<string>(record.mentionUserIds);
+    const mentionUserIds = record.mentionUserIds as string[];
     if (!record.mentionRoleId && mentionUserIds.length === 0) {
       return BUMP_REMINDER_MENTION_CLEAR_RESULT.ALREADY_CLEARED;
     }
 
     await this.prisma.guildBumpReminderSettings.update({
       where: { guildId },
-      data: { mentionRoleId: null, mentionUserIds: "[]" },
+      data: { mentionRoleId: null, mentionUserIds: [] },
     });
     return BUMP_REMINDER_MENTION_CLEAR_RESULT.CLEARED;
   }

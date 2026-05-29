@@ -63,7 +63,7 @@ describe("shared/features/ticket/ticketSettingsService", () => {
   it("update がリポジトリへ委譲されること", async () => {
     const repository = createRepositoryMock();
     const service = new TicketSettingsService(repository as never);
-    const data = { staffRoleIds: "[]" };
+    const data = { staffRoleIds: [] };
     const expected = { guildId: "guild-1", categoryId: "cat-1", ...data };
     repository.update.mockResolvedValue(expected);
 

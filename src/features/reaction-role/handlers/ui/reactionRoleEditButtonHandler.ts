@@ -30,7 +30,6 @@ import {
   isValidButtonStyle,
   isValidEmoji,
   normalizeEmoji,
-  parseButtons,
   REACTION_ROLE_CUSTOM_ID,
   REACTION_ROLE_DEFAULT_BUTTON_STYLE,
   REACTION_ROLE_MAX_ROLE_SELECT,
@@ -80,7 +79,7 @@ export const reactionRoleEditButtonPanelSelectHandler: StringSelectHandler = {
     const panel = await settingsService.findById(panelId);
     if (!panel) return;
 
-    const buttons = parseButtons(panel.buttons);
+    const buttons = panel.buttons;
 
     const selectMenu = new StringSelectMenuBuilder()
       .setCustomId(
@@ -147,7 +146,7 @@ export const reactionRoleEditButtonSelectHandler: StringSelectHandler = {
     const panel = await settingsService.findById(session.panelId);
     if (!panel) return;
 
-    const buttons = parseButtons(panel.buttons);
+    const buttons = panel.buttons;
     const targetButton = buttons.find((b) => b.buttonId === buttonId);
     if (!targetButton) return;
 
@@ -221,9 +220,8 @@ export const reactionRoleEditButtonModalHandler: ModalHandler = {
     const settingsService = getBotReactionRolePanelSettingsService();
     const panel = await settingsService.findById(session.panelId);
     const currentStyle =
-      parseButtons(panel?.buttons ?? "[]").find(
-        (b) => b.buttonId === session.buttonId,
-      )?.style ?? "";
+      (panel?.buttons ?? []).find((b) => b.buttonId === session.buttonId)
+        ?.style ?? "";
 
     // 色は SelectMenu で選択するため、label / emoji のみ一時保存
     session.pendingButton = { label, emoji, style: "" };
@@ -365,7 +363,7 @@ export const reactionRoleEditButtonRoleSelectHandler: RoleSelectHandler = {
     const panel = await settingsService.findById(session.panelId);
     if (!panel) return;
 
-    const allButtons = parseButtons(panel.buttons);
+    const allButtons = panel.buttons;
     const targetIndex = allButtons.findIndex(
       (b) => b.buttonId === session.buttonId,
     );
@@ -382,7 +380,7 @@ export const reactionRoleEditButtonRoleSelectHandler: RoleSelectHandler = {
 
     // DB更新
     await settingsService.update(session.panelId, {
-      buttons: JSON.stringify(allButtons),
+      buttons: allButtons,
     });
 
     // パネルメッセージを更新

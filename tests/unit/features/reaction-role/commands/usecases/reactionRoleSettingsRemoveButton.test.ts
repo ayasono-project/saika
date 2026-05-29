@@ -54,7 +54,7 @@ function createPanel(
     title: "Test Panel",
     description: "desc",
     color: "#00A8F3",
-    buttons: JSON.stringify([
+    buttons: [
       {
         buttonId: 1,
         label: "Role A",
@@ -69,7 +69,7 @@ function createPanel(
         style: "Secondary",
         roleIds: ["role-2"],
       },
-    ]),
+    ],
     buttonCounter: 2,
     createdAt: new Date(),
     updatedAt: new Date(),

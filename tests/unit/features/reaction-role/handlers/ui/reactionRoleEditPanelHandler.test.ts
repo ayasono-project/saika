@@ -210,7 +210,7 @@ describe("bot/features/reaction-role/handlers/ui/reactionRoleEditPanelHandler", 
           title: "旧タイトル",
           description: "旧説明",
           color: "#000000",
-          buttons: "[]",
+          buttons: [],
         });
         mockConfigService.update.mockResolvedValue(undefined);
         mockUpdatePanelMessage.mockResolvedValue(true);
@@ -257,7 +257,7 @@ describe("bot/features/reaction-role/handlers/ui/reactionRoleEditPanelHandler", 
           title: "旧タイトル",
           description: "旧説明",
           color: "#000000",
-          buttons: "[]",
+          buttons: [],
         });
         mockConfigService.update.mockResolvedValue(undefined);
         mockConfigService.delete.mockResolvedValue(undefined);

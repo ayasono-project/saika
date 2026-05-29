@@ -86,9 +86,7 @@ export async function handleStickyMessageUpdate(
 
   if (useEmbed) {
     // 既存の Embed データを読み込んでモーダルを事前入力する
-    const prev = existing.embedData
-      ? (JSON.parse(existing.embedData) as StickyEmbedData)
-      : {};
+    const prev: StickyEmbedData = existing.embedData ?? {};
 
     const titleInput = new TextInputBuilder()
       .setCustomId(STICKY_MESSAGE_COMMAND.MODAL_INPUT.EMBED_TITLE)

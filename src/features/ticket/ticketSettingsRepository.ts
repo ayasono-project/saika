@@ -1,5 +1,5 @@
-// src/shared/database/repositories/ticketSettingsRepository.ts
-// チケット設定リポジトリ（Prisma実装）
+// src/features/ticket/ticketSettingsRepository.ts
+// チケット設定リポジトリ（Prisma実装。guild_ticket_settings テーブル）
 
 import type { PrismaClient } from "@prisma/client";
 import type {
@@ -31,7 +31,7 @@ export class TicketSettingsRepository
         guildId,
         categoryId,
       }),
-    );
+    ) as Promise<GuildTicketSettings | null>;
   }
 
   async findAllByGuild(guildId: string): Promise<GuildTicketSettings[]> {
@@ -41,7 +41,7 @@ export class TicketSettingsRepository
           where: { guildId },
         }),
       tDefault("ticket:log.database_config_find_all_failed", { guildId }),
-    );
+    ) as Promise<GuildTicketSettings[]>;
   }
 
   async create(config: GuildTicketSettings): Promise<GuildTicketSettings> {
@@ -54,7 +54,7 @@ export class TicketSettingsRepository
         guildId: config.guildId,
         categoryId: config.categoryId,
       }),
-    );
+    ) as Promise<GuildTicketSettings>;
   }
 
   async update(
@@ -72,7 +72,7 @@ export class TicketSettingsRepository
         guildId,
         categoryId,
       }),
-    );
+    ) as Promise<GuildTicketSettings>;
   }
 
   async delete(guildId: string, categoryId: string): Promise<void> {

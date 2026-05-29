@@ -9,10 +9,7 @@ import {
   createSuccessEmbed,
 } from "../../../../bot/utils/messageResponse";
 import { tInteraction } from "../../../../shared/locale/localeManager";
-import {
-  parseStaffRoleIds,
-  TICKET_CUSTOM_ID,
-} from "../../commands/ticketCommand.constants";
+import { TICKET_CUSTOM_ID } from "../../commands/ticketCommand.constants";
 
 /**
  * スタッフロール設定のロール選択メニューを処理するハンドラ
@@ -81,7 +78,7 @@ async function handleSetRoles(
   // 選択されたロールで上書き更新
   const roleIds = Array.from(interaction.roles.keys());
   await settingsService.update(guildId, categoryId, {
-    staffRoleIds: JSON.stringify(roleIds),
+    staffRoleIds: roleIds,
   });
 
   const embed = createSuccessEmbed(
@@ -125,12 +122,12 @@ async function handleAddRoles(
   }
 
   // 既存ロールと新規ロールをマージして重複を除去
-  const existingRoleIds: string[] = parseStaffRoleIds(config.staffRoleIds);
+  const existingRoleIds: string[] = config.staffRoleIds;
   const newRoleIds = Array.from(interaction.roles.keys());
   const mergedRoleIds = [...new Set([...existingRoleIds, ...newRoleIds])];
 
   await settingsService.update(guildId, categoryId, {
-    staffRoleIds: JSON.stringify(mergedRoleIds),
+    staffRoleIds: mergedRoleIds,
   });
 
   const embed = createSuccessEmbed(
@@ -174,7 +171,7 @@ async function handleRemoveRoles(
   }
 
   // 既存ロールから選択されたロールを除外
-  const existingRoleIds: string[] = parseStaffRoleIds(config.staffRoleIds);
+  const existingRoleIds: string[] = config.staffRoleIds;
   const removeRoleIds = Array.from(interaction.roles.keys());
   const remainingRoleIds = existingRoleIds.filter(
     (id) => !removeRoleIds.includes(id),
@@ -197,7 +194,7 @@ async function handleRemoveRoles(
   }
 
   await settingsService.update(guildId, categoryId, {
-    staffRoleIds: JSON.stringify(remainingRoleIds),
+    staffRoleIds: remainingRoleIds,
   });
 
   const embed = createSuccessEmbed(

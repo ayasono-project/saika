@@ -1,17 +1,16 @@
-// src/shared/database/repositories/vcRecruitSettingsRepository.ts
-// VC募集設定リポジトリ（guild_vc_recruit_configs テーブル）
+// src/features/vc-recruit/vcRecruitSettingsRepository.ts
+// VC募集設定リポジトリ（guild_vc_recruit_settings テーブル）
 
-import type { PrismaClient } from "@prisma/client";
+import { Prisma, type PrismaClient } from "@prisma/client";
 import type {
   IVcRecruitSettingsRepository,
   VcRecruitSettings,
   VcRecruitSetup,
 } from "../../shared/database/types";
-import { parseJsonArray } from "../../shared/utils/jsonUtils";
 import { createRepositoryGetter } from "../../shared/utils/serviceFactory";
 
 /**
- * guild_vc_recruit_configs テーブルを使用した VC募集設定リポジトリ
+ * guild_vc_recruit_settings テーブルを使用した VC募集設定リポジトリ
  */
 export class VcRecruitSettingsRepository
   implements IVcRecruitSettingsRepository
@@ -30,8 +29,8 @@ export class VcRecruitSettingsRepository
     if (!record) return null;
     return {
       enabled: record.enabled,
-      mentionRoleIds: parseJsonArray<string>(record.mentionRoleIds),
-      setups: parseJsonArray<VcRecruitSetup>(record.setups),
+      mentionRoleIds: record.mentionRoleIds as string[],
+      setups: record.setups as unknown as VcRecruitSetup[],
     };
   }
 
@@ -44,13 +43,13 @@ export class VcRecruitSettingsRepository
       create: {
         guildId,
         enabled: vcRecruitSettings.enabled,
-        mentionRoleIds: JSON.stringify(vcRecruitSettings.mentionRoleIds),
-        setups: JSON.stringify(vcRecruitSettings.setups),
+        mentionRoleIds: vcRecruitSettings.mentionRoleIds,
+        setups: vcRecruitSettings.setups as unknown as Prisma.InputJsonValue,
       },
       update: {
         enabled: vcRecruitSettings.enabled,
-        mentionRoleIds: JSON.stringify(vcRecruitSettings.mentionRoleIds),
-        setups: JSON.stringify(vcRecruitSettings.setups),
+        mentionRoleIds: vcRecruitSettings.mentionRoleIds,
+        setups: vcRecruitSettings.setups as unknown as Prisma.InputJsonValue,
       },
     });
   }

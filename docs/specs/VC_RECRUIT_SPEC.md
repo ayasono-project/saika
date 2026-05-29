@@ -2,7 +2,7 @@
 
 > コマンドで専用チャンネルを自動作成し、VC参加者を募るメッセージをモーダルで投稿する機能
 
-最終更新: 2026年5月29日
+最終更新: 2026年5月30日
 
 ---
 
@@ -861,7 +861,7 @@ flowchart TD
 
 ## データモデル
 
-設定情報は `GuildSettings.vcRecruitSettings` に JSON 文字列として保存します。
+設定情報は `GuildVcRecruitSettings` に保存します（`setups` / `mentionRoleIds` は jsonb カラム）。
 
 ### `VcRecruitSettings` フィールド
 

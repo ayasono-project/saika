@@ -2,7 +2,7 @@
 
 > トリガーチャンネル参加時に専用ボイスチャンネルを自動作成・管理する機能
 
-最終更新: 2026年5月29日
+最終更新: 2026年5月30日
 
 ---
 
@@ -228,8 +228,8 @@
 | --- | --- | --- |
 | `guildId` | String | ギルドID（主キー） |
 | `enabled` | Boolean | 機能の有効/無効（デフォルト: false） |
-| `triggerChannelIds` | String[] | トリガーチャンネルIDのリスト（JSON配列保存） |
-| `createdChannels` | VacChannelPair[] | 作成済みチャンネル情報のリスト（JSON配列保存） |
+| `triggerChannelIds` | String[] | トリガーチャンネルIDのリスト（jsonb 保存） |
+| `createdChannels` | VacChannelPair[] | 作成済みチャンネル情報のリスト（jsonb 保存） |
 
 ### VacChannelPair
 

@@ -2,7 +2,7 @@
 
 > Sticky Message - 常に最下部に表示されるメッセージ固定機能
 
-最終更新: 2026年5月29日
+最終更新: 2026年5月30日
 
 ---
 
@@ -251,7 +251,7 @@
 | `guildId` | String | ギルドID |
 | `channelId` | String | チャンネルID（UNIQUE） |
 | `content` | String | メッセージ内容（プレーンテキスト） |
-| `embedData` | String? | Embedデータ（JSON文字列） |
+| `embedData` | Json? | Embedデータ（jsonb: `StickyEmbedData`） |
 | `updatedBy` | String? | 最後に更新したユーザーID |
 | `lastMessageId` | String? | 最後に送信したメッセージID |
 | `createdAt` | DateTime | 作成日時 |

@@ -15,7 +15,7 @@ vi.mock("@/shared/locale/localeManager", () => ({
     sub?: string,
   ) => {
     const p = `${prefixKey}`;
-    const m = params ? `${messageKey}:${JSON.stringify(params)}` : messageKey;
+    const m = params ? `${messageKey}:${params}` : messageKey;
     return sub ? `[${p}:${sub}] ${m}` : `[${p}] ${m}`;
   },
   logCommand: (
@@ -23,7 +23,7 @@ vi.mock("@/shared/locale/localeManager", () => ({
     messageKey: string,
     params?: Record<string, unknown>,
   ) => {
-    const m = params ? `${messageKey}:${JSON.stringify(params)}` : messageKey;
+    const m = params ? `${messageKey}:${params}` : messageKey;
     return `[${commandName}] ${m}`;
   },
   tDefault: vi.fn((key: string) => key),
@@ -115,7 +115,7 @@ describe("bot/features/reaction-role/handlers/ui/reactionRoleRemoveButtonHandler
         const session = { panelId: "", buttonIds: [] as number[] };
         reactionRoleRemoveButtonSessions.set("session-1", session);
         mockConfigService.findById.mockResolvedValue({
-          buttons: JSON.stringify([
+          buttons: [
             {
               buttonId: 1,
               label: "ボタン1",
@@ -130,7 +130,7 @@ describe("bot/features/reaction-role/handlers/ui/reactionRoleRemoveButtonHandler
               roleIds: [],
               style: "secondary",
             },
-          ]),
+          ],
         });
 
         const interaction = createMockStringSelectInteraction(
@@ -195,7 +195,7 @@ describe("bot/features/reaction-role/handlers/ui/reactionRoleRemoveButtonHandler
         const session = { panelId: "panel-1", buttonIds: [] as number[] };
         reactionRoleRemoveButtonSessions.set("session-1", session);
         mockConfigService.findById.mockResolvedValue({
-          buttons: JSON.stringify([
+          buttons: [
             {
               buttonId: 1,
               label: "ボタン1",
@@ -210,7 +210,7 @@ describe("bot/features/reaction-role/handlers/ui/reactionRoleRemoveButtonHandler
               roleIds: [],
               style: "primary",
             },
-          ]),
+          ],
         });
 
         const interaction = createMockStringSelectInteraction(
@@ -233,7 +233,7 @@ describe("bot/features/reaction-role/handlers/ui/reactionRoleRemoveButtonHandler
         const session = { panelId: "panel-1", buttonIds: [] as number[] };
         reactionRoleRemoveButtonSessions.set("session-1", session);
         mockConfigService.findById.mockResolvedValue({
-          buttons: JSON.stringify([
+          buttons: [
             {
               buttonId: 1,
               label: "ボタン1",
@@ -255,7 +255,7 @@ describe("bot/features/reaction-role/handlers/ui/reactionRoleRemoveButtonHandler
               roleIds: [],
               style: "primary",
             },
-          ]),
+          ],
         });
 
         const interaction = createMockStringSelectInteraction(
@@ -364,7 +364,7 @@ describe("bot/features/reaction-role/handlers/ui/reactionRoleRemoveButtonHandler
           title: "テストパネル",
           description: "説明",
           color: "#000000",
-          buttons: JSON.stringify([
+          buttons: [
             {
               buttonId: 1,
               label: "ボタン1",
@@ -386,7 +386,7 @@ describe("bot/features/reaction-role/handlers/ui/reactionRoleRemoveButtonHandler
               roleIds: [],
               style: "primary",
             },
-          ]),
+          ],
         });
         mockConfigService.update.mockResolvedValue(undefined);
         mockUpdatePanelMessage.mockResolvedValue(true);
@@ -403,12 +403,12 @@ describe("bot/features/reaction-role/handlers/ui/reactionRoleRemoveButtonHandler
         expect(mockConfigService.update).toHaveBeenCalledWith(
           "panel-1",
           expect.objectContaining({
-            buttons: expect.any(String),
+            buttons: expect.any(Array),
           }),
         );
         // remainingButtons should only contain buttonId: 3
         const updateCall = mockConfigService.update.mock.calls[0];
-        const savedButtons = JSON.parse(updateCall[1].buttons);
+        const savedButtons = updateCall[1].buttons;
         expect(savedButtons).toHaveLength(1);
         expect(savedButtons[0].buttonId).toBe(3);
 
@@ -436,7 +436,7 @@ describe("bot/features/reaction-role/handlers/ui/reactionRoleRemoveButtonHandler
           title: "テストパネル",
           description: "説明",
           color: "#000000",
-          buttons: JSON.stringify([
+          buttons: [
             {
               buttonId: 1,
               label: "ボタン1",
@@ -451,7 +451,7 @@ describe("bot/features/reaction-role/handlers/ui/reactionRoleRemoveButtonHandler
               roleIds: [],
               style: "primary",
             },
-          ]),
+          ],
         });
         mockConfigService.update.mockResolvedValue(undefined);
         mockConfigService.delete.mockResolvedValue(undefined);

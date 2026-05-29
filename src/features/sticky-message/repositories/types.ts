@@ -3,5 +3,6 @@
 
 export type {
   IStickyMessageRepository,
+  StickyEmbedData,
   StickyMessage,
 } from "../../../shared/database/types";

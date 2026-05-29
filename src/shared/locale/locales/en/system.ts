@@ -184,10 +184,6 @@ export const system = {
   // Error utilities
   "error.base_error_log": "[{{errorName}}] {{message}}",
   "error.unhandled_error_log": "[UnhandledError] {{message}}",
-
-  // JSON utilities
-  "json.parse_array_failed":
-    'parseJsonArray: failed to parse, returning empty array. value="{{value}}" error="{{error}}"',
 } as const;
 
 export type SystemTranslations = typeof system;

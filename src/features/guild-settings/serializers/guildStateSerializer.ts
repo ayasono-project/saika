@@ -1,31 +1,31 @@
-// src/shared/database/repositories/serializers/guildStateSerializer.ts
+// src/features/guild-settings/serializers/guildStateSerializer.ts
 // guild-settings export/import の stateful データ用 serializer / deserializer
 //
-// JSON 文字列カラム（staffRoleIds / buttons）を export 時にパースし、import 時に再シリアライズする。
-// embedData は仕様書 §データモデルで「DB 上の JSON 文字列をそのまま保持」と定められているため透過する。
+// staffRoleIds / buttons は jsonb 化済みのため DB 上もアプリ上も配列で、export 表現でも配列のまま透過する。
+// embedData だけは export ファイル形式の安定性（旧 SQLite 版が出力した export を import できること）のため、
+// export 表現では JSON 文字列のまま保持する。export 時に文字列化、import 時にパースして jsonb へ格納する。
 
 import type {
   GuildReactionRolePanel,
   GuildTicketSettings,
   GuildTicketSettingsExport,
   OpenTicketExport,
-  ReactionRoleButton,
   ReactionRolePanelExport,
+  StickyEmbedData,
   StickyMessage,
   StickyMessageExport,
   Ticket,
   VacChannelPair,
 } from "../../../shared/database/types";
-import { parseJsonArray } from "../../../shared/utils/jsonUtils";
 
-/** GuildTicketSettings → export 表現（staffRoleIds をパース） */
+/** GuildTicketSettings → export 表現（staffRoleIds は jsonb 配列のまま） */
 export function toTicketSettingsExport(
   config: GuildTicketSettings,
 ): GuildTicketSettingsExport {
   return {
     categoryId: config.categoryId,
     enabled: config.enabled,
-    staffRoleIds: parseJsonArray<string>(config.staffRoleIds),
+    staffRoleIds: config.staffRoleIds,
     panelChannelId: config.panelChannelId,
     panelMessageId: config.panelMessageId,
     panelTitle: config.panelTitle,
@@ -37,7 +37,7 @@ export function toTicketSettingsExport(
   };
 }
 
-/** export 表現 → DB 書き込み形（staffRoleIds を再シリアライズ） */
+/** export 表現 → DB 書き込み形（staffRoleIds は jsonb 配列のまま） */
 export function fromTicketSettingsExport(
   guildId: string,
   data: GuildTicketSettingsExport,
@@ -46,7 +46,7 @@ export function fromTicketSettingsExport(
     guildId,
     categoryId: data.categoryId,
     enabled: data.enabled,
-    staffRoleIds: JSON.stringify(data.staffRoleIds),
+    staffRoleIds: data.staffRoleIds,
     panelChannelId: data.panelChannelId,
     panelMessageId: data.panelMessageId,
     panelTitle: data.panelTitle,
@@ -88,20 +88,20 @@ export function fromOpenTicketExport(
   };
 }
 
-/** StickyMessage → export 表現（embedData は JSON 文字列のまま透過） */
+/** StickyMessage → export 表現（embedData は export 形式安定のため JSON 文字列へ） */
 export function toStickyMessageExport(
   sticky: StickyMessage,
 ): StickyMessageExport {
   return {
     channelId: sticky.channelId,
     content: sticky.content,
-    embedData: sticky.embedData,
+    embedData: sticky.embedData ? JSON.stringify(sticky.embedData) : null,
     updatedBy: sticky.updatedBy,
     lastMessageId: sticky.lastMessageId,
   };
 }
 
-/** export 表現 → DB create 用データ（id/createdAt/updatedAt は DB 側で再生成） */
+/** export 表現 → DB create 用データ（embedData をパースして jsonb へ。id/createdAt/updatedAt は DB 側で再生成） */
 export function fromStickyMessageExport(
   guildId: string,
   data: StickyMessageExport,
@@ -110,13 +110,15 @@ export function fromStickyMessageExport(
     guildId,
     channelId: data.channelId,
     content: data.content,
-    embedData: data.embedData,
+    embedData: data.embedData
+      ? (JSON.parse(data.embedData) as StickyEmbedData)
+      : null,
     updatedBy: data.updatedBy,
     lastMessageId: data.lastMessageId,
   };
 }
 
-/** GuildReactionRolePanel → export 表現（buttons をパース） */
+/** GuildReactionRolePanel → export 表現（buttons は jsonb 配列のまま） */
 export function toReactionRolePanelExport(
   panel: GuildReactionRolePanel,
 ): ReactionRolePanelExport {
@@ -127,12 +129,12 @@ export function toReactionRolePanelExport(
     title: panel.title,
     description: panel.description,
     color: panel.color,
-    buttons: parseJsonArray<ReactionRoleButton>(panel.buttons),
+    buttons: panel.buttons,
     buttonCounter: panel.buttonCounter,
   };
 }
 
-/** export 表現 → DB create 用データ（buttons を再シリアライズ、id/createdAt/updatedAt は DB 側で再生成） */
+/** export 表現 → DB create 用データ（buttons は jsonb 配列のまま、id/createdAt/updatedAt は DB 側で再生成） */
 export function fromReactionRolePanelExport(
   guildId: string,
   data: ReactionRolePanelExport,
@@ -145,7 +147,7 @@ export function fromReactionRolePanelExport(
     title: data.title,
     description: data.description,
     color: data.color,
-    buttons: JSON.stringify(data.buttons),
+    buttons: data.buttons,
     buttonCounter: data.buttonCounter,
   };
 }

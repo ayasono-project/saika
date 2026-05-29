@@ -20,7 +20,7 @@ export interface GuildReactionRolePanel {
   title: string;
   description: string;
   color: string;
-  buttons: string; // JSON: ReactionRoleButton[]
+  buttons: ReactionRoleButton[]; // jsonb: ReactionRoleButton[]
   buttonCounter: number;
   createdAt: Date;
   updatedAt: Date;

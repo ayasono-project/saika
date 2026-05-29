@@ -21,10 +21,10 @@ import {
 import {
   type GuildReactionRolePanel,
   REACTION_ROLE_MODE,
+  type ReactionRoleButton,
 } from "../../../../shared/database/types/reactionRoleTypes";
 import { tInteraction } from "../../../../shared/locale/localeManager";
 import {
-  parseButtons,
   REACTION_ROLE_CUSTOM_ID,
   REACTION_ROLE_FIELD_VALUE_MAX_LENGTH,
   REACTION_ROLE_SESSION_TTL_MS,
@@ -146,13 +146,13 @@ export function buildViewEmbed(
     channelId: string;
     mode: string;
     color: string;
-    buttons: string;
+    buttons: ReactionRoleButton[];
   }[],
   page: number,
   locale: string,
 ): EmbedBuilder {
   const panel = panels[page];
-  const buttons = parseButtons(panel.buttons);
+  const buttons = panel.buttons;
 
   const modeDisplayKey =
     panel.mode === REACTION_ROLE_MODE.ONE_ACTION

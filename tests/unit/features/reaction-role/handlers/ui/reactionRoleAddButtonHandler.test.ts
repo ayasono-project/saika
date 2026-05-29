@@ -16,7 +16,7 @@ vi.mock("@/shared/locale/localeManager", () => ({
     sub?: string,
   ) => {
     const p = `${prefixKey}`;
-    const m = params ? `${messageKey}:${JSON.stringify(params)}` : messageKey;
+    const m = params ? `${messageKey}:${params}` : messageKey;
     return sub ? `[${p}:${sub}] ${m}` : `[${p}] ${m}`;
   },
   logCommand: (
@@ -24,7 +24,7 @@ vi.mock("@/shared/locale/localeManager", () => ({
     messageKey: string,
     params?: Record<string, unknown>,
   ) => {
-    const m = params ? `${messageKey}:${JSON.stringify(params)}` : messageKey;
+    const m = params ? `${messageKey}:${params}` : messageKey;
     return `[${commandName}] ${m}`;
   },
   tDefault: vi.fn((key: string) => key),
@@ -134,7 +134,7 @@ describe("bot/features/reaction-role/handlers/ui/reactionRoleAddButtonHandler", 
         };
         reactionRoleAddButtonSessions.set("session-1", session);
         mockConfigService.findById.mockResolvedValue({
-          buttons: JSON.stringify([
+          buttons: [
             {
               buttonId: 1,
               label: "ボタン1",
@@ -142,7 +142,7 @@ describe("bot/features/reaction-role/handlers/ui/reactionRoleAddButtonHandler", 
               roleIds: [],
               style: "primary",
             },
-          ]),
+          ],
           buttonCounter: 1,
         });
 
@@ -176,7 +176,7 @@ describe("bot/features/reaction-role/handlers/ui/reactionRoleAddButtonHandler", 
           style: "primary",
         }));
         mockConfigService.findById.mockResolvedValue({
-          buttons: JSON.stringify(fullButtons),
+          buttons: fullButtons,
           buttonCounter: 25,
         });
 
@@ -369,7 +369,7 @@ describe("bot/features/reaction-role/handlers/ui/reactionRoleAddButtonHandler", 
         };
         reactionRoleAddButtonSessions.set("session-1", session);
         mockConfigService.findById.mockResolvedValue({
-          buttons: JSON.stringify([
+          buttons: [
             {
               buttonId: 1,
               label: "既存ボタン",
@@ -377,7 +377,7 @@ describe("bot/features/reaction-role/handlers/ui/reactionRoleAddButtonHandler", 
               roleIds: [],
               style: "primary",
             },
-          ]),
+          ],
         });
 
         const interaction = createMockRoleSelectInteraction(
@@ -459,15 +459,13 @@ describe("bot/features/reaction-role/handlers/ui/reactionRoleAddButtonHandler", 
         };
         reactionRoleAddButtonSessions.set("session-1", session);
         mockConfigService.findById.mockResolvedValue({
-          buttons: JSON.stringify(
-            Array.from({ length: 24 }, (_, i) => ({
-              buttonId: i + 1,
-              label: `ボタン${i + 1}`,
-              emoji: "",
-              roleIds: [],
-              style: "primary",
-            })),
-          ),
+          buttons: Array.from({ length: 24 }, (_, i) => ({
+            buttonId: i + 1,
+            label: `ボタン${i + 1}`,
+            emoji: "",
+            roleIds: [],
+            style: "primary",
+          })),
         });
 
         const interaction = createMockRoleSelectInteraction(
@@ -582,7 +580,7 @@ describe("bot/features/reaction-role/handlers/ui/reactionRoleAddButtonHandler", 
           title: "テストパネル",
           description: "説明",
           color: "#000000",
-          buttons: JSON.stringify([
+          buttons: [
             {
               buttonId: 1,
               label: "既存ボタン",
@@ -590,7 +588,7 @@ describe("bot/features/reaction-role/handlers/ui/reactionRoleAddButtonHandler", 
               roleIds: [],
               style: "primary",
             },
-          ]),
+          ],
           buttonCounter: 1,
         });
         mockConfigService.update.mockResolvedValue(undefined);
@@ -606,13 +604,13 @@ describe("bot/features/reaction-role/handlers/ui/reactionRoleAddButtonHandler", 
         expect(mockConfigService.update).toHaveBeenCalledWith(
           "panel-1",
           expect.objectContaining({
-            buttons: expect.any(String),
+            buttons: expect.any(Array),
             buttonCounter: 2,
           }),
         );
 
         const updateCall = mockConfigService.update.mock.calls[0];
-        const savedButtons = JSON.parse(updateCall[1].buttons);
+        const savedButtons = updateCall[1].buttons;
         expect(savedButtons).toHaveLength(2);
         expect(savedButtons[0].buttonId).toBe(1);
         expect(savedButtons[1].buttonId).toBe(2);
@@ -655,7 +653,7 @@ describe("bot/features/reaction-role/handlers/ui/reactionRoleAddButtonHandler", 
           title: "テストパネル",
           description: "説明",
           color: "#000000",
-          buttons: JSON.stringify([
+          buttons: [
             {
               buttonId: 1,
               label: "既存ボタン",
@@ -663,7 +661,7 @@ describe("bot/features/reaction-role/handlers/ui/reactionRoleAddButtonHandler", 
               roleIds: [],
               style: "primary",
             },
-          ]),
+          ],
           buttonCounter: 1,
         });
         mockConfigService.update.mockResolvedValue(undefined);

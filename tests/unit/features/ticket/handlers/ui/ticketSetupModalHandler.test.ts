@@ -239,7 +239,7 @@ describe("bot/features/ticket/handlers/ui/ticketSetupModalHandler", () => {
           guildId: "guild-1",
           categoryId: "cat-1",
           enabled: true,
-          staffRoleIds: JSON.stringify(["role-1", "role-2"]),
+          staffRoleIds: ["role-1", "role-2"],
           panelChannelId: "channel-1",
           panelMessageId: "msg-1",
           autoDeleteDays: 7,

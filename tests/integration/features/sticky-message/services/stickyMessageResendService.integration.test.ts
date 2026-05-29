@@ -171,11 +171,11 @@ describe("StickyMessageResendService Integration", () => {
       const repository = createRepositoryMock();
       const service = new StickyMessageResendService(repository);
 
-      const embedData = JSON.stringify({
+      const embedData = {
         title: "Sticky Title",
         description: "Sticky Description",
         color: 0xff0000,
-      });
+      };
       const sticky = createStickyMessage({ embedData });
       repository.findByChannel.mockResolvedValue(sticky);
       repository.updateLastMessageId.mockResolvedValue(undefined);

@@ -144,14 +144,13 @@ export const stickyMessageSetEmbedModalHandler: ModalHandler = {
       description: embedDescription ?? undefined,
       color: parseColorStr(embedColorStr),
     };
-    const embedData = JSON.stringify(embedPayload);
 
     try {
       const stickyRecord = await service.create(
         guildId,
         channelId,
         content,
-        embedData,
+        embedPayload,
         interaction.user.id,
       );
 

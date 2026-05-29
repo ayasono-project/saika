@@ -146,7 +146,7 @@ export const ticketSetupModalHandler: ModalHandler = {
       guildId,
       categoryId: session.categoryId,
       enabled: true,
-      staffRoleIds: JSON.stringify(session.staffRoleIds),
+      staffRoleIds: session.staffRoleIds,
       panelChannelId: interaction.channelId ?? channel.id,
       panelMessageId: panelMessage.id,
       panelTitle: title,

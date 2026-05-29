@@ -134,7 +134,7 @@ describe("shared/database/repositories/guildSettingsAggregateRepository", () => 
           guildId: "g1",
           categoryId: "cat-1",
           enabled: true,
-          staffRoleIds: '["r-1"]',
+          staffRoleIds: ["r-1"],
           panelChannelId: "pch-1",
           panelMessageId: "pm-1",
           panelTitle: "T",
@@ -167,7 +167,7 @@ describe("shared/database/repositories/guildSettingsAggregateRepository", () => 
           guildId: "g1",
           channelId: "sch-1",
           content: "stk",
-          embedData: '{"x":1}',
+          embedData: { title: "x" },
           updatedBy: null,
           lastMessageId: null,
           createdAt: new Date(),
@@ -184,8 +184,15 @@ describe("shared/database/repositories/guildSettingsAggregateRepository", () => 
           title: "RR",
           description: "desc",
           color: "#000",
-          buttons:
-            '[{"buttonId":1,"label":"L","emoji":"","style":"Primary","roleIds":["r-1"]}]',
+          buttons: [
+            {
+              buttonId: 1,
+              label: "L",
+              emoji: "",
+              style: "Primary",
+              roleIds: ["r-1"],
+            },
+          ],
           buttonCounter: 1,
           createdAt: new Date(),
           updatedAt: new Date(),
@@ -229,7 +236,7 @@ describe("shared/database/repositories/guildSettingsAggregateRepository", () => 
           {
             channelId: "sch-1",
             content: "stk",
-            embedData: '{"x":1}',
+            embedData: '{"title":"x"}',
             updatedBy: null,
             lastMessageId: null,
           },
@@ -260,7 +267,7 @@ describe("shared/database/repositories/guildSettingsAggregateRepository", () => 
       });
     });
 
-    it("StickyMessage.embedData が JSON 文字列のまま保持されること", async () => {
+    it("StickyMessage.embedData が export 時に JSON 文字列へ変換されること", async () => {
       coreRepo.getSettings.mockResolvedValue({ guildId: "g1", locale: "ja" });
       afkRepo.getAfkSettings.mockResolvedValue(null);
       bumpReminderRepo.getBumpReminderSettings.mockResolvedValue(null);
@@ -275,7 +282,7 @@ describe("shared/database/repositories/guildSettingsAggregateRepository", () => 
           guildId: "g1",
           channelId: "ch-1",
           content: "c",
-          embedData: '{"complex":{"nested":true}}',
+          embedData: { title: "complex", description: "nested" },
           updatedBy: null,
           lastMessageId: null,
           createdAt: new Date(),
@@ -286,7 +293,7 @@ describe("shared/database/repositories/guildSettingsAggregateRepository", () => 
 
       const result = await repo.getFullSettings("g1");
       expect(result?.state?.stickyMessages[0]?.embedData).toBe(
-        '{"complex":{"nested":true}}',
+        '{"title":"complex","description":"nested"}',
       );
     });
 
@@ -474,7 +481,7 @@ describe("shared/database/repositories/guildSettingsAggregateRepository", () => 
         data: expect.objectContaining({
           guildId: "g1",
           categoryId: "cat-1",
-          staffRoleIds: '["r-1"]',
+          staffRoleIds: ["r-1"],
           ticketCounter: 5,
         }),
       });
@@ -550,7 +557,7 @@ describe("shared/database/repositories/guildSettingsAggregateRepository", () => 
       expect(prismaTx.guildVcRecruitSettings?.upsert).toHaveBeenCalled();
       const callArgs =
         prismaTx.guildVcRecruitSettings?.upsert?.mock.calls[0]?.[0];
-      const setupsJson = JSON.parse(callArgs.create.setups) as {
+      const setupsJson = callArgs.create.setups as {
         createdVoiceChannelIds: string[];
       }[];
       expect(setupsJson[0]?.createdVoiceChannelIds).toEqual([]);
@@ -559,9 +566,10 @@ describe("shared/database/repositories/guildSettingsAggregateRepository", () => 
     it("VAC createdChannels: 既存配列に新規分だけ追加される（union マージ）", async () => {
       prismaTx.guildVacSettings?.findUnique?.mockResolvedValue({
         enabled: true,
-        triggerChannelIds: '["trig-1"]',
-        createdChannels:
-          '[{"voiceChannelId":"vc-existing","ownerId":"u-1","createdAt":100}]',
+        triggerChannelIds: ["trig-1"],
+        createdChannels: [
+          { voiceChannelId: "vc-existing", ownerId: "u-1", createdAt: 100 },
+        ],
       });
 
       const data: FullGuildSettings = {
@@ -583,7 +591,7 @@ describe("shared/database/repositories/guildSettingsAggregateRepository", () => 
 
       await repo.importFullSettings("g1", data);
       const upsertArgs = prismaTx.guildVacSettings?.upsert?.mock.calls[0]?.[0];
-      const merged = JSON.parse(upsertArgs.create.createdChannels) as {
+      const merged = upsertArgs.create.createdChannels as {
         voiceChannelId: string;
       }[];
       expect(merged).toHaveLength(2);

@@ -38,7 +38,7 @@ ENV CI=true
 # gosu: entrypoint で root → node への安全な権限降格に使用
 # tini: PID 1 の init プロセスとしてゾンビプロセスを自動回収
 RUN apt-get update && apt-get upgrade -y --no-install-recommends \
-    && apt-get install -y --no-install-recommends openssl gosu tini sqlite3 \
+    && apt-get install -y --no-install-recommends openssl gosu tini \
     && rm -rf /var/lib/apt/lists/*
 
 # corepack キャッシュを /app 以下に設定（app ユーザーが書き込み可能にするため）
@@ -65,11 +65,11 @@ COPY --from=builder /app/dist ./dist
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
-# ストレージ・ログディレクトリを作成（corepack キャッシュは上で作成済み）
-RUN mkdir -p /app/storage /app/logs
+# ログディレクトリを作成（corepack キャッシュは上で作成済み）
+RUN mkdir -p /app/logs
 
 # アプリファイルの所有権を node ユーザーに設定
-# (マウントされるボリューム /app/storage、/app/logs は entrypoint で起動時に修正)
+# (ログのバインドマウント /app/logs はホスト側で node 書き込み可に用意する)
 RUN chown -R node:node /app
 
 # entrypoint が root → node へ権限降格するため USER は設定しない

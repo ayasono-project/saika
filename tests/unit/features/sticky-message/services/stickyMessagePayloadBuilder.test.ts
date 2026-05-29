@@ -5,11 +5,12 @@ import {
   buildStickyMessagePayload,
   parseColorStr,
 } from "@/features/sticky-message/services/stickyMessagePayloadBuilder";
+import type { StickyEmbedData } from "@/shared/database/types";
 
 function makeSticky(
   overrides: Partial<{
     content: string;
-    embedData: string | null;
+    embedData: StickyEmbedData | null;
     id: string;
     guildId: string;
     channelId: string;
@@ -48,12 +49,12 @@ describe("bot/features/sticky-message/services/stickyMessagePayloadBuilder", () 
       expect(payload).toEqual({ content: "Plain text message" });
     });
 
-    it("embedData が有効な JSON の場合は embed ペイロードを返す", () => {
-      const embedData = JSON.stringify({
+    it("embedData が設定されている場合は embed ペイロードを返す", () => {
+      const embedData = {
         title: "My Title",
         description: "My Description",
         color: 0xff0000,
-      });
+      };
       const sticky = makeSticky({ content: "fallback", embedData });
       const payload = buildStickyMessagePayload(sticky);
 
@@ -63,7 +64,7 @@ describe("bot/features/sticky-message/services/stickyMessagePayloadBuilder", () 
     });
 
     it("embedData に description がない場合、content フィールドを embed の description として代替使用する", () => {
-      const embedData = JSON.stringify({ title: "Only Title" });
+      const embedData = { title: "Only Title" };
       const sticky = makeSticky({ content: "Fallback content", embedData });
       const payload = buildStickyMessagePayload(sticky);
 
@@ -74,25 +75,12 @@ describe("bot/features/sticky-message/services/stickyMessagePayloadBuilder", () 
     });
 
     it("embedData に color がない場合はデフォルト色を使用する", () => {
-      const embedData = JSON.stringify({ description: "desc" });
+      const embedData = { description: "desc" };
       const sticky = makeSticky({ embedData });
       const payload = buildStickyMessagePayload(sticky);
 
       expect(payload.embeds).toBeDefined();
       const embed = (payload.embeds![0] as EmbedBuilder).toJSON();
-      expect(embed.color).toBe(0x008969);
-    });
-
-    it("embedData が壊れた JSON でも例外を上げず、content をフォールバックとして embed を生成する", () => {
-      const sticky = makeSticky({
-        content: "Fallback",
-        embedData: "not-json{",
-      });
-      const payload = buildStickyMessagePayload(sticky);
-
-      expect(payload.embeds).toBeDefined();
-      const embed = (payload.embeds![0] as EmbedBuilder).toJSON();
-      expect(embed.description).toBe("Fallback");
       expect(embed.color).toBe(0x008969);
     });
   });

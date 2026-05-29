@@ -1,17 +1,16 @@
-// src/shared/database/repositories/vacSettingsRepository.ts
-// VAC設定リポジトリ（guild_vac_configs テーブル）
+// src/features/vac/vacSettingsRepository.ts
+// VAC設定リポジトリ（guild_vac_settings テーブル）
 
-import type { PrismaClient } from "@prisma/client";
+import { Prisma, type PrismaClient } from "@prisma/client";
 import type {
   IVacSettingsRepository,
   VacChannelPair,
   VacSettings,
 } from "../../shared/database/types";
-import { parseJsonArray } from "../../shared/utils/jsonUtils";
 import { createRepositoryGetter } from "../../shared/utils/serviceFactory";
 
 /**
- * guild_vac_configs テーブルを使用した VAC設定リポジトリ
+ * guild_vac_settings テーブルを使用した VAC設定リポジトリ
  */
 export class VacSettingsRepository implements IVacSettingsRepository {
   private readonly prisma: PrismaClient;
@@ -26,8 +25,8 @@ export class VacSettingsRepository implements IVacSettingsRepository {
     if (!record) return null;
     return {
       enabled: record.enabled,
-      triggerChannelIds: parseJsonArray<string>(record.triggerChannelIds),
-      createdChannels: parseJsonArray<VacChannelPair>(record.createdChannels),
+      triggerChannelIds: record.triggerChannelIds as string[],
+      createdChannels: record.createdChannels as unknown as VacChannelPair[],
     };
   }
 
@@ -40,13 +39,15 @@ export class VacSettingsRepository implements IVacSettingsRepository {
       create: {
         guildId,
         enabled: vacSettings.enabled,
-        triggerChannelIds: JSON.stringify(vacSettings.triggerChannelIds),
-        createdChannels: JSON.stringify(vacSettings.createdChannels),
+        triggerChannelIds: vacSettings.triggerChannelIds,
+        createdChannels:
+          vacSettings.createdChannels as unknown as Prisma.InputJsonValue,
       },
       update: {
         enabled: vacSettings.enabled,
-        triggerChannelIds: JSON.stringify(vacSettings.triggerChannelIds),
-        createdChannels: JSON.stringify(vacSettings.createdChannels),
+        triggerChannelIds: vacSettings.triggerChannelIds,
+        createdChannels:
+          vacSettings.createdChannels as unknown as Prisma.InputJsonValue,
       },
     });
   }

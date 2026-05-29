@@ -15,10 +15,7 @@ import {
 import { createErrorEmbed } from "../../../../bot/utils/messageResponse";
 import { tInteraction } from "../../../../shared/locale/localeManager";
 import { hasStaffRole } from "../../services/ticketService";
-import {
-  parseStaffRoleIds,
-  TICKET_CUSTOM_ID,
-} from "../ticketCommand.constants";
+import { TICKET_CUSTOM_ID } from "../ticketCommand.constants";
 
 /**
  * ticket delete サブコマンドを処理する
@@ -52,9 +49,7 @@ export async function handleTicketDelete(
     ticket.guildId,
     ticket.categoryId,
   );
-  const staffRoleIds: string[] = config
-    ? parseStaffRoleIds(config.staffRoleIds)
-    : [];
+  const staffRoleIds: string[] = config ? config.staffRoleIds : [];
 
   // 権限チェック（スタッフロールのみ）
   const memberRoleIds = Array.from(

@@ -15,7 +15,6 @@ import { tInteraction } from "../../../../shared/locale/localeManager";
 import { reactionRoleAddButtonSessions } from "../../handlers/ui/reactionRoleSetupState";
 import { buildButtonSettingsModal } from "../../services/reactionRolePanelBuilder";
 import {
-  parseButtons,
   REACTION_ROLE_CUSTOM_ID,
   REACTION_ROLE_MAX_BUTTONS,
   REACTION_ROLE_SESSION_TTL_MS,
@@ -50,7 +49,7 @@ export async function handleReactionRoleSettingsAddButton(
   // 1件のみならスキップ
   if (panels.length === 1) {
     const panel = panels[0];
-    const existingButtons = parseButtons(panel.buttons);
+    const existingButtons = panel.buttons;
 
     if (existingButtons.length >= REACTION_ROLE_MAX_BUTTONS) {
       const embed = createErrorEmbed(

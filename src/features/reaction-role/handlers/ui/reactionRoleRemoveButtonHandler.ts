@@ -26,10 +26,7 @@ import {
   tInteraction,
 } from "../../../../shared/locale/localeManager";
 import { logger } from "../../../../shared/utils/logger";
-import {
-  parseButtons,
-  REACTION_ROLE_CUSTOM_ID,
-} from "../../commands/reactionRoleCommand.constants";
+import { REACTION_ROLE_CUSTOM_ID } from "../../commands/reactionRoleCommand.constants";
 import { updatePanelMessage } from "../../services/reactionRolePanelBuilder";
 import { reactionRoleRemoveButtonSessions } from "./reactionRoleSetupState";
 
@@ -70,7 +67,7 @@ export const reactionRoleRemoveButtonPanelSelectHandler: StringSelectHandler = {
     const panel = await settingsService.findById(panelId);
     if (!panel) return;
 
-    const buttons = parseButtons(panel.buttons);
+    const buttons = panel.buttons;
 
     const selectMenu = new StringSelectMenuBuilder()
       .setCustomId(
@@ -139,7 +136,7 @@ export const reactionRoleRemoveButtonSelectHandler: StringSelectHandler = {
     const panel = await settingsService.findById(session.panelId);
     if (!panel) return;
 
-    const allButtons = parseButtons(panel.buttons);
+    const allButtons = panel.buttons;
     if (selectedButtonIds.length >= allButtons.length) {
       const embed = createErrorEmbed(
         tInteraction(
@@ -285,14 +282,14 @@ export const reactionRoleRemoveButtonButtonHandler: ButtonHandler = {
     const panel = await settingsService.findById(session.panelId);
     if (!panel) return;
 
-    const allButtons = parseButtons(panel.buttons);
+    const allButtons = panel.buttons;
     const remainingButtons = allButtons.filter(
       (b) => !session.buttonIds.includes(b.buttonId),
     );
 
     // DB更新
     await settingsService.update(session.panelId, {
-      buttons: JSON.stringify(remainingButtons),
+      buttons: remainingButtons,
     });
 
     // パネルメッセージを更新

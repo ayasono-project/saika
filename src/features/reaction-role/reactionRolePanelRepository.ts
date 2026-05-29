@@ -1,7 +1,7 @@
-// src/shared/database/repositories/reactionRolePanelRepository.ts
-// リアクションロールパネルリポジトリ（Prisma実装）
+// src/features/reaction-role/reactionRolePanelRepository.ts
+// リアクションロールパネルリポジトリ（Prisma実装。guild_reaction_role_panels テーブル）
 
-import type { PrismaClient } from "@prisma/client";
+import { Prisma, type PrismaClient } from "@prisma/client";
 import type {
   GuildReactionRolePanel,
   IReactionRolePanelRepository,
@@ -31,7 +31,7 @@ export class ReactionRolePanelRepository
         guildId: "",
         panelId: id,
       }),
-    );
+    ) as unknown as Promise<GuildReactionRolePanel | null>;
   }
 
   async findAllByGuild(guildId: string): Promise<GuildReactionRolePanel[]> {
@@ -44,7 +44,7 @@ export class ReactionRolePanelRepository
         guildId,
         panelId: "",
       }),
-    );
+    ) as unknown as Promise<GuildReactionRolePanel[]>;
   }
 
   async create(
@@ -53,30 +53,40 @@ export class ReactionRolePanelRepository
     return executeWithDatabaseError(
       () =>
         this.prisma.guildReactionRolePanel.create({
-          data,
+          data: {
+            ...data,
+            buttons: data.buttons as unknown as Prisma.InputJsonValue,
+          },
         }),
       tDefault("reactionRole:log.database_panel_save_failed", {
         guildId: data.guildId,
         panelId: "",
       }),
-    );
+    ) as unknown as Promise<GuildReactionRolePanel>;
   }
 
   async update(
     id: string,
     data: Partial<GuildReactionRolePanel>,
   ): Promise<GuildReactionRolePanel> {
+    // buttons は jsonb のため Prisma 入力型に合わせて分離して扱う
+    const { buttons, ...rest } = data;
     return executeWithDatabaseError(
       () =>
         this.prisma.guildReactionRolePanel.update({
           where: { id },
-          data,
+          data: {
+            ...rest,
+            ...(buttons !== undefined
+              ? { buttons: buttons as unknown as Prisma.InputJsonValue }
+              : {}),
+          },
         }),
       tDefault("reactionRole:log.database_panel_save_failed", {
         guildId: "",
         panelId: id,
       }),
-    );
+    ) as unknown as Promise<GuildReactionRolePanel>;
   }
 
   async delete(id: string): Promise<void> {

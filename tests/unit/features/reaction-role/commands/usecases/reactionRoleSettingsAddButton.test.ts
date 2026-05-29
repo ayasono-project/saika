@@ -1,7 +1,10 @@
 // tests/unit/bot/features/reaction-role/commands/usecases/reactionRoleSettingsAddButton.test.ts
 
 import { MessageFlags } from "discord.js";
-import type { GuildReactionRolePanel } from "@/shared/database/types/reactionRoleTypes";
+import type {
+  GuildReactionRolePanel,
+  ReactionRoleButton,
+} from "@/shared/database/types/reactionRoleTypes";
 
 const findAllByGuildMock = vi.fn();
 
@@ -60,7 +63,7 @@ function createPanel(
     title: "Test Panel",
     description: "desc",
     color: "#00A8F3",
-    buttons: "[]",
+    buttons: [],
     buttonCounter: 0,
     createdAt: new Date(),
     updatedAt: new Date(),
@@ -80,17 +83,16 @@ function createInteractionMock(overrides = {}) {
 }
 
 /**
- * 25個のボタンを持つ buttons JSON 文字列を生成する
+ * 25個のボタンを持つ buttons 配列を生成する
  */
-function createMaxButtons(): string {
-  const buttons = Array.from({ length: 25 }, (_, i) => ({
+function createMaxButtons(): ReactionRoleButton[] {
+  return Array.from({ length: 25 }, (_, i) => ({
     buttonId: i,
     label: `Button ${i}`,
     emoji: "",
     style: "Primary",
     roleIds: [`role-${i}`],
   }));
-  return JSON.stringify(buttons);
 }
 
 describe("bot/features/reaction-role/commands/usecases/reactionRoleSettingsAddButton", () => {

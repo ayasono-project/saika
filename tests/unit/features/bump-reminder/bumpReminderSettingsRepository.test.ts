@@ -43,7 +43,7 @@ describe("shared/database/repositories/bumpReminderSettingsRepository", () => {
         enabled: true,
         channelId: "ch-1",
         mentionRoleId: "role-1",
-        mentionUserIds: '["user-1","user-2"]',
+        mentionUserIds: ["user-1", "user-2"],
       });
 
       const { BumpReminderSettingsRepository } = await loadModule();
@@ -65,7 +65,7 @@ describe("shared/database/repositories/bumpReminderSettingsRepository", () => {
         enabled: false,
         channelId: null,
         mentionRoleId: null,
-        mentionUserIds: "[]",
+        mentionUserIds: [],
       });
 
       const { BumpReminderSettingsRepository } = await loadModule();
@@ -78,23 +78,6 @@ describe("shared/database/repositories/bumpReminderSettingsRepository", () => {
         mentionRoleId: undefined,
         mentionUserIds: [],
       });
-    });
-
-    it("mentionUserIds が無効な JSON の場合は空配列を返すこと", async () => {
-      const prisma = createPrismaMock();
-      prisma.guildBumpReminderSettings.findUnique.mockResolvedValue({
-        guildId: "guild-1",
-        enabled: true,
-        channelId: null,
-        mentionRoleId: null,
-        mentionUserIds: "invalid-json",
-      });
-
-      const { BumpReminderSettingsRepository } = await loadModule();
-      const repo = new BumpReminderSettingsRepository(prisma as never);
-      const result = await repo.getBumpReminderSettings("guild-1");
-
-      expect(result?.mentionUserIds).toEqual([]);
     });
   });
 
@@ -137,7 +120,7 @@ describe("shared/database/repositories/bumpReminderSettingsRepository", () => {
   });
 
   describe("updateBumpReminderSettings", () => {
-    it("mentionUserIds を JSON 文字列化して upsert すること", async () => {
+    it("mentionUserIds を配列のまま upsert すること", async () => {
       const prisma = createPrismaMock();
       prisma.guildBumpReminderSettings.upsert.mockResolvedValue({});
 
@@ -157,13 +140,13 @@ describe("shared/database/repositories/bumpReminderSettingsRepository", () => {
           enabled: true,
           channelId: "ch-1",
           mentionRoleId: "role-1",
-          mentionUserIds: '["user-1"]',
+          mentionUserIds: ["user-1"],
         },
         update: {
           enabled: true,
           channelId: "ch-1",
           mentionRoleId: "role-1",
-          mentionUserIds: '["user-1"]',
+          mentionUserIds: ["user-1"],
         },
       });
     });
@@ -233,7 +216,7 @@ describe("shared/database/repositories/bumpReminderSettingsRepository", () => {
       const prisma = createPrismaMock();
       prisma.guildBumpReminderSettings.findUnique.mockResolvedValue({
         guildId: "guild-1",
-        mentionUserIds: '["user-1"]',
+        mentionUserIds: ["user-1"],
       });
 
       const { BumpReminderSettingsRepository } = await loadModule();
@@ -247,7 +230,7 @@ describe("shared/database/repositories/bumpReminderSettingsRepository", () => {
       const prisma = createPrismaMock();
       prisma.guildBumpReminderSettings.findUnique.mockResolvedValue({
         guildId: "guild-1",
-        mentionUserIds: "[]",
+        mentionUserIds: [],
       });
       prisma.guildBumpReminderSettings.update.mockResolvedValue({});
 
@@ -258,7 +241,7 @@ describe("shared/database/repositories/bumpReminderSettingsRepository", () => {
       expect(result).toBe(BUMP_REMINDER_MENTION_USER_ADD_RESULT.ADDED);
       expect(prisma.guildBumpReminderSettings.update).toHaveBeenCalledWith({
         where: { guildId: "guild-1" },
-        data: { mentionUserIds: '["user-1"]' },
+        data: { mentionUserIds: ["user-1"] },
       });
     });
   });
@@ -284,7 +267,7 @@ describe("shared/database/repositories/bumpReminderSettingsRepository", () => {
       const prisma = createPrismaMock();
       prisma.guildBumpReminderSettings.findUnique.mockResolvedValue({
         guildId: "guild-1",
-        mentionUserIds: '["user-2"]',
+        mentionUserIds: ["user-2"],
       });
 
       const { BumpReminderSettingsRepository } = await loadModule();
@@ -301,7 +284,7 @@ describe("shared/database/repositories/bumpReminderSettingsRepository", () => {
       const prisma = createPrismaMock();
       prisma.guildBumpReminderSettings.findUnique.mockResolvedValue({
         guildId: "guild-1",
-        mentionUserIds: '["user-1","user-2"]',
+        mentionUserIds: ["user-1", "user-2"],
       });
       prisma.guildBumpReminderSettings.update.mockResolvedValue({});
 
@@ -315,7 +298,7 @@ describe("shared/database/repositories/bumpReminderSettingsRepository", () => {
       expect(result).toBe(BUMP_REMINDER_MENTION_USER_REMOVE_RESULT.REMOVED);
       expect(prisma.guildBumpReminderSettings.update).toHaveBeenCalledWith({
         where: { guildId: "guild-1" },
-        data: { mentionUserIds: '["user-2"]' },
+        data: { mentionUserIds: ["user-2"] },
       });
     });
   });
@@ -338,7 +321,7 @@ describe("shared/database/repositories/bumpReminderSettingsRepository", () => {
       const prisma = createPrismaMock();
       prisma.guildBumpReminderSettings.findUnique.mockResolvedValue({
         guildId: "guild-1",
-        mentionUserIds: "[]",
+        mentionUserIds: [],
       });
 
       const { BumpReminderSettingsRepository } = await loadModule();
@@ -354,7 +337,7 @@ describe("shared/database/repositories/bumpReminderSettingsRepository", () => {
       const prisma = createPrismaMock();
       prisma.guildBumpReminderSettings.findUnique.mockResolvedValue({
         guildId: "guild-1",
-        mentionUserIds: '["user-1"]',
+        mentionUserIds: ["user-1"],
       });
       prisma.guildBumpReminderSettings.update.mockResolvedValue({});
 
@@ -365,7 +348,7 @@ describe("shared/database/repositories/bumpReminderSettingsRepository", () => {
       expect(result).toBe(BUMP_REMINDER_MENTION_USERS_CLEAR_RESULT.CLEARED);
       expect(prisma.guildBumpReminderSettings.update).toHaveBeenCalledWith({
         where: { guildId: "guild-1" },
-        data: { mentionUserIds: "[]" },
+        data: { mentionUserIds: [] },
       });
     });
   });
@@ -387,7 +370,7 @@ describe("shared/database/repositories/bumpReminderSettingsRepository", () => {
       prisma.guildBumpReminderSettings.findUnique.mockResolvedValue({
         guildId: "guild-1",
         mentionRoleId: null,
-        mentionUserIds: "[]",
+        mentionUserIds: [],
       });
 
       const { BumpReminderSettingsRepository } = await loadModule();
@@ -402,7 +385,7 @@ describe("shared/database/repositories/bumpReminderSettingsRepository", () => {
       prisma.guildBumpReminderSettings.findUnique.mockResolvedValue({
         guildId: "guild-1",
         mentionRoleId: "role-1",
-        mentionUserIds: "[]",
+        mentionUserIds: [],
       });
       prisma.guildBumpReminderSettings.update.mockResolvedValue({});
 
@@ -413,7 +396,7 @@ describe("shared/database/repositories/bumpReminderSettingsRepository", () => {
       expect(result).toBe(BUMP_REMINDER_MENTION_CLEAR_RESULT.CLEARED);
       expect(prisma.guildBumpReminderSettings.update).toHaveBeenCalledWith({
         where: { guildId: "guild-1" },
-        data: { mentionRoleId: null, mentionUserIds: "[]" },
+        data: { mentionRoleId: null, mentionUserIds: [] },
       });
     });
 
@@ -422,7 +405,7 @@ describe("shared/database/repositories/bumpReminderSettingsRepository", () => {
       prisma.guildBumpReminderSettings.findUnique.mockResolvedValue({
         guildId: "guild-1",
         mentionRoleId: null,
-        mentionUserIds: '["user-1"]',
+        mentionUserIds: ["user-1"],
       });
       prisma.guildBumpReminderSettings.update.mockResolvedValue({});
 

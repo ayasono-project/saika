@@ -3,14 +3,10 @@
 
 import { EmbedBuilder, type MessageCreateOptions } from "discord.js";
 import { EMBED_COLORS } from "../../../shared/constants/embedColors";
-import type { StickyMessage } from "../repositories/types";
+import type { StickyEmbedData, StickyMessage } from "../repositories/types";
 
-/** Embed データの型 */
-export interface StickyEmbedData {
-  title?: string;
-  description?: string;
-  color?: number;
-}
+// StickyEmbedData は shared のドメイン型に集約済み。既存の import 互換のため再エクスポートする。
+export type { StickyEmbedData };
 
 /**
  * StickyMessage エンティティから Discord 送信ペイロードを生成する
@@ -21,7 +17,7 @@ export function buildStickyMessagePayload(
   sticky: StickyMessage,
 ): MessageCreateOptions {
   if (sticky.embedData) {
-    const embed = parseEmbedData(sticky.embedData, sticky.content);
+    const embed = buildEmbedFromData(sticky.embedData, sticky.content);
     return { embeds: [embed] };
   }
 
@@ -29,31 +25,23 @@ export function buildStickyMessagePayload(
 }
 
 /**
- * JSON 文字列から EmbedBuilder を生成する
- * @param embedDataJson Embed 設定の JSON 文字列
- * @param fallbackContent JSON パース失敗時のフォールバックテキスト
+ * Embed データ（jsonb）から EmbedBuilder を生成する
+ * @param data Embed 設定
+ * @param fallbackContent description 未設定時のフォールバックテキスト
  * @returns EmbedBuilder インスタンス
  */
-function parseEmbedData(
-  embedDataJson: string,
+function buildEmbedFromData(
+  data: StickyEmbedData,
   fallbackContent: string,
 ): EmbedBuilder {
-  try {
-    const data = JSON.parse(embedDataJson) as StickyEmbedData;
-    const embed = new EmbedBuilder().setColor(
-      data.color ?? EMBED_COLORS.STICKY_MESSAGE_DEFAULT,
-    );
+  const embed = new EmbedBuilder().setColor(
+    data.color ?? EMBED_COLORS.STICKY_MESSAGE_DEFAULT,
+  );
 
-    if (data.title) embed.setTitle(data.title);
-    embed.setDescription(data.description ?? fallbackContent);
+  if (data.title) embed.setTitle(data.title);
+  embed.setDescription(data.description ?? fallbackContent);
 
-    return embed;
-  } catch {
-    // JSON パース失敗時はプレーンテキストで代用
-    return new EmbedBuilder()
-      .setColor(EMBED_COLORS.STICKY_MESSAGE_DEFAULT)
-      .setDescription(fallbackContent);
-  }
+  return embed;
 }
 
 /**

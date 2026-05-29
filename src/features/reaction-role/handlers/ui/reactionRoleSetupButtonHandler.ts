@@ -140,7 +140,7 @@ async function handleSetupDone(interaction: ButtonInteraction): Promise<void> {
     title: session.title,
     description: session.description,
     color: session.color,
-    buttons: JSON.stringify(session.buttons),
+    buttons: session.buttons,
     buttonCounter: session.buttonCounter,
   });
 

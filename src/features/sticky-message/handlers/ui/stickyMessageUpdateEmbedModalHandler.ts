@@ -127,13 +127,12 @@ export const stickyMessageUpdateEmbedModalHandler: ModalHandler = {
       description: embedDescription ?? undefined,
       color: parseColorStr(embedColorStr),
     };
-    const embedData = JSON.stringify(embedPayload);
 
     try {
       const updated = await service.updateContent(
         existing.id,
         content,
-        embedData,
+        embedPayload,
         interaction.user.id,
       );
 

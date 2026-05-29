@@ -34,7 +34,6 @@ import {
   isValidButtonStyle,
   isValidEmoji,
   normalizeEmoji,
-  parseButtons,
   REACTION_ROLE_CUSTOM_ID,
   REACTION_ROLE_DEFAULT_BUTTON_STYLE,
   REACTION_ROLE_MAX_BUTTONS,
@@ -83,7 +82,7 @@ export const reactionRoleAddButtonSelectHandler: StringSelectHandler = {
     const panel = await settingsService.findById(panelId);
     if (!panel) return;
 
-    const existingButtons = parseButtons(panel.buttons);
+    const existingButtons = panel.buttons;
     if (existingButtons.length >= REACTION_ROLE_MAX_BUTTONS) {
       const embed = createErrorEmbed(
         tInteraction(
@@ -314,7 +313,7 @@ export const reactionRoleAddButtonRoleSelectHandler: RoleSelectHandler = {
     // 既存ボタン数 + 追加済みボタン数で上限チェック
     const settingsService = getBotReactionRolePanelSettingsService();
     const panel = await settingsService.findById(session.panelId);
-    const existingCount = panel ? parseButtons(panel.buttons).length : 0;
+    const existingCount = panel ? panel.buttons.length : 0;
     const totalCount = existingCount + session.buttons.length;
     const atLimit = totalCount >= REACTION_ROLE_MAX_BUTTONS;
 
@@ -391,12 +390,12 @@ export const reactionRoleAddButtonButtonHandler: ButtonHandler = {
       const panel = await settingsService.findById(session.panelId);
       if (!panel) return;
 
-      const existingButtons = parseButtons(panel.buttons);
+      const existingButtons = panel.buttons;
       const allButtons = [...existingButtons, ...session.buttons];
 
       // DB更新
       await settingsService.update(session.panelId, {
-        buttons: JSON.stringify(allButtons),
+        buttons: allButtons,
         buttonCounter: session.buttonCounter,
       });
 

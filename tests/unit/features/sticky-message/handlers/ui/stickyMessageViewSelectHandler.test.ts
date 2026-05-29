@@ -165,10 +165,10 @@ describe("bot/features/sticky-message/handlers/ui/stickyMessageViewSelectHandler
     const { stickyMessageViewSelectHandler } = await import(
       "@/features/sticky-message/handlers/ui/stickyMessageViewSelectHandler"
     );
-    const embedData = JSON.stringify({
+    const embedData = {
       title: "Embed Title",
       color: 0xff0000,
-    });
+    };
     findByChannelMock.mockResolvedValue({
       id: "sticky-1",
       channelId: "ch-1",
@@ -265,33 +265,12 @@ describe("bot/features/sticky-message/handlers/ui/stickyMessageViewSelectHandler
     expect(contentField?.value).not.toContain("...");
   });
 
-  it("embedData が不正な JSON 文字列でも例外を投げず、更新処理が正常完了する", async () => {
-    const { stickyMessageViewSelectHandler } = await import(
-      "@/features/sticky-message/handlers/ui/stickyMessageViewSelectHandler"
-    );
-    findByChannelMock.mockResolvedValue({
-      id: "sticky-1",
-      channelId: "ch-1",
-      content: "Content",
-      embedData: "not-valid-json",
-      updatedAt: new Date("2025-01-01T00:00:00Z"),
-      updatedBy: null,
-    });
-    const updateMock = vi.fn().mockResolvedValue(undefined);
-    const interaction = createInteractionMock({ updateMock });
-
-    await expect(
-      stickyMessageViewSelectHandler.execute(interaction as never),
-    ).resolves.not.toThrow();
-    expect(updateMock).toHaveBeenCalled();
-  });
-
   it("embedData に title も color もない場合はどちらのフィールドも追加しない", async () => {
     const { stickyMessageViewSelectHandler } = await import(
       "@/features/sticky-message/handlers/ui/stickyMessageViewSelectHandler"
     );
     // title も color もない embedData
-    const embedData = JSON.stringify({ content: "embed-only content" });
+    const embedData = { description: "embed-only content" };
     findByChannelMock.mockResolvedValue({
       id: "sticky-1",
       channelId: "ch-1",

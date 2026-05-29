@@ -105,7 +105,7 @@ describe("bot/features/ticket/commands/usecases/ticketDelete", () => {
       status: "open",
     });
     findByGuildAndCategoryMock.mockResolvedValue({
-      staffRoleIds: '["staff-role-1"]',
+      staffRoleIds: ["staff-role-1"],
     });
     hasStaffRoleMock.mockReturnValue(false);
     const interaction = createInteractionMock();
@@ -130,7 +130,7 @@ describe("bot/features/ticket/commands/usecases/ticketDelete", () => {
       status: "open",
     });
     findByGuildAndCategoryMock.mockResolvedValue({
-      staffRoleIds: '["staff-role-1"]',
+      staffRoleIds: ["staff-role-1"],
     });
     hasStaffRoleMock.mockReturnValue(true);
     const interaction = createInteractionMock();
@@ -159,7 +159,7 @@ describe("bot/features/ticket/commands/usecases/ticketDelete", () => {
       status: "open",
     });
     findByGuildAndCategoryMock.mockResolvedValue({
-      staffRoleIds: '["staff-role-1"]',
+      staffRoleIds: ["staff-role-1"],
     });
     hasStaffRoleMock.mockReturnValue(true);
     const interaction = createInteractionMock();

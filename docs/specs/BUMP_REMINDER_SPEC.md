@@ -2,7 +2,7 @@
 
 > Disboard・ディス速のBumpリマインダー機能の詳細仕様
 
-最終更新: 2026年5月29日
+最終更新: 2026年5月30日
 
 ---
 
@@ -521,7 +521,7 @@ Bumpリマインダーの設定情報：
 | `enabled`       | Boolean  | 機能有効/無効（DBデフォルト: false、アプリデフォルト: true） |
 | `channelId`     | String?  | Bump検知対象チャンネルID（未設定時は全チャンネルで検知） |
 | `mentionRoleId` | String?  | メンションロールID                                |
-| `mentionUserIds`| String[] | メンションユーザーIDリスト（JSON配列保存）        |
+| `mentionUserIds`| String[] | メンションユーザーIDリスト（jsonb 保存）        |
 
 **重要な設計判断:**
 

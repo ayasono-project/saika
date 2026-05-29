@@ -14,7 +14,7 @@ services:
       context: .
       dockerfile: Dockerfile
       target: runner
-    command: node dist/bot/main.js
+    command: node dist/main.js
     restart: unless-stopped
     environment:
       # --- 必須（Coolify の Environment Variables で設定） ---

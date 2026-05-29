@@ -112,7 +112,7 @@ describe("bot/features/ticket/handlers/ui/ticketRoleSelectHandler", () => {
           findByGuildAndCategory: vi.fn().mockResolvedValue({
             guildId: "guild-1",
             categoryId: "cat-1",
-            staffRoleIds: '["old-role"]',
+            staffRoleIds: ["old-role"],
           }),
           update: vi.fn().mockResolvedValue(undefined),
         };
@@ -129,7 +129,7 @@ describe("bot/features/ticket/handlers/ui/ticketRoleSelectHandler", () => {
         expect(mockConfigService.update).toHaveBeenCalledWith(
           "guild-1",
           "cat-1",
-          { staffRoleIds: JSON.stringify(["role-1", "role-2"]) },
+          { staffRoleIds: ["role-1", "role-2"] },
         );
         expect(interaction.reply).toHaveBeenCalledWith(
           expect.objectContaining({
@@ -145,7 +145,7 @@ describe("bot/features/ticket/handlers/ui/ticketRoleSelectHandler", () => {
           findByGuildAndCategory: vi.fn().mockResolvedValue({
             guildId: "guild-1",
             categoryId: "cat-1",
-            staffRoleIds: '["role-1","role-existing"]',
+            staffRoleIds: ["role-1", "role-existing"],
           }),
           update: vi.fn().mockResolvedValue(undefined),
         };
@@ -163,7 +163,7 @@ describe("bot/features/ticket/handlers/ui/ticketRoleSelectHandler", () => {
           "guild-1",
           "cat-1",
           {
-            staffRoleIds: JSON.stringify(["role-1", "role-existing", "role-2"]),
+            staffRoleIds: ["role-1", "role-existing", "role-2"],
           },
         );
       });
@@ -175,7 +175,7 @@ describe("bot/features/ticket/handlers/ui/ticketRoleSelectHandler", () => {
           findByGuildAndCategory: vi.fn().mockResolvedValue({
             guildId: "guild-1",
             categoryId: "cat-1",
-            staffRoleIds: '["role-1"]',
+            staffRoleIds: ["role-1"],
           }),
           update: vi.fn(),
         };
@@ -205,7 +205,7 @@ describe("bot/features/ticket/handlers/ui/ticketRoleSelectHandler", () => {
           findByGuildAndCategory: vi.fn().mockResolvedValue({
             guildId: "guild-1",
             categoryId: "cat-1",
-            staffRoleIds: '["role-1","role-2","role-3"]',
+            staffRoleIds: ["role-1", "role-2", "role-3"],
           }),
           update: vi.fn().mockResolvedValue(undefined),
         };
@@ -225,7 +225,7 @@ describe("bot/features/ticket/handlers/ui/ticketRoleSelectHandler", () => {
         expect(mockConfigService.update).toHaveBeenCalledWith(
           "guild-1",
           "cat-1",
-          { staffRoleIds: JSON.stringify(["role-2", "role-3"]) },
+          { staffRoleIds: ["role-2", "role-3"] },
         );
         expect(interaction.reply).toHaveBeenCalledWith(
           expect.objectContaining({

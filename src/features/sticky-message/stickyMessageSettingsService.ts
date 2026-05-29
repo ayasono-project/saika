@@ -3,6 +3,7 @@
 
 import type {
   IStickyMessageRepository,
+  StickyEmbedData,
   StickyMessage,
 } from "../../shared/database/types";
 
@@ -38,7 +39,7 @@ export class StickyMessageSettingsService {
     guildId: string,
     channelId: string,
     content: string,
-    embedData?: string,
+    embedData?: StickyEmbedData,
     updatedBy?: string,
   ): Promise<StickyMessage> {
     return this.repository.create(
@@ -63,7 +64,7 @@ export class StickyMessageSettingsService {
   async updateContent(
     id: string,
     content: string,
-    embedData: string | null,
+    embedData: StickyEmbedData | null,
     updatedBy?: string,
   ): Promise<StickyMessage> {
     return this.repository.updateContent(id, content, embedData, updatedBy);

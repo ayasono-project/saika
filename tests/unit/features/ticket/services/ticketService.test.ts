@@ -98,7 +98,7 @@ function createMockConfigService() {
     findByGuildAndCategory: vi.fn().mockResolvedValue({
       guildId: "guild-1",
       categoryId: "cat-1",
-      staffRoleIds: '["role-staff-1"]',
+      staffRoleIds: ["role-staff-1"],
       autoDeleteDays: 7,
       panelColor: "#00A8F3",
     }),

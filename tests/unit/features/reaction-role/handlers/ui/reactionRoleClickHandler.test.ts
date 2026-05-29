@@ -5,7 +5,7 @@ const mockConfigService = { findById: vi.fn(), findAllByGuild: vi.fn() };
 
 vi.mock("@/shared/locale/localeManager", () => ({
   logPrefixed: (p: string, m: string, params?: Record<string, unknown>) =>
-    params ? `[${p}] ${m}:${JSON.stringify(params)}` : `[${p}] ${m}`,
+    params ? `[${p}] ${m}:${params}` : `[${p}] ${m}`,
   tDefault: vi.fn((key: string) => key),
   tInteraction: (_locale: string, key: string) => key,
 }));
@@ -68,7 +68,7 @@ function createPanel(mode: string, buttons: object[]) {
     title: "Test",
     description: "desc",
     color: "#00A8F3",
-    buttons: JSON.stringify(buttons),
+    buttons: buttons,
     buttonCounter: buttons.length,
   };
 }

@@ -115,7 +115,7 @@ describe("bot/features/ticket/commands/usecases/ticketSettingsAddRoles", () => {
     findByGuildAndCategoryMock.mockResolvedValue({
       guildId: "guild-1",
       categoryId: "category-1",
-      staffRoleIds: "[]",
+      staffRoleIds: [],
     });
     const interaction = createInteractionMock();
 
@@ -137,7 +137,7 @@ describe("bot/features/ticket/commands/usecases/ticketSettingsAddRoles", () => {
     findByGuildAndCategoryMock.mockResolvedValue({
       guildId: "guild-1",
       categoryId: "category-1",
-      staffRoleIds: "[]",
+      staffRoleIds: [],
     });
     const interaction = createInteractionMock();
 

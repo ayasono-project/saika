@@ -134,7 +134,7 @@ describe("bot/features/ticket/commands/usecases/ticketOpen", () => {
       status: "closed",
     });
     findByGuildAndCategoryMock.mockResolvedValue({
-      staffRoleIds: '["staff-role-1"]',
+      staffRoleIds: ["staff-role-1"],
     });
     hasTicketPermissionMock.mockReturnValue(false);
     const interaction = createInteractionMock();
@@ -161,7 +161,7 @@ describe("bot/features/ticket/commands/usecases/ticketOpen", () => {
     };
     findByChannelIdMock.mockResolvedValue(ticket);
     findByGuildAndCategoryMock.mockResolvedValue({
-      staffRoleIds: '["staff-role-1"]',
+      staffRoleIds: ["staff-role-1"],
     });
     hasTicketPermissionMock.mockReturnValue(true);
     reopenTicketMock.mockResolvedValue(undefined);

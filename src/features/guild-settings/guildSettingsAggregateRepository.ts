@@ -1,7 +1,7 @@
-// src/shared/database/repositories/guildSettingsAggregateRepository.ts
+// src/features/guild-settings/guildSettingsAggregateRepository.ts
 // ギルド設定一括操作リポジトリ（エクスポート/インポート/reset-all）
 
-import type { PrismaClient } from "@prisma/client";
+import { Prisma, type PrismaClient } from "@prisma/client";
 import type {
   FullGuildSettings,
   IAfkSettingsRepository,
@@ -244,13 +244,13 @@ export class GuildSettingsAggregateRepository
             enabled: data.bumpReminder.enabled,
             channelId: data.bumpReminder.channelId ?? null,
             mentionRoleId: data.bumpReminder.mentionRoleId ?? null,
-            mentionUserIds: JSON.stringify(data.bumpReminder.mentionUserIds),
+            mentionUserIds: data.bumpReminder.mentionUserIds,
           },
           update: {
             enabled: data.bumpReminder.enabled,
             channelId: data.bumpReminder.channelId ?? null,
             mentionRoleId: data.bumpReminder.mentionRoleId ?? null,
-            mentionUserIds: JSON.stringify(data.bumpReminder.mentionUserIds),
+            mentionUserIds: data.bumpReminder.mentionUserIds,
           },
         });
       }
@@ -285,13 +285,13 @@ export class GuildSettingsAggregateRepository
           create: {
             guildId,
             enabled: data.vcRecruit.enabled,
-            mentionRoleIds: JSON.stringify(data.vcRecruit.mentionRoleIds),
-            setups: JSON.stringify(setupsForDb),
+            mentionRoleIds: data.vcRecruit.mentionRoleIds,
+            setups: setupsForDb as unknown as Prisma.InputJsonValue,
           },
           update: {
             enabled: data.vcRecruit.enabled,
-            mentionRoleIds: JSON.stringify(data.vcRecruit.mentionRoleIds),
-            setups: JSON.stringify(setupsForDb),
+            mentionRoleIds: data.vcRecruit.mentionRoleIds,
+            setups: setupsForDb as unknown as Prisma.InputJsonValue,
           },
         });
       }
@@ -301,9 +301,8 @@ export class GuildSettingsAggregateRepository
         const existing = await tx.guildVacSettings.findUnique({
           where: { guildId },
         });
-        const existingCreated: { voiceChannelId: string }[] = existing
-          ? safeParseArray(existing.createdChannels)
-          : [];
+        const existingCreated = (existing?.createdChannels ??
+          []) as unknown as { voiceChannelId: string }[];
         const incomingCreated = data.state?.vacCreatedChannels ?? [];
         const mergedCreated = mergeVacCreatedChannels(
           existingCreated as ReturnType<typeof mergeVacCreatedChannels>,
@@ -311,22 +310,20 @@ export class GuildSettingsAggregateRepository
         );
         const settings = data.vac ?? {
           enabled: existing?.enabled ?? false,
-          triggerChannelIds: existing
-            ? safeParseArray<string>(existing.triggerChannelIds)
-            : [],
+          triggerChannelIds: (existing?.triggerChannelIds ?? []) as string[],
         };
         await tx.guildVacSettings.upsert({
           where: { guildId },
           create: {
             guildId,
             enabled: settings.enabled,
-            triggerChannelIds: JSON.stringify(settings.triggerChannelIds),
-            createdChannels: JSON.stringify(mergedCreated),
+            triggerChannelIds: settings.triggerChannelIds,
+            createdChannels: mergedCreated as unknown as Prisma.InputJsonValue,
           },
           update: {
             enabled: settings.enabled,
-            triggerChannelIds: JSON.stringify(settings.triggerChannelIds),
-            createdChannels: JSON.stringify(mergedCreated),
+            triggerChannelIds: settings.triggerChannelIds,
+            createdChannels: mergedCreated as unknown as Prisma.InputJsonValue,
           },
         });
       }
@@ -364,8 +361,14 @@ export class GuildSettingsAggregateRepository
           where: { channelId: sticky.channelId },
         });
         if (exists) continue;
+        const stickyData = fromStickyMessageExport(guildId, sticky);
         await tx.stickyMessage.create({
-          data: fromStickyMessageExport(guildId, sticky),
+          data: {
+            ...stickyData,
+            embedData: stickyData.embedData
+              ? (stickyData.embedData as Prisma.InputJsonValue)
+              : Prisma.DbNull,
+          },
         });
       }
 
@@ -379,8 +382,12 @@ export class GuildSettingsAggregateRepository
           },
         });
         if (exists) continue;
+        const panelData = fromReactionRolePanelExport(guildId, panel);
         await tx.guildReactionRolePanel.create({
-          data: fromReactionRolePanelExport(guildId, panel),
+          data: {
+            ...panelData,
+            buttons: panelData.buttons as unknown as Prisma.InputJsonValue,
+          },
         });
       }
     });
@@ -404,15 +411,5 @@ export class GuildSettingsAggregateRepository
       this.prisma.guildVcRecruitSettings.deleteMany({ where: { guildId } }),
       this.prisma.guildSettings.deleteMany({ where: { guildId } }),
     ]);
-  }
-}
-
-/** トランザクション内で JSON 文字列を配列にパースする（ロガー依存を持たない軽量版） */
-function safeParseArray<T>(json: string): T[] {
-  try {
-    const parsed: unknown = JSON.parse(json);
-    return Array.isArray(parsed) ? (parsed as T[]) : [];
-  } catch {
-    return [];
   }
 }

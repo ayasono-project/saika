@@ -185,10 +185,6 @@ export const system = {
   // エラーユーティリティ
   "error.base_error_log": "[{{errorName}}] {{message}}",
   "error.unhandled_error_log": "[UnhandledError] {{message}}",
-
-  // JSONユーティリティ
-  "json.parse_array_failed":
-    'parseJsonArray: パースに失敗しました。空配列を返します。 value="{{value}}" error="{{error}}"',
 } as const;
 
 export type SystemTranslations = typeof system;

@@ -54,7 +54,7 @@ function createPanel(
     title: "Test Panel",
     description: "desc",
     color: "#00A8F3",
-    buttons: "[]",
+    buttons: [],
     buttonCounter: 0,
     createdAt: new Date(),
     updatedAt: new Date(),

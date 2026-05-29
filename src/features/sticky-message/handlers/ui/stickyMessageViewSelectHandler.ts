@@ -104,35 +104,28 @@ export const stickyMessageViewSelectHandler: StringSelectHandler = {
     // 2段目: Embed メタ情報（設定されている場合のみ中段に挿入）
     let embedColor: number | undefined;
     if (sticky.embedData) {
-      try {
-        const parsed = JSON.parse(sticky.embedData) as {
-          title?: string;
-          color?: number;
-        };
-        if (parsed.title) {
-          fields.push({
-            name: tInteraction(
-              interaction.locale,
-              "stickyMessage:embed.field.name.embed_title",
-            ),
-            value: parsed.title,
-            inline: true,
-          });
-        }
-        if (parsed.color !== undefined) {
-          embedColor = parsed.color;
-          fields.push({
-            name: tInteraction(
-              interaction.locale,
-              "stickyMessage:embed.field.name.embed_color",
-            ),
-            // カラーコードを色付きサムネイルとして表示（hex文字列）
-            value: `#${parsed.color.toString(16).toUpperCase().padStart(6, "0")}`,
-            inline: true,
-          });
-        }
-      } catch {
-        // JSON パース失敗は無視
+      const parsed = sticky.embedData;
+      if (parsed.title) {
+        fields.push({
+          name: tInteraction(
+            interaction.locale,
+            "stickyMessage:embed.field.name.embed_title",
+          ),
+          value: parsed.title,
+          inline: true,
+        });
+      }
+      if (parsed.color !== undefined) {
+        embedColor = parsed.color;
+        fields.push({
+          name: tInteraction(
+            interaction.locale,
+            "stickyMessage:embed.field.name.embed_color",
+          ),
+          // カラーコードを色付きサムネイルとして表示（hex文字列）
+          value: `#${parsed.color.toString(16).toUpperCase().padStart(6, "0")}`,
+          inline: true,
+        });
       }
     }
 

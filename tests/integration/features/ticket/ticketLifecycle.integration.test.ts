@@ -270,7 +270,7 @@ describe("ticket lifecycle integration", () => {
       guildId: "guild-1",
       categoryId: "cat-1",
       enabled: true,
-      staffRoleIds: JSON.stringify(["role-staff-1"]),
+      staffRoleIds: ["role-staff-1"],
       panelChannelId: "panel-channel-1",
       panelMessageId: "panel-message-1",
       panelTitle: "Support",

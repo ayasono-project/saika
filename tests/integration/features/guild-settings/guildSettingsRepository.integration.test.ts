@@ -319,7 +319,7 @@ describe("BumpReminderSettingsRepository", () => {
         enabled: false,
         channelId: "999999999",
         mentionRoleId: "888888888",
-        mentionUserIds: '["111111111","222222222"]',
+        mentionUserIds: ["111111111", "222222222"],
       });
 
       const config = await repository.getBumpReminderSettings("123456789");
@@ -347,7 +347,7 @@ describe("BumpReminderSettingsRepository", () => {
           guildId: "123456789",
           enabled: true,
           channelId: "ch-1",
-          mentionUserIds: "[]",
+          mentionUserIds: [],
         },
         update: {
           enabled: true,
@@ -369,7 +369,7 @@ describe("BumpReminderSettingsRepository", () => {
           guildId: "123456789",
           enabled: false,
           channelId: null,
-          mentionUserIds: "[]",
+          mentionUserIds: [],
         },
         update: { enabled: false },
       });
@@ -398,13 +398,13 @@ describe("BumpReminderSettingsRepository", () => {
           enabled: true,
           channelId: "ch-1",
           mentionRoleId: "role-1",
-          mentionUserIds: '["user-1"]',
+          mentionUserIds: ["user-1"],
         },
         update: {
           enabled: true,
           channelId: "ch-1",
           mentionRoleId: "role-1",
-          mentionUserIds: '["user-1"]',
+          mentionUserIds: ["user-1"],
         },
       });
     });
@@ -426,7 +426,7 @@ describe("BumpReminderSettingsRepository", () => {
 
     it("メンションリストに未登録のユーザーを追加できること", async () => {
       mockPrismaClient.guildBumpReminderSettings.findUnique.mockResolvedValue({
-        mentionUserIds: '["user-a"]',
+        mentionUserIds: ["user-a"],
       });
       mockPrismaClient.guildBumpReminderSettings.update.mockResolvedValue({});
 
@@ -440,13 +440,13 @@ describe("BumpReminderSettingsRepository", () => {
         mockPrismaClient.guildBumpReminderSettings.update,
       ).toHaveBeenCalledWith({
         where: { guildId: "123456789" },
-        data: { mentionUserIds: '["user-a","user-b"]' },
+        data: { mentionUserIds: ["user-a", "user-b"] },
       });
     });
 
     it("ユーザーが既にリストに存在する場合は already-exists を返すこと", async () => {
       mockPrismaClient.guildBumpReminderSettings.findUnique.mockResolvedValue({
-        mentionUserIds: '["user-a"]',
+        mentionUserIds: ["user-a"],
       });
 
       const result = await repository.addBumpReminderMentionUser(
@@ -478,7 +478,7 @@ describe("BumpReminderSettingsRepository", () => {
     it("メンションロールを設定できること", async () => {
       mockPrismaClient.guildBumpReminderSettings.findUnique.mockResolvedValue({
         mentionRoleId: "old-role",
-        mentionUserIds: '["user-a"]',
+        mentionUserIds: ["user-a"],
       });
       mockPrismaClient.guildBumpReminderSettings.update.mockResolvedValue({});
 
@@ -513,7 +513,7 @@ describe("BumpReminderSettingsRepository", () => {
 
     it("メンションリストのユーザーを削除できること", async () => {
       mockPrismaClient.guildBumpReminderSettings.findUnique.mockResolvedValue({
-        mentionUserIds: '["user-a","user-b"]',
+        mentionUserIds: ["user-a", "user-b"],
       });
       mockPrismaClient.guildBumpReminderSettings.update.mockResolvedValue({});
 
@@ -527,13 +527,13 @@ describe("BumpReminderSettingsRepository", () => {
         mockPrismaClient.guildBumpReminderSettings.update,
       ).toHaveBeenCalledWith({
         where: { guildId: "123456789" },
-        data: { mentionUserIds: '["user-a"]' },
+        data: { mentionUserIds: ["user-a"] },
       });
     });
 
     it("ユーザーがリストに存在しない場合は not-found を返すこと", async () => {
       mockPrismaClient.guildBumpReminderSettings.findUnique.mockResolvedValue({
-        mentionUserIds: '["user-a"]',
+        mentionUserIds: ["user-a"],
       });
 
       const result = await repository.removeBumpReminderMentionUser(
@@ -562,7 +562,7 @@ describe("BumpReminderSettingsRepository", () => {
 
     it("全メンションユーザーをクリアできること", async () => {
       mockPrismaClient.guildBumpReminderSettings.findUnique.mockResolvedValue({
-        mentionUserIds: '["user-a","user-b"]',
+        mentionUserIds: ["user-a", "user-b"],
       });
       mockPrismaClient.guildBumpReminderSettings.update.mockResolvedValue({});
 
@@ -574,13 +574,13 @@ describe("BumpReminderSettingsRepository", () => {
         mockPrismaClient.guildBumpReminderSettings.update,
       ).toHaveBeenCalledWith({
         where: { guildId: "123456789" },
-        data: { mentionUserIds: "[]" },
+        data: { mentionUserIds: [] },
       });
     });
 
     it("リストがすでに空の場合は already-empty を返すこと", async () => {
       mockPrismaClient.guildBumpReminderSettings.findUnique.mockResolvedValue({
-        mentionUserIds: "[]",
+        mentionUserIds: [],
       });
 
       const result =
@@ -607,7 +607,7 @@ describe("BumpReminderSettingsRepository", () => {
     it("ロールとメンションユーザーをクリアできること", async () => {
       mockPrismaClient.guildBumpReminderSettings.findUnique.mockResolvedValue({
         mentionRoleId: "role-a",
-        mentionUserIds: '["user-a","user-b"]',
+        mentionUserIds: ["user-a", "user-b"],
       });
       mockPrismaClient.guildBumpReminderSettings.update.mockResolvedValue({});
 
@@ -618,14 +618,14 @@ describe("BumpReminderSettingsRepository", () => {
         mockPrismaClient.guildBumpReminderSettings.update,
       ).toHaveBeenCalledWith({
         where: { guildId: "123456789" },
-        data: { mentionRoleId: null, mentionUserIds: "[]" },
+        data: { mentionRoleId: null, mentionUserIds: [] },
       });
     });
 
     it("クリア対象がない場合は already-cleared を返すこと", async () => {
       mockPrismaClient.guildBumpReminderSettings.findUnique.mockResolvedValue({
         mentionRoleId: null,
-        mentionUserIds: "[]",
+        mentionUserIds: [],
       });
 
       const result = await repository.clearBumpReminderMentions("123456789");

@@ -20,7 +20,7 @@ import type {
   ImportMergePlan,
 } from "./guildSettingsExportTypes";
 import type { GuildReactionRolePanel } from "./reactionRoleTypes";
-import type { StickyMessage } from "./stickyMessageTypes";
+import type { StickyEmbedData, StickyMessage } from "./stickyMessageTypes";
 import type { GuildTicketSettings, Ticket } from "./ticketTypes";
 import type { VcRecruitSettings } from "./vcRecruitTypes";
 
@@ -137,14 +137,14 @@ export interface IStickyMessageRepository {
     guildId: string,
     channelId: string,
     content: string,
-    embedData?: string,
+    embedData?: StickyEmbedData,
     updatedBy?: string,
   ): Promise<StickyMessage>;
   updateLastMessageId(id: string, lastMessageId: string): Promise<void>;
   updateContent(
     id: string,
     content: string,
-    embedData: string | null,
+    embedData: StickyEmbedData | null,
     updatedBy?: string,
   ): Promise<StickyMessage>;
   delete(id: string): Promise<void>;

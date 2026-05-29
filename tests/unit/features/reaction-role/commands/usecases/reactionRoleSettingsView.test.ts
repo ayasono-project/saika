@@ -70,7 +70,7 @@ function createPanel(
     title: "Test Panel",
     description: "desc",
     color: "#00A8F3",
-    buttons: "[]",
+    buttons: [],
     buttonCounter: 0,
     createdAt: new Date(),
     updatedAt: new Date(),
@@ -243,7 +243,7 @@ describe("bot/features/reaction-role/commands/usecases/reactionRoleSettingsView"
 
       const panels = [
         createPanel({
-          buttons: JSON.stringify([
+          buttons: [
             {
               buttonId: 1,
               label: "Red",
@@ -258,7 +258,7 @@ describe("bot/features/reaction-role/commands/usecases/reactionRoleSettingsView"
               style: "secondary",
               roleIds: ["role-3"],
             },
-          ]),
+          ],
           buttonCounter: 2,
         }),
       ];
@@ -279,7 +279,7 @@ describe("bot/features/reaction-role/commands/usecases/reactionRoleSettingsView"
         "@/features/reaction-role/commands/usecases/reactionRoleSettingsView"
       );
 
-      const panels = [createPanel({ buttons: "[]" })];
+      const panels = [createPanel({ buttons: [] })];
 
       const embed = buildViewEmbed(panels, 0, "ja");
       const fields = embed.data.fields ?? [];

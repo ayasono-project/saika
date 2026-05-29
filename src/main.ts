@@ -1,7 +1,7 @@
 // src/main.ts
 // Discord Bot エントリーポイント
 
-import { PrismaLibSql } from "@prisma/adapter-libsql";
+import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "@prisma/client";
 import { Routes } from "discord.js";
 import { resolve } from "path";
@@ -59,8 +59,8 @@ function logRegisteredCommands(commands: Command[], scope: string): void {
  */
 async function startBot() {
   // Prisma クライアントを adapter 経由で初期化して接続
-  const adapter = new PrismaLibSql({
-    url: env.DATABASE_URL,
+  const adapter = new PrismaPg({
+    connectionString: env.DATABASE_URL,
   });
   const prisma = new PrismaClient({ adapter });
   await prisma.$connect();

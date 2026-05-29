@@ -26,7 +26,7 @@ describe("shared/database/repositories/serializers/guildStateSerializer", () => 
       guildId: "guild-1",
       categoryId: "cat-1",
       enabled: true,
-      staffRoleIds: '["role-1","role-2"]',
+      staffRoleIds: ["role-1", "role-2"],
       panelChannelId: "ch-1",
       panelMessageId: "msg-1",
       panelTitle: "サポート",
@@ -61,7 +61,7 @@ describe("shared/database/repositories/serializers/guildStateSerializer", () => 
     });
 
     it("toTicketSettingsExport が空配列 staffRoleIds を扱えること", () => {
-      const config = { ...dbConfig, staffRoleIds: "[]" };
+      const config = { ...dbConfig, staffRoleIds: [] };
       expect(toTicketSettingsExport(config).staffRoleIds).toEqual([]);
     });
   });
@@ -119,14 +119,14 @@ describe("shared/database/repositories/serializers/guildStateSerializer", () => 
       guildId: "guild-1",
       channelId: "ch-1",
       content: "ルール",
-      embedData: '{"title":"test"}',
+      embedData: { title: "test" },
       updatedBy: "user-1",
       lastMessageId: "msg-99",
       createdAt: new Date(),
       updatedAt: new Date(),
     };
 
-    it("toStickyMessageExport が embedData を JSON 文字列のまま透過すること", () => {
+    it("toStickyMessageExport が embedData を JSON 文字列へ変換すること", () => {
       const result = toStickyMessageExport(dbSticky);
       expect(result).toEqual({
         channelId: "ch-1",
@@ -142,14 +142,14 @@ describe("shared/database/repositories/serializers/guildStateSerializer", () => 
       expect(toStickyMessageExport(sticky).embedData).toBeNull();
     });
 
-    it("fromStickyMessageExport が guildId を付与すること", () => {
+    it("fromStickyMessageExport が embedData をパースして guildId を付与すること", () => {
       const exportData = toStickyMessageExport(dbSticky);
       const result = fromStickyMessageExport("guild-1", exportData);
       expect(result).toEqual({
         guildId: "guild-1",
         channelId: "ch-1",
         content: "ルール",
-        embedData: '{"title":"test"}',
+        embedData: { title: "test" },
         updatedBy: "user-1",
         lastMessageId: "msg-99",
       });
@@ -176,7 +176,7 @@ describe("shared/database/repositories/serializers/guildStateSerializer", () => 
       title: "ロール選択",
       description: "説明",
       color: "#00A8F3",
-      buttons: JSON.stringify(buttonsRaw),
+      buttons: buttonsRaw,
       buttonCounter: 1,
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -189,10 +189,10 @@ describe("shared/database/repositories/serializers/guildStateSerializer", () => 
       expect(result).not.toHaveProperty("guildId");
     });
 
-    it("fromReactionRolePanelExport が buttons を再シリアライズすること", () => {
+    it("fromReactionRolePanelExport が buttons を配列のまま透過すること", () => {
       const exportData = toReactionRolePanelExport(dbPanel);
       const result = fromReactionRolePanelExport("guild-1", exportData);
-      expect(result.buttons).toBe(JSON.stringify(buttonsRaw));
+      expect(result.buttons).toEqual(buttonsRaw);
       expect(result.guildId).toBe("guild-1");
     });
 

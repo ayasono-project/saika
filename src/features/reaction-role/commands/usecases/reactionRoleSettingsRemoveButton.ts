@@ -14,7 +14,6 @@ import { createErrorEmbed } from "../../../../bot/utils/messageResponse";
 import { tInteraction } from "../../../../shared/locale/localeManager";
 import { reactionRoleRemoveButtonSessions } from "../../handlers/ui/reactionRoleSetupState";
 import {
-  parseButtons,
   REACTION_ROLE_CUSTOM_ID,
   REACTION_ROLE_SESSION_TTL_MS,
 } from "../reactionRoleCommand.constants";
@@ -48,7 +47,7 @@ export async function handleReactionRoleSettingsRemoveButton(
   // 1件のみならパネル選択をスキップしてボタン選択を直接表示
   if (panels.length === 1) {
     const panel = panels[0];
-    const buttons = parseButtons(panel.buttons);
+    const buttons = panel.buttons;
 
     reactionRoleRemoveButtonSessions.set(sessionId, {
       panelId: panel.id,

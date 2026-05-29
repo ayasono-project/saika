@@ -1,7 +1,5 @@
-// src/bot/features/reaction-role/commands/reactionRoleCommand.constants.ts
+// src/features/reaction-role/commands/reactionRoleCommand.constants.ts
 // リアクションロール機能のコマンド定数
-
-import type { ReactionRoleButton } from "../../../shared/database/types/reactionRoleTypes";
 
 export const REACTION_ROLE_SETTINGS_COMMAND = {
   NAME: "reaction-role-settings",
@@ -119,21 +117,6 @@ export const REACTION_ROLE_BUTTON_COLORS = [
 
 /** ボタン色選択 SelectMenu のプレースホルダー（英語固定） */
 export const REACTION_ROLE_COLOR_PLACEHOLDER = "Select a color";
-
-/**
- * buttons の JSON 文字列を安全にパースする
- * パース失敗時は空配列を返す
- * @param json ボタン設定のJSON文字列
- * @returns パースされたボタン配列（失敗時は空配列）
- */
-export function parseButtons(json: string): ReactionRoleButton[] {
-  try {
-    const parsed: unknown = JSON.parse(json);
-    return Array.isArray(parsed) ? (parsed as ReactionRoleButton[]) : [];
-  } catch {
-    return [];
-  }
-}
 
 /** カスタム絵文字パターン: <:name:id> または <a:name:id> */
 const CUSTOM_EMOJI_REGEX = /^<a?:\w{2,32}:\d{17,19}>$/;

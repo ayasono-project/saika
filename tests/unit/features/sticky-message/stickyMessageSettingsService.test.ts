@@ -71,7 +71,7 @@ describe("shared/features/sticky-message/stickyMessageSettingsService", () => {
       "g1",
       "ch-1",
       "content",
-      '{"title":"t"}',
+      { title: "t" },
       "user-1",
     );
 
@@ -79,7 +79,7 @@ describe("shared/features/sticky-message/stickyMessageSettingsService", () => {
       "g1",
       "ch-1",
       "content",
-      '{"title":"t"}',
+      { title: "t" },
       "user-1",
     );
     expect(result).toBe(expected);

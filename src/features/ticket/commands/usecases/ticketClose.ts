@@ -16,7 +16,7 @@ import {
 } from "../../../../shared/locale/localeManager";
 import { logger } from "../../../../shared/utils/logger";
 import { closeTicket, hasTicketPermission } from "../../services/ticketService";
-import { parseStaffRoleIds, TICKET_STATUS } from "../ticketCommand.constants";
+import { TICKET_STATUS } from "../ticketCommand.constants";
 
 /**
  * ticket close サブコマンドを処理する
@@ -69,9 +69,7 @@ export async function handleTicketClose(
     ticket.guildId,
     ticket.categoryId,
   );
-  const staffRoleIds: string[] = config
-    ? parseStaffRoleIds(config.staffRoleIds)
-    : [];
+  const staffRoleIds: string[] = config ? config.staffRoleIds : [];
 
   // 権限チェック（作成者またはスタッフロール）
   const memberRoleIds = Array.from(

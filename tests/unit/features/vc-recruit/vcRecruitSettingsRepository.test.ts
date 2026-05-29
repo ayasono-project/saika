@@ -31,14 +31,15 @@ describe("shared/database/repositories/vcRecruitSettingsRepository", () => {
       });
     });
 
-    it("レコードが見つかった場合は配列をパースした VcRecruitSettings を返すこと", async () => {
+    it("レコードが見つかった場合は jsonb 配列をそのまま VcRecruitSettings として返すこと", async () => {
       const prisma = createPrismaMock();
       prisma.guildVcRecruitSettings.findUnique.mockResolvedValue({
         guildId: "guild-1",
         enabled: true,
-        mentionRoleIds: '["role-1","role-2"]',
-        setups:
-          '[{"id":"setup-1","categoryId":"cat-1","createdVoiceChannelIds":[]}]',
+        mentionRoleIds: ["role-1", "role-2"],
+        setups: [
+          { id: "setup-1", categoryId: "cat-1", createdVoiceChannelIds: [] },
+        ],
       });
 
       const { VcRecruitSettingsRepository } = await loadModule();
@@ -53,50 +54,10 @@ describe("shared/database/repositories/vcRecruitSettingsRepository", () => {
         ],
       });
     });
-
-    it("無効な JSON の場合は空配列を返すこと", async () => {
-      const prisma = createPrismaMock();
-      prisma.guildVcRecruitSettings.findUnique.mockResolvedValue({
-        guildId: "guild-1",
-        enabled: false,
-        mentionRoleIds: "invalid",
-        setups: "invalid",
-      });
-
-      const { VcRecruitSettingsRepository } = await loadModule();
-      const repo = new VcRecruitSettingsRepository(prisma as never);
-      const result = await repo.getVcRecruitSettings("guild-1");
-
-      expect(result).toEqual({
-        enabled: false,
-        mentionRoleIds: [],
-        setups: [],
-      });
-    });
-
-    it("配列でない JSON 値の場合は空配列を返すこと", async () => {
-      const prisma = createPrismaMock();
-      prisma.guildVcRecruitSettings.findUnique.mockResolvedValue({
-        guildId: "guild-1",
-        enabled: true,
-        mentionRoleIds: '{"not":"array"}',
-        setups: '"a string"',
-      });
-
-      const { VcRecruitSettingsRepository } = await loadModule();
-      const repo = new VcRecruitSettingsRepository(prisma as never);
-      const result = await repo.getVcRecruitSettings("guild-1");
-
-      expect(result).toEqual({
-        enabled: true,
-        mentionRoleIds: [],
-        setups: [],
-      });
-    });
   });
 
   describe("updateVcRecruitSettings", () => {
-    it("配列を JSON 文字列化してレコードを upsert すること", async () => {
+    it("配列をそのまま jsonb として upsert すること", async () => {
       const prisma = createPrismaMock();
       prisma.guildVcRecruitSettings.upsert.mockResolvedValue({});
 
@@ -113,13 +74,13 @@ describe("shared/database/repositories/vcRecruitSettingsRepository", () => {
         create: {
           guildId: "guild-1",
           enabled: true,
-          mentionRoleIds: '["role-1"]',
-          setups: "[]",
+          mentionRoleIds: ["role-1"],
+          setups: [],
         },
         update: {
           enabled: true,
-          mentionRoleIds: '["role-1"]',
-          setups: "[]",
+          mentionRoleIds: ["role-1"],
+          setups: [],
         },
       });
     });

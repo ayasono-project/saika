@@ -21,10 +21,7 @@ import {
 } from "../../../../bot/utils/messageResponse";
 import type { GuildTicketSettings } from "../../../../shared/database/types";
 import { tInteraction } from "../../../../shared/locale/localeManager";
-import {
-  parseStaffRoleIds,
-  TICKET_CUSTOM_ID,
-} from "../ticketCommand.constants";
+import { TICKET_CUSTOM_ID } from "../ticketCommand.constants";
 
 /**
  * 単一設定の Embed を生成する
@@ -38,7 +35,7 @@ export function buildSettingsEmbed(
   openCount: number,
   locale: string,
 ): EmbedBuilder {
-  const staffRoleIds: string[] = parseStaffRoleIds(config.staffRoleIds);
+  const staffRoleIds: string[] = config.staffRoleIds;
   const roleMentions = staffRoleIds.map((id) => `<@&${id}>`).join(" ");
 
   return createInfoEmbed("", {

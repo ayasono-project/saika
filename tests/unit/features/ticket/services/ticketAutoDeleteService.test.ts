@@ -138,7 +138,7 @@ describe("bot/features/ticket/services/ticketAutoDeleteService", () => {
       const mockConfigService = {
         findByGuildAndCategory: vi.fn().mockResolvedValue({
           autoDeleteDays: 7,
-          staffRoleIds: "[]",
+          staffRoleIds: [],
         }),
       };
 
@@ -251,7 +251,7 @@ describe("bot/features/ticket/services/ticketAutoDeleteService", () => {
       const mockConfigSvc = {
         findByGuildAndCategory: vi.fn().mockResolvedValue({
           autoDeleteDays: 7,
-          staffRoleIds: "[]",
+          staffRoleIds: [],
         }),
       };
 
@@ -380,7 +380,7 @@ describe("bot/features/ticket/services/ticketAutoDeleteService", () => {
       const mockConfigSvc = {
         findByGuildAndCategory: vi.fn().mockResolvedValue({
           autoDeleteDays: 7,
-          staffRoleIds: "[]",
+          staffRoleIds: [],
         }),
       };
 

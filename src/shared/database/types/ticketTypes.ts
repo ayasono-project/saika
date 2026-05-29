@@ -5,7 +5,7 @@ export interface GuildTicketSettings {
   guildId: string;
   categoryId: string;
   enabled: boolean;
-  staffRoleIds: string; // JSON: string[]
+  staffRoleIds: string[]; // jsonb: string[]
   panelChannelId: string;
   panelMessageId: string;
   panelTitle: string;

@@ -6,7 +6,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
 }
 
 // Guild Configuration
@@ -19,7 +19,7 @@ model GuildSettings {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@map("guild_configs")
+  @@map("guild_settings")
 }
 
 // Bump Reminder (Bump通知)
@@ -49,7 +49,7 @@ model GuildAfkSettings {
   enabled   Boolean @default(false)
   channelId String? @map("channel_id")
 
-  @@map("guild_afk_configs")
+  @@map("guild_afk_settings")
 }
 
 // Bumpリマインダー設定
@@ -58,19 +58,19 @@ model GuildBumpReminderSettings {
   enabled        Boolean @default(false)
   channelId      String? @map("channel_id")
   mentionRoleId  String? @map("mention_role_id")
-  mentionUserIds String  @default("[]") @map("mention_user_ids") // JSON: string[]
+  mentionUserIds Json    @default("[]") @map("mention_user_ids") // jsonb: string[]
 
-  @@map("guild_bump_reminder_configs")
+  @@map("guild_bump_reminder_settings")
 }
 
 // VAC（ボイスチャンネル自動作成）設定
 model GuildVacSettings {
   guildId           String  @id @map("guild_id")
   enabled           Boolean @default(false)
-  triggerChannelIds String  @default("[]") @map("trigger_channel_ids") // JSON: string[]
-  createdChannels   String  @default("[]") @map("created_channels")    // JSON: VacChannelPair[]
+  triggerChannelIds Json    @default("[]") @map("trigger_channel_ids") // jsonb: string[]
+  createdChannels   Json    @default("[]") @map("created_channels")    // jsonb: VacChannelPair[]
 
-  @@map("guild_vac_configs")
+  @@map("guild_vac_settings")
 }
 
 // メンバーログ設定
@@ -81,17 +81,17 @@ model GuildMemberLogSettings {
   joinMessage  String? @map("join_message")
   leaveMessage String? @map("leave_message")
 
-  @@map("guild_member_log_configs")
+  @@map("guild_member_log_settings")
 }
 
 // VC募集設定
 model GuildVcRecruitSettings {
   guildId        String  @id @map("guild_id")
   enabled        Boolean @default(false)
-  mentionRoleIds String  @default("[]") @map("mention_role_ids") // JSON: string[]
-  setups         String  @default("[]")                          // JSON: VcRecruitSetup[]
+  mentionRoleIds Json    @default("[]") @map("mention_role_ids") // jsonb: string[]
+  setups         Json    @default("[]")                          // jsonb: VcRecruitSetup[]
 
-  @@map("guild_vc_recruit_configs")
+  @@map("guild_vc_recruit_settings")
 }
 
 // Sticky Message (スティッキーメッセージ)
@@ -100,7 +100,7 @@ model StickyMessage {
   guildId       String   @map("guild_id")
   channelId     String   @unique @map("channel_id")
   content       String
-  embedData     String?  @map("embed_data") // JSON文字列
+  embedData     Json?    @map("embed_data") // jsonb
   updatedBy     String?  @map("updated_by") // 最終設定・更新者の Discord ユーザーID
   lastMessageId String?  @map("last_message_id")
   createdAt     DateTime @default(now()) @map("created_at")
@@ -115,7 +115,7 @@ model GuildTicketSettings {
   guildId          String  @map("guild_id")
   categoryId       String  @map("category_id")
   enabled          Boolean @default(false)
-  staffRoleIds     String  @default("[]") @map("staff_role_ids") // JSON: string[]
+  staffRoleIds     Json    @default("[]") @map("staff_role_ids") // jsonb: string[]
   panelChannelId   String  @map("panel_channel_id")
   panelMessageId   String  @map("panel_message_id")
   panelTitle       String  @default("サポート") @map("panel_title")
@@ -127,7 +127,7 @@ model GuildTicketSettings {
 
   @@id([guildId, categoryId])
   @@index([guildId])
-  @@map("guild_ticket_configs")
+  @@map("guild_ticket_settings")
 }
 
 // チケット
@@ -162,7 +162,7 @@ model GuildReactionRolePanel {
   title         String   @default("ロール選択")
   description   String   @default("ボタンを押してロールを取得・解除できます。")
   color         String   @default("#00A8F3")
-  buttons       String   @default("[]") // JSON: ReactionRoleButton[]
+  buttons       Json     @default("[]") // jsonb: ReactionRoleButton[]
   buttonCounter Int      @default(0) @map("button_counter")
   createdAt     DateTime @default(now()) @map("created_at")
   updatedAt     DateTime @updatedAt @map("updated_at")

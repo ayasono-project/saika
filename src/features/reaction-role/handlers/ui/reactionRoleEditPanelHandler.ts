@@ -17,7 +17,6 @@ import {
 } from "../../../../bot/utils/messageResponse";
 import { tInteraction } from "../../../../shared/locale/localeManager";
 import {
-  parseButtons,
   REACTION_ROLE_CUSTOM_ID,
   REACTION_ROLE_DEFAULT_PANEL_COLOR,
 } from "../../commands/reactionRoleCommand.constants";
@@ -145,7 +144,7 @@ export const reactionRoleEditPanelModalHandler: ModalHandler = {
     });
 
     // パネルメッセージを更新
-    const buttons = parseButtons(panel.buttons);
+    const buttons = panel.buttons;
     const updated = await updatePanelMessage(
       interaction.client,
       panel.channelId,

@@ -230,7 +230,7 @@ describe("bot/features/sticky-message/handlers/ui/stickyMessageSetEmbedModalHand
       "guild-1",
       "ch-1",
       "Only Title",
-      expect.any(String),
+      expect.objectContaining({ title: "Only Title" }),
       "user-1",
     );
   });

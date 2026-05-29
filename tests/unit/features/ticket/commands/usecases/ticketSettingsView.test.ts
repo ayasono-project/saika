@@ -107,7 +107,7 @@ function createConfig(categoryId: string, overrides = {}) {
   return {
     guildId: "guild-1",
     categoryId,
-    staffRoleIds: '["role-1","role-2"]',
+    staffRoleIds: ["role-1", "role-2"],
     autoDeleteDays: 7,
     maxTicketsPerUser: 3,
     panelChannelId: "panel-ch-1",
@@ -347,7 +347,7 @@ describe("buildSettingsEmbed", () => {
       "@/features/ticket/commands/usecases/ticketSettingsView"
     );
 
-    const config = createConfig("cat-1", { staffRoleIds: "[]" });
+    const config = createConfig("cat-1", { staffRoleIds: [] });
     const embed = buildSettingsEmbed(config as never, 0, "ja");
 
     // addFieldsが呼ばれ、結果が返されていることを確認
@@ -367,7 +367,7 @@ describe("buildSettingsEmbed", () => {
     );
 
     const config = createConfig("cat-1", {
-      staffRoleIds: '["role-a","role-b"]',
+      staffRoleIds: ["role-a", "role-b"],
     });
     const embed = buildSettingsEmbed(config as never, 2, "ja");
 

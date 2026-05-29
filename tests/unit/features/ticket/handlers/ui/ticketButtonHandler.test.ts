@@ -149,7 +149,7 @@ describe("bot/features/ticket/handlers/ui/ticketButtonHandler", () => {
       };
       const mockConfigService = {
         findByGuildAndCategory: vi.fn().mockResolvedValue({
-          staffRoleIds: '["role-1"]',
+          staffRoleIds: ["role-1"],
         }),
       };
       vi.mocked(getBotTicketRepository).mockReturnValue(
@@ -225,7 +225,7 @@ describe("bot/features/ticket/handlers/ui/ticketButtonHandler", () => {
       const mockConfigSvc = {
         findByGuildAndCategory: vi
           .fn()
-          .mockResolvedValue({ staffRoleIds: '["staff-role"]' }),
+          .mockResolvedValue({ staffRoleIds: ["staff-role"] }),
       };
       vi.mocked(getBotTicketRepository).mockReturnValue(
         mockTicketRepo as never,
@@ -259,7 +259,7 @@ describe("bot/features/ticket/handlers/ui/ticketButtonHandler", () => {
       const mockConfigSvc = {
         findByGuildAndCategory: vi
           .fn()
-          .mockResolvedValue({ staffRoleIds: '["role-1"]' }),
+          .mockResolvedValue({ staffRoleIds: ["role-1"] }),
       };
       vi.mocked(getBotTicketRepository).mockReturnValue(
         mockTicketRepo as never,
@@ -376,7 +376,7 @@ describe("bot/features/ticket/handlers/ui/ticketButtonHandler", () => {
       const mockConfigSvc = {
         findByGuildAndCategory: vi
           .fn()
-          .mockResolvedValue({ staffRoleIds: '["staff-role"]' }),
+          .mockResolvedValue({ staffRoleIds: ["staff-role"] }),
       };
       vi.mocked(getBotTicketRepository).mockReturnValue(
         mockTicketRepo as never,
@@ -410,7 +410,7 @@ describe("bot/features/ticket/handlers/ui/ticketButtonHandler", () => {
       const mockConfigSvc = {
         findByGuildAndCategory: vi
           .fn()
-          .mockResolvedValue({ staffRoleIds: '["role-1"]' }),
+          .mockResolvedValue({ staffRoleIds: ["role-1"] }),
       };
       vi.mocked(getBotTicketRepository).mockReturnValue(
         mockTicketRepo as never,
@@ -443,7 +443,7 @@ describe("bot/features/ticket/handlers/ui/ticketButtonHandler", () => {
       const mockConfigSvc = {
         findByGuildAndCategory: vi
           .fn()
-          .mockResolvedValue({ staffRoleIds: '["role-1"]' }),
+          .mockResolvedValue({ staffRoleIds: ["role-1"] }),
       };
       vi.mocked(getBotTicketRepository).mockReturnValue(
         mockTicketRepo as never,
@@ -539,7 +539,7 @@ describe("bot/features/ticket/handlers/ui/ticketButtonHandler", () => {
       const mockConfigSvc = {
         findByGuildAndCategory: vi
           .fn()
-          .mockResolvedValue({ staffRoleIds: '["staff-role"]' }),
+          .mockResolvedValue({ staffRoleIds: ["staff-role"] }),
       };
       vi.mocked(getBotTicketRepository).mockReturnValue(
         mockTicketRepo as never,
@@ -572,7 +572,7 @@ describe("bot/features/ticket/handlers/ui/ticketButtonHandler", () => {
       const mockConfigSvc = {
         findByGuildAndCategory: vi
           .fn()
-          .mockResolvedValue({ staffRoleIds: '["role-1"]' }),
+          .mockResolvedValue({ staffRoleIds: ["role-1"] }),
       };
       vi.mocked(getBotTicketRepository).mockReturnValue(
         mockTicketRepo as never,
@@ -630,7 +630,7 @@ describe("bot/features/ticket/handlers/ui/ticketButtonHandler", () => {
       const mockConfigSvc = {
         findByGuildAndCategory: vi
           .fn()
-          .mockResolvedValue({ staffRoleIds: '["staff-role"]' }),
+          .mockResolvedValue({ staffRoleIds: ["staff-role"] }),
       };
       vi.mocked(getBotTicketRepository).mockReturnValue(
         mockTicketRepo as never,
@@ -666,7 +666,7 @@ describe("bot/features/ticket/handlers/ui/ticketButtonHandler", () => {
       const mockConfigSvc = {
         findByGuildAndCategory: vi
           .fn()
-          .mockResolvedValue({ staffRoleIds: '["role-1"]' }),
+          .mockResolvedValue({ staffRoleIds: ["role-1"] }),
       };
       vi.mocked(getBotTicketRepository).mockReturnValue(
         mockTicketRepo as never,
@@ -705,7 +705,7 @@ describe("bot/features/ticket/handlers/ui/ticketButtonHandler", () => {
       const mockConfigSvc = {
         findByGuildAndCategory: vi
           .fn()
-          .mockResolvedValue({ staffRoleIds: '["role-1"]' }),
+          .mockResolvedValue({ staffRoleIds: ["role-1"] }),
       };
       vi.mocked(getBotTicketRepository).mockReturnValue(
         mockTicketRepo as never,
@@ -741,7 +741,7 @@ describe("bot/features/ticket/handlers/ui/ticketButtonHandler", () => {
       const mockConfigSvc = {
         findByGuildAndCategory: vi
           .fn()
-          .mockResolvedValue({ staffRoleIds: '["role-1"]' }),
+          .mockResolvedValue({ staffRoleIds: ["role-1"] }),
       };
       vi.mocked(getBotTicketRepository).mockReturnValue(
         mockTicketRepo as never,
@@ -795,9 +795,7 @@ describe("bot/features/ticket/handlers/ui/ticketButtonHandler", () => {
         findById: vi.fn().mockResolvedValue(mockTicket),
       };
       const mockConfigSvc = {
-        findByGuildAndCategory: vi
-          .fn()
-          .mockResolvedValue({ staffRoleIds: "[]" }),
+        findByGuildAndCategory: vi.fn().mockResolvedValue({ staffRoleIds: [] }),
       };
       vi.mocked(getBotTicketRepository).mockReturnValue(
         mockTicketRepo as never,
@@ -834,9 +832,7 @@ describe("bot/features/ticket/handlers/ui/ticketButtonHandler", () => {
         findById: vi.fn().mockResolvedValue(mockTicket),
       };
       const mockConfigSvc = {
-        findByGuildAndCategory: vi
-          .fn()
-          .mockResolvedValue({ staffRoleIds: "[]" }),
+        findByGuildAndCategory: vi.fn().mockResolvedValue({ staffRoleIds: [] }),
       };
       vi.mocked(getBotTicketRepository).mockReturnValue(
         mockTicketRepo as never,

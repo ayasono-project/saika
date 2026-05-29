@@ -17,7 +17,6 @@ import { createInfoEmbed } from "../../../bot/utils/messageResponse";
 import type { ITicketRepository, Ticket } from "../../../shared/database/types";
 import { tDefault } from "../../../shared/locale/localeManager";
 import {
-  parseStaffRoleIds,
   TICKET_CUSTOM_ID,
   TICKET_MESSAGE_FETCH_LIMIT,
   TICKET_STATUS,
@@ -58,7 +57,7 @@ export async function createTicketChannel(
     );
   }
 
-  const staffRoleIds: string[] = parseStaffRoleIds(config.staffRoleIds);
+  const staffRoleIds: string[] = config.staffRoleIds;
 
   // カウンターをインクリメント
   const ticketNumber = await settingsService.incrementCounter(
@@ -190,7 +189,7 @@ export async function closeTicket(
   );
   if (!config) return;
 
-  const staffRoleIds: string[] = parseStaffRoleIds(config.staffRoleIds);
+  const staffRoleIds: string[] = config.staffRoleIds;
   const channel = (await guild.channels
     .fetch(ticket.channelId)
     .catch(() => null)) as TextChannel | null;
@@ -276,7 +275,7 @@ export async function reopenTicket(
   );
   if (!config) return;
 
-  const staffRoleIds: string[] = parseStaffRoleIds(config.staffRoleIds);
+  const staffRoleIds: string[] = config.staffRoleIds;
   const channel = (await guild.channels
     .fetch(ticket.channelId)
     .catch(() => null)) as TextChannel | null;

@@ -1,9 +1,10 @@
 // src/bot/features/sticky-message/repositories/stickyMessageRepository.ts
 // スティッキーメッセージ用リポジトリ
 
-import type { PrismaClient } from "@prisma/client";
+import { Prisma, type PrismaClient } from "@prisma/client";
 import type {
   IStickyMessageRepository,
+  StickyEmbedData,
   StickyMessage,
 } from "../../../shared/database/types";
 import { tDefault } from "../../../shared/locale/localeManager";
@@ -27,7 +28,7 @@ export class StickyMessageRepository implements IStickyMessageRepository {
       tDefault("stickyMessage:log.database_find_by_channel_failed", {
         channelId,
       }),
-    );
+    ) as Promise<StickyMessage | null>;
   }
 
   async findAllByGuild(guildId: string): Promise<StickyMessage[]> {
@@ -40,14 +41,14 @@ export class StickyMessageRepository implements IStickyMessageRepository {
       tDefault("stickyMessage:log.database_find_all_by_guild_failed", {
         guildId,
       }),
-    );
+    ) as Promise<StickyMessage[]>;
   }
 
   async create(
     guildId: string,
     channelId: string,
     content: string,
-    embedData?: string,
+    embedData?: StickyEmbedData,
     updatedBy?: string,
   ): Promise<StickyMessage> {
     return executeWithDatabaseError(
@@ -57,7 +58,9 @@ export class StickyMessageRepository implements IStickyMessageRepository {
             guildId,
             channelId,
             content,
-            embedData: embedData ?? null,
+            embedData: embedData
+              ? (embedData as Prisma.InputJsonValue)
+              : Prisma.DbNull,
             updatedBy: updatedBy ?? null,
           },
         }),
@@ -65,7 +68,7 @@ export class StickyMessageRepository implements IStickyMessageRepository {
         guildId,
         channelId,
       }),
-    );
+    ) as Promise<StickyMessage>;
   }
 
   async updateLastMessageId(id: string, lastMessageId: string): Promise<void> {
@@ -84,7 +87,7 @@ export class StickyMessageRepository implements IStickyMessageRepository {
   async updateContent(
     id: string,
     content: string,
-    embedData: string | null,
+    embedData: StickyEmbedData | null,
     updatedBy?: string,
   ): Promise<StickyMessage> {
     return executeWithDatabaseError(
@@ -93,7 +96,9 @@ export class StickyMessageRepository implements IStickyMessageRepository {
           where: { id },
           data: {
             content,
-            embedData,
+            embedData: embedData
+              ? (embedData as Prisma.InputJsonValue)
+              : Prisma.DbNull,
             lastMessageId: null,
             ...(updatedBy !== undefined && { updatedBy }),
           },
@@ -101,7 +106,7 @@ export class StickyMessageRepository implements IStickyMessageRepository {
       tDefault("stickyMessage:log.database_update_content_failed", {
         id,
       }),
-    );
+    ) as Promise<StickyMessage>;
   }
 
   async delete(id: string): Promise<void> {

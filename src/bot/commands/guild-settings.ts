@@ -7,12 +7,12 @@ import {
   PermissionFlagsBits,
   SlashCommandBuilder,
 } from "discord.js";
+import { executeGuildSettingsCommand } from "../../features/guild-settings/commands/guildSettingsCommand.execute";
 import {
   getChoiceLocalizations,
   getCommandLocalizations,
 } from "../../shared/locale/commandLocalizations";
 import { handleCommandError } from "../errors/interactionErrorHandler";
-import { executeGuildSettingsCommand } from "../features/guild-settings/commands/guildSettingsCommand.execute";
 import type { Command } from "../types/discord";
 
 // guild-settings コマンドのサブコマンド/オプション名を一元管理する定数

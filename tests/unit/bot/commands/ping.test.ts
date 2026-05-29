@@ -10,7 +10,7 @@ vi.mock("@/shared/locale/commandLocalizations", () => ({
   }),
 }));
 
-vi.mock("@/bot/features/ping/commands/pingCommand.execute", () => ({
+vi.mock("@/features/ping/commands/pingCommand.execute", () => ({
   executePingCommand: (...args: unknown[]) => executePingCommandMock(...args),
 }));
 

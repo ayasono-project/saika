@@ -71,7 +71,7 @@ vi.mock("@/bot/services/botCompositionRoot", () => ({
   }),
 }));
 
-vi.mock("@/shared/features/afk/afkSettingsService", () => ({
+vi.mock("@/features/afk/afkSettingsService", () => ({
   getAfkSettings: vi.fn().mockResolvedValue(null),
 }));
 
@@ -109,7 +109,7 @@ vi.mock("@/bot/shared/pagination", () => ({
   showPaginationJumpModal: vi.fn(),
 }));
 
-vi.mock("@/shared/database/repositories/guildCoreRepository", () => ({
+vi.mock("@/features/guild-settings/guildCoreRepository", () => ({
   getGuildCoreRepository: () => ({}),
 }));
 

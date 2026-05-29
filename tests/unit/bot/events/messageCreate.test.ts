@@ -6,16 +6,13 @@ import { messageCreateEvent } from "@/bot/events/messageCreate";
 const handleBumpMessageCreateMock = vi.fn();
 const handleStickyMessageCreateMock = vi.fn();
 
-vi.mock(
-  "@/bot/features/bump-reminder/handlers/bumpMessageCreateHandler",
-  () => ({
-    handleBumpMessageCreate: (...args: unknown[]) =>
-      handleBumpMessageCreateMock(...args),
-  }),
-);
+vi.mock("@/features/bump-reminder/handlers/bumpMessageCreateHandler", () => ({
+  handleBumpMessageCreate: (...args: unknown[]) =>
+    handleBumpMessageCreateMock(...args),
+}));
 
 vi.mock(
-  "@/bot/features/sticky-message/handlers/stickyMessageCreateHandler",
+  "@/features/sticky-message/handlers/stickyMessageCreateHandler",
   () => ({
     handleStickyMessageCreate: (...args: unknown[]) =>
       handleStickyMessageCreateMock(...args),

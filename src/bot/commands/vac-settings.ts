@@ -7,11 +7,11 @@ import {
   PermissionFlagsBits,
   SlashCommandBuilder,
 } from "discord.js";
+import { autocompleteVacSettingsCommand } from "../../features/vac/commands/vacSettingsCommand.autocomplete";
+import { VAC_SETTINGS_COMMAND } from "../../features/vac/commands/vacSettingsCommand.constants";
+import { executeVacSettingsCommand } from "../../features/vac/commands/vacSettingsCommand.execute";
 import { getCommandLocalizations } from "../../shared/locale/commandLocalizations";
 import { handleCommandError } from "../errors/interactionErrorHandler";
-import { autocompleteVacSettingsCommand } from "../features/vac/commands/vacSettingsCommand.autocomplete";
-import { VAC_SETTINGS_COMMAND } from "../features/vac/commands/vacSettingsCommand.constants";
-import { executeVacSettingsCommand } from "../features/vac/commands/vacSettingsCommand.execute";
 import type { Command } from "../types/discord";
 
 /**

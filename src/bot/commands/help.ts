@@ -2,9 +2,9 @@
 // Helpコマンド - コマンド一覧を表示
 
 import { ChatInputCommandInteraction, SlashCommandBuilder } from "discord.js";
+import { executeHelpCommand } from "../../features/help/commands/helpCommand.execute";
 import { getCommandLocalizations } from "../../shared/locale/commandLocalizations";
 import { handleCommandError } from "../errors/interactionErrorHandler";
-import { executeHelpCommand } from "../features/help/commands/helpCommand.execute";
 import type { Command } from "../types/discord";
 
 // Help コマンドで使用するコマンド名定数

@@ -49,7 +49,7 @@ vi.mock("@/bot/utils/messageResponse", () => ({
     createSuccessEmbedMock(description),
 }));
 
-import { executeVcCommand } from "@/bot/features/vc-command/commands/vcCommand.execute";
+import { executeVcCommand } from "@/features/vc-command/commands/vcCommand.execute";
 
 describe("bot/commands/vc", () => {
   beforeEach(() => {

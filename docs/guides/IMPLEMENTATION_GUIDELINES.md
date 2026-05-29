@@ -29,77 +29,75 @@
 - 許可: SlashCommandBuilder 定義、options 受け取り、feature 層への委譲
 - 禁止: DB更新、複雑な分岐ロジック、コンポーネント collector 制御
 
-#### `src/bot/features`
+#### `src/features`
 
-- ユースケース実装、ルール判定、状態更新、UI操作を配置する
-- 推奨構成: `commands/` / `handlers/` / `handlers/ui/` / `services/` / `repositories/` / `constants/`
+- 機能ごとのサブディレクトリ（`src/features/<feature>/`）に、Discord UI・ビジネスロジック・設定サービス・リポジトリまでを集約する
+- 推奨構成: `commands/` / `handlers/` / `handlers/ui/` / `services/` / `repositories/`（ランタイムデータ）/ `constants/` ＋ `<feature>SettingsService.ts` / `<feature>SettingsDefaults.ts` / `<feature>SettingsRepository.ts`（設定系）
+- `src/bot/` には依存しない（依存は `src/features/` → `src/shared/` の一方向のみ）
 
-#### `src/bot/shared`
+#### `src/bot`
 
-- Bot 層内の複数機能で共用するユーティリティを配置する
-- 例: `i18nKeys.ts`、`permissionGuards.ts`、`disableComponentsAfterTimeout.ts`
-- feature 固有のロジックは置かない
+- Discord プラグイン層。エントリは `src/main.ts`、本体は `client.ts` / `commands/` / `events/` / `handlers/` / `services/`（botCompositionRoot 等）/ `errors/` / `types/` / `shared/` / `utils/`
+- **`src/bot/shared`**: Bot 層内の複数機能で共用するユーティリティ（`i18nKeys.ts`、`permissionGuards.ts`、`disableComponentsAfterTimeout.ts` 等）。feature 固有ロジックは置かない
 
 #### `src/shared`
 
-- Bot/Web 両方で再利用する実装のみ配置し、`bot` / `web` へ逆依存しない
-- **`database/repositories/`**: ギルド設定リポジトリの実装
+- Bot/Web 両方で再利用する横断実装のみ配置し、`bot` / `features` / `web` へ逆依存しない
 - **`database/types/`**: エンティティ・リポジトリインターフェースの唯一の定義場所
-- **`features/xxx/`**: `xxxConfigService.ts`・`xxxConfigDefaults.ts`
-- **`utils/`**: `serviceFactory.ts`・`jsonUtils.ts`・`ttlMap.ts` 等
+- **`scheduler/`**: JobScheduler（saika 固有だが横断利用のため shared に維持）
+- **`config/` / `constants/` / `errors/` / `locale/` / `utils/`**: 環境変数・定数・エラー・i18n・ユーティリティ（`serviceFactory.ts`・`jsonUtils.ts`・`ttlMap.ts` 等）
 
-#### shared/features 経由の DB アクセス
+#### settingsService 経由の DB アクセス
 
 Bot 層のハンドラー・ユースケースが DB へアクセスする際は、原則として `settingsService` 経由で行う。
 リポジトリを直接取得・呼び出すことは **原則禁止** とする。
 
 ```
-src/bot/features/<feature>/handlers/**
-  └─ getBotXxxConfigService()            ← botCompositionRoot
-       └─ XxxConfigService               ← src/shared/features/xxx/
-            └─ IXxxRepository            ← src/shared/database/types/
-                 └─ XxxConfigRepository  ← src/shared/database/repositories/
+src/features/<feature>/handlers/**
+  └─ getBotXxxSettingsService()            ← botCompositionRoot
+       └─ XxxSettingsService               ← src/features/<feature>/
+            └─ IXxxRepository              ← src/shared/database/types/
+                 └─ XxxSettingsRepository  ← src/features/<feature>/
 ```
 
 設定データ以外の **機能固有のランタイムデータ**（bump reminder 記録・sticky message 記録等）は
-`src/bot/features/xxx/repositories/xxxRepository.ts` に置き、botCompositionRoot でサービスと別途組み合わせる。
+`src/features/<feature>/repositories/xxxRepository.ts` に置き、botCompositionRoot でサービスと別途組み合わせる。
 
 **機能追加時の必須手順:**
 
-1. `prisma/schema.prisma` に `GuildXxxConfig` モデルを追加し、マイグレーションを作成する
-2. `src/shared/database/types/entities.ts` に `XxxConfig` インターフェースを、`repositories.ts` に `IXxxConfigRepository` を追記する
-3. `src/shared/database/repositories/xxxConfigRepository.ts` でスタンドアロンリポジトリを実装し、シングルトンゲッター `getXxxConfigRepository(prisma?)` を追加する
-4. `src/shared/features/xxx/xxxConfigDefaults.ts` にデフォルト設定と正規化関数を定義する
-5. `src/shared/features/xxx/xxxConfigService.ts` に `XxxConfigService` クラスをエクスポートする
+1. `prisma/schema.prisma` に `GuildXxxSettings` モデルを追加し、マイグレーションを作成する
+2. `src/shared/database/types/entities.ts` に `XxxSettings` インターフェースを、`repositories.ts` に `IXxxSettingsRepository` を追記する
+3. `src/features/xxx/xxxSettingsRepository.ts` でスタンドアロンリポジトリを実装し、シングルトンゲッター `getXxxSettingsRepository(prisma?)` を追加する
+4. `src/features/xxx/xxxSettingsDefaults.ts` にデフォルト設定と正規化関数を定義する
+5. `src/features/xxx/xxxSettingsService.ts` に `XxxSettingsService` クラスをエクスポートする
 6. `src/bot/services/botCompositionRoot.ts` にアクセサを追加し、初期化・登録する
-7. ハンドラーは `getBotXxxConfigService()` 経由のみでサービスを取得する
+7. ハンドラーは `getBotXxxSettingsService()` 経由のみでサービスを取得する
 
 **例外**: settingsService が 1:1 委譲ラッパーであり、経由することで不必要な複雑性が増す場合は、リポジトリを直接使用してもよい。ただしコード内コメントで理由を明記すること。
 
 ```typescript
 // ❌ 禁止
-import { getBotXxxRepository } from "@/bot/features/xxx/repositories/xxxRepository";
+import { getBotXxxRepository } from "@/features/xxx/repositories/xxxRepository";
 const repo = getBotXxxRepository();
 
 // ✅ 正しい
-import { getBotXxxConfigService } from "@/bot/services/botCompositionRoot";
-const service = getBotXxxConfigService();
+import { getBotXxxSettingsService } from "@/bot/services/botCompositionRoot";
+const service = getBotXxxSettingsService();
 ```
 
 #### feature ディレクトリテンプレート
 
 ```text
-src/bot/features/<feature-name>/
-├── commands/       # *.execute.ts, *.constants.ts 等
+src/features/<feature-name>/
+├── commands/                      # *.execute.ts, *.constants.ts 等
 ├── handlers/
 │   └── ui/
 ├── services/
-├── repositories/   # ランタイムデータ（設定以外）のリポジトリ
-└── constants/
-
-src/shared/features/<feature-name>/
-├── xxxConfigService.ts
-└── xxxConfigDefaults.ts
+├── repositories/                  # ランタイムデータ（設定以外）のリポジトリ
+├── constants/
+├── <feature>SettingsService.ts    # 設定サービス
+├── <feature>SettingsDefaults.ts   # デフォルト設定・正規化
+└── <feature>SettingsRepository.ts # 設定リポジトリ
 ```
 
 #### `index.ts`（バレル）禁止ルール
@@ -227,7 +225,7 @@ src/shared/features/<feature-name>/
 "vcRecruit:createPanel"
 ```
 
-- 定数は `src/bot/features/<feature>/constants/*.constants.ts` に集約する
+- 定数は `src/features/<feature>/constants/*.constants.ts` に集約する
 
 ### コメント規約
 
@@ -236,7 +234,7 @@ src/shared/features/<feature-name>/
 ファイル先頭で「何のファイルか」を明記する（必須）。
 
 ```ts
-// src/bot/features/foo/fooService.ts
+// src/features/foo/fooService.ts
 // Foo機能の業務ロジックを担当するサービス
 ```
 

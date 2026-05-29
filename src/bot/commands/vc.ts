@@ -5,10 +5,10 @@ import {
   type ChatInputCommandInteraction,
   SlashCommandBuilder,
 } from "discord.js";
+import { VC_COMMAND } from "../../features/vc-command/commands/vcCommand.constants";
+import { executeVcCommand } from "../../features/vc-command/commands/vcCommand.execute";
 import { getCommandLocalizations } from "../../shared/locale/commandLocalizations";
 import { handleCommandError } from "../errors/interactionErrorHandler";
-import { VC_COMMAND } from "../features/vc-command/commands/vcCommand.constants";
-import { executeVcCommand } from "../features/vc-command/commands/vcCommand.execute";
 import type { Command } from "../types/discord";
 
 /**

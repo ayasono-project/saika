@@ -2,11 +2,11 @@
 // チャンネル削除同期イベント（VAC・スティッキーメッセージ・VC募集）
 
 import { Events } from "discord.js";
-import { handleReactionRoleChannelDelete } from "../features/reaction-role/handlers/reactionRoleChannelDeleteHandler";
-import { handleStickyMessageChannelDelete } from "../features/sticky-message/handlers/stickyMessageChannelDeleteHandler";
-import { handleTicketChannelDelete } from "../features/ticket/handlers/ticketChannelDeleteHandler";
-import { handleVacChannelDelete } from "../features/vac/handlers/vacChannelDelete";
-import { handleVcRecruitChannelDelete } from "../features/vc-recruit/handlers/vcRecruitChannelDeleteHandler";
+import { handleReactionRoleChannelDelete } from "../../features/reaction-role/handlers/reactionRoleChannelDeleteHandler";
+import { handleStickyMessageChannelDelete } from "../../features/sticky-message/handlers/stickyMessageChannelDeleteHandler";
+import { handleTicketChannelDelete } from "../../features/ticket/handlers/ticketChannelDeleteHandler";
+import { handleVacChannelDelete } from "../../features/vac/handlers/vacChannelDelete";
+import { handleVcRecruitChannelDelete } from "../../features/vc-recruit/handlers/vcRecruitChannelDeleteHandler";
 import type { BotEvent } from "../types/discord";
 
 export const channelDeleteEvent: BotEvent<typeof Events.ChannelDelete> = {

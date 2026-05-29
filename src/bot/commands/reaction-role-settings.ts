@@ -6,10 +6,10 @@ import {
   PermissionFlagsBits,
   SlashCommandBuilder,
 } from "discord.js";
+import { REACTION_ROLE_SETTINGS_COMMAND } from "../../features/reaction-role/commands/reactionRoleCommand.constants";
+import { executeReactionRoleSettingsCommand } from "../../features/reaction-role/commands/reactionRoleSettingsCommand.execute";
 import { getCommandLocalizations } from "../../shared/locale/commandLocalizations";
 import { handleCommandError } from "../errors/interactionErrorHandler";
-import { REACTION_ROLE_SETTINGS_COMMAND } from "../features/reaction-role/commands/reactionRoleCommand.constants";
-import { executeReactionRoleSettingsCommand } from "../features/reaction-role/commands/reactionRoleSettingsCommand.execute";
 import type { Command } from "../types/discord";
 
 /**

@@ -6,21 +6,18 @@ import { messageDeleteEvent } from "@/bot/events/messageDelete";
 const handleVcRecruitMessageDeleteMock = vi.fn();
 const handleTicketMessageDeleteMock = vi.fn();
 
-vi.mock(
-  "@/bot/features/vc-recruit/handlers/vcRecruitMessageDeleteHandler",
-  () => ({
-    handleVcRecruitMessageDelete: (...args: unknown[]) =>
-      handleVcRecruitMessageDeleteMock(...args),
-  }),
-);
-vi.mock("@/bot/features/ticket/handlers/ticketMessageDeleteHandler", () => ({
+vi.mock("@/features/vc-recruit/handlers/vcRecruitMessageDeleteHandler", () => ({
+  handleVcRecruitMessageDelete: (...args: unknown[]) =>
+    handleVcRecruitMessageDeleteMock(...args),
+}));
+vi.mock("@/features/ticket/handlers/ticketMessageDeleteHandler", () => ({
   handleTicketMessageDelete: (...args: unknown[]) =>
     handleTicketMessageDeleteMock(...args),
 }));
 
 const handleReactionRoleMessageDeleteMock = vi.fn();
 vi.mock(
-  "@/bot/features/reaction-role/handlers/reactionRoleMessageDeleteHandler",
+  "@/features/reaction-role/handlers/reactionRoleMessageDeleteHandler",
   () => ({
     handleReactionRoleMessageDelete: (...args: unknown[]) =>
       handleReactionRoleMessageDeleteMock(...args),

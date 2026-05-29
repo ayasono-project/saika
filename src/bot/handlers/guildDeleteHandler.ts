@@ -2,10 +2,10 @@
 // guildDelete 時の全設定クリーンアップハンドラ
 
 import type { Guild } from "discord.js";
+import { TICKET_AUTO_DELETE_JOB_PREFIX } from "../../features/ticket/commands/ticketCommand.constants";
 import { logPrefixed } from "../../shared/locale/localeManager";
 import { jobScheduler } from "../../shared/scheduler/jobScheduler";
 import { logger } from "../../shared/utils/logger";
-import { TICKET_AUTO_DELETE_JOB_PREFIX } from "../features/ticket/commands/ticketCommand.constants";
 import {
   getBotGuildSettingsService,
   getBotTicketRepository,

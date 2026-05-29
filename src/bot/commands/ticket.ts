@@ -5,10 +5,10 @@ import {
   type ChatInputCommandInteraction,
   SlashCommandBuilder,
 } from "discord.js";
+import { TICKET_COMMAND } from "../../features/ticket/commands/ticketCommand.constants";
+import { executeTicketCommand } from "../../features/ticket/commands/ticketCommand.execute";
 import { getCommandLocalizations } from "../../shared/locale/commandLocalizations";
 import { handleCommandError } from "../errors/interactionErrorHandler";
-import { TICKET_COMMAND } from "../features/ticket/commands/ticketCommand.constants";
-import { executeTicketCommand } from "../features/ticket/commands/ticketCommand.execute";
 import type { Command } from "../types/discord";
 
 /**

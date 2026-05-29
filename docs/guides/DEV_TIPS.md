@@ -6,6 +6,28 @@
 
 ---
 
+## ローカル開発 DB（PostgreSQL）
+
+本番は Coolify のマネージド PostgreSQL を使うが、ローカル開発では `docker-compose.dev.yml` の Postgres を使う。`.env` の `DATABASE_URL` は `.env.example` の既定値（`postgresql://saika:saika@localhost:5432/saika?schema=public`）に合わせる。
+
+```bash
+pnpm db:up        # ローカル Postgres を起動（docker compose、バックグラウンド）
+pnpm db:migrate   # マイグレーションを適用（初回・schema 変更時）
+pnpm dev          # Bot を起動
+pnpm db:studio    # Prisma Studio で中身を確認（任意）
+pnpm db:down      # 停止（コンテナ削除。データは named volume に残る）
+```
+
+- VSCode の Debug 構成「🤖 Bot: Debug (Dev)」は `preLaunchTask` で `pnpm db:up` を自動実行するため、デバッグ開始時に Postgres が立ち上がる（初回はマイグレーション未適用なら `pnpm db:migrate` を先に実行）。
+- **データを完全リセット**したい場合は volume ごと削除する:
+
+```bash
+docker compose -f docker-compose.dev.yml down -v   # volume も削除
+pnpm db:up && pnpm db:migrate                       # 作り直し
+```
+
+---
+
 ## トラブルシューティング
 
 ### bot プロセスがバックグラウンドに残っている

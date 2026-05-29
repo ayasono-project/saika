@@ -178,6 +178,19 @@
       "problemMatcher": []
     },
     {
+      "label": "Database: Dev Up",
+      "type": "shell",
+      "command": "pnpm",
+      "args": ["run", "db:up"],
+      "presentation": {
+        "echo": true,
+        "reveal": "silent",
+        "focus": false,
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
       "label": "Database: Migrate",
       "type": "shell",
       "command": "pnpm",

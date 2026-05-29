@@ -28,7 +28,7 @@ vi.mock("@/shared/utils/logger", () => ({
 }));
 
 vi.mock("@/bot/services/botCompositionRoot", () => ({
-  getBotTicketConfigService: vi.fn(),
+  getBotTicketSettingsService: vi.fn(),
   getBotTicketRepository: vi.fn(),
 }));
 
@@ -40,8 +40,8 @@ vi.mock("@/bot/utils/messageResponse", () => ({
 }));
 
 import {
-  getBotTicketConfigService,
   getBotTicketRepository,
+  getBotTicketSettingsService,
 } from "@/bot/services/botCompositionRoot";
 
 function createMockButtonInteraction(customId: string, overrides = {}) {
@@ -82,7 +82,7 @@ describe("bot/features/ticket/handlers/ui/ticketCreateButtonHandler", () => {
       const mockTicketRepository = {
         findOpenByUserAndCategory: vi.fn(),
       };
-      vi.mocked(getBotTicketConfigService).mockReturnValue(
+      vi.mocked(getBotTicketSettingsService).mockReturnValue(
         mockConfigService as never,
       );
       vi.mocked(getBotTicketRepository).mockReturnValue(
@@ -115,7 +115,7 @@ describe("bot/features/ticket/handlers/ui/ticketCreateButtonHandler", () => {
           .fn()
           .mockResolvedValue([{ id: "ticket-1" }]),
       };
-      vi.mocked(getBotTicketConfigService).mockReturnValue(
+      vi.mocked(getBotTicketSettingsService).mockReturnValue(
         mockConfigService as never,
       );
       vi.mocked(getBotTicketRepository).mockReturnValue(
@@ -145,7 +145,7 @@ describe("bot/features/ticket/handlers/ui/ticketCreateButtonHandler", () => {
       const mockTicketRepository = {
         findOpenByUserAndCategory: vi.fn().mockResolvedValue([]),
       };
-      vi.mocked(getBotTicketConfigService).mockReturnValue(
+      vi.mocked(getBotTicketSettingsService).mockReturnValue(
         mockConfigService as never,
       );
       vi.mocked(getBotTicketRepository).mockReturnValue(
@@ -171,7 +171,7 @@ describe("bot/features/ticket/handlers/ui/ticketCreateButtonHandler", () => {
       const mockTicketRepository = {
         findOpenByUserAndCategory: vi.fn().mockResolvedValue([]),
       };
-      vi.mocked(getBotTicketConfigService).mockReturnValue(
+      vi.mocked(getBotTicketSettingsService).mockReturnValue(
         mockConfigService as never,
       );
       vi.mocked(getBotTicketRepository).mockReturnValue(

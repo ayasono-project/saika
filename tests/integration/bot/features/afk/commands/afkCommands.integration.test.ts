@@ -1,7 +1,7 @@
 // tests/integration/bot/features/afk/commands/afkCommands.integration.test.ts
 /**
  * AFK Commands Integration Tests
- * afkCommand / afkConfigCommand の統合テスト
+ * afkCommand / afkSettingsCommand の統合テスト
  * 設定→表示→利用のフロー、および各エラーパスを検証する
  */
 
@@ -72,20 +72,20 @@ vi.mock("@/bot/utils/messageResponse", () => ({
   })),
 }));
 
-// afkConfigDefaults のモック
-vi.mock("@/shared/features/afk/afkConfigDefaults", () => ({
-  createDefaultAfkConfig: () => ({ enabled: false, channelId: null }),
+// afkSettingsDefaults のモック
+vi.mock("@/shared/features/afk/afkSettingsDefaults", () => ({
+  createDefaultAfkSettings: () => ({ enabled: false, channelId: null }),
 }));
 
-// afkConfigService のモック
-const mockGetAfkConfig = vi.fn();
+// afkSettingsService のモック
+const mockGetAfkSettings = vi.fn();
 const mockSetAfkChannel = vi.fn();
-const mockSaveAfkConfig = vi.fn();
+const mockSaveAfkSettings = vi.fn();
 
-vi.mock("@/shared/features/afk/afkConfigService", () => ({
-  getAfkConfig: (...args: unknown[]) => mockGetAfkConfig(...args),
+vi.mock("@/shared/features/afk/afkSettingsService", () => ({
+  getAfkSettings: (...args: unknown[]) => mockGetAfkSettings(...args),
   setAfkChannel: (...args: unknown[]) => mockSetAfkChannel(...args),
-  saveAfkConfig: (...args: unknown[]) => mockSaveAfkConfig(...args),
+  saveAfkSettings: (...args: unknown[]) => mockSaveAfkSettings(...args),
 }));
 
 /** ChatInputCommandInteraction のモックを作成する */
@@ -127,14 +127,14 @@ describe("AFK Commands Integration", () => {
   });
 
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  // afk-config set-channel → view の設定フロー
+  // afk-settings set-channel → view の設定フロー
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-  describe("afk-config: 設定→表示フロー", () => {
+  describe("afk-settings: 設定→表示フロー", () => {
     async function loadConfigHandler() {
       return (
-        await import("@/bot/features/afk/commands/afkConfigCommand.execute")
-      ).executeAfkConfigCommand;
+        await import("@/bot/features/afk/commands/afkSettingsCommand.execute")
+      ).executeAfkSettingsCommand;
     }
 
     it("set-channel でVCを設定し、view で設定を確認できること", async () => {
@@ -163,7 +163,7 @@ describe("AFK Commands Integration", () => {
       const { interaction: viewInteraction, replyMock: viewReply } =
         createInteraction();
       (viewInteraction.options.getSubcommand as Mock).mockReturnValue("view");
-      mockGetAfkConfig.mockResolvedValue({
+      mockGetAfkSettings.mockResolvedValue({
         enabled: true,
         channelId: "vc-afk-1",
       });
@@ -182,7 +182,7 @@ describe("AFK Commands Integration", () => {
 
       const { interaction, replyMock } = createInteraction();
       (interaction.options.getSubcommand as Mock).mockReturnValue("view");
-      mockGetAfkConfig.mockResolvedValue(null);
+      mockGetAfkSettings.mockResolvedValue(null);
 
       await handler(interaction as never);
 
@@ -237,7 +237,7 @@ describe("AFK Commands Integration", () => {
     it("設定済みの場合にユーザーをAFKチャンネルに移動できること", async () => {
       const handler = await loadAfkHandler();
 
-      mockGetAfkConfig.mockResolvedValue({
+      mockGetAfkSettings.mockResolvedValue({
         enabled: true,
         channelId: "vc-afk-1",
       });
@@ -272,7 +272,7 @@ describe("AFK Commands Integration", () => {
     it("対象ユーザーを指定して移動できること", async () => {
       const handler = await loadAfkHandler();
 
-      mockGetAfkConfig.mockResolvedValue({
+      mockGetAfkSettings.mockResolvedValue({
         enabled: true,
         channelId: "vc-afk-1",
       });
@@ -308,7 +308,7 @@ describe("AFK Commands Integration", () => {
     it("AFK未設定の場合は ValidationError になること", async () => {
       const handler = await loadAfkHandler();
 
-      mockGetAfkConfig.mockResolvedValue(null);
+      mockGetAfkSettings.mockResolvedValue(null);
 
       const { interaction } = createInteraction();
 
@@ -320,7 +320,10 @@ describe("AFK Commands Integration", () => {
     it("AFK機能が無効の場合は ValidationError になること", async () => {
       const handler = await loadAfkHandler();
 
-      mockGetAfkConfig.mockResolvedValue({ enabled: false, channelId: "vc-1" });
+      mockGetAfkSettings.mockResolvedValue({
+        enabled: false,
+        channelId: "vc-1",
+      });
 
       const { interaction } = createInteraction();
 
@@ -332,7 +335,7 @@ describe("AFK Commands Integration", () => {
     it("対象ユーザーがVCに未参加の場合は ValidationError になること", async () => {
       const handler = await loadAfkHandler();
 
-      mockGetAfkConfig.mockResolvedValue({
+      mockGetAfkSettings.mockResolvedValue({
         enabled: true,
         channelId: "vc-afk-1",
       });
@@ -350,7 +353,7 @@ describe("AFK Commands Integration", () => {
     it("AFKチャンネルが存在しない場合は ValidationError になること", async () => {
       const handler = await loadAfkHandler();
 
-      mockGetAfkConfig.mockResolvedValue({
+      mockGetAfkSettings.mockResolvedValue({
         enabled: true,
         channelId: "deleted-vc",
       });
@@ -370,7 +373,7 @@ describe("AFK Commands Integration", () => {
     it("AFKチャンネルがVCでない場合は ValidationError になること", async () => {
       const handler = await loadAfkHandler();
 
-      mockGetAfkConfig.mockResolvedValue({
+      mockGetAfkSettings.mockResolvedValue({
         enabled: true,
         channelId: "text-ch",
       });
@@ -396,10 +399,10 @@ describe("AFK Commands Integration", () => {
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
   describe("統合シナリオ: 設定→利用の一連のフロー", () => {
-    it("afk-config set-channel で設定後、/afk でユーザーを移動できること", async () => {
+    it("afk-settings set-channel で設定後、/afk でユーザーを移動できること", async () => {
       const configHandler = (
-        await import("@/bot/features/afk/commands/afkConfigCommand.execute")
-      ).executeAfkConfigCommand;
+        await import("@/bot/features/afk/commands/afkSettingsCommand.execute")
+      ).executeAfkSettingsCommand;
       const afkHandler = (
         await import("@/bot/features/afk/commands/afkCommand.execute")
       ).executeAfkCommand;
@@ -419,7 +422,7 @@ describe("AFK Commands Integration", () => {
       expect(mockSetAfkChannel).toHaveBeenCalledWith("guild-1", "vc-afk-1");
 
       // Phase 2: ユーザーが /afk で自分を移動
-      mockGetAfkConfig.mockResolvedValue({
+      mockGetAfkSettings.mockResolvedValue({
         enabled: true,
         channelId: "vc-afk-1",
       });

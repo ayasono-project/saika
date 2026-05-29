@@ -53,7 +53,7 @@ const mockConfigService = {
   delete: vi.fn(),
 };
 vi.mock("@/bot/services/botCompositionRoot", () => ({
-  getBotReactionRolePanelConfigService: () => mockConfigService,
+  getBotReactionRolePanelSettingsService: () => mockConfigService,
 }));
 
 const mockUpdatePanelMessage = vi.fn();

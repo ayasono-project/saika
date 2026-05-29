@@ -3,18 +3,19 @@
 
 export const bumpReminder = {
   // ── コマンド定義 ─────────────────────────────
-  "bump-reminder-config.description":
+  "bump-reminder-settings.description":
     "Bumpリマインダーの設定（サーバー管理権限が必要）",
-  "bump-reminder-config.enable.description": "Bumpリマインダー機能を有効化",
-  "bump-reminder-config.disable.description": "Bumpリマインダー機能を無効化",
-  "bump-reminder-config.set-mention.description": "メンションロールを設定",
-  "bump-reminder-config.set-mention.role.description":
+  "bump-reminder-settings.enable.description": "Bumpリマインダー機能を有効化",
+  "bump-reminder-settings.disable.description": "Bumpリマインダー機能を無効化",
+  "bump-reminder-settings.set-mention.description": "メンションロールを設定",
+  "bump-reminder-settings.set-mention.role.description":
     "リマインダーでメンションするロール",
-  "bump-reminder-config.remove-mention.description":
+  "bump-reminder-settings.remove-mention.description":
     "メンションロール設定を削除",
-  "bump-reminder-config.remove-mention-users.description": "通知ユーザーを削除",
-  "bump-reminder-config.reset.description": "Bumpリマインダー設定をリセット",
-  "bump-reminder-config.view.description": "現在の設定を表示",
+  "bump-reminder-settings.remove-mention-users.description":
+    "通知ユーザーを削除",
+  "bump-reminder-settings.reset.description": "Bumpリマインダー設定をリセット",
+  "bump-reminder-settings.view.description": "現在の設定を表示",
 
   // ── ユーザーレスポンス ────────────────────────
   "user-response.enable_success": "Bumpリマインダー機能を有効化しました。",

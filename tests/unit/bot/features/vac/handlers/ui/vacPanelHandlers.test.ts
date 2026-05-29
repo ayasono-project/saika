@@ -7,7 +7,7 @@ import { vcPanelUserSelectHandler } from "@/bot/features/vc-panel/handlers/ui/vc
 import { safeReply } from "@/bot/utils/interaction";
 
 const isVcPanelManagedChannelMock = vi.fn().mockResolvedValue(true);
-const getAfkConfigMock = vi.fn();
+const getAfkSettingsMock = vi.fn();
 
 // VC操作パネル customId 定数を固定化して matches 判定を検証しやすくする
 vi.mock("@/bot/features/vc-panel/vcControlPanel", () => ({
@@ -33,13 +33,13 @@ vi.mock("@/bot/features/vc-panel/vcPanelOwnershipRegistry", () => ({
     isVcPanelManagedChannelMock(...args),
   tInteraction: vi.fn((_locale: string, key: string) => key),
 }));
-vi.mock("@/shared/features/afk/afkConfigService", () => ({
-  getAfkConfig: (...args: unknown[]) => getAfkConfigMock(...args),
+vi.mock("@/shared/features/afk/afkSettingsService", () => ({
+  getAfkSettings: (...args: unknown[]) => getAfkSettingsMock(...args),
   tInteraction: vi.fn((_locale: string, key: string) => key),
 }));
-vi.mock("@/shared/database/repositories/afkConfigRepository", () => ({
-  getAfkConfigRepository: vi.fn(() => ({
-    getAfkConfig: (...args: unknown[]) => getAfkConfigMock(...args),
+vi.mock("@/shared/database/repositories/afkSettingsRepository", () => ({
+  getAfkSettingsRepository: vi.fn(() => ({
+    getAfkSettings: (...args: unknown[]) => getAfkSettingsMock(...args),
   })),
   tInteraction: vi.fn((_locale: string, key: string) => key),
 }));
@@ -83,7 +83,7 @@ describe("bot/features/vac/ui handlers", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     isVcPanelManagedChannelMock.mockResolvedValue(true);
-    getAfkConfigMock.mockResolvedValue({ enabled: true, channelId: "afk-1" });
+    getAfkSettingsMock.mockResolvedValue({ enabled: true, channelId: "afk-1" });
   });
 
   it("`matches` が customId prefix ベースで判定できることを検証", () => {
@@ -944,12 +944,12 @@ describe("bot/features/vac/ui handlers", () => {
     };
 
     const databaseModule = (await vi.importMock(
-      "@/shared/database/repositories/afkConfigRepository",
+      "@/shared/database/repositories/afkSettingsRepository",
     )) as {
-      getAfkConfigRepository: Mock;
+      getAfkSettingsRepository: Mock;
     };
-    databaseModule.getAfkConfigRepository.mockReturnValue({
-      getAfkConfig: vi.fn().mockResolvedValue({
+    databaseModule.getAfkSettingsRepository.mockReturnValue({
+      getAfkSettings: vi.fn().mockResolvedValue({
         enabled: true,
         channelId: "afk-1",
       }),
@@ -1109,7 +1109,7 @@ describe("bot/features/vac/ui handlers", () => {
       values: ["user-1"],
     };
 
-    getAfkConfigMock.mockResolvedValueOnce(null);
+    getAfkSettingsMock.mockResolvedValueOnce(null);
 
     await vacPanelUserSelectHandler.execute(interaction as never);
 
@@ -1142,12 +1142,12 @@ describe("bot/features/vac/ui handlers", () => {
     };
 
     const databaseModule = (await vi.importMock(
-      "@/shared/database/repositories/afkConfigRepository",
+      "@/shared/database/repositories/afkSettingsRepository",
     )) as {
-      getAfkConfigRepository: Mock;
+      getAfkSettingsRepository: Mock;
     };
-    databaseModule.getAfkConfigRepository.mockReturnValue({
-      getAfkConfig: vi.fn().mockResolvedValue({
+    databaseModule.getAfkSettingsRepository.mockReturnValue({
+      getAfkSettings: vi.fn().mockResolvedValue({
         enabled: true,
         channelId: "afk-1",
       }),
@@ -1184,12 +1184,12 @@ describe("bot/features/vac/ui handlers", () => {
     };
 
     const databaseModule = (await vi.importMock(
-      "@/shared/database/repositories/afkConfigRepository",
+      "@/shared/database/repositories/afkSettingsRepository",
     )) as {
-      getAfkConfigRepository: Mock;
+      getAfkSettingsRepository: Mock;
     };
-    databaseModule.getAfkConfigRepository.mockReturnValue({
-      getAfkConfig: vi.fn().mockResolvedValue({
+    databaseModule.getAfkSettingsRepository.mockReturnValue({
+      getAfkSettings: vi.fn().mockResolvedValue({
         enabled: true,
         channelId: "afk-1",
       }),
@@ -1239,12 +1239,12 @@ describe("bot/features/vac/ui handlers", () => {
     };
 
     const databaseModule = (await vi.importMock(
-      "@/shared/database/repositories/afkConfigRepository",
+      "@/shared/database/repositories/afkSettingsRepository",
     )) as {
-      getAfkConfigRepository: Mock;
+      getAfkSettingsRepository: Mock;
     };
-    databaseModule.getAfkConfigRepository.mockReturnValue({
-      getAfkConfig: vi.fn().mockResolvedValue({
+    databaseModule.getAfkSettingsRepository.mockReturnValue({
+      getAfkSettings: vi.fn().mockResolvedValue({
         enabled: true,
         channelId: "afk-1",
       }),
@@ -1301,12 +1301,12 @@ describe("bot/features/vac/ui handlers", () => {
     };
 
     const databaseModule = (await vi.importMock(
-      "@/shared/database/repositories/afkConfigRepository",
+      "@/shared/database/repositories/afkSettingsRepository",
     )) as {
-      getAfkConfigRepository: Mock;
+      getAfkSettingsRepository: Mock;
     };
-    databaseModule.getAfkConfigRepository.mockReturnValue({
-      getAfkConfig: vi.fn().mockResolvedValue({
+    databaseModule.getAfkSettingsRepository.mockReturnValue({
+      getAfkSettings: vi.fn().mockResolvedValue({
         enabled: true,
         channelId: "afk-1",
       }),

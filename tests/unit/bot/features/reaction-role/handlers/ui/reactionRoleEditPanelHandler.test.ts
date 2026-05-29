@@ -52,11 +52,11 @@ const mockConfigService = {
   delete: vi.fn(),
 };
 vi.mock("@/bot/services/botCompositionRoot", () => ({
-  getBotReactionRolePanelConfigService: () => mockConfigService,
+  getBotReactionRolePanelSettingsService: () => mockConfigService,
 }));
 
 vi.mock(
-  "@/bot/features/reaction-role/commands/usecases/reactionRoleConfigEditPanel",
+  "@/bot/features/reaction-role/commands/usecases/reactionRoleSettingsEditPanel",
   () => ({
     buildEditPanelModal: vi.fn(() => ({ type: "modal" })),
   }),

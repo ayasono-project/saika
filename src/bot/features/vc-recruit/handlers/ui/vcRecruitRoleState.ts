@@ -2,7 +2,7 @@
 // add-role / remove-role の RoleSelectMenu / StringSelectMenu 選択状態を保持する
 
 import { TtlMap } from "../../../../../shared/utils/ttlMap";
-import { VC_RECRUIT_TIMEOUT } from "../../commands/vcRecruitConfigCommand.constants";
+import { VC_RECRUIT_TIMEOUT } from "../../commands/vcRecruitSettingsCommand.constants";
 
 /** key: sessionId, value: 選択されたロール ID 配列 */
 export const vcRecruitAddRoleSelections: TtlMap<string[]> = new TtlMap<

@@ -13,7 +13,7 @@ import {
 } from "../../../../../shared/locale/localeManager";
 import { logger } from "../../../../../shared/utils/logger";
 import type { ButtonHandler } from "../../../../handlers/interactionCreate/ui/types";
-import { getBotReactionRolePanelConfigService } from "../../../../services/botCompositionRoot";
+import { getBotReactionRolePanelSettingsService } from "../../../../services/botCompositionRoot";
 import {
   createErrorEmbed,
   createInfoEmbed,
@@ -49,8 +49,8 @@ export const reactionRoleClickHandler: ButtonHandler = {
     const buttonId = Number(suffix.slice(lastColon + 1));
 
     // パネル設定をDBから取得
-    const configService = getBotReactionRolePanelConfigService();
-    const panel = await configService.findById(panelId);
+    const settingsService = getBotReactionRolePanelSettingsService();
+    const panel = await settingsService.findById(panelId);
     if (!panel) {
       const embed = createErrorEmbed(
         tInteraction(

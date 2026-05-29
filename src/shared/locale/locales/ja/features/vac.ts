@@ -3,15 +3,15 @@
 
 export const vac = {
   // ── コマンド定義 ─────────────────────────────
-  "vac-config.description": "VC自動作成機能の設定（サーバー管理権限が必要）",
-  "vac-config.create-trigger-vc.description": "トリガーチャンネルを作成",
-  "vac-config.create-trigger-vc.category.description":
+  "vac-settings.description": "VC自動作成機能の設定（サーバー管理権限が必要）",
+  "vac-settings.create-trigger-vc.description": "トリガーチャンネルを作成",
+  "vac-settings.create-trigger-vc.category.description":
     "作成先カテゴリ（TOP またはカテゴリ。未指定時は実行カテゴリ）",
-  "vac-config.remove-trigger-vc.description": "トリガーチャンネルを削除",
-  "vac-config.remove-trigger-vc.category.description":
+  "vac-settings.remove-trigger-vc.description": "トリガーチャンネルを削除",
+  "vac-settings.remove-trigger-vc.category.description":
     "削除対象（TOP またはカテゴリ。未指定時は実行カテゴリ）",
-  "vac-config.remove-trigger-vc.category.top": "TOP（カテゴリなし）",
-  "vac-config.view.description": "現在の設定を表示",
+  "vac-settings.remove-trigger-vc.category.top": "TOP（カテゴリなし）",
+  "vac-settings.view.description": "現在の設定を表示",
 
   // ── ユーザーレスポンス ────────────────────────
   "user-response.trigger_created":

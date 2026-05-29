@@ -48,7 +48,7 @@ vi.mock("@/bot/services/botCompositionRoot", () => ({
     stickyMessageService: {},
     vacService: {},
   })),
-  getBotTicketConfigService: vi.fn(() => ({})),
+  getBotTicketSettingsService: vi.fn(() => ({})),
   getBotTicketRepository: vi.fn(() => ({})),
 }));
 vi.mock("@/bot/features/ticket/services/ticketAutoDeleteService", () => ({

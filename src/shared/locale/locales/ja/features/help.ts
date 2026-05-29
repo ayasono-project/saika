@@ -14,7 +14,7 @@ export const help = {
   "embed.field.value.basic":
     "`/ping` — Bot の応答速度を確認\n`/help` — このヘルプを表示",
   "embed.field.value.config":
-    "`/guild-config` — ギルド全体の設定\n`/afk-config` — AFK の設定\n`/vac-config` — VC自動作成の設定\n`/vc-recruit-config` — VC募集の設定\n`/sticky-message` — メッセージ固定の設定\n`/member-log-config` — メンバーログの設定\n`/message-delete-config` — メッセージ削除の設定\n`/bump-reminder-config` — Bumpリマインダーの設定\n`/ticket-config` — チケットシステムの設定\n`/reaction-role-config` — リアクションロールの設定",
+    "`/guild-settings` — ギルド全体の設定\n`/afk-settings` — AFK の設定\n`/vac-settings` — VC自動作成の設定\n`/vc-recruit-settings` — VC募集の設定\n`/sticky-message` — メッセージ固定の設定\n`/member-log-settings` — メンバーログの設定\n`/message-delete-config` — メッセージ削除の設定\n`/bump-reminder-settings` — Bumpリマインダーの設定\n`/ticket-settings` — チケットシステムの設定\n`/reaction-role-settings` — リアクションロールの設定",
   "embed.field.value.action":
     "`/afk` — AFK チャンネルへ移動\n`/vc` — VC名・人数制限を変更\n`/message-delete` — メッセージを一括削除\n`/ticket` — チケットの操作（クローズ・オープン・削除）",
 } as const;

@@ -5,14 +5,14 @@ import { type ButtonInteraction, MessageFlags } from "discord.js";
 import {
   BUMP_REMINDER_MENTION_USER_ADD_RESULT,
   BUMP_REMINDER_MENTION_USER_REMOVE_RESULT,
-} from "../../../../../shared/features/bump-reminder/bumpReminderConfigService";
+} from "../../../../../shared/features/bump-reminder/bumpReminderSettingsService";
 import {
   logPrefixed,
   tInteraction,
 } from "../../../../../shared/locale/localeManager";
 import { logger } from "../../../../../shared/utils/logger";
 import type { ButtonHandler } from "../../../../handlers/interactionCreate/ui/types";
-import { getBotBumpReminderConfigService } from "../../../../services/botCompositionRoot";
+import { getBotBumpReminderSettingsService } from "../../../../services/botCompositionRoot";
 import { safeReply } from "../../../../utils/interaction";
 import {
   createErrorEmbed,
@@ -81,7 +81,7 @@ export const bumpPanelButtonHandler: ButtonHandler = {
         return;
       }
 
-      const bumpReminderConfigService = getBotBumpReminderConfigService();
+      const bumpReminderSettingsService = getBotBumpReminderSettingsService();
       const userId = interaction.user.id;
       // 成功系レスポンスで使う共通タイトル
       const successTitle = tInteraction(
@@ -92,7 +92,7 @@ export const bumpPanelButtonHandler: ButtonHandler = {
       if (isOnButton) {
         // ON ボタン: 追加を試み、冪等に成功応答を返す
         const addResult =
-          await bumpReminderConfigService.addBumpReminderMentionUser(
+          await bumpReminderSettingsService.addBumpReminderMentionUser(
             guildId,
             userId,
           );
@@ -149,7 +149,7 @@ export const bumpPanelButtonHandler: ButtonHandler = {
       } else {
         // OFF ボタン: 削除を試み、冪等に成功応答を返す
         const removeResult =
-          await bumpReminderConfigService.removeBumpReminderMentionUser(
+          await bumpReminderSettingsService.removeBumpReminderMentionUser(
             guildId,
             userId,
           );

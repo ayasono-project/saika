@@ -63,7 +63,7 @@ const mockTicketRepository = {
   deleteAllByGuild: vi.fn(),
 };
 vi.mock("@/bot/services/botCompositionRoot", () => ({
-  getBotTicketConfigService: () => mockConfigService,
+  getBotTicketSettingsService: () => mockConfigService,
   getBotTicketRepository: () => mockTicketRepository,
 }));
 

@@ -4,7 +4,7 @@
 import { MessageFlags, type RoleSelectMenuInteraction } from "discord.js";
 import { tInteraction } from "../../../../../shared/locale/localeManager";
 import type { RoleSelectHandler } from "../../../../handlers/interactionCreate/ui/types";
-import { getBotTicketConfigService } from "../../../../services/botCompositionRoot";
+import { getBotTicketSettingsService } from "../../../../services/botCompositionRoot";
 import {
   createErrorEmbed,
   createSuccessEmbed,
@@ -58,11 +58,11 @@ async function handleSetRoles(
   const categoryId = interaction.customId.slice(
     TICKET_CUSTOM_ID.SET_ROLES_PREFIX.length,
   );
-  const configService = getBotTicketConfigService();
+  const settingsService = getBotTicketSettingsService();
   const guildId = interaction.guildId;
   if (!guildId) return;
 
-  const config = await configService.findByGuildAndCategory(
+  const config = await settingsService.findByGuildAndCategory(
     guildId,
     categoryId,
   );
@@ -80,7 +80,7 @@ async function handleSetRoles(
 
   // 選択されたロールで上書き更新
   const roleIds = Array.from(interaction.roles.keys());
-  await configService.update(guildId, categoryId, {
+  await settingsService.update(guildId, categoryId, {
     staffRoleIds: JSON.stringify(roleIds),
   });
 
@@ -104,11 +104,11 @@ async function handleAddRoles(
   const categoryId = interaction.customId.slice(
     TICKET_CUSTOM_ID.ADD_ROLES_PREFIX.length,
   );
-  const configService = getBotTicketConfigService();
+  const settingsService = getBotTicketSettingsService();
   const guildId = interaction.guildId;
   if (!guildId) return;
 
-  const config = await configService.findByGuildAndCategory(
+  const config = await settingsService.findByGuildAndCategory(
     guildId,
     categoryId,
   );
@@ -129,7 +129,7 @@ async function handleAddRoles(
   const newRoleIds = Array.from(interaction.roles.keys());
   const mergedRoleIds = [...new Set([...existingRoleIds, ...newRoleIds])];
 
-  await configService.update(guildId, categoryId, {
+  await settingsService.update(guildId, categoryId, {
     staffRoleIds: JSON.stringify(mergedRoleIds),
   });
 
@@ -153,11 +153,11 @@ async function handleRemoveRoles(
   const categoryId = interaction.customId.slice(
     TICKET_CUSTOM_ID.REMOVE_ROLES_PREFIX.length,
   );
-  const configService = getBotTicketConfigService();
+  const settingsService = getBotTicketSettingsService();
   const guildId = interaction.guildId;
   if (!guildId) return;
 
-  const config = await configService.findByGuildAndCategory(
+  const config = await settingsService.findByGuildAndCategory(
     guildId,
     categoryId,
   );
@@ -196,7 +196,7 @@ async function handleRemoveRoles(
     return;
   }
 
-  await configService.update(guildId, categoryId, {
+  await settingsService.update(guildId, categoryId, {
     staffRoleIds: JSON.stringify(remainingRoleIds),
   });
 

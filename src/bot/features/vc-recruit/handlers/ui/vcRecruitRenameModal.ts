@@ -13,7 +13,7 @@ import {
   createSuccessEmbed,
   createWarningEmbed,
 } from "../../../../utils/messageResponse";
-import { VC_RECRUIT_POST_CUSTOM_ID } from "../../commands/vcRecruitConfigCommand.constants";
+import { VC_RECRUIT_POST_CUSTOM_ID } from "../../commands/vcRecruitSettingsCommand.constants";
 
 export const vcRecruitRenameModalHandler: ModalHandler = {
   /**

@@ -63,7 +63,7 @@ const mockTicketRepository = {
   deleteAllByGuild: vi.fn(),
 };
 vi.mock("@/bot/services/botCompositionRoot", () => ({
-  getBotTicketConfigService: () => mockConfigService,
+  getBotTicketSettingsService: () => mockConfigService,
   getBotTicketRepository: () => mockTicketRepository,
 }));
 
@@ -74,8 +74,8 @@ vi.mock("@/bot/shared/pagination", () => ({
   showPaginationJumpModal: vi.fn(),
 }));
 
-vi.mock("@/bot/features/ticket/commands/usecases/ticketConfigView", () => ({
-  buildConfigEmbed: vi.fn(() => ({ type: "embed" })),
+vi.mock("@/bot/features/ticket/commands/usecases/ticketSettingsView", () => ({
+  buildSettingsEmbed: vi.fn(() => ({ type: "embed" })),
 }));
 
 import {

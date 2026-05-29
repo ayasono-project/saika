@@ -9,8 +9,8 @@ import {
 import { logger } from "../../../../../shared/utils/logger";
 import type { ModalHandler } from "../../../../handlers/interactionCreate/ui/types";
 import {
-  getBotTicketConfigService,
   getBotTicketRepository,
+  getBotTicketSettingsService,
 } from "../../../../services/botCompositionRoot";
 import { createSuccessEmbed } from "../../../../utils/messageResponse";
 import { TICKET_CUSTOM_ID } from "../../commands/ticketCommand.constants";
@@ -50,7 +50,7 @@ export const ticketCreateModalHandler: ModalHandler = {
     // チャンネル作成+権限設定+メッセージ送信で3秒を超えるため事前に応答を遅延
     await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
-    const configService = getBotTicketConfigService();
+    const settingsService = getBotTicketSettingsService();
     const ticketRepository = getBotTicketRepository();
 
     // MissingPermissions は上位の interactionErrorHandler で統一処理される
@@ -60,7 +60,7 @@ export const ticketCreateModalHandler: ModalHandler = {
       interaction.user.id,
       subject,
       detail,
-      configService,
+      settingsService,
       ticketRepository,
     );
 

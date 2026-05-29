@@ -27,7 +27,7 @@ vi.mock("@/shared/utils/logger", () => ({
 }));
 
 vi.mock("@/bot/services/botCompositionRoot", () => ({
-  getBotTicketConfigService: vi.fn(),
+  getBotTicketSettingsService: vi.fn(),
   getBotTicketRepository: vi.fn(),
 }));
 
@@ -54,8 +54,8 @@ import {
   reopenTicket,
 } from "@/bot/features/ticket/services/ticketService";
 import {
-  getBotTicketConfigService,
   getBotTicketRepository,
+  getBotTicketSettingsService,
 } from "@/bot/services/botCompositionRoot";
 
 function createMockButtonInteraction(customId: string, overrides = {}) {
@@ -120,7 +120,7 @@ describe("bot/features/ticket/handlers/ui/ticketButtonHandler", () => {
       vi.mocked(getBotTicketRepository).mockReturnValue(
         mockTicketRepository as never,
       );
-      vi.mocked(getBotTicketConfigService).mockReturnValue(
+      vi.mocked(getBotTicketSettingsService).mockReturnValue(
         mockConfigService as never,
       );
 
@@ -155,7 +155,7 @@ describe("bot/features/ticket/handlers/ui/ticketButtonHandler", () => {
       vi.mocked(getBotTicketRepository).mockReturnValue(
         mockTicketRepository as never,
       );
-      vi.mocked(getBotTicketConfigService).mockReturnValue(
+      vi.mocked(getBotTicketSettingsService).mockReturnValue(
         mockConfigService as never,
       );
       vi.mocked(hasTicketPermission).mockReturnValue(true as never);
@@ -197,7 +197,7 @@ describe("bot/features/ticket/handlers/ui/ticketButtonHandler", () => {
       vi.mocked(getBotTicketRepository).mockReturnValue(
         mockTicketRepo as never,
       );
-      vi.mocked(getBotTicketConfigService).mockReturnValue(
+      vi.mocked(getBotTicketSettingsService).mockReturnValue(
         mockConfigSvc as never,
       );
 
@@ -230,7 +230,7 @@ describe("bot/features/ticket/handlers/ui/ticketButtonHandler", () => {
       vi.mocked(getBotTicketRepository).mockReturnValue(
         mockTicketRepo as never,
       );
-      vi.mocked(getBotTicketConfigService).mockReturnValue(
+      vi.mocked(getBotTicketSettingsService).mockReturnValue(
         mockConfigSvc as never,
       );
       vi.mocked(hasTicketPermission).mockReturnValue(false as never);
@@ -264,7 +264,7 @@ describe("bot/features/ticket/handlers/ui/ticketButtonHandler", () => {
       vi.mocked(getBotTicketRepository).mockReturnValue(
         mockTicketRepo as never,
       );
-      vi.mocked(getBotTicketConfigService).mockReturnValue(
+      vi.mocked(getBotTicketSettingsService).mockReturnValue(
         mockConfigSvc as never,
       );
       vi.mocked(hasTicketPermission).mockReturnValue(true as never);
@@ -295,7 +295,7 @@ describe("bot/features/ticket/handlers/ui/ticketButtonHandler", () => {
       vi.mocked(getBotTicketRepository).mockReturnValue(
         mockTicketRepo as never,
       );
-      vi.mocked(getBotTicketConfigService).mockReturnValue(
+      vi.mocked(getBotTicketSettingsService).mockReturnValue(
         mockConfigSvc as never,
       );
       vi.mocked(hasTicketPermission).mockReturnValue(true as never);
@@ -320,7 +320,7 @@ describe("bot/features/ticket/handlers/ui/ticketButtonHandler", () => {
       vi.mocked(getBotTicketRepository).mockReturnValue(
         mockTicketRepo as never,
       );
-      vi.mocked(getBotTicketConfigService).mockReturnValue(
+      vi.mocked(getBotTicketSettingsService).mockReturnValue(
         mockConfigSvc as never,
       );
 
@@ -348,7 +348,7 @@ describe("bot/features/ticket/handlers/ui/ticketButtonHandler", () => {
       vi.mocked(getBotTicketRepository).mockReturnValue(
         mockTicketRepo as never,
       );
-      vi.mocked(getBotTicketConfigService).mockReturnValue(
+      vi.mocked(getBotTicketSettingsService).mockReturnValue(
         mockConfigSvc as never,
       );
 
@@ -381,7 +381,7 @@ describe("bot/features/ticket/handlers/ui/ticketButtonHandler", () => {
       vi.mocked(getBotTicketRepository).mockReturnValue(
         mockTicketRepo as never,
       );
-      vi.mocked(getBotTicketConfigService).mockReturnValue(
+      vi.mocked(getBotTicketSettingsService).mockReturnValue(
         mockConfigSvc as never,
       );
       vi.mocked(hasTicketPermission).mockReturnValue(false as never);
@@ -415,7 +415,7 @@ describe("bot/features/ticket/handlers/ui/ticketButtonHandler", () => {
       vi.mocked(getBotTicketRepository).mockReturnValue(
         mockTicketRepo as never,
       );
-      vi.mocked(getBotTicketConfigService).mockReturnValue(
+      vi.mocked(getBotTicketSettingsService).mockReturnValue(
         mockConfigSvc as never,
       );
       vi.mocked(hasTicketPermission).mockReturnValue(true as never);
@@ -448,7 +448,7 @@ describe("bot/features/ticket/handlers/ui/ticketButtonHandler", () => {
       vi.mocked(getBotTicketRepository).mockReturnValue(
         mockTicketRepo as never,
       );
-      vi.mocked(getBotTicketConfigService).mockReturnValue(
+      vi.mocked(getBotTicketSettingsService).mockReturnValue(
         mockConfigSvc as never,
       );
       vi.mocked(hasTicketPermission).mockReturnValue(true as never);
@@ -487,7 +487,7 @@ describe("bot/features/ticket/handlers/ui/ticketButtonHandler", () => {
       vi.mocked(getBotTicketRepository).mockReturnValue(
         mockTicketRepo as never,
       );
-      vi.mocked(getBotTicketConfigService).mockReturnValue(
+      vi.mocked(getBotTicketSettingsService).mockReturnValue(
         mockConfigSvc as never,
       );
       vi.mocked(hasTicketPermission).mockReturnValue(true as never);
@@ -512,7 +512,7 @@ describe("bot/features/ticket/handlers/ui/ticketButtonHandler", () => {
       vi.mocked(getBotTicketRepository).mockReturnValue(
         mockTicketRepo as never,
       );
-      vi.mocked(getBotTicketConfigService).mockReturnValue(
+      vi.mocked(getBotTicketSettingsService).mockReturnValue(
         mockConfigSvc as never,
       );
 
@@ -544,7 +544,7 @@ describe("bot/features/ticket/handlers/ui/ticketButtonHandler", () => {
       vi.mocked(getBotTicketRepository).mockReturnValue(
         mockTicketRepo as never,
       );
-      vi.mocked(getBotTicketConfigService).mockReturnValue(
+      vi.mocked(getBotTicketSettingsService).mockReturnValue(
         mockConfigSvc as never,
       );
       vi.mocked(hasStaffRole).mockReturnValue(false as never);
@@ -577,7 +577,7 @@ describe("bot/features/ticket/handlers/ui/ticketButtonHandler", () => {
       vi.mocked(getBotTicketRepository).mockReturnValue(
         mockTicketRepo as never,
       );
-      vi.mocked(getBotTicketConfigService).mockReturnValue(
+      vi.mocked(getBotTicketSettingsService).mockReturnValue(
         mockConfigSvc as never,
       );
       vi.mocked(hasStaffRole).mockReturnValue(true as never);
@@ -601,7 +601,7 @@ describe("bot/features/ticket/handlers/ui/ticketButtonHandler", () => {
       vi.mocked(getBotTicketRepository).mockReturnValue(
         mockTicketRepo as never,
       );
-      vi.mocked(getBotTicketConfigService).mockReturnValue(
+      vi.mocked(getBotTicketSettingsService).mockReturnValue(
         mockConfigSvc as never,
       );
 
@@ -635,7 +635,7 @@ describe("bot/features/ticket/handlers/ui/ticketButtonHandler", () => {
       vi.mocked(getBotTicketRepository).mockReturnValue(
         mockTicketRepo as never,
       );
-      vi.mocked(getBotTicketConfigService).mockReturnValue(
+      vi.mocked(getBotTicketSettingsService).mockReturnValue(
         mockConfigSvc as never,
       );
       vi.mocked(hasStaffRole).mockReturnValue(false as never);
@@ -671,7 +671,7 @@ describe("bot/features/ticket/handlers/ui/ticketButtonHandler", () => {
       vi.mocked(getBotTicketRepository).mockReturnValue(
         mockTicketRepo as never,
       );
-      vi.mocked(getBotTicketConfigService).mockReturnValue(
+      vi.mocked(getBotTicketSettingsService).mockReturnValue(
         mockConfigSvc as never,
       );
       vi.mocked(hasStaffRole).mockReturnValue(true as never);
@@ -710,7 +710,7 @@ describe("bot/features/ticket/handlers/ui/ticketButtonHandler", () => {
       vi.mocked(getBotTicketRepository).mockReturnValue(
         mockTicketRepo as never,
       );
-      vi.mocked(getBotTicketConfigService).mockReturnValue(
+      vi.mocked(getBotTicketSettingsService).mockReturnValue(
         mockConfigSvc as never,
       );
       vi.mocked(hasStaffRole).mockReturnValue(true as never);
@@ -746,7 +746,7 @@ describe("bot/features/ticket/handlers/ui/ticketButtonHandler", () => {
       vi.mocked(getBotTicketRepository).mockReturnValue(
         mockTicketRepo as never,
       );
-      vi.mocked(getBotTicketConfigService).mockReturnValue(
+      vi.mocked(getBotTicketSettingsService).mockReturnValue(
         mockConfigSvc as never,
       );
       vi.mocked(hasStaffRole).mockReturnValue(true as never);
@@ -802,7 +802,7 @@ describe("bot/features/ticket/handlers/ui/ticketButtonHandler", () => {
       vi.mocked(getBotTicketRepository).mockReturnValue(
         mockTicketRepo as never,
       );
-      vi.mocked(getBotTicketConfigService).mockReturnValue(
+      vi.mocked(getBotTicketSettingsService).mockReturnValue(
         mockConfigSvc as never,
       );
       vi.mocked(hasTicketPermission).mockReturnValue(true as never);
@@ -841,7 +841,7 @@ describe("bot/features/ticket/handlers/ui/ticketButtonHandler", () => {
       vi.mocked(getBotTicketRepository).mockReturnValue(
         mockTicketRepo as never,
       );
-      vi.mocked(getBotTicketConfigService).mockReturnValue(
+      vi.mocked(getBotTicketSettingsService).mockReturnValue(
         mockConfigSvc as never,
       );
       vi.mocked(hasTicketPermission).mockReturnValue(true as never);

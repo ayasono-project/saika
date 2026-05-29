@@ -2,7 +2,7 @@
 
 > 疎通確認・ヘルプ表示などユーティリティ系のシンプルなコマンド群
 
-最終更新: 2026年3月21日
+最終更新: 2026年5月29日
 
 ---
 
@@ -91,14 +91,14 @@
 | -------------------- | ------------------------------------------------- |
 | `🔧 基本`           | `/ping` — Bot の応答速度を確認                    |
 |                      | `/help` — このヘルプを表示                        |
-| `⚙️ 設定（管理者）` | `/guild-config` — ギルド全体の設定                |
-|                      | `/afk-config` — AFK の設定                        |
-|                      | `/vac-config` — VC自動作成の設定                  |
-|                      | `/vc-recruit-config` — VC募集の設定               |
+| `⚙️ 設定（管理者）` | `/guild-settings` — ギルド全体の設定                |
+|                      | `/afk-settings` — AFK の設定                        |
+|                      | `/vac-settings` — VC自動作成の設定                  |
+|                      | `/vc-recruit-settings` — VC募集の設定               |
 |                      | `/sticky-message` — メッセージ固定の設定          |
-|                      | `/member-log-config` — メンバーログの設定         |
+|                      | `/member-log-settings` — メンバーログの設定         |
 |                      | `/message-delete-config` — メッセージ削除の設定   |
-|                      | `/bump-reminder-config` — Bumpリマインダーの設定  |
+|                      | `/bump-reminder-settings` — Bumpリマインダーの設定  |
 | `🛠️ 操作`          | `/afk` — AFK チャンネルへ移動                     |
 |                      | `/vc` — VC名・人数制限を変更                      |
 |                      | `/message-delete` — メッセージを一括削除          |
@@ -150,7 +150,7 @@
 | `embed.field.name.config` | 設定カテゴリ名 | ⚙️ 設定（管理者） | ⚙️ Settings (Admin) |
 | `embed.field.name.action` | 操作カテゴリ名 | 🛠️ 操作 | 🛠️ Actions |
 | `embed.field.value.basic` | 基本コマンド一覧 | `/ping` — Bot の応答速度を確認（改行）`/help` — このヘルプを表示 | `/ping` — Check bot response speed（改行）`/help` — Show this help |
-| `embed.field.value.config` | 設定コマンド一覧 | `/guild-config` — ギルド全体の設定（改行）... | `/guild-config` — Guild settings（改行）... |
+| `embed.field.value.config` | 設定コマンド一覧 | `/guild-settings` — ギルド全体の設定（改行）... | `/guild-settings` — Guild settings（改行）... |
 | `embed.field.value.action` | 操作コマンド一覧 | `/afk` — AFK チャンネルへ移動（改行）... | `/afk` — Move to AFK channel（改行）... |
 
 ---

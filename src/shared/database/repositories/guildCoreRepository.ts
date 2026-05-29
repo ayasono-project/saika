@@ -5,16 +5,16 @@ import { DatabaseError } from "@ayasono/shared/core";
 import type { PrismaClient } from "@prisma/client";
 import { DEFAULT_LOCALE } from "../../locale/i18n";
 import { createRepositoryGetter } from "../../utils/serviceFactory";
-import type { GuildConfig, IGuildCoreRepository } from "../types";
+import type { GuildSettings, IGuildCoreRepository } from "../types";
 import {
-  deleteGuildConfigUsecase,
-  existsGuildConfigUsecase,
-  getGuildConfigUsecase,
+  deleteGuildSettingsUsecase,
+  existsGuildSettingsUsecase,
   getGuildLocaleUsecase,
-  saveGuildConfigUsecase,
-  updateGuildConfigUsecase,
+  getGuildSettingsUsecase,
+  saveGuildSettingsUsecase,
   updateGuildLocaleUsecase,
-} from "./usecases/guildConfigCoreUsecases";
+  updateGuildSettingsUsecase,
+} from "./usecases/guildSettingsCoreUsecases";
 
 const DB_ERROR = {
   UNKNOWN: "unknown error",
@@ -37,27 +37,27 @@ export class GuildCoreRepository implements IGuildCoreRepository {
     this.prisma = prisma;
   }
 
-  async getConfig(guildId: string): Promise<GuildConfig | null> {
-    return getGuildConfigUsecase(this.getCoreDeps(), guildId);
+  async getSettings(guildId: string): Promise<GuildSettings | null> {
+    return getGuildSettingsUsecase(this.getCoreDeps(), guildId);
   }
 
-  async saveConfig(config: GuildConfig): Promise<void> {
-    await saveGuildConfigUsecase(this.getCoreDeps(), config);
+  async saveSettings(config: GuildSettings): Promise<void> {
+    await saveGuildSettingsUsecase(this.getCoreDeps(), config);
   }
 
-  async updateConfig(
+  async updateSettings(
     guildId: string,
-    updates: Partial<GuildConfig>,
+    updates: Partial<GuildSettings>,
   ): Promise<void> {
-    await updateGuildConfigUsecase(this.getCoreDeps(), guildId, updates);
+    await updateGuildSettingsUsecase(this.getCoreDeps(), guildId, updates);
   }
 
-  async deleteConfig(guildId: string): Promise<void> {
-    await deleteGuildConfigUsecase(this.getCoreDeps(), guildId);
+  async deleteSettings(guildId: string): Promise<void> {
+    await deleteGuildSettingsUsecase(this.getCoreDeps(), guildId);
   }
 
   async exists(guildId: string): Promise<boolean> {
-    return existsGuildConfigUsecase(this.getCoreDeps(), guildId);
+    return existsGuildSettingsUsecase(this.getCoreDeps(), guildId);
   }
 
   async getLocale(guildId: string): Promise<string> {
@@ -69,13 +69,13 @@ export class GuildCoreRepository implements IGuildCoreRepository {
   }
 
   async updateErrorChannel(guildId: string, channelId: string): Promise<void> {
-    await updateGuildConfigUsecase(this.getCoreDeps(), guildId, {
+    await updateGuildSettingsUsecase(this.getCoreDeps(), guildId, {
       errorChannelId: channelId,
     });
   }
 
   async resetGuildSettings(guildId: string): Promise<void> {
-    await updateGuildConfigUsecase(this.getCoreDeps(), guildId, {
+    await updateGuildSettingsUsecase(this.getCoreDeps(), guildId, {
       locale: DEFAULT_LOCALE,
       errorChannelId: undefined,
     });

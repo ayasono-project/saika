@@ -1,7 +1,7 @@
 // src/shared/database/types/entities.ts
 // エンティティ型定義
 
-export interface GuildConfig {
+export interface GuildSettings {
   // guild 単位の主キー
   guildId: string;
   // i18n の既定ロケール
@@ -13,12 +13,12 @@ export interface GuildConfig {
   updatedAt: Date;
 }
 
-export interface AfkConfig {
+export interface AfkSettings {
   enabled: boolean;
   channelId?: string;
 }
 
-export interface VacConfig {
+export interface VacSettings {
   enabled: boolean;
   triggerChannelIds: string[];
   createdChannels: VacChannelPair[];
@@ -33,14 +33,14 @@ export interface VacChannelPair {
   createdAt: number;
 }
 
-export interface BumpReminderConfig {
+export interface BumpReminderSettings {
   enabled: boolean;
   channelId?: string;
   mentionRoleId?: string;
   mentionUserIds: string[];
 }
 
-export interface MemberLogConfig {
+export interface MemberLogSettings {
   // 機能有効フラグ
   enabled: boolean;
   // 参加/退出ログ送信先

@@ -4,7 +4,7 @@
 import type { Channel } from "discord.js";
 import { logPrefixed } from "../../../../shared/locale/localeManager";
 import { logger } from "../../../../shared/utils/logger";
-import { getBotReactionRolePanelConfigService } from "../../../services/botCompositionRoot";
+import { getBotReactionRolePanelSettingsService } from "../../../services/botCompositionRoot";
 
 /**
  * channelDelete 時にパネル設置チャンネルの削除を検知し、DBレコードをクリーンアップする
@@ -16,10 +16,10 @@ export async function handleReactionRoleChannelDelete(
   if (!("guildId" in channel) || !channel.guildId) return;
 
   const guildId = channel.guildId;
-  const configService = getBotReactionRolePanelConfigService();
+  const settingsService = getBotReactionRolePanelSettingsService();
 
   try {
-    const panels = await configService.findAllByGuild(guildId);
+    const panels = await settingsService.findAllByGuild(guildId);
 
     const matchedPanels = panels.filter(
       (panel) => panel.channelId === channel.id,
@@ -27,7 +27,7 @@ export async function handleReactionRoleChannelDelete(
     if (matchedPanels.length === 0) return;
 
     for (const panel of matchedPanels) {
-      await configService.delete(panel.id);
+      await settingsService.delete(panel.id);
     }
 
     logger.info(

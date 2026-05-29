@@ -13,7 +13,7 @@ vi.mock("@/shared/utils/logger", () => ({
   logger: { debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() },
 }));
 vi.mock("@/bot/services/botCompositionRoot", () => ({
-  getBotReactionRolePanelConfigService: () => mockConfigService,
+  getBotReactionRolePanelSettingsService: () => mockConfigService,
 }));
 vi.mock("@/bot/utils/messageResponse", () => ({
   createSuccessEmbed: vi.fn(() => ({ type: "success" })),

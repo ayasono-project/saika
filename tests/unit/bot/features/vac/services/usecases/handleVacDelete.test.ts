@@ -3,7 +3,7 @@
 import { ChannelType } from "discord.js";
 import type { Mocked } from "vitest";
 import { handleVacDeleteUseCase } from "@/bot/features/vac/services/usecases/handleVacDelete";
-import type { VacConfigService } from "@/shared/features/vac/vacConfigService";
+import type { VacSettingsService } from "@/shared/features/vac/vacSettingsService";
 
 const loggerInfoMock = vi.fn();
 
@@ -36,16 +36,16 @@ vi.mock("@/shared/utils/logger", () => ({
   },
 }));
 
-function createRepositoryMock(): Mocked<VacConfigService> {
+function createRepositoryMock(): Mocked<VacSettingsService> {
   return {
-    getVacConfigOrDefault: vi.fn(),
-    saveVacConfig: vi.fn(),
+    getVacSettingsOrDefault: vi.fn(),
+    saveVacSettings: vi.fn(),
     addTriggerChannel: vi.fn(),
     removeTriggerChannel: vi.fn(),
     addCreatedVacChannel: vi.fn(),
     removeCreatedVacChannel: vi.fn(),
     isManagedVacChannel: vi.fn(),
-  } as unknown as Mocked<VacConfigService>;
+  } as unknown as Mocked<VacSettingsService>;
 }
 
 // VAC が管理するボイスチャンネルが空になった際に自動削除とDBレコード除去が行われるか、
@@ -61,7 +61,7 @@ describe("bot/features/vac/services/usecases/handleVacDelete", () => {
 
     await handleVacDeleteUseCase(repository, { channel: null } as never);
 
-    expect(repository.getVacConfigOrDefault).not.toHaveBeenCalled();
+    expect(repository.getVacSettingsOrDefault).not.toHaveBeenCalled();
   });
 
   it("退出チャンネルがボイスチャンネルでない場合は早期リターンする", async () => {
@@ -71,12 +71,12 @@ describe("bot/features/vac/services/usecases/handleVacDelete", () => {
       channel: { type: ChannelType.GuildText },
     } as never);
 
-    expect(repository.getVacConfigOrDefault).not.toHaveBeenCalled();
+    expect(repository.getVacSettingsOrDefault).not.toHaveBeenCalled();
   });
 
   it("createdChannels に ID が含まれない管理外チャンネルでは削除処理もレコード除去も行われないことを確認", async () => {
     const repository = createRepositoryMock();
-    repository.getVacConfigOrDefault.mockResolvedValue({
+    repository.getVacSettingsOrDefault.mockResolvedValue({
       enabled: true,
       triggerChannelIds: [],
       createdChannels: [],
@@ -100,7 +100,7 @@ describe("bot/features/vac/services/usecases/handleVacDelete", () => {
 
   it("VAC 管理チャンネルであっても members.size > 0 の場合は削除しないことを確認（早期リターン）", async () => {
     const repository = createRepositoryMock();
-    repository.getVacConfigOrDefault.mockResolvedValue({
+    repository.getVacSettingsOrDefault.mockResolvedValue({
       enabled: true,
       triggerChannelIds: [],
       createdChannels: [
@@ -130,7 +130,7 @@ describe("bot/features/vac/services/usecases/handleVacDelete", () => {
 
   it("管理済みの空チャンネルを削除してDBレコードを除去する", async () => {
     const repository = createRepositoryMock();
-    repository.getVacConfigOrDefault.mockResolvedValue({
+    repository.getVacSettingsOrDefault.mockResolvedValue({
       enabled: true,
       triggerChannelIds: [],
       createdChannels: [
@@ -163,7 +163,7 @@ describe("bot/features/vac/services/usecases/handleVacDelete", () => {
 
   it("Discord API の channel.delete() が失敗しても removeCreatedVacChannel が呼ばれ、エラーを握りつぶしてクリーンアップを継続する耐障害性を検証する", async () => {
     const repository = createRepositoryMock();
-    repository.getVacConfigOrDefault.mockResolvedValue({
+    repository.getVacSettingsOrDefault.mockResolvedValue({
       enabled: true,
       triggerChannelIds: [],
       createdChannels: [

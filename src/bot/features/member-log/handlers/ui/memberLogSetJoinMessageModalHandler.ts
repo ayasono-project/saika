@@ -1,5 +1,5 @@
 // src/bot/features/member-log/handlers/ui/memberLogSetJoinMessageModalHandler.ts
-// member-log-config set-join-message モーダル送信処理
+// member-log-settings set-join-message モーダル送信処理
 
 import { MessageFlags, type ModalSubmitInteraction } from "discord.js";
 import {
@@ -8,13 +8,13 @@ import {
 } from "../../../../../shared/locale/localeManager";
 import { logger } from "../../../../../shared/utils/logger";
 import type { ModalHandler } from "../../../../handlers/interactionCreate/ui/types";
-import { getBotMemberLogConfigService } from "../../../../services/botCompositionRoot";
+import { getBotMemberLogSettingsService } from "../../../../services/botCompositionRoot";
 import { createSuccessEmbed } from "../../../../utils/messageResponse";
-import { MEMBER_LOG_CONFIG_COMMAND } from "../../commands/memberLogConfigCommand.constants";
+import { MEMBER_LOG_SETTINGS_COMMAND } from "../../commands/memberLogSettingsCommand.constants";
 
 export const memberLogSetJoinMessageModalHandler: ModalHandler = {
   matches(customId) {
-    return customId === MEMBER_LOG_CONFIG_COMMAND.SET_JOIN_MESSAGE_MODAL_ID;
+    return customId === MEMBER_LOG_SETTINGS_COMMAND.SET_JOIN_MESSAGE_MODAL_ID;
   },
 
   async execute(interaction: ModalSubmitInteraction) {
@@ -24,10 +24,10 @@ export const memberLogSetJoinMessageModalHandler: ModalHandler = {
     const guildId = guild.id;
 
     const message = interaction.fields.getTextInputValue(
-      MEMBER_LOG_CONFIG_COMMAND.MODAL_INPUT_MESSAGE,
+      MEMBER_LOG_SETTINGS_COMMAND.MODAL_INPUT_MESSAGE,
     );
 
-    await getBotMemberLogConfigService().setJoinMessage(guildId, message);
+    await getBotMemberLogSettingsService().setJoinMessage(guildId, message);
 
     const description = tInteraction(
       interaction.locale,

@@ -137,26 +137,26 @@ export const generateSnowflake = (): string => {
 /**
  * テストデータベース用のギルド設定を作成
  */
-export const createTestGuildConfig = (
+export const createTestGuildSettings = (
   guildId: string,
 ): {
   guildId: string;
   locale: string;
-  afkConfig: null;
-  vacConfig: null;
-  bumpReminderConfig: null;
+  afkSettings: null;
+  vacSettings: null;
+  bumpReminderSettings: null;
   stickMessages: null;
-  memberLogConfig: null;
+  memberLogSettings: null;
   createdAt: Date;
   updatedAt: Date;
 } => ({
   guildId: guildId,
   locale: "ja",
-  afkConfig: null,
-  vacConfig: null,
-  bumpReminderConfig: null,
+  afkSettings: null,
+  vacSettings: null,
+  bumpReminderSettings: null,
   stickMessages: null,
-  memberLogConfig: null,
+  memberLogSettings: null,
   createdAt: new Date(),
   updatedAt: new Date(),
 });

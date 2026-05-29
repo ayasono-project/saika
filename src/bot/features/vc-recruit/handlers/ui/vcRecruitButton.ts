@@ -21,7 +21,7 @@ import {
 import { tInteraction } from "../../../../../shared/locale/localeManager";
 import type { ButtonHandler } from "../../../../handlers/interactionCreate/ui/types";
 import {
-  getBotVacConfigService,
+  getBotVacSettingsService,
   getBotVcRecruitRepository,
 } from "../../../../services/botCompositionRoot";
 import { safeReply } from "../../../../utils/interaction";
@@ -30,13 +30,13 @@ import {
   createWarningEmbed,
   STATUS_COLORS,
 } from "../../../../utils/messageResponse";
-import { buildTeardownSelectOptions } from "../../commands/usecases/vcRecruitConfigTeardown";
+import { buildTeardownSelectOptions } from "../../commands/usecases/vcRecruitSettingsTeardown";
 import {
   VC_RECRUIT_CONTENT_MAX_LENGTH,
   VC_RECRUIT_PANEL_CUSTOM_ID,
   VC_RECRUIT_TEARDOWN_CUSTOM_ID,
   VC_RECRUIT_TIMEOUT,
-} from "../../commands/vcRecruitConfigCommand.constants";
+} from "../../commands/vcRecruitSettingsCommand.constants";
 import {
   getVcRecruitSession,
   NEW_VC_VALUE,
@@ -137,7 +137,7 @@ export const vcRecruitButtonHandler: ButtonHandler = {
       }
 
       // ── メンション候補ロールのセレクトメニューを構築 ────────────
-      const config = await repo.getVcRecruitConfigOrDefault(guild.id);
+      const config = await repo.getVcRecruitSettingsOrDefault(guild.id);
 
       const mentionOptions: StringSelectMenuOptionBuilder[] = [];
 
@@ -171,10 +171,9 @@ export const vcRecruitButtonHandler: ButtonHandler = {
       }
 
       // ── VCセレクトメニューを構築 ────────────────────────────────
-      const vacConfig = await getBotVacConfigService().getVacConfigOrDefault(
-        guild.id,
-      );
-      const vacTriggerIds = new Set(vacConfig.triggerChannelIds);
+      const vacSettings =
+        await getBotVacSettingsService().getVacSettingsOrDefault(guild.id);
+      const vacTriggerIds = new Set(vacSettings.triggerChannelIds);
       const afkChannelId = guild.afkChannelId;
 
       const existingVcs = guild.channels.cache
@@ -383,7 +382,7 @@ export const vcRecruitButtonHandler: ButtonHandler = {
 
       // teardown select menu を再構築する
       const repo = getBotVcRecruitRepository();
-      const config = await repo.getVcRecruitConfigOrDefault(guild.id);
+      const config = await repo.getVcRecruitSettingsOrDefault(guild.id);
       const options = buildTeardownSelectOptions(
         guild,
         interaction.locale,

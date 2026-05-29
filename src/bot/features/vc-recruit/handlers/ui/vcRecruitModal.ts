@@ -26,11 +26,11 @@ import {
 } from "../../../../utils/messageResponse";
 import { sendVcControlPanel } from "../../../vc-panel/vcControlPanel";
 import {
-  VC_RECRUIT_CONFIG_COMMAND,
   VC_RECRUIT_PANEL_COLOR,
   VC_RECRUIT_PANEL_CUSTOM_ID,
   VC_RECRUIT_POST_CUSTOM_ID,
-} from "../../commands/vcRecruitConfigCommand.constants";
+  VC_RECRUIT_SETTINGS_COMMAND,
+} from "../../commands/vcRecruitSettingsCommand.constants";
 import {
   deleteVcRecruitSession,
   getVcRecruitSession,
@@ -176,7 +176,7 @@ export const vcRecruitModalHandler: ModalHandler = {
         if (
           cat?.type === ChannelType.GuildCategory &&
           cat.children.cache.size >=
-            VC_RECRUIT_CONFIG_COMMAND.CATEGORY_CHANNEL_LIMIT
+            VC_RECRUIT_SETTINGS_COMMAND.CATEGORY_CHANNEL_LIMIT
         ) {
           await interaction.editReply({
             embeds: [

@@ -3,16 +3,16 @@
 
 export const vac = {
   // ── Command definitions ──────────────────────
-  "vac-config.description":
+  "vac-settings.description":
     "Configure voice auto-create feature (Manage Server)",
-  "vac-config.create-trigger-vc.description": "Create trigger channel",
-  "vac-config.create-trigger-vc.category.description":
+  "vac-settings.create-trigger-vc.description": "Create trigger channel",
+  "vac-settings.create-trigger-vc.category.description":
     "Destination category (TOP or category; defaults to current category)",
-  "vac-config.remove-trigger-vc.description": "Remove trigger channel",
-  "vac-config.remove-trigger-vc.category.description":
+  "vac-settings.remove-trigger-vc.description": "Remove trigger channel",
+  "vac-settings.remove-trigger-vc.category.description":
     "Target category (TOP or category; defaults to current category)",
-  "vac-config.remove-trigger-vc.category.top": "TOP (no category)",
-  "vac-config.view.description": "Show current settings",
+  "vac-settings.remove-trigger-vc.category.top": "TOP (no category)",
+  "vac-settings.view.description": "Show current settings",
 
   // ── User responses ───────────────────────────
   "user-response.trigger_created": "Created trigger channel {{channel}}",

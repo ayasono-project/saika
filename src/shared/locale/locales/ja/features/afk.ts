@@ -5,19 +5,19 @@ export const afk = {
   // ── コマンド定義 ─────────────────────────────
   "afk.description": "AFKチャンネルにユーザーを移動",
   "afk.user.description": "移動するユーザー（省略で自分）",
-  "afk-config.description": "AFK機能の設定（サーバー管理権限が必要）",
-  "afk-config.set-channel.description": "AFKチャンネルを設定",
-  "afk-config.set-channel.channel.description":
+  "afk-settings.description": "AFK機能の設定（サーバー管理権限が必要）",
+  "afk-settings.set-channel.description": "AFKチャンネルを設定",
+  "afk-settings.set-channel.channel.description":
     "AFKチャンネル（ボイスチャンネル）",
-  "afk-config.view.description": "現在の設定を表示",
-  "afk-config.clear-channel.description": "AFKチャンネル設定を解除",
+  "afk-settings.view.description": "現在の設定を表示",
+  "afk-settings.clear-channel.description": "AFKチャンネル設定を解除",
 
   // ── ユーザーレスポンス ────────────────────────
   "user-response.moved": "{{user}} を {{channel}} に移動しました。",
   "user-response.set_channel_success":
     "AFKチャンネルを {{channel}} に設定しました。",
   "user-response.not_configured":
-    "AFKチャンネルが設定されていません。\n`/afk-config set-channel` でチャンネルを設定してください。（サーバー管理権限が必要）",
+    "AFKチャンネルが設定されていません。\n`/afk-settings set-channel` でチャンネルを設定してください。（サーバー管理権限が必要）",
   "user-response.member_not_found": "ユーザーが見つかりませんでした。",
   "user-response.user_not_in_voice":
     "指定されたユーザーはボイスチャンネルにいません。",

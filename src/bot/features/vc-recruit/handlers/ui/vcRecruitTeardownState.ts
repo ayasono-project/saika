@@ -18,7 +18,7 @@ export interface TeardownConfirmSession {
 }
 
 import { TtlMap } from "../../../../../shared/utils/ttlMap";
-import { VC_RECRUIT_TIMEOUT } from "../../commands/vcRecruitConfigCommand.constants";
+import { VC_RECRUIT_TIMEOUT } from "../../commands/vcRecruitSettingsCommand.constants";
 
 /** セレクトインタラクションID → TeardownConfirmSession のインメモリストア */
 const sessions = new TtlMap<TeardownConfirmSession>(

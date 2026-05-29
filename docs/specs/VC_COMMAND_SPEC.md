@@ -2,7 +2,7 @@
 
 > 参加中のボイスチャンネルの設定変更、および VC 参加メンバーの切断・移動を行うコマンド群
 
-最終更新: 2026年5月28日
+最終更新: 2026年5月29日
 
 > **ステータス**: `/vc disconnect` / `/vc move` および共通ユーティリティはたたき台(2026-05-28 追記)。本仕様書末尾の「オープン項目」を確定したうえで実装着手する。
 
@@ -48,8 +48,8 @@
 
 | 管理元 | 判定方法 |
 | --- | --- |
-| VAC(VC自動作成) | `GuildVacConfig.createdChannels[].voiceChannelId` に含まれる |
-| VC募集(新規作成VC) | `VcRecruitConfig.setups[].createdVoiceChannelIds` に含まれる |
+| VAC(VC自動作成) | `GuildVacSettings.createdChannels[].voiceChannelId` に含まれる |
+| VC募集(新規作成VC) | `VcRecruitSettings.setups[].createdVoiceChannelIds` に含まれる |
 
 「他メンバーを動かす系」(`/vc disconnect`, `/vc move`)は管理対象に関わらず **サーバー内の全 VC** が対象。
 
@@ -445,8 +445,8 @@ target が Channel の場合のみ、誤爆防止のため実行前に ephemeral
 
 | 依存先 | 内容 |
 | --- | --- |
-| VAC（VC自動作成） | `GuildVacConfig.createdChannels` を参照してVAC管理下VCか判定 |
-| VC募集 | `VcRecruitConfig.setups[].createdVoiceChannelIds` を参照してVC募集管理下VCか判定 |
+| VAC（VC自動作成） | `GuildVacSettings.createdChannels` を参照してVAC管理下VCか判定 |
+| VC募集 | `VcRecruitSettings.setups[].createdVoiceChannelIds` を参照してVC募集管理下VCか判定 |
 | vc-panel（操作パネル） | パネルのボタンハンドラーは別途VC参加チェックで動作（本コマンドとは独立） |
 | [AFK_SPEC.md](AFK_SPEC.md) | `/afk` 側で `formatActionLog` および一括確認ダイアログを共有 |
 | [IMPLEMENTATION_GUIDELINES.md](../guides/IMPLEMENTATION_GUIDELINES.md) | ephemeral/public 判定原則の親ドキュメント(本タスクで該当セクションを新設) |

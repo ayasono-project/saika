@@ -13,7 +13,7 @@ vi.mock("@/bot/services/botCompositionRoot", () => ({
   getBotStickyMessageResendService: vi.fn(() => ({
     cancelTimer: cancelTimerMock,
   })),
-  getBotStickyMessageConfigService: vi.fn(() => ({
+  getBotStickyMessageSettingsService: vi.fn(() => ({
     deleteByChannel: deleteByChannelMock,
   })),
 }));

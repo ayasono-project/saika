@@ -8,8 +8,8 @@
 import { ChannelType, PermissionFlagsBits } from "discord.js";
 import type { Mocked } from "vitest";
 import { VacService } from "@/bot/features/vac/services/vacService";
-import type { VacConfig } from "@/shared/database/types";
-import type { VacConfigService } from "@/shared/features/vac/vacConfigService";
+import type { VacSettings } from "@/shared/database/types";
+import type { VacSettingsService } from "@/shared/features/vac/vacSettingsService";
 
 // Logger のモック
 vi.mock("@/shared/utils/logger", () => ({
@@ -60,20 +60,20 @@ vi.mock("@/shared/utils/errorHandling", () => ({
   },
 }));
 
-function createRepositoryMock(): Mocked<VacConfigService> {
+function createRepositoryMock(): Mocked<VacSettingsService> {
   return {
-    getVacConfigOrDefault: vi.fn(),
-    saveVacConfig: vi.fn(),
+    getVacSettingsOrDefault: vi.fn(),
+    saveVacSettings: vi.fn(),
     addTriggerChannel: vi.fn(),
     removeTriggerChannel: vi.fn(),
     addCreatedVacChannel: vi.fn(),
     removeCreatedVacChannel: vi.fn(),
     isManagedVacChannel: vi.fn(),
-  } as unknown as Mocked<VacConfigService>;
+  } as unknown as Mocked<VacSettingsService>;
 }
 
 /** VAC が有効でトリガーと作成済みチャンネルを持つ設定を返す */
-function createEnabledConfig(overrides?: Partial<VacConfig>): VacConfig {
+function createEnabledConfig(overrides?: Partial<VacSettings>): VacSettings {
   return {
     enabled: true,
     triggerChannelIds: ["trigger-1"],
@@ -170,7 +170,9 @@ describe("VacService Integration", () => {
       const service = new VacService(repository);
 
       // --- Phase 1: トリガーVC参加 → チャンネル作成 ---
-      repository.getVacConfigOrDefault.mockResolvedValue(createEnabledConfig());
+      repository.getVacSettingsOrDefault.mockResolvedValue(
+        createEnabledConfig(),
+      );
 
       const {
         state: joinState,
@@ -213,7 +215,7 @@ describe("VacService Integration", () => {
       });
 
       // --- Phase 2: 作成されたVCから退出 → 空室で自動削除 ---
-      repository.getVacConfigOrDefault.mockResolvedValue(
+      repository.getVacSettingsOrDefault.mockResolvedValue(
         createEnabledConfig({
           createdChannels: [
             {
@@ -250,7 +252,7 @@ describe("VacService Integration", () => {
       const repository = createRepositoryMock();
       const service = new VacService(repository);
 
-      repository.getVacConfigOrDefault.mockResolvedValue(
+      repository.getVacSettingsOrDefault.mockResolvedValue(
         createEnabledConfig({
           createdChannels: [
             {
@@ -284,7 +286,7 @@ describe("VacService Integration", () => {
       const repository = createRepositoryMock();
       const service = new VacService(repository);
 
-      repository.getVacConfigOrDefault.mockResolvedValue(
+      repository.getVacSettingsOrDefault.mockResolvedValue(
         createEnabledConfig({
           createdChannels: [
             {
@@ -330,7 +332,7 @@ describe("VacService Integration", () => {
       const repository = createRepositoryMock();
       const service = new VacService(repository);
 
-      repository.getVacConfigOrDefault.mockResolvedValue(
+      repository.getVacSettingsOrDefault.mockResolvedValue(
         createEnabledConfig({
           createdChannels: [
             { voiceChannelId: "stale-vc-1", ownerId: "user-1", createdAt: 1 },
@@ -381,7 +383,7 @@ describe("VacService Integration", () => {
       const service = new VacService(repository);
 
       // 移動先はトリガーVC、移動元は空室の管理VAC
-      repository.getVacConfigOrDefault.mockResolvedValue(
+      repository.getVacSettingsOrDefault.mockResolvedValue(
         createEnabledConfig({
           createdChannels: [
             {
@@ -433,7 +435,9 @@ describe("VacService Integration", () => {
       const repository = createRepositoryMock();
       const service = new VacService(repository);
 
-      repository.getVacConfigOrDefault.mockResolvedValue(createEnabledConfig());
+      repository.getVacSettingsOrDefault.mockResolvedValue(
+        createEnabledConfig(),
+      );
 
       const { state: joinState, createMock } = createVoiceState({
         channelId: "trigger-1",
@@ -457,7 +461,9 @@ describe("VacService Integration", () => {
       const repository = createRepositoryMock();
       const service = new VacService(repository);
 
-      repository.getVacConfigOrDefault.mockResolvedValue(createEnabledConfig());
+      repository.getVacSettingsOrDefault.mockResolvedValue(
+        createEnabledConfig(),
+      );
 
       const channelDeleteMock = vi.fn().mockResolvedValue(undefined);
       const createMock = vi.fn().mockResolvedValue({
@@ -513,7 +519,7 @@ describe("VacService Integration", () => {
       const repository = createRepositoryMock();
       const service = new VacService(repository);
 
-      repository.getVacConfigOrDefault.mockResolvedValue(
+      repository.getVacSettingsOrDefault.mockResolvedValue(
         createEnabledConfig({ triggerChannelIds: ["trigger-1", "trigger-2"] }),
       );
 
@@ -536,7 +542,7 @@ describe("VacService Integration", () => {
       const repository = createRepositoryMock();
       const service = new VacService(repository);
 
-      repository.getVacConfigOrDefault.mockResolvedValue(
+      repository.getVacSettingsOrDefault.mockResolvedValue(
         createEnabledConfig({
           createdChannels: [
             { voiceChannelId: "managed-1", ownerId: "user-1", createdAt: 1 },
@@ -563,7 +569,7 @@ describe("VacService Integration", () => {
       const repository = createRepositoryMock();
       const service = new VacService(repository);
 
-      repository.getVacConfigOrDefault.mockResolvedValue(
+      repository.getVacSettingsOrDefault.mockResolvedValue(
         createEnabledConfig({
           triggerChannelIds: ["dual-channel"],
           createdChannels: [
@@ -599,7 +605,7 @@ describe("VacService Integration", () => {
 
       const deleteMock = vi.fn().mockResolvedValue(undefined);
 
-      repository.getVacConfigOrDefault.mockResolvedValue(
+      repository.getVacSettingsOrDefault.mockResolvedValue(
         createEnabledConfig({
           triggerChannelIds: ["valid-trigger", "stale-trigger"],
           createdChannels: [
@@ -688,7 +694,7 @@ describe("VacService Integration", () => {
         ],
       });
 
-      repository.getVacConfigOrDefault
+      repository.getVacSettingsOrDefault
         .mockResolvedValueOnce(guild1Config)
         .mockResolvedValueOnce(guild2Config);
 
@@ -722,7 +728,7 @@ describe("VacService Integration", () => {
       const repository = createRepositoryMock();
       const service = new VacService(repository);
 
-      repository.getVacConfigOrDefault.mockResolvedValue(
+      repository.getVacSettingsOrDefault.mockResolvedValue(
         createEnabledConfig({
           triggerChannelIds: ["trigger-1"],
           createdChannels: [
@@ -772,14 +778,14 @@ describe("VacService Integration", () => {
         newState as never,
       );
 
-      expect(repository.getVacConfigOrDefault).not.toHaveBeenCalled();
+      expect(repository.getVacSettingsOrDefault).not.toHaveBeenCalled();
     });
 
     it("VAC が無効な場合はトリガーVCに参加してもチャンネルを作成しないこと", async () => {
       const repository = createRepositoryMock();
       const service = new VacService(repository);
 
-      repository.getVacConfigOrDefault.mockResolvedValue({
+      repository.getVacSettingsOrDefault.mockResolvedValue({
         enabled: false,
         triggerChannelIds: ["trigger-1"],
         createdChannels: [],
@@ -803,7 +809,7 @@ describe("VacService Integration", () => {
       const repository = createRepositoryMock();
       const service = new VacService(repository);
 
-      repository.getVacConfigOrDefault.mockResolvedValue(
+      repository.getVacSettingsOrDefault.mockResolvedValue(
         createEnabledConfig({ triggerChannelIds: ["trigger-1"] }),
       );
 
@@ -825,7 +831,7 @@ describe("VacService Integration", () => {
       const repository = createRepositoryMock();
       const service = new VacService(repository);
 
-      repository.getVacConfigOrDefault.mockResolvedValue(
+      repository.getVacSettingsOrDefault.mockResolvedValue(
         createEnabledConfig({
           createdChannels: [
             { voiceChannelId: "managed-1", ownerId: "user-1", createdAt: 1 },
@@ -854,7 +860,9 @@ describe("VacService Integration", () => {
       const repository = createRepositoryMock();
       const service = new VacService(repository);
 
-      repository.getVacConfigOrDefault.mockResolvedValue(createEnabledConfig());
+      repository.getVacSettingsOrDefault.mockResolvedValue(
+        createEnabledConfig(),
+      );
 
       const { state: joinState, createMock } = createVoiceState({
         channelId: "trigger-1",

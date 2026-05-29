@@ -8,8 +8,8 @@ import {
 } from "../../../../../shared/locale/localeManager";
 import { logger } from "../../../../../shared/utils/logger";
 import {
-  getBotTicketConfigService,
   getBotTicketRepository,
+  getBotTicketSettingsService,
 } from "../../../../services/botCompositionRoot";
 import {
   createErrorEmbed,
@@ -29,7 +29,7 @@ export async function handleTicketClose(
   if (!guild) return;
 
   const ticketRepository = getBotTicketRepository();
-  const configService = getBotTicketConfigService();
+  const settingsService = getBotTicketSettingsService();
 
   // チャンネルIDからチケットを取得
   const ticket = await ticketRepository.findByChannelId(interaction.channelId);
@@ -65,7 +65,7 @@ export async function handleTicketClose(
   }
 
   // 設定を取得してスタッフロールを解析
-  const config = await configService.findByGuildAndCategory(
+  const config = await settingsService.findByGuildAndCategory(
     ticket.guildId,
     ticket.categoryId,
   );
@@ -99,7 +99,7 @@ export async function handleTicketClose(
   }
 
   // チケットをクローズ
-  await closeTicket(ticket, guild, configService, ticketRepository);
+  await closeTicket(ticket, guild, settingsService, ticketRepository);
 
   logger.info(
     logPrefixed("system:log_prefix.ticket", "ticket:log.ticket_closed", {

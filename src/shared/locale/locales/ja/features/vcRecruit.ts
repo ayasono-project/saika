@@ -3,18 +3,19 @@
 
 export const vcRecruit = {
   // ── コマンド定義 ─────────────────────────────
-  "vc-recruit-config.description": "VC募集機能の設定（サーバー管理権限が必要）",
-  "vc-recruit-config.setup.description": "VC募集チャンネルをセットアップ",
-  "vc-recruit-config.setup.category.description":
+  "vc-recruit-settings.description":
+    "VC募集機能の設定（サーバー管理権限が必要）",
+  "vc-recruit-settings.setup.description": "VC募集チャンネルをセットアップ",
+  "vc-recruit-settings.setup.category.description":
     "作成先カテゴリー（TOP またはカテゴリー名。未指定時は実行チャンネルのカテゴリー）",
-  "vc-recruit-config.setup.category.top": "TOP（カテゴリーなし）",
-  "vc-recruit-config.setup.thread-archive.description":
+  "vc-recruit-settings.setup.category.top": "TOP（カテゴリーなし）",
+  "vc-recruit-settings.setup.thread-archive.description":
     "招募スレッドの自動アーカイブ時間（1h/24h/3d/1w、未指定: 24h）",
-  "vc-recruit-config.teardown.description":
+  "vc-recruit-settings.teardown.description":
     "VC募集チャンネルを削除（選択UI経由）",
-  "vc-recruit-config.add-role.description": "メンション候補ロールを追加",
-  "vc-recruit-config.remove-role.description": "メンション候補ロールを削除",
-  "vc-recruit-config.view.description": "現在のVC募集設定を表示",
+  "vc-recruit-settings.add-role.description": "メンション候補ロールを追加",
+  "vc-recruit-settings.remove-role.description": "メンション候補ロールを削除",
+  "vc-recruit-settings.view.description": "現在のVC募集設定を表示",
 
   // ── UIラベル ──────────────────────────────────
   "ui.button.create_recruit": "VC募集を作成",

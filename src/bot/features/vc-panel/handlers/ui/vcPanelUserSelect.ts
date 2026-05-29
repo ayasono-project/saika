@@ -7,7 +7,7 @@ import {
   MessageFlags,
   type StringSelectMenuInteraction,
 } from "discord.js";
-import { getAfkConfig } from "../../../../../shared/features/afk/afkConfigService";
+import { getAfkSettings } from "../../../../../shared/features/afk/afkSettingsService";
 import { tInteraction } from "../../../../../shared/locale/localeManager";
 import type { StringSelectHandler } from "../../../../handlers/interactionCreate/ui/types";
 import { safeReply } from "../../../../utils/interaction";
@@ -110,8 +110,8 @@ export const vcPanelUserSelectHandler: StringSelectHandler = {
       return;
     }
 
-    const afkConfig = await getAfkConfig(guild.id);
-    if (!afkConfig || !afkConfig.enabled || !afkConfig.channelId) {
+    const afkSettings = await getAfkSettings(guild.id);
+    if (!afkSettings || !afkSettings.enabled || !afkSettings.channelId) {
       await safeReply(interaction, {
         embeds: [
           createWarningEmbed(
@@ -133,7 +133,7 @@ export const vcPanelUserSelectHandler: StringSelectHandler = {
     }
 
     const afkChannel = await guild.channels
-      .fetch(afkConfig.channelId)
+      .fetch(afkSettings.channelId)
       .catch(() => null);
 
     if (!afkChannel || afkChannel.type !== ChannelType.GuildVoice) {

@@ -7,8 +7,8 @@ import { logPrefixed } from "../../../../shared/locale/localeManager";
 import { jobScheduler } from "../../../../shared/scheduler/jobScheduler";
 import { logger } from "../../../../shared/utils/logger";
 import {
-  getBotTicketConfigService,
   getBotTicketRepository,
+  getBotTicketSettingsService,
 } from "../../../services/botCompositionRoot";
 import { TICKET_AUTO_DELETE_JOB_PREFIX } from "../commands/ticketCommand.constants";
 
@@ -135,8 +135,8 @@ export async function restoreAutoDeleteTimers(
       .catch(() => []);
 
     for (const ticket of closedTickets) {
-      const configService = getBotTicketConfigService();
-      const config = await configService
+      const settingsService = getBotTicketSettingsService();
+      const config = await settingsService
         .findByGuildAndCategory(ticket.guildId, ticket.categoryId)
         .catch(() => null);
       if (!config) continue;

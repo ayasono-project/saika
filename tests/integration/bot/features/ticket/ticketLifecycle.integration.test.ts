@@ -56,14 +56,14 @@ import {
   reopenTicket,
 } from "@/bot/features/ticket/services/ticketService";
 import type {
-  GuildTicketConfig,
-  IGuildTicketConfigRepository,
+  GuildTicketSettings,
+  IGuildTicketSettingsRepository,
   ITicketRepository,
 } from "@/shared/database/types";
-import { TicketConfigService } from "@/shared/features/ticket/ticketConfigService";
+import { TicketSettingsService } from "@/shared/features/ticket/ticketSettingsService";
 
-function createInMemoryTicketConfigRepository(): IGuildTicketConfigRepository {
-  const configs = new Map<string, GuildTicketConfig>();
+function createInMemoryTicketSettingsRepository(): IGuildTicketSettingsRepository {
+  const configs = new Map<string, GuildTicketSettings>();
 
   function makeKey(guildId: string, categoryId: string) {
     return `${guildId}:${categoryId}`;
@@ -74,7 +74,7 @@ function createInMemoryTicketConfigRepository(): IGuildTicketConfigRepository {
       return configs.get(makeKey(guildId, categoryId)) ?? null;
     }),
     findAllByGuild: vi.fn(async (guildId) => {
-      const results: GuildTicketConfig[] = [];
+      const results: GuildTicketSettings[] = [];
       for (const config of configs.values()) {
         if (config.guildId === guildId) results.push(config);
       }
@@ -251,22 +251,22 @@ function createMockGuild() {
 }
 
 describe("ticket lifecycle integration", () => {
-  let configService: TicketConfigService;
+  let settingsService: TicketSettingsService;
   let ticketRepository: ITicketRepository;
   let guild: ReturnType<typeof createMockGuild>;
 
   beforeEach(() => {
     vi.clearAllMocks();
 
-    const configRepo = createInMemoryTicketConfigRepository();
-    configService = new TicketConfigService(configRepo);
+    const configRepo = createInMemoryTicketSettingsRepository();
+    settingsService = new TicketSettingsService(configRepo);
     ticketRepository = createInMemoryTicketRepository();
     guild = createMockGuild();
   });
 
   it("setup config -> create ticket -> close -> reopen -> delete の一連のフローが正しく動作する", async () => {
     // 1. 設定を作成
-    await configService.create({
+    await settingsService.create({
       guildId: "guild-1",
       categoryId: "cat-1",
       enabled: true,
@@ -281,7 +281,7 @@ describe("ticket lifecycle integration", () => {
       ticketCounter: 0,
     });
 
-    const config = await configService.findByGuildAndCategory(
+    const config = await settingsService.findByGuildAndCategory(
       "guild-1",
       "cat-1",
     );
@@ -295,7 +295,7 @@ describe("ticket lifecycle integration", () => {
       "user-1",
       "テストチケット",
       "テストの詳細説明",
-      configService as never,
+      settingsService as never,
       ticketRepository as never,
     );
 
@@ -317,7 +317,7 @@ describe("ticket lifecycle integration", () => {
     );
 
     // カウンターがインクリメントされたことを確認
-    const updatedConfig = await configService.findByGuildAndCategory(
+    const updatedConfig = await settingsService.findByGuildAndCategory(
       "guild-1",
       "cat-1",
     );
@@ -327,7 +327,7 @@ describe("ticket lifecycle integration", () => {
     await closeTicket(
       ticket,
       guild as never,
-      configService as never,
+      settingsService as never,
       ticketRepository as never,
     );
 
@@ -369,7 +369,7 @@ describe("ticket lifecycle integration", () => {
     await reopenTicket(
       ticketBeforeReopen as never,
       guild as never,
-      configService as never,
+      settingsService as never,
       ticketRepository as never,
     );
 

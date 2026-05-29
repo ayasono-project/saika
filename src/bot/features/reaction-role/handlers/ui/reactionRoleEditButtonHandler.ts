@@ -21,7 +21,7 @@ import type {
   RoleSelectHandler,
   StringSelectHandler,
 } from "../../../../handlers/interactionCreate/ui/types";
-import { getBotReactionRolePanelConfigService } from "../../../../services/botCompositionRoot";
+import { getBotReactionRolePanelSettingsService } from "../../../../services/botCompositionRoot";
 import {
   createErrorEmbed,
   createSuccessEmbed,
@@ -76,8 +76,8 @@ export const reactionRoleEditButtonPanelSelectHandler: StringSelectHandler = {
     const panelId = interaction.values[0];
     session.panelId = panelId;
 
-    const configService = getBotReactionRolePanelConfigService();
-    const panel = await configService.findById(panelId);
+    const settingsService = getBotReactionRolePanelSettingsService();
+    const panel = await settingsService.findById(panelId);
     if (!panel) return;
 
     const buttons = parseButtons(panel.buttons);
@@ -143,8 +143,8 @@ export const reactionRoleEditButtonSelectHandler: StringSelectHandler = {
     const buttonId = Number(interaction.values[0]);
     session.buttonId = buttonId;
 
-    const configService = getBotReactionRolePanelConfigService();
-    const panel = await configService.findById(session.panelId);
+    const settingsService = getBotReactionRolePanelSettingsService();
+    const panel = await settingsService.findById(session.panelId);
     if (!panel) return;
 
     const buttons = parseButtons(panel.buttons);
@@ -218,8 +218,8 @@ export const reactionRoleEditButtonModalHandler: ModalHandler = {
     }
 
     // 現在のボタン色を取得して色 SelectMenu の default に使う
-    const configService = getBotReactionRolePanelConfigService();
-    const panel = await configService.findById(session.panelId);
+    const settingsService = getBotReactionRolePanelSettingsService();
+    const panel = await settingsService.findById(session.panelId);
     const currentStyle =
       parseButtons(panel?.buttons ?? "[]").find(
         (b) => b.buttonId === session.buttonId,
@@ -361,8 +361,8 @@ export const reactionRoleEditButtonRoleSelectHandler: RoleSelectHandler = {
 
     await interaction.deferUpdate();
 
-    const configService = getBotReactionRolePanelConfigService();
-    const panel = await configService.findById(session.panelId);
+    const settingsService = getBotReactionRolePanelSettingsService();
+    const panel = await settingsService.findById(session.panelId);
     if (!panel) return;
 
     const allButtons = parseButtons(panel.buttons);
@@ -381,7 +381,7 @@ export const reactionRoleEditButtonRoleSelectHandler: RoleSelectHandler = {
     };
 
     // DB更新
-    await configService.update(session.panelId, {
+    await settingsService.update(session.panelId, {
       buttons: JSON.stringify(allButtons),
     });
 
@@ -399,7 +399,7 @@ export const reactionRoleEditButtonRoleSelectHandler: RoleSelectHandler = {
 
     if (!updated) {
       // パネルメッセージが削除済み → DB クリーンアップ
-      await configService.delete(session.panelId);
+      await settingsService.delete(session.panelId);
       await interaction.deleteReply().catch(() => null);
       await session.commandInteraction?.deleteReply().catch(() => null);
       const embed = createErrorEmbed(

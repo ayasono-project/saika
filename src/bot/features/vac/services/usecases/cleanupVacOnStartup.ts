@@ -2,7 +2,7 @@
 // VAC起動時クリーンアップユースケース
 
 import { ChannelType } from "discord.js";
-import type { VacConfigService } from "../../../../../shared/features/vac/vacConfigService";
+import type { VacSettingsService } from "../../../../../shared/features/vac/vacSettingsService";
 import { logPrefixed } from "../../../../../shared/locale/localeManager";
 import { logger } from "../../../../../shared/utils/logger";
 import type { BotClient } from "../../../../client";
@@ -14,16 +14,16 @@ import type { BotClient } from "../../../../client";
  * @returns 実行完了
  */
 export async function cleanupVacOnStartupUseCase(
-  vacRepository: VacConfigService,
+  vacRepository: VacSettingsService,
   client: BotClient,
 ): Promise<void> {
   let removedTriggers = 0;
   let removedChannels = 0;
 
   for (const [, guild] of client.guilds.cache) {
-    const vacConfig = await vacRepository.getVacConfigOrDefault(guild.id);
+    const vacSettings = await vacRepository.getVacSettingsOrDefault(guild.id);
 
-    for (const triggerChannelId of vacConfig.triggerChannelIds) {
+    for (const triggerChannelId of vacSettings.triggerChannelIds) {
       const triggerChannel = await guild.channels
         .fetch(triggerChannelId)
         .catch(() => null);
@@ -44,7 +44,7 @@ export async function cleanupVacOnStartupUseCase(
       }
     }
 
-    for (const channelInfo of vacConfig.createdChannels) {
+    for (const channelInfo of vacSettings.createdChannels) {
       const channel = await guild.channels
         .fetch(channelInfo.voiceChannelId)
         .catch(() => null);

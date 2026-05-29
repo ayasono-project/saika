@@ -10,8 +10,8 @@ import {
 } from "discord.js";
 import { tInteraction } from "../../../../../shared/locale/localeManager";
 import {
-  getBotTicketConfigService,
   getBotTicketRepository,
+  getBotTicketSettingsService,
 } from "../../../../services/botCompositionRoot";
 import { createErrorEmbed } from "../../../../utils/messageResponse";
 import { hasStaffRole } from "../../services/ticketService";
@@ -28,7 +28,7 @@ export async function handleTicketDelete(
   interaction: ChatInputCommandInteraction,
 ): Promise<void> {
   const ticketRepository = getBotTicketRepository();
-  const configService = getBotTicketConfigService();
+  const settingsService = getBotTicketSettingsService();
 
   // チャンネルIDからチケットを取得
   const ticket = await ticketRepository.findByChannelId(interaction.channelId);
@@ -48,7 +48,7 @@ export async function handleTicketDelete(
   }
 
   // 設定を取得してスタッフロールを解析
-  const config = await configService.findByGuildAndCategory(
+  const config = await settingsService.findByGuildAndCategory(
     ticket.guildId,
     ticket.categoryId,
   );

@@ -11,7 +11,7 @@ import { tGuild } from "../../../../shared/locale/localeManager";
 import {
   VC_RECRUIT_PANEL_COLOR,
   VC_RECRUIT_PANEL_CUSTOM_ID,
-} from "./vcRecruitConfigCommand.constants";
+} from "./vcRecruitSettingsCommand.constants";
 
 /**
  * VC募集パネルの Embed とボタン行を構築する

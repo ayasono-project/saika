@@ -3,7 +3,7 @@
 
 import type { Client } from "discord.js";
 import type { ParseKeys } from "i18next";
-import type { BumpReminderConfigService } from "../../../../../shared/features/bump-reminder/bumpReminderConfigService";
+import type { BumpReminderSettingsService } from "../../../../../shared/features/bump-reminder/bumpReminderSettingsService";
 import { getGuildTranslator } from "../../../../../shared/locale/helpers";
 import type { AllNamespaces } from "../../../../../shared/locale/i18n";
 import { logPrefixed } from "../../../../../shared/locale/localeManager";
@@ -21,7 +21,7 @@ import type { BumpServiceName } from "../../constants/bumpReminderConstants";
  * @param channelId 通知先チャンネルID
  * @param messageId 返信参照に使う元メッセージID
  * @param serviceName 通知文言切り替え用サービス名
- * @param bumpReminderConfigService 設定取得サービス
+ * @param bumpReminderSettingsService 設定取得サービス
  * @param panelMessageId 通知完了後に削除するパネルメッセージID
  * @returns 実行完了を示す Promise
  */
@@ -31,7 +31,7 @@ export async function sendBumpReminder(
   channelId: string,
   messageId: string | undefined,
   serviceName: BumpServiceName | undefined,
-  bumpReminderConfigService: BumpReminderConfigService,
+  bumpReminderSettingsService: BumpReminderSettingsService,
   panelMessageId?: string,
 ): Promise<void> {
   try {
@@ -61,9 +61,11 @@ export async function sendBumpReminder(
     }
 
     // 送信直前に最新設定を再取得し、無効化されていたら中止
-    const currentConfig =
-      await bumpReminderConfigService.getBumpReminderConfigOrDefault(guildId);
-    if (!currentConfig.enabled) {
+    const currentSettings =
+      await bumpReminderSettingsService.getBumpReminderSettingsOrDefault(
+        guildId,
+      );
+    if (!currentSettings.enabled) {
       // 予約後に無効化されていた場合は送信を抑止
       logger.debug(
         logPrefixed(
@@ -79,16 +81,16 @@ export async function sendBumpReminder(
 
     // ロール + ユーザーのメンション文字列を組み立て
     const mentions: string[] = [];
-    if (currentConfig.mentionRoleId) {
-      mentions.push(`<@&${currentConfig.mentionRoleId}>`);
+    if (currentSettings.mentionRoleId) {
+      mentions.push(`<@&${currentSettings.mentionRoleId}>`);
     }
     if (
-      currentConfig.mentionUserIds &&
-      currentConfig.mentionUserIds.length > 0
+      currentSettings.mentionUserIds &&
+      currentSettings.mentionUserIds.length > 0
     ) {
       // ユーザー複数指定時は順序を保ってメンション文字列化
       // 保存順を保つことで設定画面との表示差異を最小化する
-      currentConfig.mentionUserIds.forEach((userId: string) => {
+      currentSettings.mentionUserIds.forEach((userId: string) => {
         mentions.push(`<@${userId}>`);
       });
     }

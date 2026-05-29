@@ -10,14 +10,14 @@
 
 | # | セクション | 概要 | 残件 |
 | --- | --- | --- | ---: |
-| 5 | ディレクトリ再編 + 命名整理 | `src/{bot,api,features,shared}/` 化・2 件のリネーム | 7 |
-| 6 | Postgres 移行 | SQLite → PostgreSQL（純粋なデータ層移行） | 4 |
+| 5 | ディレクトリ再編 + 命名整理 | `src/{bot,api,features,shared}/` 化（`-config`→`-settings` 完了） | 5 |
+| 6 | Postgres 移行 | SQLite → PostgreSQL（データ層移行 + テーブル名 settings 化） | 5 |
 | 7 | `/vc disconnect` 実装 & ephemeral 監査 | 個別/一括の切断・移動 + ephemeral/public 見直し | 4 |
 | 8 | 自動キック（非アクティブ整理） | 一定期間未活動メンバーの自動キック + 事前通知 | 3 |
 | 9 | 未承認ユーザー自動キック | 認証ロール未取得ユーザーの自動キック + 警告 DM | 3 |
 | 10 | Fastify API 実装 | web 完成後に契約通り実装 | 5 |
 | 11 | Bot 一般公開準備 | コマンド追加・認証申請 | 3 |
-| **合計** | | | **29** |
+| **合計** | | | **28** |
 
 > web ダッシュボード・インフラ（VPS / Cloudflare / Coolify）は別リポジトリで管理。
 > 作業順序は上から順（§5 → §6 → …）。§10 以降は web 側の進行に依存（§10 着手前に web がモック駆動で完成していること）。
@@ -40,14 +40,14 @@
 
 命名整理:
 
-- [ ] `-config` → `-settings` リネーム（コマンド・ファイル・変数・DB テーブル・ドキュメント）
-- [ ] `vc-recruit` → `instant-recruit` リネーム（仕様書も `INSTANT_RECRUIT_SPEC.md` に）
+- [x] `-config` → `-settings` リネーム（全 8 コマンド・変数・ファイル・DB モデル名・ドキュメント・仕様書 `GUILD_SETTINGS_SPEC.md`）。DB **テーブル名**（`@@map` の `guild_*_configs`）は migration を避けるため据え置き、§6 でリネーム。`vc-recruit`→`instant-recruit` は実態が VC 中心のため**見送り**（VC募集名を維持）。
 
 ### 6. Postgres 移行
 
 純粋な SQLite → PostgreSQL のデータ層移行（命名リネームは §5 に移動済み）。§5 完了後に着手。インフラ側で別途 Postgres 導入あり（別管理）。schema は Bot 内部要件で確定（web 契約待ちなし）。
 
 - [ ] `schema.prisma` の provider 切替（sqlite → postgresql）
+- [ ] テーブル名 `@@map` を `guild_*_configs` → `guild_*_settings` にリネーム（§5 でモデル名は settings 化済み。クリーンな Postgres migration に同梱）
 - [ ] JSON 文字列カラムを jsonb 化（7 箇所）+ アプリ側の `JSON.parse/stringify` 除去
 - [ ] migration 再生成・ローカル検証・本番切替（export → import）
 - [ ] [ARCHITECTURE.md](docs/guides/ARCHITECTURE.md) / [DEPLOYMENT.md](docs/guides/DEPLOYMENT.md) 更新
@@ -124,7 +124,7 @@ web フロントエンドがモック駆動（MSW 等）で完成した後、契
 
 Postgres 移行前のデータ保全前提。stateful モデル(`GuildTicketConfig` / open 状態の `Ticket` / `StickyMessage` / `GuildReactionRolePanel` / `GuildVacConfig.createdChannels`)を export に追加。import は「設定系=export 上書き」「stateful=現 DB 優先+欠落分のみ insert、削除はしない」の簡素化マージ方式。同一ギルド内バックアップ・DB 移行専用。`version: 1` 付与。
 
-- [x] 仕様書更新: [GUILD_CONFIG_SPEC.md](docs/specs/GUILD_CONFIG_SPEC.md)
+- [x] 仕様書更新: [GUILD_SETTINGS_SPEC.md](docs/specs/GUILD_SETTINGS_SPEC.md)
 - [x] 実装
 
 ### VC 募集 UX 改善（2026-04-18 完了）

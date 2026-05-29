@@ -4,7 +4,7 @@ import { ValidationError } from "@ayasono/shared/core";
 import { DiscordAPIError, RESTJSONErrorCodes } from "discord.js";
 import { executeAfkCommand } from "@/bot/features/afk/commands/afkCommand.execute";
 
-const getAfkConfigMock = vi.fn();
+const getAfkSettingsMock = vi.fn();
 const tGuildMock = vi.fn();
 const tDefaultMock = vi.fn((key: string) => `default:${key}`);
 const createSuccessEmbedMock = vi.fn((description: string) => ({
@@ -12,8 +12,8 @@ const createSuccessEmbedMock = vi.fn((description: string) => ({
 }));
 const loggerInfoMock = vi.fn();
 
-vi.mock("@/shared/features/afk/afkConfigService", () => ({
-  getAfkConfig: (...args: unknown[]) => getAfkConfigMock(...args),
+vi.mock("@/shared/features/afk/afkSettingsService", () => ({
+  getAfkSettings: (...args: unknown[]) => getAfkSettingsMock(...args),
 }));
 
 vi.mock("@/shared/locale/localeManager", () => ({
@@ -88,7 +88,7 @@ function createInteraction() {
 describe("bot/features/afk/commands/afkCommand.execute", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    getAfkConfigMock.mockResolvedValue({
+    getAfkSettingsMock.mockResolvedValue({
       enabled: true,
       channelId: "afk-channel",
     });
@@ -123,7 +123,7 @@ describe("bot/features/afk/commands/afkCommand.execute", () => {
   });
 
   it("config が null の場合は ValidationError を投げる", async () => {
-    getAfkConfigMock.mockResolvedValue(null);
+    getAfkSettingsMock.mockResolvedValue(null);
     const interaction = createInteraction();
 
     await expect(
@@ -132,7 +132,7 @@ describe("bot/features/afk/commands/afkCommand.execute", () => {
   });
 
   it("config.enabled が false の場合は ValidationError を投げる", async () => {
-    getAfkConfigMock.mockResolvedValue({
+    getAfkSettingsMock.mockResolvedValue({
       enabled: false,
       channelId: "afk-channel",
     });
@@ -144,7 +144,10 @@ describe("bot/features/afk/commands/afkCommand.execute", () => {
   });
 
   it("config.channelId が未設定の場合は ValidationError を投げる", async () => {
-    getAfkConfigMock.mockResolvedValue({ enabled: true, channelId: undefined });
+    getAfkSettingsMock.mockResolvedValue({
+      enabled: true,
+      channelId: undefined,
+    });
     const interaction = createInteraction();
 
     await expect(

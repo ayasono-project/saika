@@ -5,7 +5,7 @@ import { ChannelType } from "discord.js";
 import type { Mock } from "vitest";
 import { getManagedVoiceChannel } from "@/bot/features/vc-command/commands/usecases/vcVoiceChannelGuard";
 import {
-  getBotVacConfigService,
+  getBotVacSettingsService,
   getBotVcRecruitRepository,
 } from "@/bot/services/botCompositionRoot";
 
@@ -32,7 +32,7 @@ vi.mock("@/shared/locale/localeManager", () => ({
 }));
 
 vi.mock("@/bot/services/botCompositionRoot", () => ({
-  getBotVacConfigService: vi.fn(),
+  getBotVacSettingsService: vi.fn(),
   getBotVcRecruitRepository: vi.fn(),
 }));
 
@@ -64,7 +64,7 @@ describe("bot/features/vc-command/commands/usecases/vcVoiceChannelGuard", () => 
   });
 
   it("VAC管理下のVCに在籍している場合にボイスチャンネルIDを返す", async () => {
-    (getBotVacConfigService as Mock).mockReturnValue({
+    (getBotVacSettingsService as Mock).mockReturnValue({
       isManagedVacChannel: vi.fn().mockResolvedValue(true),
     });
 
@@ -83,7 +83,7 @@ describe("bot/features/vc-command/commands/usecases/vcVoiceChannelGuard", () => 
   });
 
   it("VC募集で作成されたVCに在籍している場合にボイスチャンネルIDを返す", async () => {
-    (getBotVacConfigService as Mock).mockReturnValue({
+    (getBotVacSettingsService as Mock).mockReturnValue({
       isManagedVacChannel: vi.fn().mockResolvedValue(false),
     });
     (getBotVcRecruitRepository as Mock).mockReturnValue({
@@ -104,7 +104,7 @@ describe("bot/features/vc-command/commands/usecases/vcVoiceChannelGuard", () => 
   });
 
   it("どの機能にも管理されていないVCの場合にValidationErrorをスローする", async () => {
-    (getBotVacConfigService as Mock).mockReturnValue({
+    (getBotVacSettingsService as Mock).mockReturnValue({
       isManagedVacChannel: vi.fn().mockResolvedValue(false),
     });
     (getBotVcRecruitRepository as Mock).mockReturnValue({

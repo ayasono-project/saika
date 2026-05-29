@@ -27,7 +27,7 @@ vi.mock("@/shared/utils/logger", () => ({
 }));
 
 vi.mock("@/bot/services/botCompositionRoot", () => ({
-  getBotTicketConfigService: vi.fn(),
+  getBotTicketSettingsService: vi.fn(),
   getBotTicketRepository: vi.fn(),
 }));
 
@@ -38,7 +38,7 @@ vi.mock("@/bot/utils/messageResponse", () => ({
   createInfoEmbed: vi.fn(() => ({ type: "info" })),
 }));
 
-import { getBotTicketConfigService } from "@/bot/services/botCompositionRoot";
+import { getBotTicketSettingsService } from "@/bot/services/botCompositionRoot";
 
 import { createMockRoleSelectInteraction as _createMockRoleSelect } from "../../../../../../helpers/interactionMocks";
 
@@ -89,7 +89,7 @@ describe("bot/features/ticket/handlers/ui/ticketRoleSelectHandler", () => {
           findByGuildAndCategory: vi.fn().mockResolvedValue(null),
           update: vi.fn(),
         };
-        vi.mocked(getBotTicketConfigService).mockReturnValue(
+        vi.mocked(getBotTicketSettingsService).mockReturnValue(
           mockConfigService as never,
         );
 
@@ -116,7 +116,7 @@ describe("bot/features/ticket/handlers/ui/ticketRoleSelectHandler", () => {
           }),
           update: vi.fn().mockResolvedValue(undefined),
         };
-        vi.mocked(getBotTicketConfigService).mockReturnValue(
+        vi.mocked(getBotTicketSettingsService).mockReturnValue(
           mockConfigService as never,
         );
 
@@ -149,7 +149,7 @@ describe("bot/features/ticket/handlers/ui/ticketRoleSelectHandler", () => {
           }),
           update: vi.fn().mockResolvedValue(undefined),
         };
-        vi.mocked(getBotTicketConfigService).mockReturnValue(
+        vi.mocked(getBotTicketSettingsService).mockReturnValue(
           mockConfigService as never,
         );
 
@@ -179,7 +179,7 @@ describe("bot/features/ticket/handlers/ui/ticketRoleSelectHandler", () => {
           }),
           update: vi.fn(),
         };
-        vi.mocked(getBotTicketConfigService).mockReturnValue(
+        vi.mocked(getBotTicketSettingsService).mockReturnValue(
           mockConfigService as never,
         );
 
@@ -209,7 +209,7 @@ describe("bot/features/ticket/handlers/ui/ticketRoleSelectHandler", () => {
           }),
           update: vi.fn().mockResolvedValue(undefined),
         };
-        vi.mocked(getBotTicketConfigService).mockReturnValue(
+        vi.mocked(getBotTicketSettingsService).mockReturnValue(
           mockConfigService as never,
         );
 

@@ -56,8 +56,8 @@ vi.mock("@/bot/features/vc-recruit/commands/vcRecruitPanelEmbed", () => ({
 
 // リポジトリモックの参照（ハンドラの内部で getBotVcRecruitRepository() で取得される）
 const mockRepository: Record<string, Mock> = {
-  getVcRecruitConfigOrDefault: vi.fn(),
-  saveVcRecruitConfig: vi.fn(),
+  getVcRecruitSettingsOrDefault: vi.fn(),
+  saveVcRecruitSettings: vi.fn(),
   addSetup: vi.fn(),
   removeSetup: vi.fn(),
   findSetupByCategoryId: vi.fn(),

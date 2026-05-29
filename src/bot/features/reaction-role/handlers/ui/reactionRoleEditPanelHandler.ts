@@ -11,7 +11,7 @@ import type {
   ModalHandler,
   StringSelectHandler,
 } from "../../../../handlers/interactionCreate/ui/types";
-import { getBotReactionRolePanelConfigService } from "../../../../services/botCompositionRoot";
+import { getBotReactionRolePanelSettingsService } from "../../../../services/botCompositionRoot";
 import {
   createErrorEmbed,
   createSuccessEmbed,
@@ -21,7 +21,7 @@ import {
   REACTION_ROLE_CUSTOM_ID,
   REACTION_ROLE_DEFAULT_PANEL_COLOR,
 } from "../../commands/reactionRoleCommand.constants";
-import { buildEditPanelModal } from "../../commands/usecases/reactionRoleConfigEditPanel";
+import { buildEditPanelModal } from "../../commands/usecases/reactionRoleSettingsEditPanel";
 import { updatePanelMessage } from "../../services/reactionRolePanelBuilder";
 import { reactionRoleEditPanelSessions } from "./reactionRoleSetupState";
 
@@ -58,8 +58,8 @@ export const reactionRoleEditPanelSelectHandler: StringSelectHandler = {
     const panelId = interaction.values[0];
     session.panelId = panelId;
 
-    const configService = getBotReactionRolePanelConfigService();
-    const panel = await configService.findById(panelId);
+    const settingsService = getBotReactionRolePanelSettingsService();
+    const panel = await settingsService.findById(panelId);
     if (!panel) return;
 
     const modal = buildEditPanelModal(
@@ -133,12 +133,12 @@ export const reactionRoleEditPanelModalHandler: ModalHandler = {
     // セレクトメニューメッセージを削除
     await session.commandInteraction?.deleteReply().catch(() => null);
 
-    const configService = getBotReactionRolePanelConfigService();
-    const panel = await configService.findById(session.panelId);
+    const settingsService = getBotReactionRolePanelSettingsService();
+    const panel = await settingsService.findById(session.panelId);
     if (!panel) return;
 
     // DB更新
-    await configService.update(session.panelId, {
+    await settingsService.update(session.panelId, {
       title,
       description,
       color,
@@ -159,7 +159,7 @@ export const reactionRoleEditPanelModalHandler: ModalHandler = {
 
     if (!updated) {
       // パネルメッセージが削除済み → DB クリーンアップ
-      await configService.delete(session.panelId);
+      await settingsService.delete(session.panelId);
       const embed = createErrorEmbed(
         tInteraction(
           interaction.locale,

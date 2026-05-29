@@ -2,7 +2,7 @@
 
 > トリガーチャンネル参加時に専用ボイスチャンネルを自動作成・管理する機能
 
-最終更新: 2026年3月22日
+最終更新: 2026年5月29日
 
 ---
 
@@ -27,7 +27,7 @@
 
 | 対象 | 権限 | 用途 |
 | --- | --- | --- |
-| 実行者 | ManageGuild | `/vac-config` 全サブコマンドの実行（コマンドレベルで制御） |
+| 実行者 | ManageGuild | `/vac-settings` 全サブコマンドの実行（コマンドレベルで制御） |
 | Bot | ManageChannels | VCの作成・削除・権限設定 |
 | Bot | MoveMembers | ユーザーの自動移動（作成VC・AFK移動） |
 | Bot | SendMessages | 操作パネルの送信 |
@@ -119,11 +119,11 @@
 
 ---
 
-## /vac-config create-trigger-vc
+## /vac-settings create-trigger-vc
 
 ### コマンド定義
 
-**コマンド**: `/vac-config create-trigger-vc`
+**コマンド**: `/vac-settings create-trigger-vc`
 
 **コマンドオプション:**
 
@@ -150,11 +150,11 @@
 
 ---
 
-## /vac-config remove-trigger-vc
+## /vac-settings remove-trigger-vc
 
 ### コマンド定義
 
-**コマンド**: `/vac-config remove-trigger-vc`
+**コマンド**: `/vac-settings remove-trigger-vc`
 
 **コマンドオプション:** なし
 
@@ -177,7 +177,7 @@
 
 | コンポーネント | プレースホルダー | 種別 | 設定 |
 | --- | --- | --- | --- |
-| `vac-config:trigger-remove-select` | 削除するトリガーチャンネルを選択（複数選択可） | StringSelect | `minValues: 1`, `maxValues: 設定数` |
+| `vac-settings:trigger-remove-select` | 削除するトリガーチャンネルを選択（複数選択可） | StringSelect | `minValues: 1`, `maxValues: 設定数` |
 
 選択肢: `#CreateVC (カテゴリ名)` 形式で表示
 
@@ -185,7 +185,7 @@
 
 | コンポーネント | emoji | ラベル | スタイル | 動作 |
 | --- | --- | --- | --- | --- |
-| `vac-config:trigger-remove-confirm` | 🗑️ | 削除する | Danger | 選択トリガーチャンネルを削除 |
+| `vac-settings:trigger-remove-confirm` | 🗑️ | 削除する | Danger | 選択トリガーチャンネルを削除 |
 
 **エラーケース:**
 
@@ -195,11 +195,11 @@
 
 ---
 
-## /vac-config view
+## /vac-settings view
 
 ### コマンド定義
 
-**コマンド**: `/vac-config view`
+**コマンド**: `/vac-settings view`
 
 **コマンドオプション:** なし
 
@@ -222,7 +222,7 @@
 
 ## データモデル
 
-### GuildVacConfig
+### GuildVacSettings
 
 | フィールド | 型 | 説明 |
 | --- | --- | --- |
@@ -248,7 +248,7 @@
 - デフォルト人数制限: 99
 - Bot再起動時に全ギルドを確認し、DBに残っているが存在しないトリガーチャンネルや作成済みVCを自動除去。空のまま残っているVCがあれば削除する
 - `channelDelete` イベントでトリガーチャンネル・作成済みVCの自動登録解除
-- リセットコマンドは不要（`/vac-config remove-trigger-vc` で全選択により一括削除可能。作成済みVCは空室時に自動削除される）
+- リセットコマンドは不要（`/vac-settings remove-trigger-vc` で全選択により一括削除可能。作成済みVCは空室時に自動削除される）
 
 ---
 
@@ -262,13 +262,13 @@
 
 | キー | 用途 | ja | en |
 | --- | --- | --- | --- |
-| `vac-config.description` | コマンド説明 | VC自動作成機能の設定（サーバー管理権限が必要） | Configure voice auto-create feature (Manage Server) |
-| `vac-config.create-trigger-vc.description` | サブコマンド説明 | トリガーチャンネルを作成 | Create trigger channel |
-| `vac-config.create-trigger-vc.category.description` | オプション説明 | 作成先カテゴリ（TOP またはカテゴリ。未指定時は実行カテゴリ） | Destination category (TOP or category; defaults to current category) |
-| `vac-config.remove-trigger-vc.description` | サブコマンド説明 | トリガーチャンネルを削除 | Remove trigger channel |
-| `vac-config.remove-trigger-vc.category.description` | レガシー（未使用） | 削除対象（TOP またはカテゴリ。未指定時は実行カテゴリ） | Target category (TOP or category; defaults to current category) |
-| `vac-config.remove-trigger-vc.category.top` | レガシー（未使用） | TOP（カテゴリなし） | TOP (no category) |
-| `vac-config.view.description` | サブコマンド説明 | 現在の設定を表示 | Show current settings |
+| `vac-settings.description` | コマンド説明 | VC自動作成機能の設定（サーバー管理権限が必要） | Configure voice auto-create feature (Manage Server) |
+| `vac-settings.create-trigger-vc.description` | サブコマンド説明 | トリガーチャンネルを作成 | Create trigger channel |
+| `vac-settings.create-trigger-vc.category.description` | オプション説明 | 作成先カテゴリ（TOP またはカテゴリ。未指定時は実行カテゴリ） | Destination category (TOP or category; defaults to current category) |
+| `vac-settings.remove-trigger-vc.description` | サブコマンド説明 | トリガーチャンネルを削除 | Remove trigger channel |
+| `vac-settings.remove-trigger-vc.category.description` | レガシー（未使用） | 削除対象（TOP またはカテゴリ。未指定時は実行カテゴリ） | Target category (TOP or category; defaults to current category) |
+| `vac-settings.remove-trigger-vc.category.top` | レガシー（未使用） | TOP（カテゴリなし） | TOP (no category) |
+| `vac-settings.view.description` | サブコマンド説明 | 現在の設定を表示 | Show current settings |
 
 ### ユーザーレスポンス
 
@@ -354,7 +354,7 @@
 
 | 依存先 | 内容 |
 | --- | --- |
-| GuildConfigRepository | VAC設定の取得・更新 |
+| GuildSettingsRepository | VAC設定の取得・更新 |
 | AFK機能 | 操作パネルのAFK移動ボタンでAFKチャンネルを参照 |
 
 ---

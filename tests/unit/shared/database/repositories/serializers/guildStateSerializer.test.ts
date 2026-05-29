@@ -3,16 +3,16 @@ import {
   fromOpenTicketExport,
   fromReactionRolePanelExport,
   fromStickyMessageExport,
-  fromTicketConfigExport,
+  fromTicketSettingsExport,
   mergeVacCreatedChannels,
   toOpenTicketExport,
   toReactionRolePanelExport,
   toStickyMessageExport,
-  toTicketConfigExport,
+  toTicketSettingsExport,
 } from "@/shared/database/repositories/serializers/guildStateSerializer";
 import type {
   GuildReactionRolePanel,
-  GuildTicketConfig,
+  GuildTicketSettings,
   StickyMessage,
   Ticket,
   VacChannelPair,
@@ -20,9 +20,9 @@ import type {
 
 // stateful データの DB ↔ export 間変換ロジックを検証する
 describe("shared/database/repositories/serializers/guildStateSerializer", () => {
-  // ── GuildTicketConfig ────────────────────────────────
-  describe("toTicketConfigExport / fromTicketConfigExport", () => {
-    const dbConfig: GuildTicketConfig = {
+  // ── GuildTicketSettings ────────────────────────────────
+  describe("toTicketSettingsExport / fromTicketSettingsExport", () => {
+    const dbConfig: GuildTicketSettings = {
       guildId: "guild-1",
       categoryId: "cat-1",
       enabled: true,
@@ -37,8 +37,8 @@ describe("shared/database/repositories/serializers/guildStateSerializer", () => 
       ticketCounter: 12,
     };
 
-    it("toTicketConfigExport が staffRoleIds をパースして guildId を除外すること", () => {
-      const result = toTicketConfigExport(dbConfig);
+    it("toTicketSettingsExport が staffRoleIds をパースして guildId を除外すること", () => {
+      const result = toTicketSettingsExport(dbConfig);
       expect(result).toEqual({
         categoryId: "cat-1",
         enabled: true,
@@ -54,15 +54,15 @@ describe("shared/database/repositories/serializers/guildStateSerializer", () => 
       });
     });
 
-    it("fromTicketConfigExport が staffRoleIds を再シリアライズして guildId を付与すること", () => {
-      const exportData = toTicketConfigExport(dbConfig);
-      const result = fromTicketConfigExport("guild-1", exportData);
+    it("fromTicketSettingsExport が staffRoleIds を再シリアライズして guildId を付与すること", () => {
+      const exportData = toTicketSettingsExport(dbConfig);
+      const result = fromTicketSettingsExport("guild-1", exportData);
       expect(result).toEqual(dbConfig);
     });
 
-    it("toTicketConfigExport が空配列 staffRoleIds を扱えること", () => {
+    it("toTicketSettingsExport が空配列 staffRoleIds を扱えること", () => {
       const config = { ...dbConfig, staffRoleIds: "[]" };
-      expect(toTicketConfigExport(config).staffRoleIds).toEqual([]);
+      expect(toTicketSettingsExport(config).staffRoleIds).toEqual([]);
     });
   });
 

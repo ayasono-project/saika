@@ -1,7 +1,7 @@
 // src/shared/database/types/vcRecruitTypes.ts
 // VcRecruit（VC募集機能）関連の型・定数
 
-export interface VcRecruitConfig {
+export interface VcRecruitSettings {
   // 機能有効フラグ
   enabled: boolean;
   // モーダルのメンション選択肢に表示するロールID一覧（最大25）

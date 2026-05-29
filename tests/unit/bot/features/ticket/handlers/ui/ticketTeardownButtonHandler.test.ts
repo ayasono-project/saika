@@ -63,12 +63,12 @@ const mockTicketRepository = {
   deleteAllByGuild: vi.fn(),
 };
 vi.mock("@/bot/services/botCompositionRoot", () => ({
-  getBotTicketConfigService: () => mockConfigService,
+  getBotTicketSettingsService: () => mockConfigService,
   getBotTicketRepository: () => mockTicketRepository,
 }));
 
 vi.mock("@/bot/features/ticket/services/ticketCleanupService", () => ({
-  cleanupTicketConfigs: vi.fn().mockResolvedValue(undefined),
+  cleanupTicketSettings: vi.fn().mockResolvedValue(undefined),
 }));
 vi.mock("@/bot/features/ticket/handlers/ui/ticketTeardownState", () => ({
   ticketTeardownSessions: {
@@ -80,7 +80,7 @@ vi.mock("@/bot/features/ticket/handlers/ui/ticketTeardownState", () => ({
 }));
 
 import { ticketTeardownSessions } from "@/bot/features/ticket/handlers/ui/ticketTeardownState";
-import { cleanupTicketConfigs } from "@/bot/features/ticket/services/ticketCleanupService";
+import { cleanupTicketSettings } from "@/bot/features/ticket/services/ticketCleanupService";
 
 function createMockButtonInteraction(customId: string, overrides = {}) {
   return {
@@ -217,7 +217,7 @@ describe("bot/features/ticket/handlers/ui/ticketTeardownButtonHandler", () => {
       );
     });
 
-    it("正常系: cleanupTicketConfigsを呼び出しセッション削除を行う", async () => {
+    it("正常系: cleanupTicketSettingsを呼び出しセッション削除を行う", async () => {
       vi.mocked(ticketTeardownSessions.get).mockReturnValue({
         categoryIds: ["cat-1"],
       });
@@ -243,7 +243,7 @@ describe("bot/features/ticket/handlers/ui/ticketTeardownButtonHandler", () => {
 
       await ticketTeardownButtonHandler.execute(interaction as never);
 
-      expect(cleanupTicketConfigs).toHaveBeenCalledWith(
+      expect(cleanupTicketSettings).toHaveBeenCalledWith(
         mockGuild,
         [mockConfig],
         mockConfigService,

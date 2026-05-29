@@ -5,7 +5,7 @@ import { ValidationError } from "@ayasono/shared/core";
 import { ChannelType, type ChatInputCommandInteraction } from "discord.js";
 import { tInteraction } from "../../../../../shared/locale/localeManager";
 import {
-  getBotVacConfigService,
+  getBotVacSettingsService,
   getBotVcRecruitRepository,
 } from "../../../../services/botCompositionRoot";
 
@@ -30,7 +30,7 @@ export async function getManagedVoiceChannel(
   }
 
   // VAC管理下かチェック
-  const isVacManaged = await getBotVacConfigService().isManagedVacChannel(
+  const isVacManaged = await getBotVacSettingsService().isManagedVacChannel(
     guildId,
     voiceChannel.id,
   );

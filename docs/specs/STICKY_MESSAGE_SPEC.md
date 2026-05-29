@@ -2,7 +2,7 @@
 
 > Sticky Message - 常に最下部に表示されるメッセージ固定機能
 
-最終更新: 2026年3月21日
+最終更新: 2026年5月29日
 
 ---
 
@@ -392,7 +392,7 @@ interface StickyEmbedData {
 
 | 依存先 | 内容 |
 | --- | --- |
-| StickyMessageConfigService | スティッキーメッセージ設定の取得・更新・削除 |
+| StickyMessageSettingsService | スティッキーメッセージ設定の取得・更新・削除 |
 | StickyMessageResendService | デバウンス付き自動再送信 |
 
 ---

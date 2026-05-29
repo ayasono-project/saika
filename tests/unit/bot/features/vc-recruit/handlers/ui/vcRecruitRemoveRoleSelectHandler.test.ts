@@ -1,6 +1,6 @@
 // tests/unit/bot/features/vc-recruit/handlers/ui/vcRecruitRemoveRoleSelectHandler.test.ts
 
-import { VC_RECRUIT_ROLE_CUSTOM_ID } from "@/bot/features/vc-recruit/commands/vcRecruitConfigCommand.constants";
+import { VC_RECRUIT_ROLE_CUSTOM_ID } from "@/bot/features/vc-recruit/commands/vcRecruitSettingsCommand.constants";
 import { vcRecruitRemoveRoleSelectHandler } from "@/bot/features/vc-recruit/handlers/ui/vcRecruitRemoveRoleSelectHandler";
 import { vcRecruitRemoveRoleSelections } from "@/bot/features/vc-recruit/handlers/ui/vcRecruitRoleState";
 

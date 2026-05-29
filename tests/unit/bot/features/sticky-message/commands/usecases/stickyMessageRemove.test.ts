@@ -6,7 +6,7 @@ const findAllByGuildMock = vi.fn();
 const tInteractionMock = vi.fn((_locale: string, key: string) => key);
 
 vi.mock("@/bot/services/botCompositionRoot", () => ({
-  getBotStickyMessageConfigService: vi.fn(() => ({
+  getBotStickyMessageSettingsService: vi.fn(() => ({
     findAllByGuild: findAllByGuildMock,
   })),
 }));

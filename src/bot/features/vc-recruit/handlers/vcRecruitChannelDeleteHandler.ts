@@ -13,7 +13,7 @@ import { logPrefixed, tGuild } from "../../../../shared/locale/localeManager";
 import { logger } from "../../../../shared/utils/logger";
 import { getBotVcRecruitRepository } from "../../../services/botCompositionRoot";
 import { notifyErrorChannel } from "../../../shared/errorChannelNotifier";
-import { VC_RECRUIT_POST_CUSTOM_ID } from "../commands/vcRecruitConfigCommand.constants";
+import { VC_RECRUIT_POST_CUSTOM_ID } from "../commands/vcRecruitSettingsCommand.constants";
 
 const VC_RECRUIT_LOG_KEYS = {
   PANEL_CHANNEL_DELETE_DETECTED: "vcRecruit:log.panel_channel_delete_detected",

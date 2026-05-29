@@ -51,7 +51,7 @@ const mockConfigService = {
   delete: vi.fn(),
 };
 vi.mock("@/bot/services/botCompositionRoot", () => ({
-  getBotReactionRolePanelConfigService: () => mockConfigService,
+  getBotReactionRolePanelSettingsService: () => mockConfigService,
 }));
 
 const mockParsePaginationAction = vi.fn(
@@ -78,7 +78,7 @@ const mockBuildViewEmbed = vi.fn((..._args: unknown[]) => ({
   type: "view-embed",
 }));
 vi.mock(
-  "@/bot/features/reaction-role/commands/usecases/reactionRoleConfigView",
+  "@/bot/features/reaction-role/commands/usecases/reactionRoleSettingsView",
   () => ({
     buildViewEmbed: (...args: unknown[]) => mockBuildViewEmbed(...args),
   }),

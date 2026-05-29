@@ -8,7 +8,7 @@ const tGuildMock = vi.fn(async (_guildId: string, key: string) => `[${key}]`);
 const tDefaultMock = vi.fn((_key: string) => "mock text");
 
 vi.mock("@/bot/services/botCompositionRoot", () => ({
-  getBotStickyMessageConfigService: vi.fn(() => ({
+  getBotStickyMessageSettingsService: vi.fn(() => ({
     findByChannel: findByChannelMock,
   })),
 }));

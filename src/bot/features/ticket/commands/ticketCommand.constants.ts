@@ -10,8 +10,8 @@ export const TICKET_COMMAND = {
   },
 } as const;
 
-export const TICKET_CONFIG_COMMAND = {
-  NAME: "ticket-config",
+export const TICKET_SETTINGS_COMMAND = {
+  NAME: "ticket-settings",
   SUBCOMMAND: {
     SETUP: "setup",
     TEARDOWN: "teardown",

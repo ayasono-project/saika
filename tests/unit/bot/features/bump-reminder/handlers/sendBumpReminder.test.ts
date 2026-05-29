@@ -69,7 +69,7 @@ describe("bot/features/bump-reminder/handlers/usecases/sendBumpReminder", () => 
         cache: new Map([["guild-1", { id: "guild-1" }]]),
       },
     };
-    const configService = { getBumpReminderConfigOrDefault: vi.fn() };
+    const settingsService = { getBumpReminderSettingsOrDefault: vi.fn() };
 
     await sendBumpReminder(
       client as never,
@@ -77,7 +77,7 @@ describe("bot/features/bump-reminder/handlers/usecases/sendBumpReminder", () => 
       "ch-1",
       "msg-1",
       BUMP_SERVICES.DISBOARD,
-      configService as never,
+      settingsService as never,
     );
 
     expect(loggerWarnMock).toHaveBeenCalled();
@@ -94,8 +94,8 @@ describe("bot/features/bump-reminder/handlers/usecases/sendBumpReminder", () => 
         }),
       },
     };
-    const configService = {
-      getBumpReminderConfigOrDefault: vi
+    const settingsService = {
+      getBumpReminderSettingsOrDefault: vi
         .fn()
         .mockResolvedValue({ enabled: false }),
     };
@@ -106,7 +106,7 @@ describe("bot/features/bump-reminder/handlers/usecases/sendBumpReminder", () => 
       "ch-1",
       "msg-1",
       BUMP_SERVICES.DISBOARD,
-      configService as never,
+      settingsService as never,
     );
 
     expect(send).not.toHaveBeenCalled();
@@ -124,8 +124,8 @@ describe("bot/features/bump-reminder/handlers/usecases/sendBumpReminder", () => 
         fetch: vi.fn().mockResolvedValue(channel),
       },
     };
-    const configService = {
-      getBumpReminderConfigOrDefault: vi.fn().mockResolvedValue({
+    const settingsService = {
+      getBumpReminderSettingsOrDefault: vi.fn().mockResolvedValue({
         enabled: true,
         mentionRoleId: "role-1",
         mentionUserIds: ["user-1"],
@@ -138,7 +138,7 @@ describe("bot/features/bump-reminder/handlers/usecases/sendBumpReminder", () => 
       "ch-1",
       "msg-1",
       BUMP_SERVICES.DISBOARD,
-      configService as never,
+      settingsService as never,
     );
 
     expect(channel.send).toHaveBeenCalledWith(

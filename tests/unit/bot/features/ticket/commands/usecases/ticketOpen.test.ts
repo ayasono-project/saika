@@ -8,7 +8,7 @@ const reopenTicketMock = vi.fn();
 const hasTicketPermissionMock = vi.fn();
 
 vi.mock("@/bot/services/botCompositionRoot", () => ({
-  getBotTicketConfigService: vi.fn(() => ({
+  getBotTicketSettingsService: vi.fn(() => ({
     findByGuildAndCategory: findByGuildAndCategoryMock,
   })),
   getBotTicketRepository: vi.fn(() => ({

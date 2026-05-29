@@ -2,7 +2,7 @@
 // Bumpリマインダー予約登録ユースケース
 
 import type { Client } from "discord.js";
-import type { BumpReminderConfigService } from "../../../../../shared/features/bump-reminder/bumpReminderConfigService";
+import type { BumpReminderSettingsService } from "../../../../../shared/features/bump-reminder/bumpReminderSettingsService";
 import { getBotBumpReminderManager } from "../../../../services/botCompositionRoot";
 import {
   type BumpServiceName,
@@ -17,7 +17,7 @@ import { sendBumpReminder } from "./sendBumpReminder";
  * @param channelId 検知チャンネルID
  * @param messageId 検知元メッセージID
  * @param serviceName 検知サービス名
- * @param bumpReminderConfigService 設定取得サービス
+ * @param bumpReminderSettingsService 設定取得サービス
  * @param panelMessageId 送信済みパネルメッセージID（DB記録用）
  */
 export async function scheduleBumpReminder(
@@ -26,7 +26,7 @@ export async function scheduleBumpReminder(
   channelId: string,
   messageId: string,
   serviceName: BumpServiceName,
-  bumpReminderConfigService: BumpReminderConfigService,
+  bumpReminderSettingsService: BumpReminderSettingsService,
   panelMessageId?: string,
 ): Promise<void> {
   const bumpReminderManager = getBotBumpReminderManager();
@@ -41,7 +41,7 @@ export async function scheduleBumpReminder(
       channelId,
       messageId,
       serviceName,
-      bumpReminderConfigService,
+      bumpReminderSettingsService,
       panelMessageId,
     );
   };

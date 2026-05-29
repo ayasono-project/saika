@@ -219,19 +219,19 @@ const prisma = getPrismaClient(); // null の場合あり
 
 ### スキーマ構成
 
-機能ごとに独立したテーブルを持ちます。`GuildConfig` テーブルは共通設定（locale 等）のみを保持し、機能設定は専用テーブルに分離されています。
+機能ごとに独立したテーブルを持ちます。`GuildSettings` テーブルは共通設定（locale 等）のみを保持し、機能設定は専用テーブルに分離されています。
 
 | テーブル                  | 用途                                       |
 | ------------------------- | ------------------------------------------ |
-| `GuildConfig`             | ギルド共通設定（locale 等）                |
-| `GuildAfkConfig`          | AFK 機能設定                               |
-| `GuildBumpReminderConfig` | Bump リマインダー設定                      |
-| `GuildMemberLogConfig`    | メンバーログ設定                           |
-| `GuildVacConfig`          | VC 自動作成設定                            |
-| `GuildVcRecruitConfig`    | VC 募集設定                                |
+| `GuildSettings`             | ギルド共通設定（locale 等）                |
+| `GuildAfkSettings`          | AFK 機能設定                               |
+| `GuildBumpReminderSettings` | Bump リマインダー設定                      |
+| `GuildMemberLogSettings`    | メンバーログ設定                           |
+| `GuildVacSettings`          | VC 自動作成設定                            |
+| `GuildVcRecruitSettings`    | VC 募集設定                                |
 | `BumpReminder`            | Bump リマインダー記録（スケジュールデータ） |
 | `StickyMessage`           | 固定メッセージ記録                         |
-| `GuildTicketConfig`       | チケット機能設定（カテゴリ・スタッフロール・パネル情報） |
+| `GuildTicketSettings`       | チケット機能設定（カテゴリ・スタッフロール・パネル情報） |
 | `Ticket`                  | チケットレコード（ステータス・作成者・自動削除タイマー） |
 | `GuildReactionRolePanel`  | リアクションロールパネル設定（ボタン・モード・表示設定） |
 
@@ -244,17 +244,17 @@ JSON 配列フィールド（`mentionUserIds`, `triggerChannelIds` 等）は SQL
 
 **設定リポジトリ（`src/shared/database/repositories/`）**:
 
-機能ごとの設定テーブルに対応するスタンドアロンリポジトリです。各リポジトリは個別のインターフェースを実装し、シングルトンゲッター（例: `getAfkConfigRepository(prisma)`）で取得します。
+機能ごとの設定テーブルに対応するスタンドアロンリポジトリです。各リポジトリは個別のインターフェースを実装し、シングルトンゲッター（例: `getAfkSettingsRepository(prisma)`）で取得します。
 
 ```
 GuildCoreRepository              ← ギルド設定コアCRUD（IGuildCoreRepository）
-GuildConfigAggregateRepository   ← 全設定一括操作（IGuildConfigAggregateRepository）
-AfkConfigRepository              ← AFK設定（IAfkConfigRepository）
-BumpReminderConfigRepository     ← Bumpリマインダー設定（IBumpReminderConfigRepository）
-MemberLogConfigRepository        ← メンバーログ設定（IMemberLogConfigRepository）
-VacConfigRepository              ← VAC設定（IVacConfigRepository）
-VcRecruitConfigRepository        ← VC募集設定（IVcRecruitConfigRepository）
-TicketConfigRepository           ← チケット機能設定（IGuildTicketConfigRepository）
+GuildSettingsAggregateRepository   ← 全設定一括操作（IGuildSettingsAggregateRepository）
+AfkSettingsRepository              ← AFK設定（IAfkSettingsRepository）
+BumpReminderSettingsRepository     ← Bumpリマインダー設定（IBumpReminderSettingsRepository）
+MemberLogSettingsRepository        ← メンバーログ設定（IMemberLogSettingsRepository）
+VacSettingsRepository              ← VAC設定（IVacSettingsRepository）
+VcRecruitSettingsRepository        ← VC募集設定（IVcRecruitSettingsRepository）
+TicketSettingsRepository           ← チケット機能設定（IGuildTicketSettingsRepository）
 ReactionRolePanelRepository      ← リアクションロールパネル（IReactionRolePanelRepository）
 ```
 
@@ -279,7 +279,7 @@ VcRecruitRepository      ← VcRecruit の作成済みチャンネル管理
 initializeBotCompositionRoot(prisma);
 
 // 利用側（ハンドラーから呼び出す）
-const service = getBotBumpReminderConfigService();
+const service = getBotBumpReminderSettingsService();
 ```
 
 未初期化状態で getter を呼ぶと即座に `Error` がスローされるため、初期化漏れを起動時に検出できます。

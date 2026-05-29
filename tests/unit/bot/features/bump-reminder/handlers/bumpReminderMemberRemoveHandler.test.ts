@@ -1,7 +1,7 @@
 // tests/unit/bot/features/bump-reminder/handlers/bumpReminderMemberRemoveHandler.test.ts
 import { handleBumpReminderMemberRemove } from "@/bot/features/bump-reminder/handlers/bumpReminderMemberRemoveHandler";
 
-const getBumpReminderConfigMock = vi.fn();
+const getBumpReminderSettingsMock = vi.fn();
 const removeBumpReminderMentionUserMock = vi.fn();
 
 vi.mock("@/shared/locale/localeManager", () => ({
@@ -21,9 +21,9 @@ vi.mock("@/shared/utils/logger", () => ({
 }));
 
 vi.mock("@/bot/services/botCompositionRoot", () => ({
-  getBotBumpReminderConfigService: () => ({
-    getBumpReminderConfig: (...args: unknown[]) =>
-      getBumpReminderConfigMock(...args),
+  getBotBumpReminderSettingsService: () => ({
+    getBumpReminderSettings: (...args: unknown[]) =>
+      getBumpReminderSettingsMock(...args),
     removeBumpReminderMentionUser: (...args: unknown[]) =>
       removeBumpReminderMentionUserMock(...args),
   }),
@@ -35,7 +35,7 @@ describe("bumpReminderMemberRemoveHandler", () => {
   });
 
   it("mentionUserIds に含まれるユーザーが退出した場合に除去する", async () => {
-    getBumpReminderConfigMock.mockResolvedValue({
+    getBumpReminderSettingsMock.mockResolvedValue({
       enabled: true,
       mentionUserIds: ["user-1", "user-2"],
     });
@@ -54,7 +54,7 @@ describe("bumpReminderMemberRemoveHandler", () => {
   });
 
   it("mentionUserIds に含まれないユーザーが退出した場合はスキップする", async () => {
-    getBumpReminderConfigMock.mockResolvedValue({
+    getBumpReminderSettingsMock.mockResolvedValue({
       enabled: true,
       mentionUserIds: ["user-2"],
     });
@@ -70,7 +70,7 @@ describe("bumpReminderMemberRemoveHandler", () => {
   });
 
   it("設定が存在しない場合はスキップする", async () => {
-    getBumpReminderConfigMock.mockResolvedValue(null);
+    getBumpReminderSettingsMock.mockResolvedValue(null);
 
     const member = {
       guild: { id: "guild-1" },
@@ -90,6 +90,6 @@ describe("bumpReminderMemberRemoveHandler", () => {
 
     await handleBumpReminderMemberRemove(member as never);
 
-    expect(getBumpReminderConfigMock).not.toHaveBeenCalled();
+    expect(getBumpReminderSettingsMock).not.toHaveBeenCalled();
   });
 });

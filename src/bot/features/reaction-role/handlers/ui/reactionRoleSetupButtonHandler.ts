@@ -12,7 +12,7 @@ import {
 } from "../../../../../shared/locale/localeManager";
 import { logger } from "../../../../../shared/utils/logger";
 import type { ButtonHandler } from "../../../../handlers/interactionCreate/ui/types";
-import { getBotReactionRolePanelConfigService } from "../../../../services/botCompositionRoot";
+import { getBotReactionRolePanelSettingsService } from "../../../../services/botCompositionRoot";
 import {
   createErrorEmbed,
   createSuccessEmbed,
@@ -131,8 +131,8 @@ async function handleSetupDone(interaction: ButtonInteraction): Promise<void> {
   });
 
   // DB に設定を保存
-  const configService = getBotReactionRolePanelConfigService();
-  const panel = await configService.create({
+  const settingsService = getBotReactionRolePanelSettingsService();
+  const panel = await settingsService.create({
     guildId,
     channelId: channel.id,
     messageId: panelMessage.id,

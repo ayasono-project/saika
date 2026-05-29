@@ -3,18 +3,18 @@
 import { ChannelType } from "discord.js";
 import type { Mocked } from "vitest";
 import { cleanupVacOnStartupUseCase } from "@/bot/features/vac/services/usecases/cleanupVacOnStartup";
-import type { VacConfigService } from "@/shared/features/vac/vacConfigService";
+import type { VacSettingsService } from "@/shared/features/vac/vacSettingsService";
 
-function createRepositoryMock(): Mocked<VacConfigService> {
+function createRepositoryMock(): Mocked<VacSettingsService> {
   return {
-    getVacConfigOrDefault: vi.fn(),
-    saveVacConfig: vi.fn(),
+    getVacSettingsOrDefault: vi.fn(),
+    saveVacSettings: vi.fn(),
     addTriggerChannel: vi.fn(),
     removeTriggerChannel: vi.fn(),
     addCreatedVacChannel: vi.fn(),
     removeCreatedVacChannel: vi.fn(),
     isManagedVacChannel: vi.fn(),
-  } as unknown as Mocked<VacConfigService>;
+  } as unknown as Mocked<VacSettingsService>;
 }
 
 function createGuild(params: {
@@ -46,7 +46,7 @@ describe("bot/features/vac/services/usecases/cleanupVacOnStartup", () => {
 
   it("有効なトリガーと空でない管理済みボイスチャンネルはそのまま保持する", async () => {
     const repository = createRepositoryMock();
-    repository.getVacConfigOrDefault.mockResolvedValue({
+    repository.getVacSettingsOrDefault.mockResolvedValue({
       enabled: true,
       triggerChannelIds: ["trigger-voice"],
       createdChannels: [
@@ -89,7 +89,7 @@ describe("bot/features/vac/services/usecases/cleanupVacOnStartup", () => {
 
   it("存在しないチャンネルやボイス以外（テキスト）のチャンネルは、トリガー・管理済みチャンネル両方からレコードが削除されることを検証", async () => {
     const repository = createRepositoryMock();
-    repository.getVacConfigOrDefault.mockResolvedValue({
+    repository.getVacSettingsOrDefault.mockResolvedValue({
       enabled: true,
       triggerChannelIds: ["trigger-missing", "trigger-text"],
       createdChannels: [
@@ -150,7 +150,7 @@ describe("bot/features/vac/services/usecases/cleanupVacOnStartup", () => {
 
   it("空の管理済みボイスチャンネルは Discord 上でも削除を試み、削除 API が失敗しても DB レコードは除去されることを検証", async () => {
     const repository = createRepositoryMock();
-    repository.getVacConfigOrDefault.mockResolvedValue({
+    repository.getVacSettingsOrDefault.mockResolvedValue({
       enabled: true,
       triggerChannelIds: [],
       createdChannels: [
@@ -211,7 +211,7 @@ describe("bot/features/vac/services/usecases/cleanupVacOnStartup", () => {
 
   it("channels.fetch が例外をスローした場合もチャンネル不在と同様に扱い、古くなったレコードを削除することを検証", async () => {
     const repository = createRepositoryMock();
-    repository.getVacConfigOrDefault.mockResolvedValue({
+    repository.getVacSettingsOrDefault.mockResolvedValue({
       enabled: true,
       triggerChannelIds: ["trigger-fetch-error"],
       createdChannels: [

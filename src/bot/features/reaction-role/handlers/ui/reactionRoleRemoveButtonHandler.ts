@@ -19,7 +19,7 @@ import type {
   ButtonHandler,
   StringSelectHandler,
 } from "../../../../handlers/interactionCreate/ui/types";
-import { getBotReactionRolePanelConfigService } from "../../../../services/botCompositionRoot";
+import { getBotReactionRolePanelSettingsService } from "../../../../services/botCompositionRoot";
 import {
   createErrorEmbed,
   createInfoEmbed,
@@ -66,8 +66,8 @@ export const reactionRoleRemoveButtonPanelSelectHandler: StringSelectHandler = {
     const panelId = interaction.values[0];
     session.panelId = panelId;
 
-    const configService = getBotReactionRolePanelConfigService();
-    const panel = await configService.findById(panelId);
+    const settingsService = getBotReactionRolePanelSettingsService();
+    const panel = await settingsService.findById(panelId);
     if (!panel) return;
 
     const buttons = parseButtons(panel.buttons);
@@ -135,8 +135,8 @@ export const reactionRoleRemoveButtonSelectHandler: StringSelectHandler = {
     const selectedButtonIds = interaction.values.map(Number);
 
     // 全ボタン削除チェック
-    const configService = getBotReactionRolePanelConfigService();
-    const panel = await configService.findById(session.panelId);
+    const settingsService = getBotReactionRolePanelSettingsService();
+    const panel = await settingsService.findById(session.panelId);
     if (!panel) return;
 
     const allButtons = parseButtons(panel.buttons);
@@ -281,8 +281,8 @@ export const reactionRoleRemoveButtonButtonHandler: ButtonHandler = {
 
     await interaction.deferUpdate();
 
-    const configService = getBotReactionRolePanelConfigService();
-    const panel = await configService.findById(session.panelId);
+    const settingsService = getBotReactionRolePanelSettingsService();
+    const panel = await settingsService.findById(session.panelId);
     if (!panel) return;
 
     const allButtons = parseButtons(panel.buttons);
@@ -291,7 +291,7 @@ export const reactionRoleRemoveButtonButtonHandler: ButtonHandler = {
     );
 
     // DB更新
-    await configService.update(session.panelId, {
+    await settingsService.update(session.panelId, {
       buttons: JSON.stringify(remainingButtons),
     });
 
@@ -309,7 +309,7 @@ export const reactionRoleRemoveButtonButtonHandler: ButtonHandler = {
 
     if (!updated) {
       // パネルメッセージが削除済み → DB クリーンアップ
-      await configService.delete(session.panelId);
+      await settingsService.delete(session.panelId);
       const embed = createErrorEmbed(
         tInteraction(
           interaction.locale,

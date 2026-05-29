@@ -19,7 +19,7 @@ export interface VcRecruitSession {
 export const NEW_VC_VALUE = "__new__" as const;
 
 import { TtlMap } from "../../../../../shared/utils/ttlMap";
-import { VC_RECRUIT_TIMEOUT } from "../../commands/vcRecruitConfigCommand.constants";
+import { VC_RECRUIT_TIMEOUT } from "../../commands/vcRecruitSettingsCommand.constants";
 
 /** モーダル interactionId → VcRecruitSession のインメモリストア */
 const sessions = new TtlMap<VcRecruitSession>(

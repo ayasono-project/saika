@@ -14,7 +14,7 @@ import {
 } from "../../../../../shared/locale/localeManager";
 import { logger } from "../../../../../shared/utils/logger";
 import type { ModalHandler } from "../../../../handlers/interactionCreate/ui/types";
-import { getBotStickyMessageConfigService } from "../../../../services/botCompositionRoot";
+import { getBotStickyMessageSettingsService } from "../../../../services/botCompositionRoot";
 import {
   createSuccessEmbed,
   createWarningEmbed,
@@ -97,7 +97,7 @@ export const stickyMessageSetEmbedModalHandler: ModalHandler = {
     /* c8 ignore next */
     const content = embedDescription ?? embedTitle ?? "";
 
-    const service = getBotStickyMessageConfigService();
+    const service = getBotStickyMessageSettingsService();
 
     // モーダル表示から送信までの間に変更された可能性があるため再確認する
     const existing = await service.findByChannel(channelId);

@@ -21,10 +21,10 @@ const { EmbedBuilderMock } = vi.hoisted(() => {
 });
 
 // ---- モック定義 ----
-const getMemberLogConfigMock = vi.fn();
+const getMemberLogSettingsMock = vi.fn();
 const disableAndClearChannelMock = vi.fn().mockResolvedValue(undefined);
-const getBotMemberLogConfigServiceMock = vi.fn(() => ({
-  getMemberLogConfig: getMemberLogConfigMock,
+const getBotMemberLogSettingsServiceMock = vi.fn(() => ({
+  getMemberLogSettings: getMemberLogSettingsMock,
   disableAndClearChannel: disableAndClearChannelMock,
 }));
 
@@ -50,7 +50,7 @@ const calcDurationMock = vi.fn((_ts: number) => ({
 const findUsedInviteMock = vi.fn();
 
 vi.mock("@/bot/services/botCompositionRoot", () => ({
-  getBotMemberLogConfigService: () => getBotMemberLogConfigServiceMock(),
+  getBotMemberLogSettingsService: () => getBotMemberLogSettingsServiceMock(),
 }));
 vi.mock("@/shared/locale/localeManager", () => ({
   logPrefixed: (
@@ -148,7 +148,7 @@ describe("bot/features/member-log/handlers/guildMemberAddHandler", () => {
       const { handleGuildMemberAdd } = await import(
         "@/bot/features/member-log/handlers/guildMemberAddHandler"
       );
-      getMemberLogConfigMock.mockResolvedValue(null);
+      getMemberLogSettingsMock.mockResolvedValue(null);
       const member = makeGuildMember();
 
       await handleGuildMemberAdd(member as never);
@@ -160,7 +160,7 @@ describe("bot/features/member-log/handlers/guildMemberAddHandler", () => {
       const { handleGuildMemberAdd } = await import(
         "@/bot/features/member-log/handlers/guildMemberAddHandler"
       );
-      getMemberLogConfigMock.mockResolvedValue({
+      getMemberLogSettingsMock.mockResolvedValue({
         enabled: false,
         channelId: "ch-1",
       });
@@ -175,7 +175,7 @@ describe("bot/features/member-log/handlers/guildMemberAddHandler", () => {
       const { handleGuildMemberAdd } = await import(
         "@/bot/features/member-log/handlers/guildMemberAddHandler"
       );
-      getMemberLogConfigMock.mockResolvedValue({
+      getMemberLogSettingsMock.mockResolvedValue({
         enabled: true,
         channelId: null,
       });
@@ -190,7 +190,7 @@ describe("bot/features/member-log/handlers/guildMemberAddHandler", () => {
       const { handleGuildMemberAdd } = await import(
         "@/bot/features/member-log/handlers/guildMemberAddHandler"
       );
-      getMemberLogConfigMock.mockResolvedValue({
+      getMemberLogSettingsMock.mockResolvedValue({
         enabled: true,
         channelId: "unknown-ch",
       });
@@ -209,7 +209,7 @@ describe("bot/features/member-log/handlers/guildMemberAddHandler", () => {
       const { handleGuildMemberAdd } = await import(
         "@/bot/features/member-log/handlers/guildMemberAddHandler"
       );
-      getMemberLogConfigMock.mockResolvedValue({
+      getMemberLogSettingsMock.mockResolvedValue({
         enabled: true,
         channelId: "ch-voice",
       });
@@ -234,7 +234,7 @@ describe("bot/features/member-log/handlers/guildMemberAddHandler", () => {
       const { handleGuildMemberAdd } = await import(
         "@/bot/features/member-log/handlers/guildMemberAddHandler"
       );
-      getMemberLogConfigMock.mockResolvedValue({
+      getMemberLogSettingsMock.mockResolvedValue({
         enabled: true,
         channelId: "ch-1",
         joinMessage: null,
@@ -252,7 +252,7 @@ describe("bot/features/member-log/handlers/guildMemberAddHandler", () => {
       const { handleGuildMemberAdd } = await import(
         "@/bot/features/member-log/handlers/guildMemberAddHandler"
       );
-      getMemberLogConfigMock.mockResolvedValue({
+      getMemberLogSettingsMock.mockResolvedValue({
         enabled: true,
         channelId: "ch-1",
         joinMessage: "ようこそ {userMention}さん！",
@@ -270,7 +270,7 @@ describe("bot/features/member-log/handlers/guildMemberAddHandler", () => {
       const { handleGuildMemberAdd } = await import(
         "@/bot/features/member-log/handlers/guildMemberAddHandler"
       );
-      getMemberLogConfigMock.mockResolvedValue({
+      getMemberLogSettingsMock.mockResolvedValue({
         enabled: true,
         channelId: "ch-1",
         joinMessage: undefined,
@@ -288,7 +288,7 @@ describe("bot/features/member-log/handlers/guildMemberAddHandler", () => {
       const { handleGuildMemberAdd } = await import(
         "@/bot/features/member-log/handlers/guildMemberAddHandler"
       );
-      getMemberLogConfigMock.mockResolvedValue({
+      getMemberLogSettingsMock.mockResolvedValue({
         enabled: true,
         channelId: "ch-1",
         joinMessage: null,
@@ -305,7 +305,7 @@ describe("bot/features/member-log/handlers/guildMemberAddHandler", () => {
         "@/bot/features/member-log/handlers/guildMemberAddHandler"
       );
       calcDurationMock.mockReturnValueOnce({ years: 0, months: 0, days: 5 });
-      getMemberLogConfigMock.mockResolvedValue({
+      getMemberLogSettingsMock.mockResolvedValue({
         enabled: true,
         channelId: "ch-1",
         joinMessage: null,
@@ -322,7 +322,7 @@ describe("bot/features/member-log/handlers/guildMemberAddHandler", () => {
         "@/bot/features/member-log/handlers/guildMemberAddHandler"
       );
       calcDurationMock.mockReturnValueOnce({ years: 1, months: 0, days: 0 });
-      getMemberLogConfigMock.mockResolvedValue({
+      getMemberLogSettingsMock.mockResolvedValue({
         enabled: true,
         channelId: "ch-1",
         joinMessage: null,
@@ -338,7 +338,7 @@ describe("bot/features/member-log/handlers/guildMemberAddHandler", () => {
       const { handleGuildMemberAdd } = await import(
         "@/bot/features/member-log/handlers/guildMemberAddHandler"
       );
-      getMemberLogConfigMock.mockResolvedValue({
+      getMemberLogSettingsMock.mockResolvedValue({
         enabled: true,
         channelId: "ch-1",
         joinMessage: null,
@@ -364,7 +364,7 @@ describe("bot/features/member-log/handlers/guildMemberAddHandler", () => {
       const { handleGuildMemberAdd } = await import(
         "@/bot/features/member-log/handlers/guildMemberAddHandler"
       );
-      getMemberLogConfigMock.mockResolvedValue({
+      getMemberLogSettingsMock.mockResolvedValue({
         enabled: true,
         channelId: "ch-1",
         joinMessage: null,
@@ -386,7 +386,7 @@ describe("bot/features/member-log/handlers/guildMemberAddHandler", () => {
       const { handleGuildMemberAdd } = await import(
         "@/bot/features/member-log/handlers/guildMemberAddHandler"
       );
-      getMemberLogConfigMock.mockResolvedValue({
+      getMemberLogSettingsMock.mockResolvedValue({
         enabled: true,
         channelId: "ch-1",
         joinMessage: null,
@@ -405,7 +405,7 @@ describe("bot/features/member-log/handlers/guildMemberAddHandler", () => {
       const { handleGuildMemberAdd } = await import(
         "@/bot/features/member-log/handlers/guildMemberAddHandler"
       );
-      getMemberLogConfigMock.mockResolvedValue({
+      getMemberLogSettingsMock.mockResolvedValue({
         enabled: true,
         channelId: "ch-1",
         joinMessage: null,
@@ -427,7 +427,7 @@ describe("bot/features/member-log/handlers/guildMemberAddHandler", () => {
       const { handleGuildMemberAdd } = await import(
         "@/bot/features/member-log/handlers/guildMemberAddHandler"
       );
-      getMemberLogConfigMock.mockResolvedValue({
+      getMemberLogSettingsMock.mockResolvedValue({
         enabled: true,
         channelId: "ch-1",
         joinMessage: null,
@@ -447,7 +447,7 @@ describe("bot/features/member-log/handlers/guildMemberAddHandler", () => {
       const { handleGuildMemberAdd } = await import(
         "@/bot/features/member-log/handlers/guildMemberAddHandler"
       );
-      getMemberLogConfigMock.mockResolvedValue({
+      getMemberLogSettingsMock.mockResolvedValue({
         enabled: true,
         channelId: "ch-1",
         joinMessage: null,

@@ -2,7 +2,7 @@
 
 > Testing Guidelines - テスト設計とベストプラクティス
 
-最終更新: 2026年3月16日
+最終更新: 2026年5月29日
 
 ---
 
@@ -166,7 +166,7 @@ it("years=0, months=0 の場合でも送信される", async () => {
 | `createMockUser()` / `createMockGuild()` / `createMockMember()` | Discord オブジェクトのモック |
 | `createMockTextChannel()` / `createMockInteraction()` | チャンネル・インタラクションのモック |
 | `generateSnowflake()` | ユニークな Snowflake ID 生成 |
-| `createTestGuildConfig()` | テスト用ギルド設定 |
+| `createTestGuildSettings()` | テスト用ギルド設定 |
 | `expectError()` | エラーアサーション |
 | `wait()` | 非同期待機 |
 

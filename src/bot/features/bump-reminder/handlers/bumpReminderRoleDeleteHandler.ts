@@ -4,7 +4,7 @@
 import type { Role } from "discord.js";
 import { logPrefixed } from "../../../../shared/locale/localeManager";
 import { logger } from "../../../../shared/utils/logger";
-import { getBotBumpReminderConfigService } from "../../../services/botCompositionRoot";
+import { getBotBumpReminderSettingsService } from "../../../services/botCompositionRoot";
 import { notifyErrorChannel } from "../../../shared/errorChannelNotifier";
 
 /**
@@ -16,12 +16,14 @@ export async function handleBumpReminderRoleDelete(role: Role): Promise<void> {
 
   try {
     const config =
-      await getBotBumpReminderConfigService().getBumpReminderConfig(guildId);
+      await getBotBumpReminderSettingsService().getBumpReminderSettings(
+        guildId,
+      );
     if (!config || config.mentionRoleId !== role.id) {
       return;
     }
 
-    await getBotBumpReminderConfigService().setBumpReminderMentionRole(
+    await getBotBumpReminderSettingsService().setBumpReminderMentionRole(
       guildId,
       undefined,
     );

@@ -19,7 +19,7 @@ import type {
   ButtonHandler,
   StringSelectHandler,
 } from "../../../../handlers/interactionCreate/ui/types";
-import { getBotReactionRolePanelConfigService } from "../../../../services/botCompositionRoot";
+import { getBotReactionRolePanelSettingsService } from "../../../../services/botCompositionRoot";
 import {
   createErrorEmbed,
   createInfoEmbed,
@@ -60,10 +60,10 @@ export const reactionRoleTeardownSelectHandler: StringSelectHandler = {
     session.panelIds = interaction.values;
 
     // パネル情報を取得して確認表示
-    const configService = getBotReactionRolePanelConfigService();
+    const settingsService = getBotReactionRolePanelSettingsService();
     const panelInfos: string[] = [];
     for (const panelId of session.panelIds) {
-      const panel = await configService.findById(panelId);
+      const panel = await settingsService.findById(panelId);
       if (panel) {
         panelInfos.push(`「${panel.title}」（<#${panel.channelId}>）`);
       }
@@ -187,13 +187,13 @@ export const reactionRoleTeardownButtonHandler: ButtonHandler = {
 
     await interaction.deferUpdate();
 
-    const configService = getBotReactionRolePanelConfigService();
+    const settingsService = getBotReactionRolePanelSettingsService();
     const guildId = interaction.guildId;
     if (!guildId) return;
 
     // パネルメッセージを削除し、DBレコードを削除
     for (const panelId of session.panelIds) {
-      const panel = await configService.findById(panelId);
+      const panel = await settingsService.findById(panelId);
       if (panel) {
         // パネルメッセージを削除（チャンネルはfetchで取得）
         try {
@@ -212,7 +212,7 @@ export const reactionRoleTeardownButtonHandler: ButtonHandler = {
           // メッセージが既に削除済みの場合は無視
         }
 
-        await configService.delete(panelId);
+        await settingsService.delete(panelId);
       }
     }
 

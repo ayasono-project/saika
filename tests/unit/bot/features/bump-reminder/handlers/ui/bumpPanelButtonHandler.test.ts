@@ -2,7 +2,7 @@
 
 import { MessageFlags } from "discord.js";
 import { bumpPanelButtonHandler } from "@/bot/features/bump-reminder/handlers/ui/bumpPanelButtonHandler";
-import { getBotBumpReminderConfigService } from "@/bot/services/botCompositionRoot";
+import { getBotBumpReminderSettingsService } from "@/bot/services/botCompositionRoot";
 import {
   createErrorEmbed,
   createSuccessEmbed,
@@ -15,7 +15,7 @@ const addMentionUserMock = vi.fn();
 const removeMentionUserMock = vi.fn();
 
 // Bump設定サービス依存を切り離し、ハンドラ分岐に集中する
-vi.mock("@/shared/features/bump-reminder/bumpReminderConfigService", () => ({
+vi.mock("@/shared/features/bump-reminder/bumpReminderSettingsService", () => ({
   BUMP_REMINDER_MENTION_USER_ADD_RESULT: {
     ADDED: "added",
     ALREADY_EXISTS: "already_exists",
@@ -29,7 +29,7 @@ vi.mock("@/shared/features/bump-reminder/bumpReminderConfigService", () => ({
 }));
 
 vi.mock("@/bot/services/botCompositionRoot", () => ({
-  getBotBumpReminderConfigService: vi.fn(() => ({
+  getBotBumpReminderSettingsService: vi.fn(() => ({
     addBumpReminderMentionUser: (...args: unknown[]) =>
       addMentionUserMock(...args),
     removeBumpReminderMentionUser: (...args: unknown[]) =>
@@ -158,7 +158,7 @@ describe("bot/features/bump-reminder/ui/bumpPanelButtonHandler", () => {
 
       await bumpPanelButtonHandler.execute(interaction as never);
 
-      expect(getBotBumpReminderConfigService).toHaveBeenCalledTimes(1);
+      expect(getBotBumpReminderSettingsService).toHaveBeenCalledTimes(1);
       expect(addMentionUserMock).toHaveBeenCalledWith("guild-1", "user-1");
       expect(createSuccessEmbed).toHaveBeenCalledWith(
         "bumpReminder:user-response.panel_mention_toggled_on",

@@ -9,7 +9,7 @@ const createSuccessEmbedMock = vi.fn((description: string) => ({
 
 // VAC管理判定・VC募集管理判定をモック化
 vi.mock("@/bot/services/botCompositionRoot", () => ({
-  getBotVacConfigService: () => ({
+  getBotVacSettingsService: () => ({
     isManagedVacChannel: (...args: unknown[]) =>
       isManagedVacChannelMock(...args),
   }),

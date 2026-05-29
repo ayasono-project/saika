@@ -7,7 +7,7 @@ import { jobScheduler } from "../../shared/scheduler/jobScheduler";
 import { logger } from "../../shared/utils/logger";
 import { TICKET_AUTO_DELETE_JOB_PREFIX } from "../features/ticket/commands/ticketCommand.constants";
 import {
-  getBotGuildConfigService,
+  getBotGuildSettingsService,
   getBotTicketRepository,
 } from "../services/botCompositionRoot";
 
@@ -38,9 +38,9 @@ export async function handleGuildDelete(guild: Guild): Promise<void> {
       }
     }
 
-    // 全設定データを一括削除（GuildConfig + 各機能テーブル）
-    const guildConfigService = getBotGuildConfigService();
-    await guildConfigService.deleteAllConfig(guildId);
+    // 全設定データを一括削除（GuildSettings + 各機能テーブル）
+    const guildSettingsService = getBotGuildSettingsService();
+    await guildSettingsService.deleteAllSettings(guildId);
 
     logger.info(
       logPrefixed(

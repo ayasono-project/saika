@@ -35,9 +35,9 @@ export const modalHandlers: ModalHandler[] = [
   stickyMessageUpdateModalHandler,
   // sticky-message update Embed モーダルを処理
   stickyMessageUpdateEmbedModalHandler,
-  // member-log-config set-join-message モーダルを処理
+  // member-log-settings set-join-message モーダルを処理
   memberLogSetJoinMessageModalHandler,
-  // member-log-config set-leave-message モーダルを処理
+  // member-log-settings set-leave-message モーダルを処理
   memberLogSetLeaveMessageModalHandler,
   // リアクションロール setup パネル設定モーダルを処理
   reactionRoleSetupModalHandler,

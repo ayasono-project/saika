@@ -58,12 +58,12 @@ vi.mock("@/bot/features/member-log/handlers/accountAge", () => ({
 
 // Composition root のモック
 const mockConfigService = {
-  getMemberLogConfig: vi.fn(),
+  getMemberLogSettings: vi.fn(),
   disableAndClearChannel: vi.fn(),
 };
 
 vi.mock("@/bot/services/botCompositionRoot", () => ({
-  getBotMemberLogConfigService: () => mockConfigService,
+  getBotMemberLogSettingsService: () => mockConfigService,
 }));
 
 /** メンバーログ設定を作成するヘルパー */
@@ -140,7 +140,7 @@ describe("Member Log Handlers Integration", () => {
 
     it("メンバー参加時にログチャンネルへEmbed通知を送信すること", async () => {
       const handler = await loadHandler();
-      mockConfigService.getMemberLogConfig.mockResolvedValue(createConfig());
+      mockConfigService.getMemberLogSettings.mockResolvedValue(createConfig());
 
       const { member, sendMock } = createMember();
 
@@ -166,7 +166,7 @@ describe("Member Log Handlers Integration", () => {
 
     it("アカウント年齢がEmbed内に正しくフォーマットされること", async () => {
       const handler = await loadHandler();
-      mockConfigService.getMemberLogConfig.mockResolvedValue(createConfig());
+      mockConfigService.getMemberLogSettings.mockResolvedValue(createConfig());
 
       // 2023-01-15 作成、現在 2026-03-15 → 3年2月0日
       const { member, sendMock } = createMember();
@@ -186,7 +186,7 @@ describe("Member Log Handlers Integration", () => {
 
     it("カスタム参加メッセージが設定されている場合はcontentに含まれること", async () => {
       const handler = await loadHandler();
-      mockConfigService.getMemberLogConfig.mockResolvedValue(
+      mockConfigService.getMemberLogSettings.mockResolvedValue(
         createConfig({
           joinMessage:
             "Welcome {userMention} to {serverName}! Member #{memberCount}",
@@ -205,7 +205,7 @@ describe("Member Log Handlers Integration", () => {
 
     it("カスタムメッセージ未設定の場合はcontentがundefinedであること", async () => {
       const handler = await loadHandler();
-      mockConfigService.getMemberLogConfig.mockResolvedValue(createConfig());
+      mockConfigService.getMemberLogSettings.mockResolvedValue(createConfig());
 
       const { member, sendMock } = createMember();
 
@@ -222,7 +222,7 @@ describe("Member Log Handlers Integration", () => {
       );
       clearInviteCacheForTest();
 
-      mockConfigService.getMemberLogConfig.mockResolvedValue(createConfig());
+      mockConfigService.getMemberLogSettings.mockResolvedValue(createConfig());
 
       const invites = new Collection<
         string,
@@ -255,7 +255,7 @@ describe("Member Log Handlers Integration", () => {
 
     it("機能が無効の場合は通知を送信しないこと", async () => {
       const handler = await loadHandler();
-      mockConfigService.getMemberLogConfig.mockResolvedValue(
+      mockConfigService.getMemberLogSettings.mockResolvedValue(
         createConfig({ enabled: false }),
       );
 
@@ -268,7 +268,7 @@ describe("Member Log Handlers Integration", () => {
 
     it("ログチャンネルが存在しない場合に設定をリセットしてシステムチャンネルへ通知すること", async () => {
       const handler = await loadHandler();
-      mockConfigService.getMemberLogConfig.mockResolvedValue(createConfig());
+      mockConfigService.getMemberLogSettings.mockResolvedValue(createConfig());
       mockConfigService.disableAndClearChannel.mockResolvedValue(undefined);
 
       const { member, systemChannelSendMock } = createMember();
@@ -299,7 +299,7 @@ describe("Member Log Handlers Integration", () => {
 
     it("メンバー退出時にログチャンネルへEmbed通知を送信すること", async () => {
       const handler = await loadHandler();
-      mockConfigService.getMemberLogConfig.mockResolvedValue(createConfig());
+      mockConfigService.getMemberLogSettings.mockResolvedValue(createConfig());
 
       const { member, sendMock } = createMember();
 
@@ -326,7 +326,7 @@ describe("Member Log Handlers Integration", () => {
 
     it("滞在期間が正しく計算されてEmbedに含まれること", async () => {
       const handler = await loadHandler();
-      mockConfigService.getMemberLogConfig.mockResolvedValue(createConfig());
+      mockConfigService.getMemberLogSettings.mockResolvedValue(createConfig());
 
       // joinedTimestamp: 2024-06-01、現在: 2026-03-15 → 約653日
       const { member, sendMock } = createMember();
@@ -345,7 +345,7 @@ describe("Member Log Handlers Integration", () => {
 
     it("カスタム退出メッセージのプレースホルダーが全て展開されること", async () => {
       const handler = await loadHandler();
-      mockConfigService.getMemberLogConfig.mockResolvedValue(
+      mockConfigService.getMemberLogSettings.mockResolvedValue(
         createConfig({
           leaveMessage:
             "{userMention} ({userName}) left {serverName}. Now {memberCount} members.",
@@ -364,7 +364,7 @@ describe("Member Log Handlers Integration", () => {
 
     it("Partial メンバー（user が null）の場合も退出通知を送信できること", async () => {
       const handler = await loadHandler();
-      mockConfigService.getMemberLogConfig.mockResolvedValue(createConfig());
+      mockConfigService.getMemberLogSettings.mockResolvedValue(createConfig());
 
       const { member, sendMock } = createMember({ user: null });
 
@@ -382,7 +382,7 @@ describe("Member Log Handlers Integration", () => {
 
     it("機能が無効の場合は通知を送信しないこと", async () => {
       const handler = await loadHandler();
-      mockConfigService.getMemberLogConfig.mockResolvedValue(
+      mockConfigService.getMemberLogSettings.mockResolvedValue(
         createConfig({ enabled: false }),
       );
 
@@ -395,7 +395,7 @@ describe("Member Log Handlers Integration", () => {
 
     it("ログチャンネルが存在しない場合に設定をリセットすること", async () => {
       const handler = await loadHandler();
-      mockConfigService.getMemberLogConfig.mockResolvedValue(createConfig());
+      mockConfigService.getMemberLogSettings.mockResolvedValue(createConfig());
       mockConfigService.disableAndClearChannel.mockResolvedValue(undefined);
 
       const { member, systemChannelSendMock } = createMember();
@@ -425,7 +425,7 @@ describe("Member Log Handlers Integration", () => {
         )
       ).handleGuildMemberRemove;
 
-      mockConfigService.getMemberLogConfig.mockResolvedValue(
+      mockConfigService.getMemberLogSettings.mockResolvedValue(
         createConfig({
           joinMessage: "Welcome {userName}!",
           leaveMessage: "Goodbye {userName}!",

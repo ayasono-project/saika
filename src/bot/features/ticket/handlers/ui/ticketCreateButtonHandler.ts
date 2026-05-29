@@ -12,8 +12,8 @@ import {
 import { tInteraction } from "../../../../../shared/locale/localeManager";
 import type { ButtonHandler } from "../../../../handlers/interactionCreate/ui/types";
 import {
-  getBotTicketConfigService,
   getBotTicketRepository,
+  getBotTicketSettingsService,
 } from "../../../../services/botCompositionRoot";
 import { createErrorEmbed } from "../../../../utils/messageResponse";
 import { TICKET_CUSTOM_ID } from "../../commands/ticketCommand.constants";
@@ -39,12 +39,12 @@ export const ticketCreateButtonHandler: ButtonHandler = {
     const categoryId = interaction.customId.slice(
       TICKET_CUSTOM_ID.CREATE_PREFIX.length,
     );
-    const configService = getBotTicketConfigService();
+    const settingsService = getBotTicketSettingsService();
     const ticketRepository = getBotTicketRepository();
     const guildId = interaction.guildId;
     if (!guildId) return;
 
-    const config = await configService.findByGuildAndCategory(
+    const config = await settingsService.findByGuildAndCategory(
       guildId,
       categoryId,
     );

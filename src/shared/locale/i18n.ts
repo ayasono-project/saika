@@ -34,7 +34,7 @@ export const I18N_NAMESPACES = [
   "stickyMessage",
   "ticket",
   "vcRecruit",
-  "guildConfig",
+  "guildSettings",
 ] as const;
 
 /**

@@ -2,7 +2,7 @@
 // VAC自動削除ユースケース
 
 import { ChannelType, type VoiceState } from "discord.js";
-import type { VacConfigService } from "../../../../../shared/features/vac/vacConfigService";
+import type { VacSettingsService } from "../../../../../shared/features/vac/vacSettingsService";
 import { logPrefixed } from "../../../../../shared/locale/localeManager";
 import { logger } from "../../../../../shared/utils/logger";
 
@@ -13,7 +13,7 @@ import { logger } from "../../../../../shared/utils/logger";
  * @returns 実行完了
  */
 export async function handleVacDeleteUseCase(
-  vacRepository: VacConfigService,
+  vacRepository: VacSettingsService,
   oldState: VoiceState,
 ): Promise<void> {
   const oldChannel = oldState.channel;
@@ -21,7 +21,9 @@ export async function handleVacDeleteUseCase(
     return;
   }
 
-  const config = await vacRepository.getVacConfigOrDefault(oldChannel.guild.id);
+  const config = await vacRepository.getVacSettingsOrDefault(
+    oldChannel.guild.id,
+  );
   const isManaged = config.createdChannels.some(
     (channel) => channel.voiceChannelId === oldChannel.id,
   );

@@ -15,8 +15,8 @@ import {
 import { logger } from "../../../../../shared/utils/logger";
 import type { ButtonHandler } from "../../../../handlers/interactionCreate/ui/types";
 import {
-  getBotTicketConfigService,
   getBotTicketRepository,
+  getBotTicketSettingsService,
 } from "../../../../services/botCompositionRoot";
 import {
   createErrorEmbed,
@@ -102,7 +102,7 @@ async function handleClose(interaction: ButtonInteraction): Promise<void> {
     TICKET_CUSTOM_ID.CLOSE_PREFIX.length,
   );
   const ticketRepository = getBotTicketRepository();
-  const configService = getBotTicketConfigService();
+  const settingsService = getBotTicketSettingsService();
 
   const ticket = await ticketRepository.findById(ticketId);
   if (!ticket) {
@@ -137,7 +137,7 @@ async function handleClose(interaction: ButtonInteraction): Promise<void> {
   }
 
   // スタッフロールと操作権限を確認
-  const config = await configService.findByGuildAndCategory(
+  const config = await settingsService.findByGuildAndCategory(
     ticket.guildId,
     ticket.categoryId,
   );
@@ -170,7 +170,7 @@ async function handleClose(interaction: ButtonInteraction): Promise<void> {
 
   await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
-  await closeTicket(ticket, guild, configService, ticketRepository);
+  await closeTicket(ticket, guild, settingsService, ticketRepository);
 
   logger.info(
     logPrefixed("system:log_prefix.ticket", "ticket:log.ticket_closed", {
@@ -197,7 +197,7 @@ async function handleOpen(interaction: ButtonInteraction): Promise<void> {
     TICKET_CUSTOM_ID.OPEN_PREFIX.length,
   );
   const ticketRepository = getBotTicketRepository();
-  const configService = getBotTicketConfigService();
+  const settingsService = getBotTicketSettingsService();
 
   const ticket = await ticketRepository.findById(ticketId);
   if (!ticket) {
@@ -232,7 +232,7 @@ async function handleOpen(interaction: ButtonInteraction): Promise<void> {
   }
 
   // スタッフロールと操作権限を確認
-  const config = await configService.findByGuildAndCategory(
+  const config = await settingsService.findByGuildAndCategory(
     ticket.guildId,
     ticket.categoryId,
   );
@@ -265,7 +265,7 @@ async function handleOpen(interaction: ButtonInteraction): Promise<void> {
 
   await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
-  await reopenTicket(ticket, guild, configService, ticketRepository);
+  await reopenTicket(ticket, guild, settingsService, ticketRepository);
 
   logger.info(
     logPrefixed("system:log_prefix.ticket", "ticket:log.ticket_opened", {
@@ -292,7 +292,7 @@ async function handleDelete(interaction: ButtonInteraction): Promise<void> {
     TICKET_CUSTOM_ID.DELETE_PREFIX.length,
   );
   const ticketRepository = getBotTicketRepository();
-  const configService = getBotTicketConfigService();
+  const settingsService = getBotTicketSettingsService();
 
   const ticket = await ticketRepository.findById(ticketId);
   if (!ticket) {
@@ -311,7 +311,7 @@ async function handleDelete(interaction: ButtonInteraction): Promise<void> {
   }
 
   // スタッフロール権限を確認（削除はスタッフのみ可能）
-  const config = await configService.findByGuildAndCategory(
+  const config = await settingsService.findByGuildAndCategory(
     ticket.guildId,
     ticket.categoryId,
   );
@@ -377,7 +377,7 @@ async function handleDeleteConfirm(
     TICKET_CUSTOM_ID.DELETE_CONFIRM_PREFIX.length,
   );
   const ticketRepository = getBotTicketRepository();
-  const configService = getBotTicketConfigService();
+  const settingsService = getBotTicketSettingsService();
 
   const ticket = await ticketRepository.findById(ticketId);
   if (!ticket) {
@@ -396,7 +396,7 @@ async function handleDeleteConfirm(
   }
 
   // スタッフロール権限を確認（削除はスタッフのみ可能）
-  const config = await configService.findByGuildAndCategory(
+  const config = await settingsService.findByGuildAndCategory(
     ticket.guildId,
     ticket.categoryId,
   );

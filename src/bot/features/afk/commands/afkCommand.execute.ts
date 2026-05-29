@@ -3,7 +3,7 @@
 
 import { ValidationError } from "@ayasono/shared/core";
 import { ChannelType, type ChatInputCommandInteraction } from "discord.js";
-import { getAfkConfig } from "../../../../shared/features/afk/afkConfigService";
+import { getAfkSettings } from "../../../../shared/features/afk/afkSettingsService";
 import {
   logPrefixed,
   tInteraction,
@@ -33,7 +33,7 @@ export async function executeAfkCommand(
     throw ValidationError.fromKey(AFK_I18N_KEYS.ERROR_GUILD_ONLY);
   }
 
-  const config = await getAfkConfig(guildId);
+  const config = await getAfkSettings(guildId);
 
   if (!config || !config.enabled || !config.channelId) {
     throw new ValidationError(

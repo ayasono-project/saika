@@ -2,7 +2,7 @@
 
 > Implementation Guidelines - 実装方針とコーディング規約
 
-最終更新: 2026年3月16日
+最終更新: 2026年5月29日
 
 ---
 
@@ -50,7 +50,7 @@
 
 #### shared/features 経由の DB アクセス
 
-Bot 層のハンドラー・ユースケースが DB へアクセスする際は、原則として `configService` 経由で行う。
+Bot 層のハンドラー・ユースケースが DB へアクセスする際は、原則として `settingsService` 経由で行う。
 リポジトリを直接取得・呼び出すことは **原則禁止** とする。
 
 ```
@@ -74,7 +74,7 @@ src/bot/features/<feature>/handlers/**
 6. `src/bot/services/botCompositionRoot.ts` にアクセサを追加し、初期化・登録する
 7. ハンドラーは `getBotXxxConfigService()` 経由のみでサービスを取得する
 
-**例外**: configService が 1:1 委譲ラッパーであり、経由することで不必要な複雑性が増す場合は、リポジトリを直接使用してもよい。ただしコード内コメントで理由を明記すること。
+**例外**: settingsService が 1:1 委譲ラッパーであり、経由することで不必要な複雑性が増す場合は、リポジトリを直接使用してもよい。ただしコード内コメントで理由を明記すること。
 
 ```typescript
 // ❌ 禁止
@@ -116,8 +116,8 @@ src/shared/features/<feature-name>/
 
 | 対象                    | 規則       | 例                                      |
 | ----------------------- | ---------- | --------------------------------------- |
-| ソースファイル（基本）  | camelCase  | `guildConfig.ts`, `memberLogService.ts` |
-| SlashCommand 系ファイル | kebab-case | `afk-config.ts`, `bump-reminder.ts`     |
+| ソースファイル（基本）  | camelCase  | `guildSettings.ts`, `memberLogService.ts` |
+| SlashCommand 系ファイル | kebab-case | `afk-settings.ts`, `bump-reminder.ts`     |
 | ディレクトリ名          | kebab-case | `bump-reminder/`, `member-log/`         |
 
 #### 変数・関数
@@ -125,7 +125,7 @@ src/shared/features/<feature-name>/
 | 対象     | 規則      | 例                                           |
 | -------- | --------- | -------------------------------------------- |
 | 変数     | camelCase | `guildId`, `panelChannel`                    |
-| 関数     | camelCase | `getGuildConfig()`, `handleButtonInteraction()` |
+| 関数     | camelCase | `getGuildSettings()`, `handleButtonInteraction()` |
 | 定数     | UPPER_SNAKE_CASE | `INTERACTION_TIMEOUT_MS`, `MAX_ROLE_COUNT` |
 
 #### クラス・インターフェース・型
@@ -133,14 +133,14 @@ src/shared/features/<feature-name>/
 | 対象             | 規則       | 例                                              |
 | ---------------- | ---------- | ----------------------------------------------- |
 | クラス           | PascalCase | `BotClient`, `BumpReminderManager`              |
-| インターフェース | PascalCase（リポジトリは `I` プレフィックス） | `IGuildCoreRepository`, `IVcRecruitConfigRepository` |
+| インターフェース | PascalCase（リポジトリは `I` プレフィックス） | `IGuildCoreRepository`, `IVcRecruitSettingsRepository` |
 | 型エイリアス     | PascalCase | `MessageStatus`, `BotEvent`                     |
 
 #### コマンド名・イベント名（Discord API 準拠）
 
 | 対象                                 | 規則                          | 例                                          |
 | ------------------------------------ | ----------------------------- | ------------------------------------------- |
-| スラッシュコマンド・サブコマンド名   | kebab-case（Discord API 制約）| `bump-reminder-config`, `set-mention`        |
+| スラッシュコマンド・サブコマンド名   | kebab-case（Discord API 制約）| `bump-reminder-settings`, `set-mention`        |
 | オプション名                         | kebab-case                    | `channel`, `role`                           |
 | イベント名                           | `Events` enum を使用          | `Events.GuildMemberAdd`（文字列リテラル禁止）|
 
@@ -150,7 +150,7 @@ src/shared/features/<feature-name>/
 
 | セグメント | 必須 | 説明 | 例 |
 | --- | --- | --- | --- |
-| `<feature>` | ✅ | 機能名（コマンド名と一致） | `guild-config`, `bump-reminder`, `vc-recruit` |
+| `<feature>` | ✅ | 機能名（コマンド名と一致） | `guild-settings`, `bump-reminder`, `vc-recruit` |
 | `<subject>-<qualifier>` | ✅ | 「対象-修飾子」の形式。対象が何で、何をするか/何であるかを表す | `reset-confirm`, `page-next`, `webhook-modal` |
 | `<dynamic-param>` | ❌ | 動的パラメータ（チャンネルID等、実行時に決まる値） | `{channelId}`, `{panelChannelId}` |
 
@@ -185,25 +185,25 @@ src/shared/features/<feature-name>/
 
 ```ts
 // ✅ アクション
-"guild-config:reset-confirm"              // リセットの確認ボタン
-"guild-config:reset-cancel"               // リセットのキャンセルボタン
-"guild-config:reset-all-confirm"          // 全設定リセットの確認ボタン
-"guild-config:import-confirm"             // インポートの確認ボタン
+"guild-settings:reset-confirm"              // リセットの確認ボタン
+"guild-settings:reset-cancel"               // リセットのキャンセルボタン
+"guild-settings:reset-all-confirm"          // 全設定リセットの確認ボタン
+"guild-settings:import-confirm"             // インポートの確認ボタン
 "message-delete:deletion-confirm"         // 削除の最終確認ボタン
 "message-delete:preview-confirm"          // プレビューの確認ボタン
 
 // ✅ ナビゲーション
-"guild-config:page-first"                 // 最初のページへ
-"guild-config:page-prev"                  // 前のページへ
-"guild-config:page-next"                  // 次のページへ
-"guild-config:page-last"                  // 最後のページへ
-"guild-config:page-jump"                  // ページジャンプ
+"guild-settings:page-first"                 // 最初のページへ
+"guild-settings:page-prev"                  // 前のページへ
+"guild-settings:page-next"                  // 次のページへ
+"guild-settings:page-last"                  // 最後のページへ
+"guild-settings:page-jump"                  // ページジャンプ
 "message-delete:deletion-back"            // プレビューに戻る
 
 // ✅ UI種別
 "message-delete:webhook-modal"            // Webhook入力モーダル
 "message-delete:webhook-modal-input"      // モーダル内の入力フィールド
-"guild-config:page-select"               // ページセレクトメニュー
+"guild-settings:page-select"               // ページセレクトメニュー
 "message-delete:user-select"             // ユーザーセレクトメニュー
 
 // ✅ 状態
@@ -215,8 +215,8 @@ src/shared/features/<feature-name>/
 "sticky-message:set-modal:{channelId}"   // 設定モーダル
 
 // ❌ 修飾子から始めている
-"guild-config:confirm-reset"
-"guild-config:cancel-import"
+"guild-settings:confirm-reset"
+"guild-settings:cancel-import"
 
 // ❌ subject が形容詞・前置詞のみ
 "message-delete:final-confirm"            // → deletion-confirm
@@ -249,7 +249,7 @@ src/shared/features/<feature-name>/
 ```ts
 // ❌ NG
 /** ギルド設定を取得する */
-async function getGuildConfig(guildId: string): Promise<GuildConfig | null> { ... }
+async function getGuildSettings(guildId: string): Promise<GuildSettings | null> { ... }
 
 // ✅ OK
 /**
@@ -257,7 +257,7 @@ async function getGuildConfig(guildId: string): Promise<GuildConfig | null> { ..
  * @param guildId 取得対象のギルドID
  * @returns ギルド設定（未設定時は null）
  */
-async function getGuildConfig(guildId: string): Promise<GuildConfig | null> { ... }
+async function getGuildSettings(guildId: string): Promise<GuildSettings | null> { ... }
 ```
 
 #### 変数・定数コメント
@@ -360,7 +360,7 @@ locales/{ja,en}/
 
 | 種別 | キーパターン | 例 |
 | --- | --- | --- |
-| コマンド定義 | `{コマンド名}.description` | `afk-config.set-channel.description` |
+| コマンド定義 | `{コマンド名}.description` | `afk-settings.set-channel.description` |
 | ユーザーレスポンス | `user-response.{アクション名}` | `user-response.set_channel_success` |
 | UIラベル（ボタン・セレクト・モーダル） | `ui.{UI種類}.{ID}` | `ui.button.reset_confirm` |
 | Embedタイトル | `embed.title.{コンテキスト}` | `embed.title.reset_confirm` |
@@ -375,7 +375,7 @@ locales/{ja,en}/
 export const afk = {
   // ── コマンド定義 ──
   "afk.description": "...",
-  "afk-config.description": "...",
+  "afk-settings.description": "...",
 
   // ── ユーザーレスポンス ──
   "user-response.moved": "...",

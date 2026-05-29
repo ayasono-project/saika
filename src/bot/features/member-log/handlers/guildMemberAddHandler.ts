@@ -6,7 +6,7 @@ import { EMBED_COLORS } from "../../../../shared/constants/embedColors";
 import { getGuildTranslator } from "../../../../shared/locale/helpers";
 import { logPrefixed } from "../../../../shared/locale/localeManager";
 import { logger } from "../../../../shared/utils/logger";
-import { getBotMemberLogConfigService } from "../../../services/botCompositionRoot";
+import { getBotMemberLogSettingsService } from "../../../services/botCompositionRoot";
 import {
   notifyErrorChannel,
   notifyWarnChannel,
@@ -27,7 +27,7 @@ export async function handleGuildMemberAdd(member: GuildMember): Promise<void> {
   try {
     // 設定を取得し、機能が有効かチェック
     const config =
-      await getBotMemberLogConfigService().getMemberLogConfig(guildId);
+      await getBotMemberLogSettingsService().getMemberLogSettings(guildId);
     if (!config?.enabled || !config.channelId) {
       // 機能無効またはチャンネル未設定はスキップ
       return;
@@ -37,7 +37,7 @@ export async function handleGuildMemberAdd(member: GuildMember): Promise<void> {
     const channel = await member.guild.channels.fetch(config.channelId);
     if (!channel || channel.type !== ChannelType.GuildText) {
       // チャンネルが存在しない場合：設定をリセットしてシステムチャンネルへ通知
-      await getBotMemberLogConfigService().disableAndClearChannel(guildId);
+      await getBotMemberLogSettingsService().disableAndClearChannel(guildId);
       logger.warn(
         logPrefixed(
           "system:log_prefix.member_log",

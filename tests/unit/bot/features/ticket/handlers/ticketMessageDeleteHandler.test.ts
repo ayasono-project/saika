@@ -24,7 +24,7 @@ vi.mock("@/shared/utils/logger", () => ({
   logger: { debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() },
 }));
 vi.mock("@/bot/services/botCompositionRoot", () => ({
-  getBotTicketConfigService: () => mockConfigService,
+  getBotTicketSettingsService: () => mockConfigService,
 }));
 
 import { handleTicketMessageDelete } from "@/bot/features/ticket/handlers/ticketMessageDeleteHandler";

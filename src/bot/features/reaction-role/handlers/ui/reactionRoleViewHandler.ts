@@ -14,7 +14,7 @@ import type {
   ButtonHandler,
   StringSelectHandler,
 } from "../../../../handlers/interactionCreate/ui/types";
-import { getBotReactionRolePanelConfigService } from "../../../../services/botCompositionRoot";
+import { getBotReactionRolePanelSettingsService } from "../../../../services/botCompositionRoot";
 import {
   buildPaginationRow,
   parsePaginationAction,
@@ -22,7 +22,7 @@ import {
   showPaginationJumpModal,
 } from "../../../../shared/pagination";
 import { REACTION_ROLE_CUSTOM_ID } from "../../commands/reactionRoleCommand.constants";
-import { buildViewEmbed } from "../../commands/usecases/reactionRoleConfigView";
+import { buildViewEmbed } from "../../commands/usecases/reactionRoleSettingsView";
 
 /**
  * view フローのページネーションボタンハンドラ
@@ -45,8 +45,8 @@ export const reactionRoleViewButtonHandler: ButtonHandler = {
     const guildId = interaction.guildId;
     if (!guildId) return;
 
-    const configService = getBotReactionRolePanelConfigService();
-    const panels = await configService.findAllByGuild(guildId);
+    const settingsService = getBotReactionRolePanelSettingsService();
+    const panels = await settingsService.findAllByGuild(guildId);
     if (panels.length === 0) return;
 
     // 現在のページをページジャンプボタンのラベルから取得（「1/3ページ」形式）
@@ -144,8 +144,8 @@ export const reactionRoleViewSelectHandler: StringSelectHandler = {
     const guildId = interaction.guildId;
     if (!guildId) return;
 
-    const configService = getBotReactionRolePanelConfigService();
-    const panels = await configService.findAllByGuild(guildId);
+    const settingsService = getBotReactionRolePanelSettingsService();
+    const panels = await settingsService.findAllByGuild(guildId);
     if (panels.length === 0) return;
 
     const selectedPage = Number(interaction.values[0]);

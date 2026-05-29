@@ -1,0 +1,35 @@
+# ─────────────────────────────────────────────────────
+# saika ローカル開発用 PostgreSQL
+# ─────────────────────────────────────────────────────
+# 本番は Coolify のマネージド PostgreSQL を使うが、ローカル開発では
+# このファイルで Postgres を手軽に起動する。
+#
+#   pnpm db:up     # 起動（バックグラウンド）
+#   pnpm db:migrate  # マイグレーション適用
+#   pnpm dev       # Bot 起動
+#   pnpm db:down   # 停止（-v でデータ削除）
+#
+# .env の DATABASE_URL は .env.example の既定値に合わせる:
+#   postgresql://saika:saika@localhost:5432/saika?schema=public
+
+services:
+  postgres:
+    image: postgres:17
+    container_name: saika-dev-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: saika
+      POSTGRES_PASSWORD: saika
+      POSTGRES_DB: saika
+    ports:
+      - "5432:5432"
+    volumes:
+      - saika_dev_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U saika -d saika"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  saika_dev_pgdata:

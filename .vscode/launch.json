@@ -5,10 +5,11 @@
             "name": "🤖 Bot: Debug (Dev)",
             "type": "node",
             "request": "launch",
+            "preLaunchTask": "Database: Dev Up",
             "runtimeExecutable": "${workspaceFolder}/node_modules/.bin/tsx",
             "runtimeArgs": [
                 "watch",
-                "src/bot/main.ts"
+                "src/main.ts"
             ],
             "skipFiles": [
                 "<node_internals>/**"

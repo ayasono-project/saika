@@ -8,12 +8,11 @@
 
 > **⚠️ 部分的に旧前提**
 >
-> 本ドキュメントは現行コード（SQLite / libSQL + Bot 単一プロセス）を記述しているが、以下は**移行予定**:
+> 本ドキュメントは現行コード（PostgreSQL + Bot 単一プロセス）を記述しているが、以下は**移行予定**:
 >
-> - **DB を PostgreSQL に変更**（Coolify Scheduled Backups 対応・Bot 間の運用統一。決定済み・実装未着手。テーブル名 `guild_*_configs`→`guild_*_settings` のリネームも同時実施予定）
 > - **Fastify API 層を `src/api/` に追加**し、web ダッシュボードから設定 CRUD を受け付ける（Bot と同一プロセス内で起動）
 >
-> ディレクトリ構成は `src/{bot,api,features,shared}/` へ再編済み（`api/` は §10 で追加予定）。プロジェクト全体方針は [infra/docs/PROJECT_ARCHITECTURE.md](../../../infra/docs/PROJECT_ARCHITECTURE.md) を参照。
+> DB は **PostgreSQL（`@prisma/adapter-pg` 経由）** に移行済み（§6 完了。テーブル名は `guild_*_settings`、JSON 配列は jsonb）。ディレクトリ構成は `src/{bot,api,features,shared}/` へ再編済み（`api/` は §10 で追加予定）。プロジェクト全体方針は [infra/docs/PROJECT_ARCHITECTURE.md](../../../infra/docs/PROJECT_ARCHITECTURE.md) を参照。
 
 ---
 
@@ -38,7 +37,7 @@ graph TD
         Bot["Bot プロセス<br>src/main.ts + src/bot/<br>─────────────<br>Discord Bot<br>Gateway 接続"]
         Features["src/features/<br>機能ごとの実装<br>UI / サービス / リポジトリ"]
         Shared["src/shared/<br>横断ロジック<br>DB types / i18n / etc"]
-        DB["SQLite (libSQL)<br>storage/db.sqlite"]
+        DB["PostgreSQL<br>@prisma/adapter-pg"]
     end
     Bot --> Features
     Features --> Shared
@@ -243,7 +242,7 @@ const prisma = getPrismaClient(); // null の場合あり
 | `Ticket`                  | チケットレコード（ステータス・作成者・自動削除タイマー） |
 | `GuildReactionRolePanel`  | リアクションロールパネル設定（ボタン・モード・表示設定） |
 
-JSON 配列フィールド（`mentionUserIds`, `triggerChannelIds` 等）は SQLite の制約上 `String` 型で保存し、`parseJsonArray()` で読み出し時に変換します。
+JSON 配列・オブジェクトフィールド（`mentionUserIds`, `triggerChannelIds`, `buttons`, `staffRoleIds`, `embedData` 等）は PostgreSQL の `jsonb` 型でネイティブに保存し、Prisma が配列・オブジェクトのまま読み書きします（`JSON.parse`/`stringify` による変換は不要）。
 
 ### Repository パターン
 

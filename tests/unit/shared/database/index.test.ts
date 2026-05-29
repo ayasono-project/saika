@@ -6,30 +6,32 @@ describe("shared/database standalone repository getters", () => {
 
   it("各スタンドアロンリポジトリのシングルトンゲッターが prisma 未指定で例外をスローすること", async () => {
     const { getGuildCoreRepository } = await import(
-      "@/shared/database/repositories/guildCoreRepository"
+      "@/features/guild-settings/guildCoreRepository"
     );
-    const { getAfkConfigRepository } = await import(
-      "@/shared/database/repositories/afkConfigRepository"
+    const { getAfkSettingsRepository } = await import(
+      "@/features/afk/afkSettingsRepository"
     );
-    const { getBumpReminderConfigRepository } = await import(
-      "@/shared/database/repositories/bumpReminderConfigRepository"
+    const { getBumpReminderSettingsRepository } = await import(
+      "@/features/bump-reminder/bumpReminderSettingsRepository"
     );
-    const { getVacConfigRepository } = await import(
-      "@/shared/database/repositories/vacConfigRepository"
+    const { getVacSettingsRepository } = await import(
+      "@/features/vac/vacSettingsRepository"
     );
-    const { getMemberLogConfigRepository } = await import(
-      "@/shared/database/repositories/memberLogConfigRepository"
+    const { getMemberLogSettingsRepository } = await import(
+      "@/features/member-log/memberLogSettingsRepository"
     );
-    const { getVcRecruitConfigRepository } = await import(
-      "@/shared/database/repositories/vcRecruitConfigRepository"
+    const { getVcRecruitSettingsRepository } = await import(
+      "@/features/vc-recruit/vcRecruitSettingsRepository"
     );
 
     expect(() => getGuildCoreRepository()).toThrow("not initialized");
-    expect(() => getAfkConfigRepository()).toThrow("not initialized");
-    expect(() => getBumpReminderConfigRepository()).toThrow("not initialized");
-    expect(() => getVacConfigRepository()).toThrow("not initialized");
-    expect(() => getMemberLogConfigRepository()).toThrow("not initialized");
-    expect(() => getVcRecruitConfigRepository()).toThrow("not initialized");
+    expect(() => getAfkSettingsRepository()).toThrow("not initialized");
+    expect(() => getBumpReminderSettingsRepository()).toThrow(
+      "not initialized",
+    );
+    expect(() => getVacSettingsRepository()).toThrow("not initialized");
+    expect(() => getMemberLogSettingsRepository()).toThrow("not initialized");
+    expect(() => getVcRecruitSettingsRepository()).toThrow("not initialized");
   });
 
   it("types モジュールから Bump リマインダー結果定数をエクスポートしていること", async () => {

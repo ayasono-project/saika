@@ -53,15 +53,15 @@ vi.mock("@/bot/services/botCompositionRoot", () => ({
     stickyMessageService: {},
     vacService: {},
   })),
-  getBotTicketConfigService: vi.fn(() => ({})),
+  getBotTicketSettingsService: vi.fn(() => ({})),
   getBotTicketRepository: vi.fn(() => ({})),
 }));
-vi.mock("@/bot/features/ticket/services/ticketAutoDeleteService", () => ({
+vi.mock("@/features/ticket/services/ticketAutoDeleteService", () => ({
   scheduleTicketAutoDelete: vi.fn(),
   cancelTicketAutoDelete: vi.fn(),
   restoreAutoDeleteTimers: vi.fn(),
 }));
-vi.mock("@/bot/features/ticket/services/ticketService", () => ({
+vi.mock("@/features/ticket/services/ticketService", () => ({
   createTicketChannel: vi.fn(),
   closeTicket: vi.fn(),
   reopenTicket: vi.fn(),
@@ -73,16 +73,16 @@ vi.mock("@/bot/features/ticket/services/ticketService", () => ({
 // 現在 commands/ に登録済みのコマンド名（新規追加時はここへの手動追加不要）
 const KNOWN_COMMAND_NAMES = [
   "afk",
-  "afk-config",
-  "bump-reminder-config",
-  "member-log-config",
+  "afk-settings",
+  "bump-reminder-settings",
+  "member-log-settings",
   "message-delete",
   "sticky-message",
   "ticket",
-  "ticket-config",
+  "ticket-settings",
   "vc",
-  "vac-config",
-  "vc-recruit-config",
+  "vac-settings",
+  "vc-recruit-settings",
   "ping",
 ];
 

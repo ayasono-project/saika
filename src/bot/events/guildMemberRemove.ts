@@ -2,8 +2,8 @@
 // メンバー退出イベント（メンバーログ）
 
 import { Events } from "discord.js";
-import { handleBumpReminderMemberRemove } from "../features/bump-reminder/handlers/bumpReminderMemberRemoveHandler";
-import { handleGuildMemberRemove } from "../features/member-log/handlers/guildMemberRemoveHandler";
+import { handleBumpReminderMemberRemove } from "../../features/bump-reminder/handlers/bumpReminderMemberRemoveHandler";
+import { handleGuildMemberRemove } from "../../features/member-log/handlers/guildMemberRemoveHandler";
 import type { BotEvent } from "../types/discord";
 
 export const guildMemberRemoveEvent: BotEvent<typeof Events.GuildMemberRemove> =

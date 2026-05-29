@@ -28,7 +28,7 @@ const srcBot = resolve(process.cwd(), "src/bot");
 export default defineConfig({
   entry: {
     // エントリーポイント
-    "bot/main": "src/bot/main.ts",
+    "main": "src/main.ts",
     // ローダー（動的インポートで使用するため個別ファイルとして出力）
     "bot/utils/commandLoader": "src/bot/utils/commandLoader.ts",
     "bot/utils/eventLoader": "src/bot/utils/eventLoader.ts",

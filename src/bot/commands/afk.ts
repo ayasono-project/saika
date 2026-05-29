@@ -2,9 +2,9 @@
 // AFK機能のコマンド
 
 import { ChatInputCommandInteraction, SlashCommandBuilder } from "discord.js";
+import { executeAfkCommand } from "../../features/afk/commands/afkCommand.execute";
 import { getCommandLocalizations } from "../../shared/locale/commandLocalizations";
 import { handleCommandError } from "../errors/interactionErrorHandler";
-import { executeAfkCommand } from "../features/afk/commands/afkCommand.execute";
 import type { Command } from "../types/discord";
 
 // AFK コマンド本体で利用するコマンド名・オプション名定数

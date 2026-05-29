@@ -3,19 +3,19 @@
 
 export const bumpReminder = {
   // ── Command definitions ──────────────────────
-  "bump-reminder-config.description":
+  "bump-reminder-settings.description":
     "Configure bump reminder (requires Manage Server)",
-  "bump-reminder-config.enable.description": "Enable bump reminder feature",
-  "bump-reminder-config.disable.description": "Disable bump reminder feature",
-  "bump-reminder-config.set-mention.description": "Set mention role",
-  "bump-reminder-config.set-mention.role.description":
+  "bump-reminder-settings.enable.description": "Enable bump reminder feature",
+  "bump-reminder-settings.disable.description": "Disable bump reminder feature",
+  "bump-reminder-settings.set-mention.description": "Set mention role",
+  "bump-reminder-settings.set-mention.role.description":
     "Role to mention in reminders",
-  "bump-reminder-config.remove-mention.description":
+  "bump-reminder-settings.remove-mention.description":
     "Remove mention role setting",
-  "bump-reminder-config.remove-mention-users.description":
+  "bump-reminder-settings.remove-mention-users.description":
     "Remove notification users",
-  "bump-reminder-config.reset.description": "Reset bump reminder settings",
-  "bump-reminder-config.view.description": "Show current settings",
+  "bump-reminder-settings.reset.description": "Reset bump reminder settings",
+  "bump-reminder-settings.view.description": "Show current settings",
 
   // ── User responses ───────────────────────────
   "user-response.enable_success": "Bump reminder feature has been enabled",

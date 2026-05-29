@@ -54,7 +54,7 @@ git checkout develop
 git pull origin develop
 
 # 開発・コミット
-git add src/bot/features/bump-reminder/
+git add src/features/bump-reminder/
 git commit -m "feat(bump-reminder): メンションロール設定機能を追加"
 
 # develop に直接 push（push 前に husky が pnpm test を自動実行してブロック）
@@ -180,7 +180,7 @@ fix(bump-reminder): コマンド登録時に二重登録されるバグを修正
 test(scheduler): scheduleJobのエッジケーステストを追加
 docs: コミット運用ガイドを追加
 ci: developブランチのブランチ保護ルールを追加
-refactor(db): guildConfigRepositoryの責務をusecase/persistenceに分割
+refactor(db): guildSettingsRepositoryの責務をusecase/persistenceに分割
 
 # 悪い例
 update                         # type がない

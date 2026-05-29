@@ -4,7 +4,7 @@
 import { ChannelType, type Guild } from "discord.js";
 import { logPrefixed, tGuild } from "../../shared/locale/localeManager";
 import { logger } from "../../shared/utils/logger";
-import { getBotGuildConfigService } from "../services/botCompositionRoot";
+import { getBotGuildSettingsService } from "../services/botCompositionRoot";
 import { createErrorEmbed, createWarningEmbed } from "../utils/messageResponse";
 
 /** エラー通知のコンテキスト情報 */
@@ -38,7 +38,7 @@ export async function notifyErrorChannel(
   context: ErrorContext,
 ): Promise<void> {
   try {
-    const config = await getBotGuildConfigService().getConfig(guild.id);
+    const config = await getBotGuildSettingsService().getSettings(guild.id);
     if (!config?.errorChannelId) return;
 
     const channel = await guild.channels
@@ -48,19 +48,19 @@ export async function notifyErrorChannel(
 
     const featureLabel = await tGuild(
       guild.id,
-      "guildConfig:error-notification.feature",
+      "guildSettings:error-notification.feature",
     );
     const actionLabel = await tGuild(
       guild.id,
-      "guildConfig:error-notification.action",
+      "guildSettings:error-notification.action",
     );
     const messageLabel = await tGuild(
       guild.id,
-      "guildConfig:error-notification.message",
+      "guildSettings:error-notification.message",
     );
     const title = await tGuild(
       guild.id,
-      "guildConfig:error-notification.title",
+      "guildSettings:error-notification.title",
     );
 
     const errorMessage = extractErrorMessage(error);
@@ -103,7 +103,7 @@ export async function notifyWarnChannel(
   context: ErrorContext,
 ): Promise<void> {
   try {
-    const config = await getBotGuildConfigService().getConfig(guild.id);
+    const config = await getBotGuildSettingsService().getSettings(guild.id);
     if (!config?.errorChannelId) return;
 
     const channel = await guild.channels
@@ -113,19 +113,19 @@ export async function notifyWarnChannel(
 
     const featureLabel = await tGuild(
       guild.id,
-      "guildConfig:error-notification.feature",
+      "guildSettings:error-notification.feature",
     );
     const actionLabel = await tGuild(
       guild.id,
-      "guildConfig:error-notification.action",
+      "guildSettings:error-notification.action",
     );
     const messageLabel = await tGuild(
       guild.id,
-      "guildConfig:error-notification.message",
+      "guildSettings:error-notification.message",
     );
     const title = await tGuild(
       guild.id,
-      "guildConfig:error-notification.warn_title",
+      "guildSettings:error-notification.warn_title",
     );
 
     const truncatedMessage =

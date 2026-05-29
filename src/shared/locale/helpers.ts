@@ -60,7 +60,7 @@ export async function invalidateGuildLocaleCache(
  * Discord は言語設定のみを公開しており、タイムゾーンは取得不可能なため
  * 言語から代表的なオフセットを推定する。特定不可能なロケールは UTC にフォールバックする。
  *
- * 将来 GuildConfig にタイムゾーン設定が追加された場合は、
+ * 将来 GuildSettings にタイムゾーン設定が追加された場合は、
  * `guildTimezone ?? getTimezoneOffsetForLocale(locale)` で差し替え可能。
  *
  * @param locale Discord の interaction.locale または guildLocale

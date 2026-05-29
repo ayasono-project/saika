@@ -10,14 +10,13 @@
 
 | # | セクション | 概要 | 残件 |
 | --- | --- | --- | ---: |
-| 5 | ディレクトリ再編 + 命名整理 | `src/{bot,api,features,shared}/` 化・2 件のリネーム | 7 |
-| 6 | Postgres 移行 | SQLite → PostgreSQL（純粋なデータ層移行） | 4 |
+| 6 | Postgres 移行 | SQLite → PostgreSQL（データ層移行 + テーブル名 settings 化） | 5 |
 | 7 | `/vc disconnect` 実装 & ephemeral 監査 | 個別/一括の切断・移動 + ephemeral/public 見直し | 4 |
 | 8 | 自動キック（非アクティブ整理） | 一定期間未活動メンバーの自動キック + 事前通知 | 3 |
 | 9 | 未承認ユーザー自動キック | 認証ロール未取得ユーザーの自動キック + 警告 DM | 3 |
 | 10 | Fastify API 実装 | web 完成後に契約通り実装 | 5 |
 | 11 | Bot 一般公開準備 | コマンド追加・認証申請 | 3 |
-| **合計** | | | **29** |
+| **合計** | | | **23** |
 
 > web ダッシュボード・インフラ（VPS / Cloudflare / Coolify）は別リポジトリで管理。
 > 作業順序は上から順（§5 → §6 → …）。§10 以降は web 側の進行に依存（§10 着手前に web がモック駆動で完成していること）。
@@ -26,28 +25,12 @@
 
 ## タスク一覧
 
-### 5. ディレクトリ再編 + 命名整理
-
-§6 Postgres より先に実施（構造変更はデータ無リスク。先に整え、Postgres はクリーンな構造で一度だけ流す）。開発環境（mise=Node + `.node-version` / pnpm=corepack）はバージョン管理移行で現行化済み。
-
-ディレクトリ再編（`src/{bot,api,features,shared}/` 標準構成へ）:
-
-- [ ] エントリポイント移動: `src/bot/main.ts` → `src/main.ts`
-- [ ] `src/bot/features/<f>/` と `src/shared/features/<f>/` を `src/features/<f>/` に統合
-- [ ] `src/shared/database/repositories/` を `src/features/<f>/repository.ts` に分散
-- [ ] `src/shared/scheduler/` は saika 固有として `src/shared/` に維持
-- [ ] [ARCHITECTURE.md](docs/guides/ARCHITECTURE.md) を新構造で書き直し
-
-命名整理:
-
-- [ ] `-config` → `-settings` リネーム（コマンド・ファイル・変数・DB テーブル・ドキュメント）
-- [ ] `vc-recruit` → `instant-recruit` リネーム（仕様書も `INSTANT_RECRUIT_SPEC.md` に）
-
 ### 6. Postgres 移行
 
 純粋な SQLite → PostgreSQL のデータ層移行（命名リネームは §5 に移動済み）。§5 完了後に着手。インフラ側で別途 Postgres 導入あり（別管理）。schema は Bot 内部要件で確定（web 契約待ちなし）。
 
 - [ ] `schema.prisma` の provider 切替（sqlite → postgresql）
+- [ ] テーブル名 `@@map` を `guild_*_configs` → `guild_*_settings` にリネーム（§5 でモデル名は settings 化済み。クリーンな Postgres migration に同梱）
 - [ ] JSON 文字列カラムを jsonb 化（7 箇所）+ アプリ側の `JSON.parse/stringify` 除去
 - [ ] migration 再生成・ローカル検証・本番切替（export → import）
 - [ ] [ARCHITECTURE.md](docs/guides/ARCHITECTURE.md) / [DEPLOYMENT.md](docs/guides/DEPLOYMENT.md) 更新
@@ -109,13 +92,23 @@ web フロントエンドがモック駆動（MSW 等）で完成した後、契
 
 > 詳細な作業経過は git log を参照。
 
+### ディレクトリ再編 + 命名整理（§5・2026-05-29 完了）
+
+`src/{bot,api,features,shared}/` 標準構成へ再編し、命名を `-settings` に統一。
+
+- [x] `-config` → `-settings` リネーム（全 8 コマンド・変数・ファイル・DB **モデル名**・export 形式の `config`→`settings` フィールド・ドキュメント・仕様書 `GUILD_SETTINGS_SPEC.md`）。DB **テーブル名**（`@@map` の `guild_*_configs`）は migration 回避のため据え置き、§6 でリネーム。`vc-recruit`→`instant-recruit` は実態が VC 中心のため見送り（VC募集名を維持）
+- [x] エントリポイント移動: `src/bot/main.ts` → `src/main.ts`
+- [x] `src/bot/features/<f>/` と `src/shared/features/<f>/` を `src/features/<f>/` に統合（記述的ファイル名を維持。設定リポジトリも各 `src/features/<f>/<f>SettingsRepository.ts` に分散）
+- [x] `src/shared/scheduler/` は saika 固有として `src/shared/` に維持、`src/shared/database/types/` も維持
+- [x] [ARCHITECTURE.md](docs/guides/ARCHITECTURE.md) / [IMPLEMENTATION_GUIDELINES.md](docs/guides/IMPLEMENTATION_GUIDELINES.md) を新構造で更新
+
 ### shared への外出し（§4・2026-05-29 完了・本番デプロイ済み）
 
-「他 bot でもそのまま流用できる汎用コードのみ外出し」方針で、汎用3点（`createLogger` / `DiscordWebhookTransport` / `errors` の `BaseError` 階層）を `@ayasono/shared` に移行。`locale/*` / `utils/prisma.ts` / `errors/errorUtils.ts`・`processErrorHandler.ts` は saika 固有結合が強く残置。配布は GitHub Release の prebuilt tarball（`v0.2.1`）+ タグ駆動 CI（インストール時ビルド不要）。
+「他 bot でもそのまま流用できる汎用コードのみ外出し」方針で、汎用3点（`createLogger` / `DiscordWebhookTransport` / `errors` の `BaseError` 階層）を `@ayasono/shared` に移行。`locale/*` / `utils/prisma.ts` / `errors/errorUtils.ts`・`processErrorHandler.ts` は saika 固有結合が強く残置。配布は git タグ + コミット済み dist（`shared` v0.2.3。pnpm 11.4 の HTTP tarball integrity 問題を回避するため、tarball/CI 方式から最終的にこれに確定）。
 
 - [x] `logger.ts` を `createLogger` の薄い wiring に置換（call site 無変更）、`discordWebhookTransport.ts` 削除
 - [x] `customErrors.ts` 削除 + `BaseError` 階層の import 約73箇所を `@ayasono/shared/core` に全置換
-- [x] shared に vitest 基盤 + core 3点テスト整備、配布を tarball + CI 化（`shared` v0.2.1）
+- [x] shared に vitest 基盤 + core 3点テスト整備、配布を git タグ + コミット済み dist 化（`shared` v0.2.3）
 - [x] docker build/run で本番同等起動を検証 → release PR #11/#12 で main 反映 → Coolify デプロイ成功
 
 > NOTE: webhook transport・customErrors の単体テストは shared 側（`shared/tests/core/`）に移設済み。saika 側の重複テストは削除済み。
@@ -124,7 +117,7 @@ web フロントエンドがモック駆動（MSW 等）で完成した後、契
 
 Postgres 移行前のデータ保全前提。stateful モデル(`GuildTicketConfig` / open 状態の `Ticket` / `StickyMessage` / `GuildReactionRolePanel` / `GuildVacConfig.createdChannels`)を export に追加。import は「設定系=export 上書き」「stateful=現 DB 優先+欠落分のみ insert、削除はしない」の簡素化マージ方式。同一ギルド内バックアップ・DB 移行専用。`version: 1` 付与。
 
-- [x] 仕様書更新: [GUILD_CONFIG_SPEC.md](docs/specs/GUILD_CONFIG_SPEC.md)
+- [x] 仕様書更新: [GUILD_SETTINGS_SPEC.md](docs/specs/GUILD_SETTINGS_SPEC.md)
 - [x] 実装
 
 ### VC 募集 UX 改善（2026-04-18 完了）

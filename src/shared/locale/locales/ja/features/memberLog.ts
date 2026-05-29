@@ -3,30 +3,30 @@
 
 export const memberLog = {
   // ── コマンド定義 ─────────────────────────────
-  "member-log-config.description":
+  "member-log-settings.description":
     "メンバーログ機能の設定（サーバー管理権限が必要）",
-  "member-log-config.set-channel.description": "通知チャンネルを設定",
-  "member-log-config.set-channel.channel.description":
+  "member-log-settings.set-channel.description": "通知チャンネルを設定",
+  "member-log-settings.set-channel.channel.description":
     "通知を送信するテキストチャンネル",
-  "member-log-config.enable.description": "メンバーログ機能を有効化",
-  "member-log-config.disable.description": "メンバーログ機能を無効化",
-  "member-log-config.set-join-message.description":
+  "member-log-settings.enable.description": "メンバーログ機能を有効化",
+  "member-log-settings.disable.description": "メンバーログ機能を無効化",
+  "member-log-settings.set-join-message.description":
     "カスタム参加メッセージを設定",
-  "member-log-config.set-leave-message.description":
+  "member-log-settings.set-leave-message.description":
     "カスタム退出メッセージを設定",
-  "member-log-config.clear-join-message.description":
+  "member-log-settings.clear-join-message.description":
     "カスタム参加メッセージを削除",
-  "member-log-config.clear-leave-message.description":
+  "member-log-settings.clear-leave-message.description":
     "カスタム退出メッセージを削除",
-  "member-log-config.reset.description": "メンバーログ設定をリセット",
-  "member-log-config.view.description": "現在の設定を表示",
+  "member-log-settings.reset.description": "メンバーログ設定をリセット",
+  "member-log-settings.view.description": "現在の設定を表示",
 
   // ── ユーザーレスポンス ────────────────────────
   "user-response.set_channel_success":
     "通知チャンネルを {{channel}} に設定しました。",
   "user-response.enable_success": "メンバーログ機能を有効化しました。",
   "user-response.enable_error_no_channel":
-    "通知チャンネルが設定されていません。先に /member-log-config set-channel を実行してください。",
+    "通知チャンネルが設定されていません。先に /member-log-settings set-channel を実行してください。",
   "user-response.disable_success": "メンバーログ機能を無効化しました。",
   "user-response.set_join_message_success": "参加メッセージを設定しました。",
   "user-response.set_leave_message_success": "退出メッセージを設定しました。",
@@ -36,7 +36,7 @@ export const memberLog = {
   "user-response.reset_success": "メンバーログ設定をリセットしました。",
   "user-response.reset_cancelled": "リセットをキャンセルしました。",
   "user-response.channel_deleted_notice":
-    "⚠️ メンバーログの通知チャンネルが削除されました。\n設定をリセットしたので、`/member-log-config set-channel` で再設定してください。",
+    "⚠️ メンバーログの通知チャンネルが削除されました。\n設定をリセットしたので、`/member-log-settings set-channel` で再設定してください。",
 
   // ── Embed ─────────────────────────────────────
   "embed.title.config_view": "メンバーログ機能",

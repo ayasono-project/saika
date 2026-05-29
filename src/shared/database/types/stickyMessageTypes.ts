@@ -1,5 +1,5 @@
 // src/shared/database/types/stickyMessageTypes.ts
-// StickyMessage エンティティ（専用テーブル、GuildConfig とは別）
+// StickyMessage エンティティ（専用テーブル、GuildSettings とは別）
 
 export interface StickyMessage {
   id: string;

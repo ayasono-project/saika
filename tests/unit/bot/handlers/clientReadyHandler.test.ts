@@ -48,21 +48,21 @@ vi.mock("@/shared/utils/logger", () => ({
   },
 }));
 
-vi.mock("@/bot/features/bump-reminder/handlers/bumpReminderStartup", () => ({
+vi.mock("@/features/bump-reminder/handlers/bumpReminderStartup", () => ({
   restoreBumpRemindersOnStartup: (...args: unknown[]) =>
     restoreBumpRemindersOnStartupMock(...args),
 }));
 
-vi.mock("@/bot/features/vac/handlers/vacStartupCleanup", () => ({
+vi.mock("@/features/vac/handlers/vacStartupCleanup", () => ({
   cleanupVacOnStartup: (...args: unknown[]) => cleanupVacOnStartupMock(...args),
 }));
 
-vi.mock("@/bot/features/member-log/handlers/inviteTracker", () => ({
+vi.mock("@/features/member-log/handlers/inviteTracker", () => ({
   initGuildInviteCache: (...args: unknown[]) =>
     initGuildInviteCacheMock(...args),
 }));
 
-vi.mock("@/bot/features/ticket/services/ticketAutoDeleteService", () => ({
+vi.mock("@/features/ticket/services/ticketAutoDeleteService", () => ({
   restoreAutoDeleteTimers: (...args: unknown[]) =>
     restoreAutoDeleteTimersMock(...args),
 }));

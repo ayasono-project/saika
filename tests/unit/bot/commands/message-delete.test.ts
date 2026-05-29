@@ -11,7 +11,7 @@ vi.mock("@/shared/locale/commandLocalizations", () => ({
 }));
 
 vi.mock(
-  "@/bot/features/message-delete/commands/messageDeleteCommand.execute",
+  "@/features/message-delete/commands/messageDeleteCommand.execute",
   () => ({
     executeMessageDeleteCommand: (...args: unknown[]) =>
       executeMessageDeleteCommandMock(...args),
@@ -23,7 +23,7 @@ vi.mock("@/bot/errors/interactionErrorHandler", () => ({
 }));
 
 vi.mock(
-  "@/bot/features/message-delete/commands/messageDeleteCommand.constants",
+  "@/features/message-delete/commands/messageDeleteCommand.constants",
   () => ({
     MSG_DEL_COMMAND: {
       NAME: "message-delete",

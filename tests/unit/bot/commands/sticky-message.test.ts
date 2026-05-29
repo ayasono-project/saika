@@ -18,7 +18,7 @@ vi.mock("@/shared/locale/commandLocalizations", () => ({
 }));
 
 vi.mock(
-  "@/bot/features/sticky-message/commands/stickyMessageCommand.execute",
+  "@/features/sticky-message/commands/stickyMessageCommand.execute",
   () => ({
     executeStickyMessageCommand: (...args: unknown[]) =>
       executeStickyMessageCommandMock(...args),
@@ -30,10 +30,10 @@ vi.mock("@/bot/errors/interactionErrorHandler", () => ({
 }));
 
 vi.mock(
-  "@/bot/features/sticky-message/commands/stickyMessageCommand.constants",
+  "@/features/sticky-message/commands/stickyMessageCommand.constants",
   async () => {
     const actual = await vi.importActual(
-      "@/bot/features/sticky-message/commands/stickyMessageCommand.constants",
+      "@/features/sticky-message/commands/stickyMessageCommand.constants",
     );
     return actual;
   },

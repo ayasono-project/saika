@@ -6,13 +6,13 @@ import { guildMemberRemoveEvent } from "@/bot/events/guildMemberRemove";
 const handleGuildMemberRemoveMock = vi.fn();
 const handleBumpReminderMemberRemoveMock = vi.fn();
 
-vi.mock("@/bot/features/member-log/handlers/guildMemberRemoveHandler", () => ({
+vi.mock("@/features/member-log/handlers/guildMemberRemoveHandler", () => ({
   handleGuildMemberRemove: (...args: unknown[]) =>
     handleGuildMemberRemoveMock(...args),
 }));
 
 vi.mock(
-  "@/bot/features/bump-reminder/handlers/bumpReminderMemberRemoveHandler",
+  "@/features/bump-reminder/handlers/bumpReminderMemberRemoveHandler",
   () => ({
     handleBumpReminderMemberRemove: (...args: unknown[]) =>
       handleBumpReminderMemberRemoveMock(...args),

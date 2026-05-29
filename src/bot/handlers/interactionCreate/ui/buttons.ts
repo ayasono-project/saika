@@ -1,22 +1,22 @@
 // src/bot/handlers/interactionCreate/ui/buttons.ts
 // ボタンハンドラのレジストリ
 
-import { bumpPanelButtonHandler } from "../../../features/bump-reminder/handlers/ui/bumpPanelButtonHandler";
-import { reactionRoleAddButtonButtonHandler } from "../../../features/reaction-role/handlers/ui/reactionRoleAddButtonHandler";
-import { reactionRoleClickHandler } from "../../../features/reaction-role/handlers/ui/reactionRoleClickHandler";
-import { reactionRoleRemoveButtonButtonHandler } from "../../../features/reaction-role/handlers/ui/reactionRoleRemoveButtonHandler";
-import { reactionRoleSetupButtonHandler } from "../../../features/reaction-role/handlers/ui/reactionRoleSetupButtonHandler";
-import { reactionRoleTeardownButtonHandler } from "../../../features/reaction-role/handlers/ui/reactionRoleTeardownHandler";
-import { reactionRoleViewButtonHandler } from "../../../features/reaction-role/handlers/ui/reactionRoleViewHandler";
-import { stickyMessageRemoveButtonHandler } from "../../../features/sticky-message/handlers/ui/stickyMessageRemoveButtonHandler";
-import { ticketButtonHandler } from "../../../features/ticket/handlers/ui/ticketButtonHandler";
-import { ticketCreateButtonHandler } from "../../../features/ticket/handlers/ui/ticketCreateButtonHandler";
-import { ticketTeardownButtonHandler } from "../../../features/ticket/handlers/ui/ticketTeardownButtonHandler";
-import { ticketViewButtonHandler } from "../../../features/ticket/handlers/ui/ticketViewButtonHandler";
-import { vcPanelButtonHandler } from "../../../features/vc-panel/handlers/ui/vcPanelButton";
-import { vcRecruitButtonHandler } from "../../../features/vc-recruit/handlers/ui/vcRecruitButton";
-import { vcRecruitPostButtonHandler } from "../../../features/vc-recruit/handlers/ui/vcRecruitPostButton";
-import { vcRecruitRoleButtonHandler } from "../../../features/vc-recruit/handlers/ui/vcRecruitRoleButtonHandler";
+import { bumpPanelButtonHandler } from "../../../../features/bump-reminder/handlers/ui/bumpPanelButtonHandler";
+import { reactionRoleAddButtonButtonHandler } from "../../../../features/reaction-role/handlers/ui/reactionRoleAddButtonHandler";
+import { reactionRoleClickHandler } from "../../../../features/reaction-role/handlers/ui/reactionRoleClickHandler";
+import { reactionRoleRemoveButtonButtonHandler } from "../../../../features/reaction-role/handlers/ui/reactionRoleRemoveButtonHandler";
+import { reactionRoleSetupButtonHandler } from "../../../../features/reaction-role/handlers/ui/reactionRoleSetupButtonHandler";
+import { reactionRoleTeardownButtonHandler } from "../../../../features/reaction-role/handlers/ui/reactionRoleTeardownHandler";
+import { reactionRoleViewButtonHandler } from "../../../../features/reaction-role/handlers/ui/reactionRoleViewHandler";
+import { stickyMessageRemoveButtonHandler } from "../../../../features/sticky-message/handlers/ui/stickyMessageRemoveButtonHandler";
+import { ticketButtonHandler } from "../../../../features/ticket/handlers/ui/ticketButtonHandler";
+import { ticketCreateButtonHandler } from "../../../../features/ticket/handlers/ui/ticketCreateButtonHandler";
+import { ticketTeardownButtonHandler } from "../../../../features/ticket/handlers/ui/ticketTeardownButtonHandler";
+import { ticketViewButtonHandler } from "../../../../features/ticket/handlers/ui/ticketViewButtonHandler";
+import { vcPanelButtonHandler } from "../../../../features/vc-panel/handlers/ui/vcPanelButton";
+import { vcRecruitButtonHandler } from "../../../../features/vc-recruit/handlers/ui/vcRecruitButton";
+import { vcRecruitPostButtonHandler } from "../../../../features/vc-recruit/handlers/ui/vcRecruitPostButton";
+import { vcRecruitRoleButtonHandler } from "../../../../features/vc-recruit/handlers/ui/vcRecruitRoleButtonHandler";
 import type { ButtonHandler } from "./types";
 
 export const buttonHandlers: ButtonHandler[] = [

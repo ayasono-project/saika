@@ -5,7 +5,7 @@ import { guildMemberAddEvent } from "@/bot/events/guildMemberAdd";
 
 const handleGuildMemberAddMock = vi.fn();
 
-vi.mock("@/bot/features/member-log/handlers/guildMemberAddHandler", () => ({
+vi.mock("@/features/member-log/handlers/guildMemberAddHandler", () => ({
   handleGuildMemberAdd: (...args: unknown[]) =>
     handleGuildMemberAddMock(...args),
 }));

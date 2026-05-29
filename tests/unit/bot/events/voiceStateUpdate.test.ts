@@ -5,7 +5,7 @@ import { voiceStateUpdateEvent } from "@/bot/events/voiceStateUpdate";
 
 const handleVacVoiceStateUpdateMock = vi.fn();
 
-vi.mock("@/bot/features/vac/handlers/vacVoiceStateUpdate", () => ({
+vi.mock("@/features/vac/handlers/vacVoiceStateUpdate", () => ({
   handleVacVoiceStateUpdate: (...args: unknown[]) =>
     handleVacVoiceStateUpdateMock(...args),
 }));

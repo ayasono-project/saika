@@ -5,33 +5,33 @@ import {
   reactionRoleAddButtonColorSelectHandler,
   reactionRoleAddButtonRoleSelectHandler,
   reactionRoleAddButtonSelectHandler,
-} from "../../../features/reaction-role/handlers/ui/reactionRoleAddButtonHandler";
+} from "../../../../features/reaction-role/handlers/ui/reactionRoleAddButtonHandler";
 import {
   reactionRoleEditButtonColorSelectHandler,
   reactionRoleEditButtonPanelSelectHandler,
   reactionRoleEditButtonRoleSelectHandler,
   reactionRoleEditButtonSelectHandler,
-} from "../../../features/reaction-role/handlers/ui/reactionRoleEditButtonHandler";
-import { reactionRoleEditPanelSelectHandler } from "../../../features/reaction-role/handlers/ui/reactionRoleEditPanelHandler";
+} from "../../../../features/reaction-role/handlers/ui/reactionRoleEditButtonHandler";
+import { reactionRoleEditPanelSelectHandler } from "../../../../features/reaction-role/handlers/ui/reactionRoleEditPanelHandler";
 import {
   reactionRoleRemoveButtonPanelSelectHandler,
   reactionRoleRemoveButtonSelectHandler,
-} from "../../../features/reaction-role/handlers/ui/reactionRoleRemoveButtonHandler";
-import { reactionRoleSetupColorSelectHandler } from "../../../features/reaction-role/handlers/ui/reactionRoleSetupColorSelectHandler";
-import { reactionRoleSetupModeSelectHandler } from "../../../features/reaction-role/handlers/ui/reactionRoleSetupModeSelectHandler";
-import { reactionRoleSetupRoleSelectHandler } from "../../../features/reaction-role/handlers/ui/reactionRoleSetupRoleSelectHandler";
-import { reactionRoleTeardownSelectHandler } from "../../../features/reaction-role/handlers/ui/reactionRoleTeardownHandler";
-import { reactionRoleViewSelectHandler } from "../../../features/reaction-role/handlers/ui/reactionRoleViewHandler";
-import { stickyMessageRemoveSelectHandler } from "../../../features/sticky-message/handlers/ui/stickyMessageRemoveSelectHandler";
-import { stickyMessageViewSelectHandler } from "../../../features/sticky-message/handlers/ui/stickyMessageViewSelectHandler";
-import { ticketRoleSelectHandler } from "../../../features/ticket/handlers/ui/ticketRoleSelectHandler";
-import { ticketSetupRoleSelectHandler } from "../../../features/ticket/handlers/ui/ticketSetupRoleSelectHandler";
-import { ticketTeardownSelectHandler } from "../../../features/ticket/handlers/ui/ticketTeardownSelectHandler";
-import { ticketViewSelectHandler } from "../../../features/ticket/handlers/ui/ticketViewSelectHandler";
-import { vcPanelUserSelectHandler } from "../../../features/vc-panel/handlers/ui/vcPanelUserSelect";
-import { vcRecruitAddRoleSelectHandler } from "../../../features/vc-recruit/handlers/ui/vcRecruitAddRoleSelectHandler";
-import { vcRecruitRemoveRoleSelectHandler } from "../../../features/vc-recruit/handlers/ui/vcRecruitRemoveRoleSelectHandler";
-import { vcRecruitStringSelectHandler } from "../../../features/vc-recruit/handlers/ui/vcRecruitStringSelect";
+} from "../../../../features/reaction-role/handlers/ui/reactionRoleRemoveButtonHandler";
+import { reactionRoleSetupColorSelectHandler } from "../../../../features/reaction-role/handlers/ui/reactionRoleSetupColorSelectHandler";
+import { reactionRoleSetupModeSelectHandler } from "../../../../features/reaction-role/handlers/ui/reactionRoleSetupModeSelectHandler";
+import { reactionRoleSetupRoleSelectHandler } from "../../../../features/reaction-role/handlers/ui/reactionRoleSetupRoleSelectHandler";
+import { reactionRoleTeardownSelectHandler } from "../../../../features/reaction-role/handlers/ui/reactionRoleTeardownHandler";
+import { reactionRoleViewSelectHandler } from "../../../../features/reaction-role/handlers/ui/reactionRoleViewHandler";
+import { stickyMessageRemoveSelectHandler } from "../../../../features/sticky-message/handlers/ui/stickyMessageRemoveSelectHandler";
+import { stickyMessageViewSelectHandler } from "../../../../features/sticky-message/handlers/ui/stickyMessageViewSelectHandler";
+import { ticketRoleSelectHandler } from "../../../../features/ticket/handlers/ui/ticketRoleSelectHandler";
+import { ticketSetupRoleSelectHandler } from "../../../../features/ticket/handlers/ui/ticketSetupRoleSelectHandler";
+import { ticketTeardownSelectHandler } from "../../../../features/ticket/handlers/ui/ticketTeardownSelectHandler";
+import { ticketViewSelectHandler } from "../../../../features/ticket/handlers/ui/ticketViewSelectHandler";
+import { vcPanelUserSelectHandler } from "../../../../features/vc-panel/handlers/ui/vcPanelUserSelect";
+import { vcRecruitAddRoleSelectHandler } from "../../../../features/vc-recruit/handlers/ui/vcRecruitAddRoleSelectHandler";
+import { vcRecruitRemoveRoleSelectHandler } from "../../../../features/vc-recruit/handlers/ui/vcRecruitRemoveRoleSelectHandler";
+import { vcRecruitStringSelectHandler } from "../../../../features/vc-recruit/handlers/ui/vcRecruitStringSelect";
 import type {
   RoleSelectHandler,
   StringSelectHandler,

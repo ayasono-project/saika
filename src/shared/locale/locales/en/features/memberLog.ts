@@ -3,29 +3,30 @@
 
 export const memberLog = {
   // ── Command definitions ──────────────────────
-  "member-log-config.description":
+  "member-log-settings.description":
     "Configure member log feature (requires Manage Server)",
-  "member-log-config.set-channel.description": "Set the notification channel",
-  "member-log-config.set-channel.channel.description":
+  "member-log-settings.set-channel.description": "Set the notification channel",
+  "member-log-settings.set-channel.channel.description":
     "Text channel to send notifications to",
-  "member-log-config.enable.description": "Enable member log feature",
-  "member-log-config.disable.description": "Disable member log feature",
-  "member-log-config.set-join-message.description": "Set a custom join message",
-  "member-log-config.set-leave-message.description":
+  "member-log-settings.enable.description": "Enable member log feature",
+  "member-log-settings.disable.description": "Disable member log feature",
+  "member-log-settings.set-join-message.description":
+    "Set a custom join message",
+  "member-log-settings.set-leave-message.description":
     "Set a custom leave message",
-  "member-log-config.clear-join-message.description":
+  "member-log-settings.clear-join-message.description":
     "Clear the custom join message",
-  "member-log-config.clear-leave-message.description":
+  "member-log-settings.clear-leave-message.description":
     "Clear the custom leave message",
-  "member-log-config.reset.description": "Reset member log settings",
-  "member-log-config.view.description": "Show current settings",
+  "member-log-settings.reset.description": "Reset member log settings",
+  "member-log-settings.view.description": "Show current settings",
 
   // ── User responses ─────────────────────────────
   "user-response.set_channel_success":
     "Notification channel set to {{channel}}",
   "user-response.enable_success": "Member log feature has been enabled",
   "user-response.enable_error_no_channel":
-    "No notification channel is configured. Run /member-log-config set-channel first.",
+    "No notification channel is configured. Run /member-log-settings set-channel first.",
   "user-response.disable_success": "Member log feature has been disabled",
   "user-response.set_join_message_success": "Join message has been set",
   "user-response.set_leave_message_success": "Leave message has been set",
@@ -35,7 +36,7 @@ export const memberLog = {
   "user-response.reset_success": "Member log settings have been reset.",
   "user-response.reset_cancelled": "Reset has been cancelled.",
   "user-response.channel_deleted_notice":
-    "⚠️ The member log notification channel has been deleted.\nSettings have been reset. Please reconfigure with `/member-log-config set-channel`.",
+    "⚠️ The member log notification channel has been deleted.\nSettings have been reset. Please reconfigure with `/member-log-settings set-channel`.",
 
   // ── Embed ─────────────────────────────────────
   "embed.title.config_view": "Member Log",

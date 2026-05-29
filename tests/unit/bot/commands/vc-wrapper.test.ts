@@ -10,7 +10,7 @@ vi.mock("@/shared/locale/commandLocalizations", () => ({
   }),
 }));
 
-vi.mock("@/bot/features/vc-command/commands/vcCommand.execute", () => ({
+vi.mock("@/features/vc-command/commands/vcCommand.execute", () => ({
   executeVcCommand: (...args: unknown[]) => executeVcCommandMock(...args),
 }));
 
@@ -18,7 +18,7 @@ vi.mock("@/bot/errors/interactionErrorHandler", () => ({
   handleCommandError: (...args: unknown[]) => handleCommandErrorMock(...args),
 }));
 
-vi.mock("@/bot/features/vc-command/commands/vcCommand.constants", () => ({
+vi.mock("@/features/vc-command/commands/vcCommand.constants", () => ({
   VC_COMMAND: {
     NAME: "vc",
     SUBCOMMAND: { RENAME: "rename", LIMIT: "limit" },

@@ -1,7 +1,7 @@
 // src/shared/database/types/ticketTypes.ts
 // チケットチャンネル機能のエンティティ型定義
 
-export interface GuildTicketConfig {
+export interface GuildTicketSettings {
   guildId: string;
   categoryId: string;
   enabled: boolean;

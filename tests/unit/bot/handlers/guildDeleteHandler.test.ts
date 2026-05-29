@@ -28,8 +28,8 @@ vi.mock("@/shared/scheduler/jobScheduler", () => ({
   },
 }));
 vi.mock("@/bot/services/botCompositionRoot", () => ({
-  getBotGuildConfigService: () => ({
-    deleteAllConfig: mockDeleteAllConfigs,
+  getBotGuildSettingsService: () => ({
+    deleteAllSettings: mockDeleteAllConfigs,
   }),
   getBotTicketRepository: () => ({
     findAllClosedByGuild: mockFindAllClosedByGuild,
@@ -76,7 +76,7 @@ describe("bot/handlers/guildDeleteHandler", () => {
     expect(jobScheduler.removeJob).toHaveBeenCalledTimes(1);
   });
 
-  it("deleteAllConfigs がエラーを投げた場合はエラーログを出力すること", async () => {
+  it("deleteAllSettings がエラーを投げた場合はエラーログを出力すること", async () => {
     mockDeleteAllConfigs.mockRejectedValue(new Error("db error"));
 
     const guild = { id: "guild-1", name: "Test Guild" };
@@ -85,7 +85,7 @@ describe("bot/handlers/guildDeleteHandler", () => {
     expect(logger.error).toHaveBeenCalled();
   });
 
-  it("findAllClosedByGuild がエラーを投げた場合でも deleteAllConfigs は実行されること", async () => {
+  it("findAllClosedByGuild がエラーを投げた場合でも deleteAllSettings は実行されること", async () => {
     mockFindAllClosedByGuild.mockRejectedValue(new Error("fetch error"));
 
     const guild = { id: "guild-1", name: "Test Guild" };

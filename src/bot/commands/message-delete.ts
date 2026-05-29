@@ -2,10 +2,10 @@
 // /message-delete コマンド定義
 
 import { PermissionFlagsBits, SlashCommandBuilder } from "discord.js";
+import { executeMessageDeleteCommand } from "../../features/message-delete/commands/messageDeleteCommand.execute";
+import { MSG_DEL_COMMAND } from "../../features/message-delete/constants/messageDeleteConstants";
 import { getCommandLocalizations } from "../../shared/locale/commandLocalizations";
 import { handleCommandError } from "../errors/interactionErrorHandler";
-import { executeMessageDeleteCommand } from "../features/message-delete/commands/messageDeleteCommand.execute";
-import { MSG_DEL_COMMAND } from "../features/message-delete/constants/messageDeleteConstants";
 import type { Command } from "../types/discord";
 
 /**

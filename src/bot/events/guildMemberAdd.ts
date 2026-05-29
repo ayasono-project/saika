@@ -2,7 +2,7 @@
 // メンバー参加イベント（メンバーログ）
 
 import { Events } from "discord.js";
-import { handleGuildMemberAdd } from "../features/member-log/handlers/guildMemberAddHandler";
+import { handleGuildMemberAdd } from "../../features/member-log/handlers/guildMemberAddHandler";
 import type { BotEvent } from "../types/discord";
 
 export const guildMemberAddEvent: BotEvent<typeof Events.GuildMemberAdd> = {

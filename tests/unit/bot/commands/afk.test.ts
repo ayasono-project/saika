@@ -10,7 +10,7 @@ vi.mock("@/shared/locale/commandLocalizations", () => ({
   }),
 }));
 
-vi.mock("@/bot/features/afk/commands/afkCommand.execute", () => ({
+vi.mock("@/features/afk/commands/afkCommand.execute", () => ({
   executeAfkCommand: (...args: unknown[]) => executeAfkCommandMock(...args),
 }));
 

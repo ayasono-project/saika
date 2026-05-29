@@ -52,7 +52,7 @@ export default defineConfig({
   //    （dist/ 直下）になり、相対パスで隣接ディレクトリを参照すると
   //    実際のパスとずれる。
   //    ファイルシステムのパスに依存する関数は、呼び出し元
-  //    （例: bot/main.ts）から import.meta.dirname を基準とした
+  //    （例: main.ts）から import.meta.dirname を基準とした
   //    絶対パスを引数として渡すこと。
   splitting: true,
 });

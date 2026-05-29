@@ -213,9 +213,15 @@ export class GuildSettingsAggregateRepository
   ): Promise<void> {
     await this.prisma.$transaction(async (tx) => {
       // ── 設定系: 上書き ─────────────────────────────────
-      await tx.guildSettings.update({
+      // 空 DB への初回 import（DB 移行）ではコア行が未作成なので upsert で作る
+      await tx.guildSettings.upsert({
         where: { guildId },
-        data: {
+        create: {
+          guildId,
+          locale: data.locale,
+          errorChannelId: data.errorChannelId ?? null,
+        },
+        update: {
           locale: data.locale,
           errorChannelId: data.errorChannelId ?? null,
         },

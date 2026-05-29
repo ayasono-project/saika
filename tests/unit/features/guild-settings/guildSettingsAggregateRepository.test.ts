@@ -65,7 +65,7 @@ describe("shared/database/repositories/guildSettingsAggregateRepository", () => 
     ticketRepo = { findAllOpenByGuild: vi.fn() };
 
     prismaTx = {
-      guildSettings: { update: vi.fn() },
+      guildSettings: { upsert: vi.fn() },
       guildAfkSettings: { upsert: vi.fn() },
       guildBumpReminderSettings: { upsert: vi.fn() },
       guildMemberLogSettings: { upsert: vi.fn() },
@@ -401,15 +401,16 @@ describe("shared/database/repositories/guildSettingsAggregateRepository", () => 
       expect(prisma.$transaction).toHaveBeenCalledTimes(1);
     });
 
-    it("設定系（locale / errorChannelId）が GuildSettings.update で上書きされること", async () => {
+    it("設定系（locale / errorChannelId）が GuildSettings.upsert で作成/上書きされること", async () => {
       const data: FullGuildSettings = {
         locale: "en",
         errorChannelId: "ch-new",
       };
       await repo.importFullSettings("g1", data);
-      expect(prismaTx.guildSettings?.update).toHaveBeenCalledWith({
+      expect(prismaTx.guildSettings?.upsert).toHaveBeenCalledWith({
         where: { guildId: "g1" },
-        data: { locale: "en", errorChannelId: "ch-new" },
+        create: { guildId: "g1", locale: "en", errorChannelId: "ch-new" },
+        update: { locale: "en", errorChannelId: "ch-new" },
       });
     });
 

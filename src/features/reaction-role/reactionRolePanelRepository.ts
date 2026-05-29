@@ -34,6 +34,21 @@ export class ReactionRolePanelRepository
     ) as unknown as Promise<GuildReactionRolePanel | null>;
   }
 
+  async findByMessageId(
+    messageId: string,
+  ): Promise<GuildReactionRolePanel | null> {
+    return executeWithDatabaseError(
+      () =>
+        this.prisma.guildReactionRolePanel.findFirst({
+          where: { messageId },
+        }),
+      tDefault("reactionRole:log.database_panel_find_failed", {
+        guildId: "",
+        panelId: "",
+      }),
+    ) as unknown as Promise<GuildReactionRolePanel | null>;
+  }
+
   async findAllByGuild(guildId: string): Promise<GuildReactionRolePanel[]> {
     return executeWithDatabaseError(
       () =>

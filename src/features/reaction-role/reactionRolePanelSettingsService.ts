@@ -25,6 +25,17 @@ export class ReactionRolePanelSettingsService {
   }
 
   /**
+   * パネルが貼られているメッセージ ID で取得する
+   * @param messageId パネルメッセージ ID
+   * @returns パネル情報、存在しない場合は null
+   */
+  async findByMessageId(
+    messageId: string,
+  ): Promise<GuildReactionRolePanel | null> {
+    return this.repository.findByMessageId(messageId);
+  }
+
+  /**
    * ギルド内の全パネルを取得する
    * @param guildId ギルドID
    * @returns パネル情報の配列

@@ -13,7 +13,7 @@ const tGuildMock = vi.fn(async (_guildId: string, key: string) => `[${key}]`);
 const loggerMock = { error: vi.fn() };
 
 vi.mock("@/bot/services/botCompositionRoot", () => ({
-  getBotStickyMessageConfigService: vi.fn(() => ({
+  getBotStickyMessageSettingsService: vi.fn(() => ({
     findByChannel: findByChannelMock,
     updateContent: updateContentMock,
     updateLastMessageId: updateLastMessageIdMock,

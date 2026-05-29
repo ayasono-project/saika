@@ -9,7 +9,7 @@ vi.mock("@/shared/scheduler/jobScheduler", () => ({
 }));
 
 vi.mock("@/bot/services/botCompositionRoot", () => ({
-  getBotTicketConfigService: vi.fn(),
+  getBotTicketSettingsService: vi.fn(),
   getBotTicketRepository: vi.fn(),
 }));
 
@@ -46,8 +46,8 @@ vi.mock("@/shared/utils/logger", () => ({
 }));
 
 import {
-  getBotTicketConfigService,
   getBotTicketRepository,
+  getBotTicketSettingsService,
 } from "@/bot/services/botCompositionRoot";
 import { jobScheduler } from "@/shared/scheduler/jobScheduler";
 import { logger } from "@/shared/utils/logger";
@@ -142,7 +142,7 @@ describe("bot/features/ticket/services/ticketAutoDeleteService", () => {
         }),
       };
 
-      vi.mocked(getBotTicketConfigService).mockReturnValue(
+      vi.mocked(getBotTicketSettingsService).mockReturnValue(
         mockConfigService as never,
       );
 
@@ -211,7 +211,7 @@ describe("bot/features/ticket/services/ticketAutoDeleteService", () => {
         findByGuildAndCategory: vi.fn().mockResolvedValue(null),
       };
 
-      vi.mocked(getBotTicketConfigService).mockReturnValue(
+      vi.mocked(getBotTicketSettingsService).mockReturnValue(
         mockConfigSvc as never,
       );
 
@@ -255,7 +255,7 @@ describe("bot/features/ticket/services/ticketAutoDeleteService", () => {
         }),
       };
 
-      vi.mocked(getBotTicketConfigService).mockReturnValue(
+      vi.mocked(getBotTicketSettingsService).mockReturnValue(
         mockConfigSvc as never,
       );
 
@@ -325,7 +325,7 @@ describe("bot/features/ticket/services/ticketAutoDeleteService", () => {
           .mockRejectedValue(new Error("db error")),
       };
 
-      vi.mocked(getBotTicketConfigService).mockReturnValue(
+      vi.mocked(getBotTicketSettingsService).mockReturnValue(
         mockConfigSvc as never,
       );
 
@@ -384,7 +384,7 @@ describe("bot/features/ticket/services/ticketAutoDeleteService", () => {
         }),
       };
 
-      vi.mocked(getBotTicketConfigService).mockReturnValue(
+      vi.mocked(getBotTicketSettingsService).mockReturnValue(
         mockConfigSvc as never,
       );
 

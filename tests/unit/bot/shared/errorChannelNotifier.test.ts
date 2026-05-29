@@ -19,8 +19,8 @@ const createWarningEmbedMock = vi.fn(
 );
 
 vi.mock("@/bot/services/botCompositionRoot", () => ({
-  getBotGuildConfigService: () => ({
-    getConfig: (...args: unknown[]) => getConfigMock(...args),
+  getBotGuildSettingsService: () => ({
+    getSettings: (...args: unknown[]) => getConfigMock(...args),
   }),
 }));
 
@@ -109,21 +109,21 @@ describe("bot/shared/errorChannelNotifier", () => {
       });
 
       expect(createErrorEmbedMock).toHaveBeenCalledWith("", {
-        title: "guildConfig:error-notification.title",
+        title: "guildSettings:error-notification.title",
         timestamp: true,
         fields: [
           {
-            name: "guildConfig:error-notification.feature",
+            name: "guildSettings:error-notification.feature",
             value: "メンバーログ",
             inline: true,
           },
           {
-            name: "guildConfig:error-notification.action",
+            name: "guildSettings:error-notification.action",
             value: "入室通知の送信失敗",
             inline: true,
           },
           {
-            name: "guildConfig:error-notification.message",
+            name: "guildSettings:error-notification.message",
             value: "test error",
           },
         ],
@@ -264,21 +264,21 @@ describe("bot/shared/errorChannelNotifier", () => {
       });
 
       expect(createWarningEmbedMock).toHaveBeenCalledWith("", {
-        title: "guildConfig:error-notification.warn_title",
+        title: "guildSettings:error-notification.warn_title",
         timestamp: true,
         fields: [
           {
-            name: "guildConfig:error-notification.feature",
+            name: "guildSettings:error-notification.feature",
             value: "メンバーログ",
             inline: true,
           },
           {
-            name: "guildConfig:error-notification.action",
+            name: "guildSettings:error-notification.action",
             value: "通知先チャンネル消失",
             inline: true,
           },
           {
-            name: "guildConfig:error-notification.message",
+            name: "guildSettings:error-notification.message",
             value: "channel not found",
           },
         ],

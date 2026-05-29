@@ -17,7 +17,7 @@ import type {
   ITicketRepository,
   Ticket,
 } from "../../../../shared/database/types";
-import type { TicketConfigService } from "../../../../shared/features/ticket/ticketConfigService";
+import type { TicketSettingsService } from "../../../../shared/features/ticket/ticketSettingsService";
 import { tDefault } from "../../../../shared/locale/localeManager";
 import { createInfoEmbed } from "../../../utils/messageResponse";
 import {
@@ -38,7 +38,7 @@ import {
  * @param userId チケット作成者のユーザーID
  * @param subject チケットの件名
  * @param detail チケットの詳細
- * @param configService チケット設定サービス
+ * @param settingsService チケット設定サービス
  * @param ticketRepository チケットリポジトリ
  * @returns 作成されたチケットとチャンネル
  */
@@ -48,10 +48,10 @@ export async function createTicketChannel(
   userId: string,
   subject: string,
   detail: string,
-  configService: TicketConfigService,
+  settingsService: TicketSettingsService,
   ticketRepository: ITicketRepository,
 ): Promise<{ ticket: Ticket; channel: TextChannel }> {
-  const config = await configService.findByGuildAndCategory(
+  const config = await settingsService.findByGuildAndCategory(
     guild.id,
     categoryId,
   );
@@ -64,7 +64,7 @@ export async function createTicketChannel(
   const staffRoleIds: string[] = parseStaffRoleIds(config.staffRoleIds);
 
   // カウンターをインクリメント
-  const ticketNumber = await configService.incrementCounter(
+  const ticketNumber = await settingsService.incrementCounter(
     guild.id,
     categoryId,
   );
@@ -178,16 +178,16 @@ export async function createTicketChannel(
  * チケットをクローズする
  * @param ticket 対象チケット
  * @param guild 対象ギルド
- * @param configService チケット設定サービス
+ * @param settingsService チケット設定サービス
  * @param ticketRepository チケットリポジトリ
  */
 export async function closeTicket(
   ticket: Ticket,
   guild: Guild,
-  configService: TicketConfigService,
+  settingsService: TicketSettingsService,
   ticketRepository: ITicketRepository,
 ): Promise<void> {
-  const config = await configService.findByGuildAndCategory(
+  const config = await settingsService.findByGuildAndCategory(
     ticket.guildId,
     ticket.categoryId,
   );
@@ -264,16 +264,16 @@ export async function closeTicket(
  * チケットを再オープンする
  * @param ticket 対象チケット
  * @param guild 対象ギルド
- * @param configService チケット設定サービス
+ * @param settingsService チケット設定サービス
  * @param ticketRepository チケットリポジトリ
  */
 export async function reopenTicket(
   ticket: Ticket,
   guild: Guild,
-  configService: TicketConfigService,
+  settingsService: TicketSettingsService,
   ticketRepository: ITicketRepository,
 ): Promise<void> {
-  const config = await configService.findByGuildAndCategory(
+  const config = await settingsService.findByGuildAndCategory(
     ticket.guildId,
     ticket.categoryId,
   );

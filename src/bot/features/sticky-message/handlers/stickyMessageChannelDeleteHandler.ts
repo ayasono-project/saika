@@ -5,8 +5,8 @@ import { type Channel, ChannelType } from "discord.js";
 import { logPrefixed } from "../../../../shared/locale/localeManager";
 import { logger } from "../../../../shared/utils/logger";
 import {
-  getBotStickyMessageConfigService,
   getBotStickyMessageResendService,
+  getBotStickyMessageSettingsService,
 } from "../../../services/botCompositionRoot";
 import { notifyErrorChannel } from "../../../shared/errorChannelNotifier";
 
@@ -29,7 +29,7 @@ export async function handleStickyMessageChannelDelete(
   // DB にレコードがあれば削除する
   try {
     const deleted =
-      await getBotStickyMessageConfigService().deleteByChannel(channelId);
+      await getBotStickyMessageSettingsService().deleteByChannel(channelId);
     if (deleted > 0) {
       logger.debug(
         logPrefixed(

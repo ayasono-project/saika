@@ -4,7 +4,7 @@
 import type { GuildMember, PartialGuildMember } from "discord.js";
 import { logPrefixed } from "../../../../shared/locale/localeManager";
 import { logger } from "../../../../shared/utils/logger";
-import { getBotBumpReminderConfigService } from "../../../services/botCompositionRoot";
+import { getBotBumpReminderSettingsService } from "../../../services/botCompositionRoot";
 import { notifyErrorChannel } from "../../../shared/errorChannelNotifier";
 
 /**
@@ -20,12 +20,14 @@ export async function handleBumpReminderMemberRemove(
 
   try {
     const config =
-      await getBotBumpReminderConfigService().getBumpReminderConfig(guildId);
+      await getBotBumpReminderSettingsService().getBumpReminderSettings(
+        guildId,
+      );
     if (!config || !config.mentionUserIds.includes(userId)) {
       return;
     }
 
-    await getBotBumpReminderConfigService().removeBumpReminderMentionUser(
+    await getBotBumpReminderSettingsService().removeBumpReminderMentionUser(
       guildId,
       userId,
     );

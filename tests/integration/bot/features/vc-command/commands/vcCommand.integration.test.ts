@@ -63,7 +63,7 @@ vi.mock("@/bot/errors/interactionErrorHandler", () => ({
 }));
 
 // Composition root のモック
-const mockVacConfigService = {
+const mockVacSettingsService = {
   isManagedVacChannel: vi.fn(),
 };
 const mockVcRecruitRepository = {
@@ -71,7 +71,7 @@ const mockVcRecruitRepository = {
 };
 
 vi.mock("@/bot/services/botCompositionRoot", () => ({
-  getBotVacConfigService: () => mockVacConfigService,
+  getBotVacSettingsService: () => mockVacSettingsService,
   getBotVcRecruitRepository: () => mockVcRecruitRepository,
 }));
 
@@ -145,7 +145,7 @@ describe("VC Command Integration", () => {
     it("VAC管理チャンネルの名前を変更できること", async () => {
       const handler = await loadHandler();
 
-      mockVacConfigService.isManagedVacChannel.mockResolvedValue(true);
+      mockVacSettingsService.isManagedVacChannel.mockResolvedValue(true);
 
       const { interaction, replyMock, editMock } = createInteraction({
         subcommand: "rename",
@@ -155,7 +155,7 @@ describe("VC Command Integration", () => {
       await handler(interaction as never);
 
       // オーナーシップ検証でVACチェックが呼ばれる
-      expect(mockVacConfigService.isManagedVacChannel).toHaveBeenCalledWith(
+      expect(mockVacSettingsService.isManagedVacChannel).toHaveBeenCalledWith(
         "guild-1",
         "managed-vc-1",
       );
@@ -169,7 +169,7 @@ describe("VC Command Integration", () => {
       const handler = await loadHandler();
 
       // VAC管理外 → VC募集管理下
-      mockVacConfigService.isManagedVacChannel.mockResolvedValue(false);
+      mockVacSettingsService.isManagedVacChannel.mockResolvedValue(false);
       mockVcRecruitRepository.isCreatedVcRecruitChannel.mockResolvedValue(true);
 
       const { interaction, editMock } = createInteraction({
@@ -190,7 +190,7 @@ describe("VC Command Integration", () => {
     it("VAC管理チャンネルの人数制限を変更できること", async () => {
       const handler = await loadHandler();
 
-      mockVacConfigService.isManagedVacChannel.mockResolvedValue(true);
+      mockVacSettingsService.isManagedVacChannel.mockResolvedValue(true);
 
       const { interaction, editMock, replyMock } = createInteraction({
         subcommand: "limit",
@@ -206,7 +206,7 @@ describe("VC Command Integration", () => {
     it("人数制限を0に設定すると無制限になること", async () => {
       const handler = await loadHandler();
 
-      mockVacConfigService.isManagedVacChannel.mockResolvedValue(true);
+      mockVacSettingsService.isManagedVacChannel.mockResolvedValue(true);
 
       const { interaction, editMock, replyMock } = createInteraction({
         subcommand: "limit",
@@ -242,7 +242,7 @@ describe("VC Command Integration", () => {
       const handler = await loadHandler();
 
       // VAC でも VC募集でもない
-      mockVacConfigService.isManagedVacChannel.mockResolvedValue(false);
+      mockVacSettingsService.isManagedVacChannel.mockResolvedValue(false);
       mockVcRecruitRepository.isCreatedVcRecruitChannel.mockResolvedValue(
         false,
       );
@@ -262,7 +262,7 @@ describe("VC Command Integration", () => {
     it("上限を超えた値を指定するとエラーハンドラが呼ばれること", async () => {
       const handler = await loadHandler();
 
-      mockVacConfigService.isManagedVacChannel.mockResolvedValue(true);
+      mockVacSettingsService.isManagedVacChannel.mockResolvedValue(true);
 
       const { interaction } = createInteraction({
         subcommand: "limit",
@@ -280,7 +280,7 @@ describe("VC Command Integration", () => {
     it("負の値を指定するとエラーハンドラが呼ばれること", async () => {
       const handler = await loadHandler();
 
-      mockVacConfigService.isManagedVacChannel.mockResolvedValue(true);
+      mockVacSettingsService.isManagedVacChannel.mockResolvedValue(true);
 
       const { interaction } = createInteraction({
         subcommand: "limit",
@@ -298,7 +298,7 @@ describe("VC Command Integration", () => {
       const handler = await loadHandler();
 
       // VAC → false, VC募集 → true
-      mockVacConfigService.isManagedVacChannel.mockResolvedValue(false);
+      mockVacSettingsService.isManagedVacChannel.mockResolvedValue(false);
       mockVcRecruitRepository.isCreatedVcRecruitChannel.mockResolvedValue(true);
 
       const { interaction, editMock, replyMock } = createInteraction({
@@ -309,7 +309,9 @@ describe("VC Command Integration", () => {
       await handler(interaction as never);
 
       // 両方のサービスがチェックされる
-      expect(mockVacConfigService.isManagedVacChannel).toHaveBeenCalledTimes(1);
+      expect(mockVacSettingsService.isManagedVacChannel).toHaveBeenCalledTimes(
+        1,
+      );
       expect(
         mockVcRecruitRepository.isCreatedVcRecruitChannel,
       ).toHaveBeenCalledTimes(1);
@@ -321,7 +323,7 @@ describe("VC Command Integration", () => {
     it("VAC管理下の場合はVC募集チェックをスキップすること", async () => {
       const handler = await loadHandler();
 
-      mockVacConfigService.isManagedVacChannel.mockResolvedValue(true);
+      mockVacSettingsService.isManagedVacChannel.mockResolvedValue(true);
 
       const { interaction, editMock } = createInteraction({
         subcommand: "rename",
@@ -331,7 +333,9 @@ describe("VC Command Integration", () => {
       await handler(interaction as never);
 
       // VAC が true なので VC募集チェックは呼ばれない
-      expect(mockVacConfigService.isManagedVacChannel).toHaveBeenCalledTimes(1);
+      expect(mockVacSettingsService.isManagedVacChannel).toHaveBeenCalledTimes(
+        1,
+      );
       expect(
         mockVcRecruitRepository.isCreatedVcRecruitChannel,
       ).not.toHaveBeenCalled();

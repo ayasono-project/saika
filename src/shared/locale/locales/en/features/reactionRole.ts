@@ -3,17 +3,17 @@
 
 export const reactionRole = {
   // ── Command definitions
-  "reaction-role-config.description":
+  "reaction-role-settings.description":
     "Configure reaction role feature (requires Manage Server)",
-  "reaction-role-config.setup.description": "Set up reaction role panel",
-  "reaction-role-config.teardown.description": "Remove reaction role panel",
-  "reaction-role-config.view.description": "Show current settings",
-  "reaction-role-config.edit-panel.description":
+  "reaction-role-settings.setup.description": "Set up reaction role panel",
+  "reaction-role-settings.teardown.description": "Remove reaction role panel",
+  "reaction-role-settings.view.description": "Show current settings",
+  "reaction-role-settings.edit-panel.description":
     "Edit panel title, description, and color",
-  "reaction-role-config.add-button.description": "Add a button to panel",
-  "reaction-role-config.remove-button.description":
+  "reaction-role-settings.add-button.description": "Add a button to panel",
+  "reaction-role-settings.remove-button.description":
     "Remove a button from panel",
-  "reaction-role-config.edit-button.description": "Edit a button",
+  "reaction-role-settings.edit-button.description": "Edit a button",
 
   // ── User responses
   "user-response.setup_success": "Reaction role panel has been set up.",

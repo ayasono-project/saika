@@ -3,9 +3,9 @@
 
 import { type Channel, ChannelType, type VoiceState } from "discord.js";
 import {
-  getVacConfigService,
-  type VacConfigService,
-} from "../../../../shared/features/vac/vacConfigService";
+  getVacSettingsService,
+  type VacSettingsService,
+} from "../../../../shared/features/vac/vacSettingsService";
 import { logPrefixed, tDefault } from "../../../../shared/locale/localeManager";
 import { executeWithLoggedError } from "../../../../shared/utils/errorHandling";
 import { logger } from "../../../../shared/utils/logger";
@@ -18,8 +18,8 @@ import { handleVacDeleteUseCase } from "./usecases/handleVacDelete";
  * VAC機能のユースケースを担当するサービス
  */
 export class VacService {
-  private readonly vacRepository: VacConfigService;
-  constructor(vacRepository: VacConfigService) {
+  private readonly vacRepository: VacSettingsService;
+  constructor(vacRepository: VacSettingsService) {
     this.vacRepository = vacRepository;
   }
 
@@ -59,7 +59,7 @@ export class VacService {
       }
 
       // 現在の VAC 設定を読み込み、トリガー/生成済み情報を同期
-      const config = await this.vacRepository.getVacConfigOrDefault(
+      const config = await this.vacRepository.getVacSettingsOrDefault(
         channel.guildId,
       );
 
@@ -106,21 +106,21 @@ export class VacService {
 }
 
 let vacService: VacService | undefined;
-let cachedRepository: VacConfigService | undefined;
+let cachedRepository: VacSettingsService | undefined;
 
 /**
  * VAC サービスを依存注入で生成する
  */
-export function createVacService(repository: VacConfigService): VacService {
+export function createVacService(repository: VacSettingsService): VacService {
   return new VacService(repository);
 }
 
 /**
  * VAC サービスのシングルトンを取得する
  */
-export function getVacService(repository?: VacConfigService): VacService {
+export function getVacService(repository?: VacSettingsService): VacService {
   // テスト時は注入サービスでモジュールキャッシュを上書きし、本番は遅延初期化を使用
-  const resolved = repository ?? getVacConfigService();
+  const resolved = repository ?? getVacSettingsService();
   // 依存サービスが変わった場合はサービスを再生成
   if (!vacService || cachedRepository !== resolved) {
     vacService = createVacService(resolved);

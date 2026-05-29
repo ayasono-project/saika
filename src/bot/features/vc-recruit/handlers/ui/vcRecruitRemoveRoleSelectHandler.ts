@@ -3,7 +3,7 @@
 
 import type { StringSelectMenuInteraction } from "discord.js";
 import type { StringSelectHandler } from "../../../../handlers/interactionCreate/ui/types";
-import { VC_RECRUIT_ROLE_CUSTOM_ID } from "../../commands/vcRecruitConfigCommand.constants";
+import { VC_RECRUIT_ROLE_CUSTOM_ID } from "../../commands/vcRecruitSettingsCommand.constants";
 import { vcRecruitRemoveRoleSelections } from "./vcRecruitRoleState";
 
 /**

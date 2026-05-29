@@ -1,5 +1,5 @@
 // src/bot/features/ticket/handlers/ui/ticketViewSelectHandler.ts
-// ticket-config view カテゴリ選択ハンドラ
+// ticket-settings view カテゴリ選択ハンドラ
 
 import {
   ActionRowBuilder,
@@ -7,19 +7,19 @@ import {
   StringSelectMenuBuilder,
   type StringSelectMenuInteraction,
 } from "discord.js";
-import type { GuildTicketConfig } from "../../../../../shared/database/types";
+import type { GuildTicketSettings } from "../../../../../shared/database/types";
 import { tInteraction } from "../../../../../shared/locale/localeManager";
 import type { StringSelectHandler } from "../../../../handlers/interactionCreate/ui/types";
 import {
-  getBotTicketConfigService,
   getBotTicketRepository,
+  getBotTicketSettingsService,
 } from "../../../../services/botCompositionRoot";
 import { buildPaginationRow } from "../../../../shared/pagination";
 import { TICKET_CUSTOM_ID } from "../../commands/ticketCommand.constants";
-import { buildConfigEmbed } from "../../commands/usecases/ticketConfigView";
+import { buildSettingsEmbed } from "../../commands/usecases/ticketSettingsView";
 
 /**
- * ticket-config view のカテゴリ選択メニューを処理するハンドラ
+ * ticket-settings view のカテゴリ選択メニューを処理するハンドラ
  */
 export const ticketViewSelectHandler: StringSelectHandler = {
   /**
@@ -41,13 +41,13 @@ export const ticketViewSelectHandler: StringSelectHandler = {
     if (!guildId || !guild) return;
 
     const selectedCategoryId = interaction.values[0];
-    const configService = getBotTicketConfigService();
+    const settingsService = getBotTicketSettingsService();
     const ticketRepository = getBotTicketRepository();
-    const configs = await configService.findAllByGuild(guildId);
+    const configs = await settingsService.findAllByGuild(guildId);
 
     // 選択されたカテゴリのインデックスを取得
     const pageIndex = configs.findIndex(
-      (c: GuildTicketConfig) => c.categoryId === selectedCategoryId,
+      (c: GuildTicketSettings) => c.categoryId === selectedCategoryId,
     );
     if (pageIndex < 0) return;
 
@@ -56,7 +56,7 @@ export const ticketViewSelectHandler: StringSelectHandler = {
       guildId,
       config.categoryId,
     );
-    const embed = buildConfigEmbed(
+    const embed = buildSettingsEmbed(
       config,
       openTickets.length,
       interaction.locale,
@@ -76,7 +76,7 @@ export const ticketViewSelectHandler: StringSelectHandler = {
       );
 
       const selectOptions = await Promise.all(
-        configs.map(async (c: GuildTicketConfig) => {
+        configs.map(async (c: GuildTicketSettings) => {
           let label: string;
           try {
             const channel = await guild.channels.fetch(c.categoryId);

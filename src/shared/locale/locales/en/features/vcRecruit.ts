@@ -3,21 +3,21 @@
 
 export const vcRecruit = {
   // ── Command definitions ──────────────────────
-  "vc-recruit-config.description":
+  "vc-recruit-settings.description":
     "VC recruit feature settings (requires Manage Server)",
-  "vc-recruit-config.setup.description": "Set up VC recruit channels",
-  "vc-recruit-config.setup.category.description":
+  "vc-recruit-settings.setup.description": "Set up VC recruit channels",
+  "vc-recruit-settings.setup.category.description":
     "Target category (TOP or category name; defaults to this channel's category)",
-  "vc-recruit-config.setup.category.top": "TOP (No category)",
-  "vc-recruit-config.setup.thread-archive.description":
+  "vc-recruit-settings.setup.category.top": "TOP (No category)",
+  "vc-recruit-settings.setup.thread-archive.description":
     "Auto-archive duration for recruit threads (1h/24h/3d/1w; default: 24h)",
-  "vc-recruit-config.teardown.description":
+  "vc-recruit-settings.teardown.description":
     "Remove VC recruit channels (via selection UI)",
-  "vc-recruit-config.add-role.description":
+  "vc-recruit-settings.add-role.description":
     "Add a role to the mention candidates",
-  "vc-recruit-config.remove-role.description":
+  "vc-recruit-settings.remove-role.description":
     "Remove a role from the mention candidates",
-  "vc-recruit-config.view.description": "Show current VC recruit settings",
+  "vc-recruit-settings.view.description": "Show current VC recruit settings",
 
   // ── UI labels ──────────────────────────────────
   "ui.button.create_recruit": "Create VC Recruit",

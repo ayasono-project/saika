@@ -5,7 +5,7 @@ import { type ButtonInteraction } from "discord.js";
 import { VC_RECRUIT_MENTION_ROLE_ADD_RESULT } from "../../../../../shared/database/types";
 import { tInteraction } from "../../../../../shared/locale/localeManager";
 import type { ButtonHandler } from "../../../../handlers/interactionCreate/ui/types";
-import { getBotVcRecruitConfigService } from "../../../../services/botCompositionRoot";
+import { getBotVcRecruitSettingsService } from "../../../../services/botCompositionRoot";
 import {
   createInfoEmbed,
   createSuccessEmbed,
@@ -14,7 +14,7 @@ import {
 import {
   DISCORD_SELECT_MAX_OPTIONS,
   VC_RECRUIT_ROLE_CUSTOM_ID,
-} from "../../commands/vcRecruitConfigCommand.constants";
+} from "../../commands/vcRecruitSettingsCommand.constants";
 import {
   vcRecruitAddRoleSelections,
   vcRecruitRemoveRoleSelections,
@@ -108,7 +108,7 @@ export const vcRecruitRoleButtonHandler: ButtonHandler = {
 
       vcRecruitAddRoleSelections.delete(sessionId);
 
-      const repo = getBotVcRecruitConfigService();
+      const repo = getBotVcRecruitSettingsService();
       const succeededRoles: string[] = [];
       const failedRoles: string[] = [];
 
@@ -211,7 +211,7 @@ export const vcRecruitRoleButtonHandler: ButtonHandler = {
 
       vcRecruitRemoveRoleSelections.delete(sessionId);
 
-      const repo = getBotVcRecruitConfigService();
+      const repo = getBotVcRecruitSettingsService();
 
       // 全ロールを削除実行（REMOVED / NOT_FOUND のどちらもユーザーの意図通り）
       for (const roleId of selectedRoleIds) {

@@ -1,7 +1,7 @@
 // tests/unit/bot/features/member-log/handlers/ui/memberLogSetJoinMessageModalHandler.test.ts
 
 import { MessageFlags } from "discord.js";
-import { MEMBER_LOG_CONFIG_COMMAND } from "@/bot/features/member-log/commands/memberLogConfigCommand.constants";
+import { MEMBER_LOG_SETTINGS_COMMAND } from "@/bot/features/member-log/commands/memberLogSettingsCommand.constants";
 import { memberLogSetJoinMessageModalHandler } from "@/bot/features/member-log/handlers/ui/memberLogSetJoinMessageModalHandler";
 
 // ---- モック定義（vi.hoisted でファクトリ参照可能にする） ----
@@ -18,7 +18,7 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("@/bot/services/botCompositionRoot", () => ({
-  getBotMemberLogConfigService: vi.fn(() => ({
+  getBotMemberLogSettingsService: vi.fn(() => ({
     setJoinMessage: mocks.setJoinMessage,
   })),
 }));
@@ -86,7 +86,7 @@ describe("bot/features/member-log/handlers/ui/memberLogSetJoinMessageModalHandle
     it("SET_JOIN_MESSAGE_MODAL_ID に対して true を返すことを確認", () => {
       expect(
         memberLogSetJoinMessageModalHandler.matches(
-          MEMBER_LOG_CONFIG_COMMAND.SET_JOIN_MESSAGE_MODAL_ID,
+          MEMBER_LOG_SETTINGS_COMMAND.SET_JOIN_MESSAGE_MODAL_ID,
         ),
       ).toBe(true);
     });
@@ -120,7 +120,7 @@ describe("bot/features/member-log/handlers/ui/memberLogSetJoinMessageModalHandle
       const interaction = makeInteraction();
       await memberLogSetJoinMessageModalHandler.execute(interaction as never);
       expect(interaction.fields.getTextInputValue).toHaveBeenCalledWith(
-        MEMBER_LOG_CONFIG_COMMAND.MODAL_INPUT_MESSAGE,
+        MEMBER_LOG_SETTINGS_COMMAND.MODAL_INPUT_MESSAGE,
       );
     });
 

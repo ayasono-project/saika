@@ -16,7 +16,7 @@ import {
 } from "../../../../../shared/locale/localeManager";
 import { logger } from "../../../../../shared/utils/logger";
 import type { ModalHandler } from "../../../../handlers/interactionCreate/ui/types";
-import { getBotTicketConfigService } from "../../../../services/botCompositionRoot";
+import { getBotTicketSettingsService } from "../../../../services/botCompositionRoot";
 import {
   createErrorEmbed,
   createSuccessEmbed,
@@ -90,16 +90,16 @@ export const ticketSetupModalHandler: ModalHandler = {
       return;
     }
 
-    const configService = getBotTicketConfigService();
+    const settingsService = getBotTicketSettingsService();
     const guildId = interaction.guildId;
     if (!guildId) return;
 
     // 既にそのカテゴリに設定があるか確認
-    const existingConfig = await configService.findByGuildAndCategory(
+    const existingSettings = await settingsService.findByGuildAndCategory(
       guildId,
       session.categoryId,
     );
-    if (existingConfig) {
+    if (existingSettings) {
       const embed = createErrorEmbed(
         tInteraction(
           interaction.locale,
@@ -142,7 +142,7 @@ export const ticketSetupModalHandler: ModalHandler = {
     });
 
     // DB に設定を保存
-    await configService.create({
+    await settingsService.create({
       guildId,
       categoryId: session.categoryId,
       enabled: true,

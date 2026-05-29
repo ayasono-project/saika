@@ -1,15 +1,15 @@
 // tests/unit/bot/features/bump-reminder/handlers/bumpReminderStartup.test.ts
 import { restoreBumpRemindersOnStartup } from "@/bot/features/bump-reminder/handlers/bumpReminderStartup";
 
-const getBotBumpReminderConfigServiceMock = vi.fn();
+const getBotBumpReminderSettingsServiceMock = vi.fn();
 const getBotBumpReminderManagerMock = vi.fn();
 const restorePendingRemindersMock = vi.fn();
 const loggerErrorMock = vi.fn();
 const sendBumpReminderMock = vi.fn();
 
 vi.mock("@/bot/services/botCompositionRoot", () => ({
-  getBotBumpReminderConfigService: (...args: unknown[]) =>
-    getBotBumpReminderConfigServiceMock(...args),
+  getBotBumpReminderSettingsService: (...args: unknown[]) =>
+    getBotBumpReminderSettingsServiceMock(...args),
   getBotBumpReminderManager: (...args: unknown[]) =>
     getBotBumpReminderManagerMock(...args),
 }));
@@ -34,8 +34,8 @@ describe("bot/features/bump-reminder/handlers/bumpReminderStartup", () => {
   // 各テストで依存サービスのモックが正しい初期状態（restorePendingReminders を持つオブジェクト）を返すよう準備する
   beforeEach(() => {
     vi.clearAllMocks();
-    getBotBumpReminderConfigServiceMock.mockReturnValue({
-      getBumpReminderConfig: vi.fn(),
+    getBotBumpReminderSettingsServiceMock.mockReturnValue({
+      getBumpReminderSettings: vi.fn(),
     });
     getBotBumpReminderManagerMock.mockReturnValue({
       restorePendingReminders: (...args: unknown[]) =>

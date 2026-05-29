@@ -16,7 +16,7 @@ import {
   VC_RECRUIT_PANEL_CUSTOM_ID,
   VC_RECRUIT_TEARDOWN_CUSTOM_ID,
   VC_RECRUIT_TIMEOUT,
-} from "../../commands/vcRecruitConfigCommand.constants";
+} from "../../commands/vcRecruitSettingsCommand.constants";
 import { updateVcRecruitSession } from "./vcRecruitPanelState";
 import {
   setTeardownConfirmSession,

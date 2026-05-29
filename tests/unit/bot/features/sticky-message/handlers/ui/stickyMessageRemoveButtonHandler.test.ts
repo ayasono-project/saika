@@ -9,7 +9,7 @@ const tGuildMock = vi.fn(
 );
 
 vi.mock("@/bot/services/botCompositionRoot", () => ({
-  getBotStickyMessageConfigService: vi.fn(() => ({
+  getBotStickyMessageSettingsService: vi.fn(() => ({
     findByChannel: findByChannelMock,
     delete: deleteMock,
   })),

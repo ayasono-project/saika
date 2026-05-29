@@ -5,8 +5,8 @@ import { logPrefixed } from "../../../../shared/locale/localeManager";
 import { logger } from "../../../../shared/utils/logger";
 import type { BotClient } from "../../../client";
 import {
-  getBotBumpReminderConfigService,
   getBotBumpReminderManager,
+  getBotBumpReminderSettingsService,
 } from "../../../services/botCompositionRoot";
 import { type BumpServiceName } from "../constants/bumpReminderConstants";
 import { type BumpReminderTaskFactory } from "../services/bumpReminderService";
@@ -22,7 +22,7 @@ export async function restoreBumpRemindersOnStartup(
 ): Promise<void> {
   try {
     // 復元処理で使用する依存サービスを取得
-    const bumpReminderConfigService = getBotBumpReminderConfigService();
+    const bumpReminderSettingsService = getBotBumpReminderSettingsService();
     const bumpReminderManager = getBotBumpReminderManager();
 
     // 永続化されたジョブ情報を実行可能タスクへ変換するファクトリ
@@ -41,7 +41,7 @@ export async function restoreBumpRemindersOnStartup(
           channelId,
           messageId,
           serviceName,
-          bumpReminderConfigService,
+          bumpReminderSettingsService,
           panelMessageId,
         );
     };

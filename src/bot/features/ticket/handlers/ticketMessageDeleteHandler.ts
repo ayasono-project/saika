@@ -4,7 +4,7 @@
 import type { Message, PartialMessage } from "discord.js";
 import { logPrefixed } from "../../../../shared/locale/localeManager";
 import { logger } from "../../../../shared/utils/logger";
-import { getBotTicketConfigService } from "../../../services/botCompositionRoot";
+import { getBotTicketSettingsService } from "../../../services/botCompositionRoot";
 
 /**
  * messageDelete 時にパネルメッセージの削除を検知し、設定をクリーンアップする
@@ -16,22 +16,25 @@ export async function handleTicketMessageDelete(
 ): Promise<void> {
   if (!message.guildId) return;
 
-  const configService = getBotTicketConfigService();
+  const settingsService = getBotTicketSettingsService();
 
   try {
-    const configs = await configService.findAllByGuild(message.guildId);
+    const configs = await settingsService.findAllByGuild(message.guildId);
 
-    const matchedConfig = configs.find(
+    const matchedSettings = configs.find(
       (config) => config.panelMessageId === message.id,
     );
-    if (!matchedConfig) return;
+    if (!matchedSettings) return;
 
-    await configService.delete(matchedConfig.guildId, matchedConfig.categoryId);
+    await settingsService.delete(
+      matchedSettings.guildId,
+      matchedSettings.categoryId,
+    );
 
     logger.info(
       logPrefixed("system:log_prefix.ticket", "ticket:log.panel_deleted", {
-        guildId: matchedConfig.guildId,
-        categoryId: matchedConfig.categoryId,
+        guildId: matchedSettings.guildId,
+        categoryId: matchedSettings.categoryId,
       }),
     );
   } catch (err) {

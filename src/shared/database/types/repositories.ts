@@ -9,24 +9,30 @@ import type {
   BumpReminderMentionUsersClearResult,
 } from "./bumpReminderTypes";
 import type {
-  AfkConfig,
-  BumpReminderConfig,
-  GuildConfig,
-  MemberLogConfig,
-  VacConfig,
+  AfkSettings,
+  BumpReminderSettings,
+  GuildSettings,
+  MemberLogSettings,
+  VacSettings,
 } from "./entities";
-import type { FullGuildState, ImportMergePlan } from "./guildConfigExportTypes";
+import type {
+  FullGuildState,
+  ImportMergePlan,
+} from "./guildSettingsExportTypes";
 import type { GuildReactionRolePanel } from "./reactionRoleTypes";
 import type { StickyMessage } from "./stickyMessageTypes";
-import type { GuildTicketConfig, Ticket } from "./ticketTypes";
-import type { VcRecruitConfig } from "./vcRecruitTypes";
+import type { GuildTicketSettings, Ticket } from "./ticketTypes";
+import type { VcRecruitSettings } from "./vcRecruitTypes";
 
 /** ギルド設定のコアCRUD・locale操作 */
 export interface IGuildCoreRepository {
-  getConfig(guildId: string): Promise<GuildConfig | null>;
-  saveConfig(config: GuildConfig): Promise<void>;
-  updateConfig(guildId: string, updates: Partial<GuildConfig>): Promise<void>;
-  deleteConfig(guildId: string): Promise<void>;
+  getSettings(guildId: string): Promise<GuildSettings | null>;
+  saveSettings(config: GuildSettings): Promise<void>;
+  updateSettings(
+    guildId: string,
+    updates: Partial<GuildSettings>,
+  ): Promise<void>;
+  deleteSettings(guildId: string): Promise<void>;
   exists(guildId: string): Promise<boolean>;
   getLocale(guildId: string): Promise<string>;
   updateLocale(guildId: string, locale: string): Promise<void>;
@@ -35,51 +41,53 @@ export interface IGuildCoreRepository {
 }
 
 /** 全機能設定の一括取得・インポート・削除（エクスポート/reset-all 用） */
-export interface IGuildConfigAggregateRepository {
-  getFullConfig(guildId: string): Promise<FullGuildConfig | null>;
-  importFullConfig(guildId: string, data: FullGuildConfig): Promise<void>;
+export interface IGuildSettingsAggregateRepository {
+  getFullSettings(guildId: string): Promise<FullGuildSettings | null>;
+  importFullSettings(guildId: string, data: FullGuildSettings): Promise<void>;
   /** import 実行前にマージ計画（新規 insert 予定件数）を算出する */
   planImportMerge(
     guildId: string,
-    data: FullGuildConfig,
+    data: FullGuildSettings,
   ): Promise<ImportMergePlan>;
-  deleteAllConfigs(guildId: string): Promise<void>;
+  deleteAllSettings(guildId: string): Promise<void>;
 }
 
 /** コア + 一括操作の統合インターフェース */
 export interface IBaseGuildRepository
   extends IGuildCoreRepository,
-    IGuildConfigAggregateRepository {}
+    IGuildSettingsAggregateRepository {}
 
 /** エクスポート/インポート用の全設定統合型 */
-export interface FullGuildConfig {
+export interface FullGuildSettings {
   locale: string;
   errorChannelId?: string;
-  afk?: AfkConfig;
-  bumpReminder?: BumpReminderConfig;
-  vac?: Pick<VacConfig, "enabled" | "triggerChannelIds">;
-  memberLog?: MemberLogConfig;
-  vcRecruit?: VcRecruitConfig;
+  afk?: AfkSettings;
+  bumpReminder?: BumpReminderSettings;
+  vac?: Pick<VacSettings, "enabled" | "triggerChannelIds">;
+  memberLog?: MemberLogSettings;
+  vcRecruit?: VcRecruitSettings;
   /** stateful データ（チケット設定 / open チケット / スティッキー / リアクションロールパネル / VAC 作成済み VC） */
   state?: FullGuildState;
 }
 
-export interface IAfkConfigRepository {
-  getAfkConfig(guildId: string): Promise<AfkConfig | null>;
+export interface IAfkSettingsRepository {
+  getAfkSettings(guildId: string): Promise<AfkSettings | null>;
   setAfkChannel(guildId: string, channelId: string): Promise<void>;
-  updateAfkConfig(guildId: string, afkConfig: AfkConfig): Promise<void>;
+  updateAfkSettings(guildId: string, afkSettings: AfkSettings): Promise<void>;
 }
 
-export interface IBumpReminderConfigRepository {
-  getBumpReminderConfig(guildId: string): Promise<BumpReminderConfig | null>;
+export interface IBumpReminderSettingsRepository {
+  getBumpReminderSettings(
+    guildId: string,
+  ): Promise<BumpReminderSettings | null>;
   setBumpReminderEnabled(
     guildId: string,
     enabled: boolean,
     channelId?: string,
   ): Promise<void>;
-  updateBumpReminderConfig(
+  updateBumpReminderSettings(
     guildId: string,
-    bumpReminderConfig: BumpReminderConfig,
+    bumpReminderSettings: BumpReminderSettings,
   ): Promise<void>;
   setBumpReminderMentionRole(
     guildId: string,
@@ -101,24 +109,24 @@ export interface IBumpReminderConfigRepository {
   ): Promise<BumpReminderMentionClearResult>;
 }
 
-export interface IVacConfigRepository {
-  getVacConfig(guildId: string): Promise<VacConfig | null>;
-  updateVacConfig(guildId: string, vacConfig: VacConfig): Promise<void>;
+export interface IVacSettingsRepository {
+  getVacSettings(guildId: string): Promise<VacSettings | null>;
+  updateVacSettings(guildId: string, vacSettings: VacSettings): Promise<void>;
 }
 
-export interface IMemberLogConfigRepository {
-  getMemberLogConfig(guildId: string): Promise<MemberLogConfig | null>;
-  updateMemberLogConfig(
+export interface IMemberLogSettingsRepository {
+  getMemberLogSettings(guildId: string): Promise<MemberLogSettings | null>;
+  updateMemberLogSettings(
     guildId: string,
-    memberLogConfig: MemberLogConfig,
+    memberLogSettings: MemberLogSettings,
   ): Promise<void>;
 }
 
-export interface IVcRecruitConfigRepository {
-  getVcRecruitConfig(guildId: string): Promise<VcRecruitConfig | null>;
-  updateVcRecruitConfig(
+export interface IVcRecruitSettingsRepository {
+  getVcRecruitSettings(guildId: string): Promise<VcRecruitSettings | null>;
+  updateVcRecruitSettings(
     guildId: string,
-    vcRecruitConfig: VcRecruitConfig,
+    vcRecruitSettings: VcRecruitSettings,
   ): Promise<void>;
 }
 
@@ -157,18 +165,18 @@ export interface IReactionRolePanelRepository {
   deleteAllByGuild(guildId: string): Promise<number>;
 }
 
-export interface IGuildTicketConfigRepository {
+export interface IGuildTicketSettingsRepository {
   findByGuildAndCategory(
     guildId: string,
     categoryId: string,
-  ): Promise<GuildTicketConfig | null>;
-  findAllByGuild(guildId: string): Promise<GuildTicketConfig[]>;
-  create(config: GuildTicketConfig): Promise<GuildTicketConfig>;
+  ): Promise<GuildTicketSettings | null>;
+  findAllByGuild(guildId: string): Promise<GuildTicketSettings[]>;
+  create(config: GuildTicketSettings): Promise<GuildTicketSettings>;
   update(
     guildId: string,
     categoryId: string,
-    data: Partial<GuildTicketConfig>,
-  ): Promise<GuildTicketConfig>;
+    data: Partial<GuildTicketSettings>,
+  ): Promise<GuildTicketSettings>;
   delete(guildId: string, categoryId: string): Promise<void>;
   deleteAllByGuild(guildId: string): Promise<number>;
   incrementCounter(guildId: string, categoryId: string): Promise<number>;

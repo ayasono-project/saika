@@ -4,7 +4,7 @@
 import type { Message, PartialMessage } from "discord.js";
 import { logPrefixed } from "../../../../shared/locale/localeManager";
 import { logger } from "../../../../shared/utils/logger";
-import { getBotReactionRolePanelConfigService } from "../../../services/botCompositionRoot";
+import { getBotReactionRolePanelSettingsService } from "../../../services/botCompositionRoot";
 
 /**
  * messageDelete 時にパネルメッセージの削除を検知し、DBレコードをクリーンアップする
@@ -15,15 +15,15 @@ export async function handleReactionRoleMessageDelete(
 ): Promise<void> {
   if (!message.guildId) return;
 
-  const configService = getBotReactionRolePanelConfigService();
+  const settingsService = getBotReactionRolePanelSettingsService();
 
   try {
-    const panels = await configService.findAllByGuild(message.guildId);
+    const panels = await settingsService.findAllByGuild(message.guildId);
 
     const matchedPanel = panels.find((panel) => panel.messageId === message.id);
     if (!matchedPanel) return;
 
-    await configService.delete(matchedPanel.id);
+    await settingsService.delete(matchedPanel.id);
 
     logger.info(
       logPrefixed(

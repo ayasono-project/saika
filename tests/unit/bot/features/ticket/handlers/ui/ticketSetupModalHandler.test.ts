@@ -51,7 +51,7 @@ const mockConfigService = {
   incrementCounter: vi.fn(),
 };
 vi.mock("@/bot/services/botCompositionRoot", () => ({
-  getBotTicketConfigService: () => mockConfigService,
+  getBotTicketSettingsService: () => mockConfigService,
   getBotTicketRepository: () => ({}),
 }));
 

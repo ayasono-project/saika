@@ -2,25 +2,28 @@
 // VC募集機能向けの永続化アクセスリポジトリ
 
 import {
-  type VcRecruitConfig,
+  type VcRecruitSettings,
   type VcRecruitSetup,
 } from "../../../../shared/database/types";
-import { type VcRecruitConfigService } from "../../../../shared/features/vc-recruit/vcRecruitConfigService";
+import { type VcRecruitSettingsService } from "../../../../shared/features/vc-recruit/vcRecruitSettingsService";
 
 /**
  * VC募集機能が必要とする永続化アクセスの抽象
  */
 export interface IVcRecruitRepository {
-  getVcRecruitConfigOrDefault(guildId: string): Promise<VcRecruitConfig>;
-  saveVcRecruitConfig(guildId: string, config: VcRecruitConfig): Promise<void>;
+  getVcRecruitSettingsOrDefault(guildId: string): Promise<VcRecruitSettings>;
+  saveVcRecruitSettings(
+    guildId: string,
+    config: VcRecruitSettings,
+  ): Promise<void>;
   addSetup(
     guildId: string,
     setup: Omit<VcRecruitSetup, "createdVoiceChannelIds">,
-  ): Promise<VcRecruitConfig>;
+  ): Promise<VcRecruitSettings>;
   removeSetup(
     guildId: string,
     panelChannelId: string,
-  ): Promise<VcRecruitConfig>;
+  ): Promise<VcRecruitSettings>;
   findSetupByCategoryId(
     guildId: string,
     categoryId: string | null,
@@ -37,7 +40,7 @@ export interface IVcRecruitRepository {
     guildId: string,
     panelChannelId: string,
     panelMessageId: string,
-  ): Promise<VcRecruitConfig>;
+  ): Promise<VcRecruitSettings>;
   findSetupByCreatedVcId(
     guildId: string,
     voiceChannelId: string,
@@ -46,11 +49,11 @@ export interface IVcRecruitRepository {
     guildId: string,
     panelChannelId: string,
     voiceChannelId: string,
-  ): Promise<VcRecruitConfig>;
+  ): Promise<VcRecruitSettings>;
   removeCreatedVoiceChannelId(
     guildId: string,
     voiceChannelId: string,
-  ): Promise<VcRecruitConfig>;
+  ): Promise<VcRecruitSettings>;
   isCreatedVcRecruitChannel(
     guildId: string,
     voiceChannelId: string,
@@ -66,16 +69,16 @@ export interface IVcRecruitRepository {
 }
 
 /**
- * VcRecruitConfigService を注入して VC募集リポジトリを生成する
+ * VcRecruitSettingsService を注入して VC募集リポジトリを生成する
  */
 export function createVcRecruitRepository(
-  service: VcRecruitConfigService,
+  service: VcRecruitSettingsService,
 ): IVcRecruitRepository {
   return {
-    getVcRecruitConfigOrDefault: (guildId) =>
-      service.getVcRecruitConfigOrDefault(guildId),
-    saveVcRecruitConfig: (guildId, config) =>
-      service.saveVcRecruitConfig(guildId, config),
+    getVcRecruitSettingsOrDefault: (guildId) =>
+      service.getVcRecruitSettingsOrDefault(guildId),
+    saveVcRecruitSettings: (guildId, config) =>
+      service.saveVcRecruitSettings(guildId, config),
     addSetup: (guildId, setup) => service.addSetup(guildId, setup),
     removeSetup: (guildId, panelChannelId) =>
       service.removeSetup(guildId, panelChannelId),

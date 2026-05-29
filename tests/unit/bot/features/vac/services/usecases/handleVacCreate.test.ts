@@ -10,7 +10,7 @@ import type { Mock, Mocked } from "vitest";
 import { handleVacCreateUseCase } from "@/bot/features/vac/services/usecases/handleVacCreate";
 import { sendVcControlPanel } from "@/bot/features/vc-panel/vcControlPanel";
 import { notifyErrorChannel } from "@/bot/shared/errorChannelNotifier";
-import type { VacConfigService } from "@/shared/features/vac/vacConfigService";
+import type { VacSettingsService } from "@/shared/features/vac/vacSettingsService";
 
 const loggerInfoMock = vi.fn();
 const loggerWarnMock = vi.fn();
@@ -56,16 +56,16 @@ vi.mock("@/bot/shared/errorChannelNotifier", () => ({
   notifyWarnChannel: vi.fn(),
 }));
 
-function createRepositoryMock(): Mocked<VacConfigService> {
+function createRepositoryMock(): Mocked<VacSettingsService> {
   return {
-    getVacConfigOrDefault: vi.fn(),
-    saveVacConfig: vi.fn(),
+    getVacSettingsOrDefault: vi.fn(),
+    saveVacSettings: vi.fn(),
     addTriggerChannel: vi.fn(),
     removeTriggerChannel: vi.fn(),
     addCreatedVacChannel: vi.fn(),
     removeCreatedVacChannel: vi.fn(),
     isManagedVacChannel: vi.fn(),
-  } as unknown as Mocked<VacConfigService>;
+  } as unknown as Mocked<VacSettingsService>;
 }
 
 function createVoiceStateInput(options?: {
@@ -165,7 +165,7 @@ describe("bot/features/vac/services/usecases/handleVacCreate", () => {
       channel: { type: ChannelType.GuildText },
     } as never);
 
-    expect(repository.getVacConfigOrDefault).not.toHaveBeenCalled();
+    expect(repository.getVacSettingsOrDefault).not.toHaveBeenCalled();
   });
 
   it("VACが無効または参加チャンネルがトリガーでない場合は早期リターンする", async () => {
@@ -174,14 +174,14 @@ describe("bot/features/vac/services/usecases/handleVacCreate", () => {
       triggerChannelId: "trigger-1",
     });
 
-    repository.getVacConfigOrDefault.mockResolvedValueOnce({
+    repository.getVacSettingsOrDefault.mockResolvedValueOnce({
       enabled: false,
       triggerChannelIds: ["trigger-1"],
       createdChannels: [],
     });
     await handleVacCreateUseCase(repository, newState as never);
 
-    repository.getVacConfigOrDefault.mockResolvedValueOnce({
+    repository.getVacSettingsOrDefault.mockResolvedValueOnce({
       enabled: true,
       triggerChannelIds: ["trigger-2"],
       createdChannels: [],
@@ -196,7 +196,7 @@ describe("bot/features/vac/services/usecases/handleVacCreate", () => {
     const { newState, fetchMock, createMock, setChannelMock } =
       createVoiceStateInput();
 
-    repository.getVacConfigOrDefault.mockResolvedValue({
+    repository.getVacSettingsOrDefault.mockResolvedValue({
       enabled: true,
       triggerChannelIds: ["trigger-1"],
       createdChannels: [
@@ -222,7 +222,7 @@ describe("bot/features/vac/services/usecases/handleVacCreate", () => {
     const repository = createRepositoryMock();
     const { newState, fetchMock } = createVoiceStateInput();
 
-    repository.getVacConfigOrDefault.mockResolvedValue({
+    repository.getVacSettingsOrDefault.mockResolvedValue({
       enabled: true,
       triggerChannelIds: ["trigger-1"],
       createdChannels: [
@@ -249,7 +249,7 @@ describe("bot/features/vac/services/usecases/handleVacCreate", () => {
       parentCategoryChildrenCount: 50,
     });
 
-    repository.getVacConfigOrDefault.mockResolvedValue({
+    repository.getVacSettingsOrDefault.mockResolvedValue({
       enabled: true,
       triggerChannelIds: ["trigger-1"],
       createdChannels: [],
@@ -268,7 +268,7 @@ describe("bot/features/vac/services/usecases/handleVacCreate", () => {
       channelNames: ["Alice's Room"],
     });
 
-    repository.getVacConfigOrDefault.mockResolvedValue({
+    repository.getVacSettingsOrDefault.mockResolvedValue({
       enabled: true,
       triggerChannelIds: ["trigger-1"],
       createdChannels: [],
@@ -310,7 +310,7 @@ describe("bot/features/vac/services/usecases/handleVacCreate", () => {
       },
     });
 
-    repository.getVacConfigOrDefault.mockResolvedValue({
+    repository.getVacSettingsOrDefault.mockResolvedValue({
       enabled: true,
       triggerChannelIds: ["trigger-1"],
       createdChannels: [],
@@ -328,7 +328,7 @@ describe("bot/features/vac/services/usecases/handleVacCreate", () => {
     const repository = createRepositoryMock();
     const { newState, createMock, setChannelMock } = createVoiceStateInput();
 
-    repository.getVacConfigOrDefault.mockResolvedValue({
+    repository.getVacSettingsOrDefault.mockResolvedValue({
       enabled: true,
       triggerChannelIds: ["trigger-1"],
       createdChannels: [],
@@ -362,7 +362,7 @@ describe("bot/features/vac/services/usecases/handleVacCreate", () => {
     const repository = createRepositoryMock();
     const { newState, createMock } = createVoiceStateInput();
 
-    repository.getVacConfigOrDefault.mockResolvedValue({
+    repository.getVacSettingsOrDefault.mockResolvedValue({
       enabled: true,
       triggerChannelIds: ["trigger-1"],
       createdChannels: [],
@@ -381,7 +381,7 @@ describe("bot/features/vac/services/usecases/handleVacCreate", () => {
     const { newState, fetchMock, createMock, setChannelMock } =
       createVoiceStateInput();
 
-    repository.getVacConfigOrDefault.mockResolvedValue({
+    repository.getVacSettingsOrDefault.mockResolvedValue({
       enabled: true,
       triggerChannelIds: ["trigger-1"],
       createdChannels: [
@@ -421,7 +421,7 @@ describe("bot/features/vac/services/usecases/handleVacCreate", () => {
   it("コントロールパネル送信が失敗してもユーザー移動とチャンネル保存は続行されること", async () => {
     const repository = createRepositoryMock();
     const { newState, setChannelMock } = createVoiceStateInput();
-    repository.getVacConfigOrDefault.mockResolvedValue({
+    repository.getVacSettingsOrDefault.mockResolvedValue({
       enabled: true,
       triggerChannelIds: ["trigger-1"],
       createdChannels: [],

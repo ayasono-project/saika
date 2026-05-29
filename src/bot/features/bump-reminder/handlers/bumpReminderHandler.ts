@@ -5,8 +5,8 @@ import type { Client } from "discord.js";
 import { logPrefixed } from "../../../../shared/locale/localeManager";
 import { logger } from "../../../../shared/utils/logger";
 import {
-  getBotBumpReminderConfigService,
   getBotBumpReminderRepository,
+  getBotBumpReminderSettingsService,
 } from "../../../services/botCompositionRoot";
 import { notifyErrorChannel } from "../../../shared/errorChannelNotifier";
 import type { BumpServiceName } from "../constants/bumpReminderConstants";
@@ -31,10 +31,12 @@ export async function handleBumpDetected(
 ): Promise<void> {
   try {
     // Bump 設定サービスを取得し、機能有効状態を確認
-    const bumpReminderConfigService = getBotBumpReminderConfigService();
+    const bumpReminderSettingsService = getBotBumpReminderSettingsService();
 
     const config =
-      await bumpReminderConfigService.getBumpReminderConfigOrDefault(guildId);
+      await bumpReminderSettingsService.getBumpReminderSettingsOrDefault(
+        guildId,
+      );
     if (!config.enabled) {
       // 機能無効ギルドでは検知のみ行い何もしない
       logger.debug(
@@ -85,7 +87,7 @@ export async function handleBumpDetected(
       channelId,
       messageId,
       serviceName,
-      bumpReminderConfigService,
+      bumpReminderSettingsService,
       panelMessageId,
     );
 

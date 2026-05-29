@@ -2,7 +2,7 @@
 
 > Member Log - メンバー参加・脱退時のログ機能
 
-最終更新: 2026年3月22日（ローカライズセクションを実装に合わせて更新）
+最終更新: 2026年5月29日
 
 ---
 
@@ -138,11 +138,11 @@
 
 ---
 
-## /member-log-config set-channel
+## /member-log-settings set-channel
 
 ### コマンド定義
 
-**コマンド**: `/member-log-config set-channel`
+**コマンド**: `/member-log-settings set-channel`
 
 **コマンドオプション:**
 
@@ -162,11 +162,11 @@
 
 ---
 
-## /member-log-config enable
+## /member-log-settings enable
 
 ### コマンド定義
 
-**コマンド**: `/member-log-config enable`
+**コマンド**: `/member-log-settings enable`
 
 **コマンドオプション:** なし
 
@@ -186,11 +186,11 @@
 
 ---
 
-## /member-log-config disable
+## /member-log-settings disable
 
 ### コマンド定義
 
-**コマンド**: `/member-log-config disable`
+**コマンド**: `/member-log-settings disable`
 
 **コマンドオプション:** なし
 
@@ -205,11 +205,11 @@
 
 ---
 
-## /member-log-config set-join-message
+## /member-log-settings set-join-message
 
 ### コマンド定義
 
-**コマンド**: `/member-log-config set-join-message`
+**コマンド**: `/member-log-settings set-join-message`
 
 **コマンドオプション:** なし（モーダル入力）
 
@@ -226,7 +226,7 @@
 
 | フィールド | ラベル | スタイル | 必須 | 制約 |
 | --- | --- | --- | --- | --- |
-| `member-log-config:join-message-modal-input` | 参加メッセージ | Paragraph | ✅ | 最大500文字 |
+| `member-log-settings:join-message-modal-input` | 参加メッセージ | Paragraph | ✅ | 最大500文字 |
 
 使用可能なプレースホルダー:
 
@@ -237,11 +237,11 @@
 
 ---
 
-## /member-log-config set-leave-message
+## /member-log-settings set-leave-message
 
 ### コマンド定義
 
-**コマンド**: `/member-log-config set-leave-message`
+**コマンド**: `/member-log-settings set-leave-message`
 
 **コマンドオプション:** なし（モーダル入力）
 
@@ -258,17 +258,17 @@
 
 | フィールド | ラベル | スタイル | 必須 | 制約 |
 | --- | --- | --- | --- | --- |
-| `member-log-config:leave-message-modal-input` | 退出メッセージ | Paragraph | ✅ | 最大500文字 |
+| `member-log-settings:leave-message-modal-input` | 退出メッセージ | Paragraph | ✅ | 最大500文字 |
 
 使用可能なプレースホルダーは参加メッセージと同じ。
 
 ---
 
-## /member-log-config clear-join-message
+## /member-log-settings clear-join-message
 
 ### コマンド定義
 
-**コマンド**: `/member-log-config clear-join-message`
+**コマンド**: `/member-log-settings clear-join-message`
 
 **コマンドオプション:** なし
 
@@ -283,11 +283,11 @@
 
 ---
 
-## /member-log-config clear-leave-message
+## /member-log-settings clear-leave-message
 
 ### コマンド定義
 
-**コマンド**: `/member-log-config clear-leave-message`
+**コマンド**: `/member-log-settings clear-leave-message`
 
 **コマンドオプション:** なし
 
@@ -302,11 +302,11 @@
 
 ---
 
-## /member-log-config view
+## /member-log-settings view
 
 ### コマンド定義
 
-**コマンド**: `/member-log-config view`
+**コマンド**: `/member-log-settings view`
 
 **コマンドオプション:** なし
 
@@ -329,11 +329,11 @@
 
 ---
 
-## /member-log-config reset
+## /member-log-settings reset
 
 ### コマンド定義
 
-**コマンド**: `/member-log-config reset`
+**コマンド**: `/member-log-settings reset`
 
 **コマンドオプション:** なし
 
@@ -362,14 +362,14 @@
 
 | コンポーネント | emoji | ラベル | スタイル | 動作 |
 | --- | --- | --- | --- | --- |
-| `member-log-config:reset-confirm` | 🗑️ | リセットする | Danger | 設定をリセットして完了メッセージに更新 |
-| `member-log-config:reset-cancel` | ❌ | キャンセル | Secondary | キャンセルメッセージに更新 |
+| `member-log-settings:reset-confirm` | 🗑️ | リセットする | Danger | 設定をリセットして完了メッセージに更新 |
+| `member-log-settings:reset-cancel` | ❌ | キャンセル | Secondary | キャンセルメッセージに更新 |
 
 ---
 
 ## データモデル
 
-### GuildMemberLogConfig
+### GuildMemberLogSettings
 
 | フィールド | 型 | 説明 |
 | --- | --- | --- |
@@ -402,17 +402,17 @@
 
 | キー | 用途 | ja | en |
 | --- | --- | --- | --- |
-| `member-log-config.description` | コマンド説明 | メンバーログ機能の設定（サーバー管理権限が必要） | Configure member log feature (requires Manage Server) |
-| `member-log-config.set-channel.description` | サブコマンド説明 | 通知チャンネルを設定 | Set the notification channel |
-| `member-log-config.set-channel.channel.description` | オプション説明 | 通知を送信するテキストチャンネル | Text channel to send notifications to |
-| `member-log-config.enable.description` | サブコマンド説明 | メンバーログ機能を有効化 | Enable member log feature |
-| `member-log-config.disable.description` | サブコマンド説明 | メンバーログ機能を無効化 | Disable member log feature |
-| `member-log-config.set-join-message.description` | サブコマンド説明 | カスタム参加メッセージを設定 | Set a custom join message |
-| `member-log-config.set-leave-message.description` | サブコマンド説明 | カスタム退出メッセージを設定 | Set a custom leave message |
-| `member-log-config.clear-join-message.description` | サブコマンド説明 | カスタム参加メッセージを削除 | Clear the custom join message |
-| `member-log-config.clear-leave-message.description` | サブコマンド説明 | カスタム退出メッセージを削除 | Clear the custom leave message |
-| `member-log-config.view.description` | サブコマンド説明 | 現在の設定を表示 | Show current settings |
-| `member-log-config.reset.description` | サブコマンド説明 | メンバーログ設定をリセット | Reset member log settings |
+| `member-log-settings.description` | コマンド説明 | メンバーログ機能の設定（サーバー管理権限が必要） | Configure member log feature (requires Manage Server) |
+| `member-log-settings.set-channel.description` | サブコマンド説明 | 通知チャンネルを設定 | Set the notification channel |
+| `member-log-settings.set-channel.channel.description` | オプション説明 | 通知を送信するテキストチャンネル | Text channel to send notifications to |
+| `member-log-settings.enable.description` | サブコマンド説明 | メンバーログ機能を有効化 | Enable member log feature |
+| `member-log-settings.disable.description` | サブコマンド説明 | メンバーログ機能を無効化 | Disable member log feature |
+| `member-log-settings.set-join-message.description` | サブコマンド説明 | カスタム参加メッセージを設定 | Set a custom join message |
+| `member-log-settings.set-leave-message.description` | サブコマンド説明 | カスタム退出メッセージを設定 | Set a custom leave message |
+| `member-log-settings.clear-join-message.description` | サブコマンド説明 | カスタム参加メッセージを削除 | Clear the custom join message |
+| `member-log-settings.clear-leave-message.description` | サブコマンド説明 | カスタム退出メッセージを削除 | Clear the custom leave message |
+| `member-log-settings.view.description` | サブコマンド説明 | 現在の設定を表示 | Show current settings |
+| `member-log-settings.reset.description` | サブコマンド説明 | メンバーログ設定をリセット | Reset member log settings |
 
 ### ユーザーレスポンス
 
@@ -420,14 +420,14 @@
 | --- | --- | --- | --- |
 | `user-response.set_channel_success` | チャンネル設定成功 | 通知チャンネルを {{channel}} に設定しました。 | Notification channel set to {{channel}} |
 | `user-response.enable_success` | 有効化成功 | メンバーログ機能を有効化しました。 | Member log feature has been enabled |
-| `user-response.enable_error_no_channel` | チャンネル未設定エラー | 通知チャンネルが設定されていません。先に /member-log-config set-channel を実行してください。 | No notification channel is configured. Run /member-log-config set-channel first. |
+| `user-response.enable_error_no_channel` | チャンネル未設定エラー | 通知チャンネルが設定されていません。先に /member-log-settings set-channel を実行してください。 | No notification channel is configured. Run /member-log-settings set-channel first. |
 | `user-response.disable_success` | 無効化成功 | メンバーログ機能を無効化しました。 | Member log feature has been disabled |
 | `user-response.set_join_message_success` | 参加メッセージ設定成功 | 参加メッセージを設定しました。 | Join message has been set |
 | `user-response.set_leave_message_success` | 退出メッセージ設定成功 | 退出メッセージを設定しました。 | Leave message has been set |
 | `user-response.clear_join_message_success` | 参加メッセージ削除成功 | 参加メッセージを削除しました。 | Join message has been cleared |
 | `user-response.clear_leave_message_success` | 退出メッセージ削除成功 | 退出メッセージを削除しました。 | Leave message has been cleared |
 | `user-response.text_channel_only` | チャンネル種別エラー | テキストチャンネルを指定してください。 | Please specify a text channel. |
-| `user-response.channel_deleted_notice` | チャンネル削除通知 | ⚠️ メンバーログの通知チャンネルが削除されました。\n設定をリセットしたので、`/member-log-config set-channel` で再設定してください。 | ⚠️ The member log notification channel has been deleted.\nSettings have been reset. Please reconfigure with `/member-log-config set-channel`. |
+| `user-response.channel_deleted_notice` | チャンネル削除通知 | ⚠️ メンバーログの通知チャンネルが削除されました。\n設定をリセットしたので、`/member-log-settings set-channel` で再設定してください。 | ⚠️ The member log notification channel has been deleted.\nSettings have been reset. Please reconfigure with `/member-log-settings set-channel`. |
 | `user-response.reset_success` | リセット成功 | メンバーログ設定をリセットしました。 | Member log settings have been reset. |
 | `user-response.reset_cancelled` | リセットキャンセル | リセットをキャンセルしました。 | Reset has been cancelled. |
 
@@ -506,7 +506,7 @@
 
 | 依存先 | 内容 |
 | --- | --- |
-| GuildConfigRepository | メンバーログ設定の取得・更新 |
+| GuildSettingsRepository | メンバーログ設定の取得・更新 |
 | InviteTracker | 招待リンクのキャッシュ・差分比較 |
 | date-fns | アカウント経過年齢・滞在期間の算出 |
 

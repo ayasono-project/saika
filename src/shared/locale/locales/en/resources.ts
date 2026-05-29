@@ -5,7 +5,7 @@ import { common } from "./common";
 import {
   afk,
   bumpReminder,
-  guildConfig,
+  guildSettings,
   help,
   memberLog,
   messageDelete,
@@ -34,7 +34,7 @@ export const en: {
   stickyMessage: typeof stickyMessage;
   ticket: typeof ticket;
   vcRecruit: typeof vcRecruit;
-  guildConfig: typeof guildConfig;
+  guildSettings: typeof guildSettings;
 } = {
   common,
   system,
@@ -50,7 +50,7 @@ export const en: {
   stickyMessage,
   ticket,
   vcRecruit,
-  guildConfig,
+  guildSettings,
 };
 
 export type EnglishTranslations = typeof en;

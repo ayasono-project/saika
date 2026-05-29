@@ -7,8 +7,8 @@ import { vcRecruitButtonHandler } from "@/bot/features/vc-recruit/handlers/ui/vc
 // ---- モック定義 ----
 
 const findSetupByPanelChannelIdMock = vi.fn();
-const getVcRecruitConfigOrDefaultMock = vi.fn();
-const getVacConfigOrDefaultMock = vi.fn();
+const getVcRecruitSettingsOrDefaultMock = vi.fn();
+const getVacSettingsOrDefaultMock = vi.fn();
 const getVcRecruitSessionMock = vi.fn();
 const setVcRecruitSessionMock = vi.fn();
 const safeReplyMock = vi.fn();
@@ -18,12 +18,12 @@ vi.mock("@/bot/services/botCompositionRoot", () => ({
   getBotVcRecruitRepository: () => ({
     findSetupByPanelChannelId: (...args: unknown[]) =>
       findSetupByPanelChannelIdMock(...args),
-    getVcRecruitConfigOrDefault: (...args: unknown[]) =>
-      getVcRecruitConfigOrDefaultMock(...args),
+    getVcRecruitSettingsOrDefault: (...args: unknown[]) =>
+      getVcRecruitSettingsOrDefaultMock(...args),
   }),
-  getBotVacConfigService: () => ({
-    getVacConfigOrDefault: (...args: unknown[]) =>
-      getVacConfigOrDefaultMock(...args),
+  getBotVacSettingsService: () => ({
+    getVacSettingsOrDefault: (...args: unknown[]) =>
+      getVacSettingsOrDefaultMock(...args),
   }),
 }));
 vi.mock("@/bot/features/vc-recruit/handlers/ui/vcRecruitPanelState", () => ({
@@ -39,7 +39,7 @@ vi.mock("@/bot/features/vc-recruit/handlers/ui/vcRecruitTeardownState", () => ({
   setTeardownConfirmSession: vi.fn(),
 }));
 vi.mock(
-  "@/bot/features/vc-recruit/commands/usecases/vcRecruitConfigTeardown",
+  "@/bot/features/vc-recruit/commands/usecases/vcRecruitSettingsTeardown",
   () => ({
     buildTeardownSelectOptions: vi.fn().mockReturnValue([]),
   }),
@@ -211,10 +211,10 @@ describe("vcRecruitButtonHandler / matches()", () => {
 describe("vcRecruitButtonHandler / CREATE button (「VC募集を作成」)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    getVcRecruitConfigOrDefaultMock.mockResolvedValue({
+    getVcRecruitSettingsOrDefaultMock.mockResolvedValue({
       mentionRoleIds: [],
     });
-    getVacConfigOrDefaultMock.mockResolvedValue({ triggerChannelIds: [] });
+    getVacSettingsOrDefaultMock.mockResolvedValue({ triggerChannelIds: [] });
     safeReplyMock.mockResolvedValue(undefined);
   });
 

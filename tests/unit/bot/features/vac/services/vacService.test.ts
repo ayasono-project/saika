@@ -10,7 +10,7 @@ import {
   getVacService,
   VacService,
 } from "@/bot/features/vac/services/vacService";
-import type { VacConfigService } from "@/shared/features/vac/vacConfigService";
+import type { VacSettingsService } from "@/shared/features/vac/vacSettingsService";
 
 const executeWithLoggedErrorMock = vi.fn(
   async (operation: () => Promise<void>, _message: string) => {
@@ -18,7 +18,7 @@ const executeWithLoggedErrorMock = vi.fn(
   },
 );
 const loggerInfoMock = vi.fn();
-const getVacConfigServiceMock = vi.fn();
+const getVacSettingsServiceMock = vi.fn();
 
 vi.mock("@/shared/locale/localeManager", () => ({
   logPrefixed: (
@@ -54,9 +54,9 @@ vi.mock("@/shared/utils/logger", () => ({
   },
 }));
 
-vi.mock("@/shared/features/vac/vacConfigService", () => ({
-  getVacConfigService: (service?: VacConfigService) =>
-    getVacConfigServiceMock(service),
+vi.mock("@/shared/features/vac/vacSettingsService", () => ({
+  getVacSettingsService: (service?: VacSettingsService) =>
+    getVacSettingsServiceMock(service),
 }));
 
 vi.mock("@/bot/features/vac/services/usecases/handleVacCreate", () => ({
@@ -71,16 +71,16 @@ vi.mock("@/bot/features/vac/services/usecases/cleanupVacOnStartup", () => ({
   cleanupVacOnStartupUseCase: vi.fn(),
 }));
 
-function createRepositoryMock(): Mocked<VacConfigService> {
+function createRepositoryMock(): Mocked<VacSettingsService> {
   return {
-    getVacConfigOrDefault: vi.fn(),
-    saveVacConfig: vi.fn(),
+    getVacSettingsOrDefault: vi.fn(),
+    saveVacSettings: vi.fn(),
     addTriggerChannel: vi.fn(),
     removeTriggerChannel: vi.fn(),
     addCreatedVacChannel: vi.fn(),
     removeCreatedVacChannel: vi.fn(),
     isManagedVacChannel: vi.fn(),
-  } as unknown as Mocked<VacConfigService>;
+  } as unknown as Mocked<VacSettingsService>;
 }
 
 // VacService クラスがボイス状態変化・チャンネル削除・起動時クリーンアップの各しきいを
@@ -89,11 +89,11 @@ describe("bot/features/vac/services/vacService", () => {
   const defaultRepository = createRepositoryMock();
 
   // 各テストのモック呼び出し記録をリセットし、
-  // getVacConfigServiceMock が注入されたサービスをそのまま返すデフォルト動作を再設定する
+  // getVacSettingsServiceMock が注入されたサービスをそのまま返すデフォルト動作を再設定する
   beforeEach(() => {
     vi.clearAllMocks();
-    getVacConfigServiceMock.mockImplementation(
-      (service?: VacConfigService) => service ?? defaultRepository,
+    getVacSettingsServiceMock.mockImplementation(
+      (service?: VacSettingsService) => service ?? defaultRepository,
     );
   });
 
@@ -131,7 +131,7 @@ describe("bot/features/vac/services/vacService", () => {
 
   it("トリガーチャンネルにも作成チャンネルにも登録されているボイスチャンネルが削除された際に両方のレコードが同時に確実に削除されることを検証", async () => {
     const repository = createRepositoryMock();
-    repository.getVacConfigOrDefault.mockResolvedValue({
+    repository.getVacSettingsOrDefault.mockResolvedValue({
       enabled: true,
       triggerChannelIds: ["voice-1"],
       createdChannels: [
@@ -153,7 +153,7 @@ describe("bot/features/vac/services/vacService", () => {
 
     await service.handleChannelDelete(channel as never);
 
-    expect(repository.getVacConfigOrDefault).toHaveBeenCalledWith("guild-1");
+    expect(repository.getVacSettingsOrDefault).toHaveBeenCalledWith("guild-1");
     expect(repository.removeTriggerChannel).toHaveBeenCalledWith(
       "guild-1",
       "voice-1",
@@ -167,7 +167,7 @@ describe("bot/features/vac/services/vacService", () => {
 
   it("削除されたボイスチャンネルが追跡対象でない場合はレコードを削除しない", async () => {
     const repository = createRepositoryMock();
-    repository.getVacConfigOrDefault.mockResolvedValue({
+    repository.getVacSettingsOrDefault.mockResolvedValue({
       enabled: true,
       triggerChannelIds: ["trigger-1"],
       createdChannels: [
@@ -206,7 +206,7 @@ describe("bot/features/vac/services/vacService", () => {
       type: ChannelType.GuildText,
     } as never);
 
-    expect(repository.getVacConfigOrDefault).not.toHaveBeenCalled();
+    expect(repository.getVacSettingsOrDefault).not.toHaveBeenCalled();
     expect(repository.removeTriggerChannel).not.toHaveBeenCalled();
     expect(repository.removeCreatedVacChannel).not.toHaveBeenCalled();
   });

@@ -3,7 +3,7 @@
 
 export { afk } from "./afk";
 export { bumpReminder } from "./bumpReminder";
-export { guildConfig } from "./guildConfig";
+export { guildSettings } from "./guildSettings";
 export { help } from "./help";
 export { memberLog } from "./memberLog";
 export { messageDelete } from "./messageDelete";

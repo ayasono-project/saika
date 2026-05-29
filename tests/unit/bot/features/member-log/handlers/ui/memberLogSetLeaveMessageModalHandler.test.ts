@@ -1,7 +1,7 @@
 // tests/unit/bot/features/member-log/handlers/ui/memberLogSetLeaveMessageModalHandler.test.ts
 
 import { MessageFlags } from "discord.js";
-import { MEMBER_LOG_CONFIG_COMMAND } from "@/bot/features/member-log/commands/memberLogConfigCommand.constants";
+import { MEMBER_LOG_SETTINGS_COMMAND } from "@/bot/features/member-log/commands/memberLogSettingsCommand.constants";
 import { memberLogSetLeaveMessageModalHandler } from "@/bot/features/member-log/handlers/ui/memberLogSetLeaveMessageModalHandler";
 
 // ---- モック定義（vi.hoisted でファクトリ参照可能にする） ----
@@ -18,7 +18,7 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("@/bot/services/botCompositionRoot", () => ({
-  getBotMemberLogConfigService: vi.fn(() => ({
+  getBotMemberLogSettingsService: vi.fn(() => ({
     setLeaveMessage: mocks.setLeaveMessage,
   })),
 }));
@@ -86,7 +86,7 @@ describe("bot/features/member-log/handlers/ui/memberLogSetLeaveMessageModalHandl
     it("SET_LEAVE_MESSAGE_MODAL_ID に対して true を返すことを確認", () => {
       expect(
         memberLogSetLeaveMessageModalHandler.matches(
-          MEMBER_LOG_CONFIG_COMMAND.SET_LEAVE_MESSAGE_MODAL_ID,
+          MEMBER_LOG_SETTINGS_COMMAND.SET_LEAVE_MESSAGE_MODAL_ID,
         ),
       ).toBe(true);
     });
@@ -118,7 +118,7 @@ describe("bot/features/member-log/handlers/ui/memberLogSetLeaveMessageModalHandl
       const interaction = makeInteraction();
       await memberLogSetLeaveMessageModalHandler.execute(interaction as never);
       expect(interaction.fields.getTextInputValue).toHaveBeenCalledWith(
-        MEMBER_LOG_CONFIG_COMMAND.MODAL_INPUT_MESSAGE,
+        MEMBER_LOG_SETTINGS_COMMAND.MODAL_INPUT_MESSAGE,
       );
     });
 

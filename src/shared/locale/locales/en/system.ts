@@ -28,7 +28,7 @@ export const system = {
   "log_prefix.ready": "ready",
   "log_prefix.ticket": "Ticket",
   "log_prefix.reaction_role": "ReactionRole",
-  "log_prefix.guild_config": "GuildConfig",
+  "log_prefix.guild_config": "GuildSettings",
   "log_prefix.error_channel": "ErrorChannelNotifier",
 
   // Error channel notification internal logs
@@ -106,7 +106,7 @@ export const system = {
   "shutdown.gracefully": "Shutting down gracefully...",
   "shutdown.sigterm": "Received SIGTERM, shutting down...",
 
-  // Database operation logs (GuildConfig generic only)
+  // Database operation logs (GuildSettings generic only)
   "database.prisma_not_available": "Prisma client is not available",
   "database.get_config_log": "Failed to get config GuildId: {{guildId}}",
   "database.save_config_log": "Failed to save config GuildId: {{guildId}}",

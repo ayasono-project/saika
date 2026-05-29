@@ -22,7 +22,7 @@
 | 機能             | 概要                                                     | 状態 | 仕様書                                    | マニュアル                                                |
 | ---------------- | -------------------------------------------------------- | :--: | ----------------------------------------- | --------------------------------------------------------- |
 | 基本コマンド     | `/ping` `/help`                                          |  ✅  | [spec](docs/specs/BASIC_COMMANDS_SPEC.md) | [manual](docs/guides/USER_MANUAL.md#基本コマンド)         |
-| ギルド設定       | 言語・通知チャンネル設定と設定エクスポート・インポート   |  ✅  | [spec](docs/specs/GUILD_CONFIG_SPEC.md)   | [manual](docs/guides/USER_MANUAL.md#ギルド設定機能)       |
+| ギルド設定       | 言語・通知チャンネル設定と設定エクスポート・インポート   |  ✅  | [spec](docs/specs/GUILD_SETTINGS_SPEC.md)   | [manual](docs/guides/USER_MANUAL.md#ギルド設定機能)       |
 | VC操作コマンド   | `/vc rename` `/vc limit` でBot管理VCの名前・人数制限変更 |  ✅  | [spec](docs/specs/VC_COMMAND_SPEC.md)     | [manual](docs/guides/USER_MANUAL.md#vc操作コマンド)       |
 | AFK              | VC非アクティブメンバーを指定AFKチャンネルへ手動移動       |  ✅  | [spec](docs/specs/AFK_SPEC.md)            | [manual](docs/guides/USER_MANUAL.md#afk機能)              |
 | VC自動作成       | トリガーVC参加で専用VC自動作成・操作パネル・自動削除     |  ✅  | [spec](docs/specs/VAC_SPEC.md)            | [manual](docs/guides/USER_MANUAL.md#vc自動作成機能)       |
@@ -138,7 +138,7 @@ pnpm lint:fix         # Biome自動修正
 各機能の詳細設計と実装仕様を記載したドキュメントです。
 
 - [基本コマンド](docs/specs/BASIC_COMMANDS_SPEC.md) - ping / help
-- [ギルド設定機能](docs/specs/GUILD_CONFIG_SPEC.md) - ロケール設定・機能設定一覧表示・設定リセット
+- [ギルド設定機能](docs/specs/GUILD_SETTINGS_SPEC.md) - ロケール設定・機能設定一覧表示・設定リセット
 - [VC操作コマンド](docs/specs/VC_COMMAND_SPEC.md) - Bot管理VCの名前変更・人数制限変更
 - [AFK機能](docs/specs/AFK_SPEC.md) - VCの非アクティブユーザーを手動でAFKチャンネルに移動
 - [VC自動作成機能](docs/specs/VAC_SPEC.md) - トリガーチャンネル参加時に専用VCを作成・管理

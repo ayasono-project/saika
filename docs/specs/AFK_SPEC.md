@@ -2,7 +2,7 @@
 
 > ボイスチャンネルの非アクティブユーザー、または指定 VC の参加者全員を手動でAFKチャンネルに移動する機能
 
-最終更新: 2026年5月28日
+最終更新: 2026年5月29日
 
 > **ステータス**: `/afk` の `target` 拡張(VC 一括指定)および public 化はたたき台(2026-05-28 追記)。共通ユーティリティおよびオープン項目は [VC_COMMAND_SPEC.md](VC_COMMAND_SPEC.md) と共有する。
 
@@ -15,23 +15,23 @@
 | 機能 | 概要 |
 | --- | --- |
 | `/afk` | 指定ユーザー、または指定 VC の全員を AFK チャンネルに移動 |
-| `/afk-config set-channel` | AFKチャンネルを設定 |
-| `/afk-config view` | 現在のAFK設定を表示 |
-| `/afk-config clear-channel` | AFKチャンネル設定を解除 |
+| `/afk-settings set-channel` | AFKチャンネルを設定 |
+| `/afk-settings view` | 現在のAFK設定を表示 |
+| `/afk-settings clear-channel` | AFKチャンネル設定を解除 |
 
 ### 権限モデル
 
 | 対象 | 権限 | 用途 |
 | --- | --- | --- |
 | 実行者（`/afk`） | なし | 全メンバー実行可能。コード側で Discord 権限チェックは行わない |
-| 実行者（`/afk-config`） | ManageGuild | AFK設定の管理 |
+| 実行者（`/afk-settings`） | ManageGuild | AFK設定の管理 |
 | Bot | MoveMembers | ユーザーのVC移動 |
 
 **Bot ロール階層(`/afk`):** Bot のロールが対象メンバーのロールより上位にある必要がある。階層不足時は Bot 権限不足エラー(共通フォーマット、[MESSAGE_RESPONSE_SPEC.md](MESSAGE_RESPONSE_SPEC.md) 参照)を返す。
 
 ### 出力可視性ポリシー
 
-`/afk` の成功時応答は **public(非 ephemeral)** で統一する(共有リソースの状態変更、透明性確保のため)。エラー応答・確認ダイアログ・キャンセル/タイムアウト応答は ephemeral。`/afk-config` 系は従来通り ephemeral。
+`/afk` の成功時応答は **public(非 ephemeral)** で統一する(共有リソースの状態変更、透明性確保のため)。エラー応答・確認ダイアログ・キャンセル/タイムアウト応答は ephemeral。`/afk-settings` 系は従来通り ephemeral。
 
 判定原則の本文は [IMPLEMENTATION_GUIDELINES.md](../guides/IMPLEMENTATION_GUIDELINES.md) の「コマンド設計原則(ephemeral / public)」を参照(本タスクで新設)。
 
@@ -97,11 +97,11 @@
 
 ---
 
-## /afk-config set-channel
+## /afk-settings set-channel
 
 ### コマンド定義
 
-**コマンド**: `/afk-config set-channel`
+**コマンド**: `/afk-settings set-channel`
 
 **実行権限**: ManageGuild
 
@@ -136,11 +136,11 @@
 
 ---
 
-## /afk-config view
+## /afk-settings view
 
 ### コマンド定義
 
-**コマンド**: `/afk-config view`
+**コマンド**: `/afk-settings view`
 
 **実行権限**: ManageGuild
 
@@ -167,11 +167,11 @@
 
 ---
 
-## /afk-config clear-channel
+## /afk-settings clear-channel
 
 ### コマンド定義
 
-**コマンド**: `/afk-config clear-channel`
+**コマンド**: `/afk-settings clear-channel`
 
 **実行権限**: ManageGuild
 
@@ -201,7 +201,7 @@
 
 ## データモデル
 
-### GuildAfkConfig
+### GuildAfkSettings
 
 | フィールド | 型 | 説明 |
 | --- | --- | --- |
@@ -227,11 +227,11 @@
 | --- | --- | --- | --- |
 | `afk.description` | コマンド説明 | AFKチャンネルにユーザーを移動 | Move user to AFK channel |
 | `afk.target.description` | オプション説明(リネーム後) | TBD(User または VC) | TBD (User or voice channel) |
-| `afk-config.description` | コマンド説明 | AFK機能の設定（サーバー管理権限が必要） | Configure AFK feature (requires Manage Server) |
-| `afk-config.set-channel.description` | サブコマンド説明 | AFKチャンネルを設定 | Configure AFK channel |
-| `afk-config.set-channel.channel.description` | オプション説明 | AFKチャンネル（ボイスチャンネル） | AFK channel (voice channel) |
-| `afk-config.clear-channel.description` | サブコマンド説明 | AFKチャンネル設定を解除 | Clear AFK channel setting |
-| `afk-config.view.description` | サブコマンド説明 | 現在の設定を表示 | Show current settings |
+| `afk-settings.description` | コマンド説明 | AFK機能の設定（サーバー管理権限が必要） | Configure AFK feature (requires Manage Server) |
+| `afk-settings.set-channel.description` | サブコマンド説明 | AFKチャンネルを設定 | Configure AFK channel |
+| `afk-settings.set-channel.channel.description` | オプション説明 | AFKチャンネル（ボイスチャンネル） | AFK channel (voice channel) |
+| `afk-settings.clear-channel.description` | サブコマンド説明 | AFKチャンネル設定を解除 | Clear AFK channel setting |
+| `afk-settings.view.description` | サブコマンド説明 | 現在の設定を表示 | Show current settings |
 
 ### ユーザーレスポンス
 
@@ -240,7 +240,7 @@
 | `user-response.moved` | 移動成功 | {{user}} を {{channel}} に移動しました。 | Moved {{user}} to {{channel}} |
 | `user-response.set_channel_success` | チャンネル設定成功 | AFKチャンネルを {{channel}} に設定しました。 | AFK channel configured: {{channel}} |
 | `user-response.clear_channel_success` | 解除成功レスポンス | AFKチャンネル設定を解除しました。 | AFK channel setting has been cleared. |
-| `user-response.not_configured` | 未設定エラー | AFKチャンネルが設定されていません。\n`/afk-config set-channel` でチャンネルを設定してください。（管理者用） | AFK channel is not configured.\nPlease configure a channel with `/afk-config set-channel` (administrator only). |
+| `user-response.not_configured` | 未設定エラー | AFKチャンネルが設定されていません。\n`/afk-settings set-channel` でチャンネルを設定してください。（管理者用） | AFK channel is not configured.\nPlease configure a channel with `/afk-settings set-channel` (administrator only). |
 | `user-response.member_not_found` | ユーザー不在エラー | ユーザーが見つかりませんでした。 | User not found. |
 | `user-response.user_not_in_voice` | VC未参加エラー | 指定されたユーザーはボイスチャンネルにいません。 | The specified user is not in a voice channel. |
 | `user-response.channel_not_found` | チャンネル不在エラー | AFKチャンネルが見つかりませんでした。\nチャンネルが削除されている可能性があります。 | AFK channel not found.\nThe channel may have been deleted. |
@@ -275,9 +275,9 @@
 ### ユニットテスト
 
 - [x] `/afk`: ギルド外実行エラー、正常移動+成功Embed、config未設定/無効エラー、メンバー未検出/VC未参加/AFKチャンネル不在エラー、Bot権限不足エラー伝播、userオプション指定
-- [x] `/afk-config set-channel`: ManageGuild権限チェック、正常設定、非VCチャンネルエラー
-- [x] `/afk-config view`: 設定済み/未設定の表示
-- [x] `/afk-config clear-channel`: 設定解除
+- [x] `/afk-settings set-channel`: ManageGuild権限チェック、正常設定、非VCチャンネルエラー
+- [x] `/afk-settings view`: 設定済み/未設定の表示
+- [x] `/afk-settings clear-channel`: 設定解除
 
 ### インテグレーションテスト
 
@@ -299,6 +299,6 @@
 
 | 依存先 | 内容 |
 | --- | --- |
-| GuildConfigRepository | AFK設定の取得・更新 |
+| GuildSettingsRepository | AFK設定の取得・更新 |
 | [VC_COMMAND_SPEC.md](VC_COMMAND_SPEC.md) | `formatActionLog` および一括確認ダイアログを共有 |
 | [IMPLEMENTATION_GUIDELINES.md](../guides/IMPLEMENTATION_GUIDELINES.md) | ephemeral/public 判定原則の親ドキュメント(本タスクで該当セクションを新設) |

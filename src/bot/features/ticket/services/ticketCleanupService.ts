@@ -3,11 +3,11 @@
 
 import type { Guild } from "discord.js";
 import type {
-  GuildTicketConfig,
+  GuildTicketSettings,
   ITicketRepository,
   Ticket,
 } from "../../../../shared/database/types";
-import type { TicketConfigService } from "../../../../shared/features/ticket/ticketConfigService";
+import type { TicketSettingsService } from "../../../../shared/features/ticket/ticketSettingsService";
 import { cancelTicketAutoDelete } from "./ticketAutoDeleteService";
 import { deleteTicket } from "./ticketService";
 
@@ -21,13 +21,13 @@ import { deleteTicket } from "./ticketService";
  * 3. パネルメッセージを削除
  * @param guild 対象ギルド
  * @param configs クリーンアップ対象のチケット設定一覧
- * @param configService チケット設定サービス
+ * @param settingsService チケット設定サービス
  * @param ticketRepository チケットリポジトリ
  */
-export async function cleanupTicketConfigs(
+export async function cleanupTicketSettings(
   guild: Guild,
-  configs: GuildTicketConfig[],
-  configService: TicketConfigService,
+  configs: GuildTicketSettings[],
+  settingsService: TicketSettingsService,
   ticketRepository: ITicketRepository,
 ): Promise<void> {
   const guildId = guild.id;
@@ -58,7 +58,7 @@ export async function cleanupTicketConfigs(
     await ticketRepository
       .deleteByCategory(guildId, config.categoryId)
       .catch(() => null);
-    await configService.delete(guildId, config.categoryId).catch(() => null);
+    await settingsService.delete(guildId, config.categoryId).catch(() => null);
   }
 
   // パネルメッセージを削除

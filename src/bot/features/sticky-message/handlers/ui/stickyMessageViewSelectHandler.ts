@@ -4,7 +4,7 @@
 import { type StringSelectMenuInteraction } from "discord.js";
 import { tInteraction } from "../../../../../shared/locale/localeManager";
 import type { StringSelectHandler } from "../../../../handlers/interactionCreate/ui/types";
-import { getBotStickyMessageConfigService } from "../../../../services/botCompositionRoot";
+import { getBotStickyMessageSettingsService } from "../../../../services/botCompositionRoot";
 import {
   createInfoEmbed,
   createWarningEmbed,
@@ -36,7 +36,7 @@ export const stickyMessageViewSelectHandler: StringSelectHandler = {
       return;
     }
 
-    const service = getBotStickyMessageConfigService();
+    const service = getBotStickyMessageSettingsService();
 
     // 選択されたチャンネルのスティッキー設定を取得する
     const sticky = await service.findByChannel(channelId);

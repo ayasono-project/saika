@@ -1,5 +1,5 @@
 // src/shared/database/repositories/serializers/guildStateSerializer.ts
-// guild-config export/import の stateful データ用 serializer / deserializer
+// guild-settings export/import の stateful データ用 serializer / deserializer
 //
 // JSON 文字列カラム（staffRoleIds / buttons）を export 時にパースし、import 時に再シリアライズする。
 // embedData は仕様書 §データモデルで「DB 上の JSON 文字列をそのまま保持」と定められているため透過する。
@@ -7,8 +7,8 @@
 import { parseJsonArray } from "../../../utils/jsonUtils";
 import type {
   GuildReactionRolePanel,
-  GuildTicketConfig,
-  GuildTicketConfigExport,
+  GuildTicketSettings,
+  GuildTicketSettingsExport,
   OpenTicketExport,
   ReactionRoleButton,
   ReactionRolePanelExport,
@@ -18,10 +18,10 @@ import type {
   VacChannelPair,
 } from "../../types";
 
-/** GuildTicketConfig → export 表現（staffRoleIds をパース） */
-export function toTicketConfigExport(
-  config: GuildTicketConfig,
-): GuildTicketConfigExport {
+/** GuildTicketSettings → export 表現（staffRoleIds をパース） */
+export function toTicketSettingsExport(
+  config: GuildTicketSettings,
+): GuildTicketSettingsExport {
   return {
     categoryId: config.categoryId,
     enabled: config.enabled,
@@ -38,10 +38,10 @@ export function toTicketConfigExport(
 }
 
 /** export 表現 → DB 書き込み形（staffRoleIds を再シリアライズ） */
-export function fromTicketConfigExport(
+export function fromTicketSettingsExport(
   guildId: string,
-  data: GuildTicketConfigExport,
-): GuildTicketConfig {
+  data: GuildTicketSettingsExport,
+): GuildTicketSettings {
   return {
     guildId,
     categoryId: data.categoryId,

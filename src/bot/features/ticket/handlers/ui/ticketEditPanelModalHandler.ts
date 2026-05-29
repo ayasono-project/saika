@@ -9,7 +9,7 @@ import {
 } from "discord.js";
 import { tInteraction } from "../../../../../shared/locale/localeManager";
 import type { ModalHandler } from "../../../../handlers/interactionCreate/ui/types";
-import { getBotTicketConfigService } from "../../../../services/botCompositionRoot";
+import { getBotTicketSettingsService } from "../../../../services/botCompositionRoot";
 import {
   createErrorEmbed,
   createSuccessEmbed,
@@ -47,7 +47,7 @@ export const ticketEditPanelModalHandler: ModalHandler = {
       .getTextInputValue(TICKET_CUSTOM_ID.EDIT_PANEL_COLOR)
       .trim();
 
-    const configService = getBotTicketConfigService();
+    const settingsService = getBotTicketSettingsService();
     const guildId = interaction.guildId;
     if (!guildId) return;
 
@@ -66,7 +66,7 @@ export const ticketEditPanelModalHandler: ModalHandler = {
       return;
     }
 
-    const config = await configService.findByGuildAndCategory(
+    const config = await settingsService.findByGuildAndCategory(
       guildId,
       categoryId,
     );
@@ -102,7 +102,7 @@ export const ticketEditPanelModalHandler: ModalHandler = {
 
     if (!panelMessage) {
       // パネルメッセージが削除済み → DB クリーンアップ
-      await configService.delete(guildId, categoryId);
+      await settingsService.delete(guildId, categoryId);
       const embed = createErrorEmbed(
         tInteraction(
           interaction.locale,
@@ -118,7 +118,7 @@ export const ticketEditPanelModalHandler: ModalHandler = {
     }
 
     // DB の設定を更新
-    await configService.update(guildId, categoryId, {
+    await settingsService.update(guildId, categoryId, {
       panelTitle: title,
       panelDescription: description,
       panelColor: resolvedColor,

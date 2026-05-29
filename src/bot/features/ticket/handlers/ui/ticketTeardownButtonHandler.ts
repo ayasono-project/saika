@@ -9,15 +9,15 @@ import {
 import { logger } from "../../../../../shared/utils/logger";
 import type { ButtonHandler } from "../../../../handlers/interactionCreate/ui/types";
 import {
-  getBotTicketConfigService,
   getBotTicketRepository,
+  getBotTicketSettingsService,
 } from "../../../../services/botCompositionRoot";
 import {
   createErrorEmbed,
   createSuccessEmbed,
 } from "../../../../utils/messageResponse";
 import { TICKET_CUSTOM_ID } from "../../commands/ticketCommand.constants";
-import { cleanupTicketConfigs } from "../../services/ticketCleanupService";
+import { cleanupTicketSettings } from "../../services/ticketCleanupService";
 import { ticketTeardownSessions } from "./ticketTeardownState";
 
 /**
@@ -72,7 +72,7 @@ async function handleConfirm(interaction: ButtonInteraction): Promise<void> {
     return;
   }
 
-  const configService = getBotTicketConfigService();
+  const settingsService = getBotTicketSettingsService();
   const ticketRepository = getBotTicketRepository();
   const guildId = interaction.guildId;
   const guild = interaction.guild;
@@ -81,7 +81,7 @@ async function handleConfirm(interaction: ButtonInteraction): Promise<void> {
   // 選択されたカテゴリの設定を取得
   const configs = [];
   for (const categoryId of session.categoryIds) {
-    const config = await configService.findByGuildAndCategory(
+    const config = await settingsService.findByGuildAndCategory(
       guildId,
       categoryId,
     );
@@ -104,7 +104,12 @@ async function handleConfirm(interaction: ButtonInteraction): Promise<void> {
   await interaction.deferUpdate();
 
   // 共通クリーンアップ処理
-  await cleanupTicketConfigs(guild, configs, configService, ticketRepository);
+  await cleanupTicketSettings(
+    guild,
+    configs,
+    settingsService,
+    ticketRepository,
+  );
 
   // セッション削除
   ticketTeardownSessions.delete(sessionId);

@@ -5,17 +5,17 @@ export const afk = {
   // ── Command definitions ──────────────────────
   "afk.description": "Move user to AFK channel",
   "afk.user.description": "User to move (default: yourself)",
-  "afk-config.description": "Configure AFK feature (requires Manage Server)",
-  "afk-config.set-channel.description": "Configure AFK channel",
-  "afk-config.set-channel.channel.description": "AFK channel (voice channel)",
-  "afk-config.view.description": "Show current settings",
-  "afk-config.clear-channel.description": "Clear AFK channel setting",
+  "afk-settings.description": "Configure AFK feature (requires Manage Server)",
+  "afk-settings.set-channel.description": "Configure AFK channel",
+  "afk-settings.set-channel.channel.description": "AFK channel (voice channel)",
+  "afk-settings.view.description": "Show current settings",
+  "afk-settings.clear-channel.description": "Clear AFK channel setting",
 
   // ── User responses ───────────────────────────
   "user-response.moved": "Moved {{user}} to {{channel}}",
   "user-response.set_channel_success": "AFK channel configured: {{channel}}",
   "user-response.not_configured":
-    "AFK channel is not configured.\nPlease configure a channel with `/afk-config set-channel` (requires Manage Server).",
+    "AFK channel is not configured.\nPlease configure a channel with `/afk-settings set-channel` (requires Manage Server).",
   "user-response.member_not_found": "User not found.",
   "user-response.user_not_in_voice":
     "The specified user is not in a voice channel.",

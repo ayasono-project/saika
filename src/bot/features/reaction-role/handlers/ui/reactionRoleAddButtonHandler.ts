@@ -25,7 +25,7 @@ import type {
   RoleSelectHandler,
   StringSelectHandler,
 } from "../../../../handlers/interactionCreate/ui/types";
-import { getBotReactionRolePanelConfigService } from "../../../../services/botCompositionRoot";
+import { getBotReactionRolePanelSettingsService } from "../../../../services/botCompositionRoot";
 import {
   createErrorEmbed,
   createSuccessEmbed,
@@ -79,8 +79,8 @@ export const reactionRoleAddButtonSelectHandler: StringSelectHandler = {
     }
 
     const panelId = interaction.values[0];
-    const configService = getBotReactionRolePanelConfigService();
-    const panel = await configService.findById(panelId);
+    const settingsService = getBotReactionRolePanelSettingsService();
+    const panel = await settingsService.findById(panelId);
     if (!panel) return;
 
     const existingButtons = parseButtons(panel.buttons);
@@ -312,8 +312,8 @@ export const reactionRoleAddButtonRoleSelectHandler: RoleSelectHandler = {
     session.pendingButton = undefined;
 
     // 既存ボタン数 + 追加済みボタン数で上限チェック
-    const configService = getBotReactionRolePanelConfigService();
-    const panel = await configService.findById(session.panelId);
+    const settingsService = getBotReactionRolePanelSettingsService();
+    const panel = await settingsService.findById(session.panelId);
     const existingCount = panel ? parseButtons(panel.buttons).length : 0;
     const totalCount = existingCount + session.buttons.length;
     const atLimit = totalCount >= REACTION_ROLE_MAX_BUTTONS;
@@ -387,15 +387,15 @@ export const reactionRoleAddButtonButtonHandler: ButtonHandler = {
 
       await interaction.deferUpdate();
 
-      const configService = getBotReactionRolePanelConfigService();
-      const panel = await configService.findById(session.panelId);
+      const settingsService = getBotReactionRolePanelSettingsService();
+      const panel = await settingsService.findById(session.panelId);
       if (!panel) return;
 
       const existingButtons = parseButtons(panel.buttons);
       const allButtons = [...existingButtons, ...session.buttons];
 
       // DB更新
-      await configService.update(session.panelId, {
+      await settingsService.update(session.panelId, {
         buttons: JSON.stringify(allButtons),
         buttonCounter: session.buttonCounter,
       });
@@ -414,7 +414,7 @@ export const reactionRoleAddButtonButtonHandler: ButtonHandler = {
 
       if (!updated) {
         // パネルメッセージが削除済み → DB クリーンアップ
-        await configService.delete(session.panelId);
+        await settingsService.delete(session.panelId);
         await interaction.deleteReply().catch(() => null);
         await session.commandInteraction?.deleteReply().catch(() => null);
         const embed = createErrorEmbed(

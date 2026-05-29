@@ -3,16 +3,17 @@
 
 export const reactionRole = {
   // ── コマンド定義
-  "reaction-role-config.description":
+  "reaction-role-settings.description":
     "リアクションロール機能の設定（サーバー管理権限が必要）",
-  "reaction-role-config.setup.description": "リアクションロールパネルを設置",
-  "reaction-role-config.teardown.description": "リアクションロールパネルを撤去",
-  "reaction-role-config.view.description": "現在の設定を表示",
-  "reaction-role-config.edit-panel.description":
+  "reaction-role-settings.setup.description": "リアクションロールパネルを設置",
+  "reaction-role-settings.teardown.description":
+    "リアクションロールパネルを撤去",
+  "reaction-role-settings.view.description": "現在の設定を表示",
+  "reaction-role-settings.edit-panel.description":
     "パネルのタイトル・説明文・カラーを編集",
-  "reaction-role-config.add-button.description": "パネルにボタンを追加",
-  "reaction-role-config.remove-button.description": "パネルからボタンを削除",
-  "reaction-role-config.edit-button.description": "ボタンを編集",
+  "reaction-role-settings.add-button.description": "パネルにボタンを追加",
+  "reaction-role-settings.remove-button.description": "パネルからボタンを削除",
+  "reaction-role-settings.edit-button.description": "ボタンを編集",
 
   // ── ユーザーレスポンス
   "user-response.setup_success": "リアクションロールパネルを設置しました。",

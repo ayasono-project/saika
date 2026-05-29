@@ -187,7 +187,7 @@ describe("bot/features/ticket/services/ticketService", () => {
   describe("createTicketChannel", () => {
     it("チャンネルを作成し、DB に保存し、初期メッセージを送信すること", async () => {
       const guild = createMockGuild();
-      const configService = createMockConfigService();
+      const settingsService = createMockConfigService();
       const ticketRepository = createMockTicketRepository();
 
       const result = await createTicketChannel(
@@ -196,15 +196,15 @@ describe("bot/features/ticket/services/ticketService", () => {
         "user-1",
         "test subject",
         "test detail",
-        configService as never,
+        settingsService as never,
         ticketRepository as never,
       );
 
-      expect(configService.findByGuildAndCategory).toHaveBeenCalledWith(
+      expect(settingsService.findByGuildAndCategory).toHaveBeenCalledWith(
         "guild-1",
         "cat-1",
       );
-      expect(configService.incrementCounter).toHaveBeenCalledWith(
+      expect(settingsService.incrementCounter).toHaveBeenCalledWith(
         "guild-1",
         "cat-1",
       );
@@ -237,8 +237,8 @@ describe("bot/features/ticket/services/ticketService", () => {
 
     it("config が見つからない場合にエラーを投げること", async () => {
       const guild = createMockGuild();
-      const configService = createMockConfigService();
-      configService.findByGuildAndCategory.mockResolvedValue(null);
+      const settingsService = createMockConfigService();
+      settingsService.findByGuildAndCategory.mockResolvedValue(null);
       const ticketRepository = createMockTicketRepository();
 
       await expect(
@@ -248,7 +248,7 @@ describe("bot/features/ticket/services/ticketService", () => {
           "user-1",
           "test subject",
           "test detail",
-          configService as never,
+          settingsService as never,
           ticketRepository as never,
         ),
       ).rejects.toThrow("ticket:user-response.config_not_found");
@@ -259,13 +259,13 @@ describe("bot/features/ticket/services/ticketService", () => {
     it("権限を更新し、ステータスを保存し、自動削除をスケジュールし、通知を送信すること", async () => {
       const guild = createMockGuild();
       const ticket = createMockTicket();
-      const configService = createMockConfigService();
+      const settingsService = createMockConfigService();
       const ticketRepository = createMockTicketRepository();
 
       await closeTicket(
         ticket,
         guild as never,
-        configService as never,
+        settingsService as never,
         ticketRepository as never,
       );
 
@@ -307,14 +307,14 @@ describe("bot/features/ticket/services/ticketService", () => {
     it("config が見つからない場合に早期リターンすること", async () => {
       const guild = createMockGuild();
       const ticket = createMockTicket();
-      const configService = createMockConfigService();
-      configService.findByGuildAndCategory.mockResolvedValue(null);
+      const settingsService = createMockConfigService();
+      settingsService.findByGuildAndCategory.mockResolvedValue(null);
       const ticketRepository = createMockTicketRepository();
 
       await closeTicket(
         ticket,
         guild as never,
-        configService as never,
+        settingsService as never,
         ticketRepository as never,
       );
 
@@ -335,13 +335,13 @@ describe("bot/features/ticket/services/ticketService", () => {
       );
 
       const ticket = createMockTicket();
-      const configService = createMockConfigService();
+      const settingsService = createMockConfigService();
       const ticketRepository = createMockTicketRepository();
 
       await closeTicket(
         ticket,
         guild as never,
-        configService as never,
+        settingsService as never,
         ticketRepository as never,
       );
 
@@ -362,13 +362,13 @@ describe("bot/features/ticket/services/ticketService", () => {
       );
 
       const ticket = createMockTicket();
-      const configService = createMockConfigService();
+      const settingsService = createMockConfigService();
       const ticketRepository = createMockTicketRepository();
 
       await closeTicket(
         ticket,
         guild as never,
-        configService as never,
+        settingsService as never,
         ticketRepository as never,
       );
 
@@ -383,13 +383,13 @@ describe("bot/features/ticket/services/ticketService", () => {
         status: "closed",
         closedAt: new Date(Date.now() - 1000),
       });
-      const configService = createMockConfigService();
+      const settingsService = createMockConfigService();
       const ticketRepository = createMockTicketRepository();
 
       await reopenTicket(
         ticket,
         guild as never,
-        configService as never,
+        settingsService as never,
         ticketRepository as never,
       );
 
@@ -425,14 +425,14 @@ describe("bot/features/ticket/services/ticketService", () => {
     it("config が見つからない場合に早期リターンすること", async () => {
       const guild = createMockGuild();
       const ticket = createMockTicket();
-      const configService = createMockConfigService();
-      configService.findByGuildAndCategory.mockResolvedValue(null);
+      const settingsService = createMockConfigService();
+      settingsService.findByGuildAndCategory.mockResolvedValue(null);
       const ticketRepository = createMockTicketRepository();
 
       await reopenTicket(
         ticket,
         guild as never,
-        configService as never,
+        settingsService as never,
         ticketRepository as never,
       );
 
@@ -473,12 +473,12 @@ describe("bot/features/ticket/services/ticketService", () => {
     it("Bot ユーザー権限オーバーライドなしでもチャンネルが作成されること", async () => {
       const guild = createMockGuild();
       (guild.client as Record<string, unknown>).user = null;
-      const configService = createMockConfigService();
+      const settingsService = createMockConfigService();
       const ticketRepository = createMockTicketRepository();
       ticketRepository.create.mockResolvedValue(
         createMockTicket({ id: "new-ticket" }),
       );
-      configService.incrementCounter.mockResolvedValue(1);
+      settingsService.incrementCounter.mockResolvedValue(1);
 
       const result = await createTicketChannel(
         guild as never,
@@ -486,7 +486,7 @@ describe("bot/features/ticket/services/ticketService", () => {
         "user-1",
         "件名",
         "詳細",
-        configService as never,
+        settingsService as never,
         ticketRepository as never,
       );
 
@@ -500,13 +500,13 @@ describe("bot/features/ticket/services/ticketService", () => {
       const guild = createMockGuild();
       guild.channels.fetch.mockResolvedValue(null);
       const ticket = createMockTicket();
-      const configService = createMockConfigService();
+      const settingsService = createMockConfigService();
       const ticketRepository = createMockTicketRepository();
 
       await closeTicket(
         ticket,
         guild as never,
-        configService as never,
+        settingsService as never,
         ticketRepository as never,
       );
 
@@ -526,13 +526,13 @@ describe("bot/features/ticket/services/ticketService", () => {
         status: "closed",
         closedAt: new Date(),
       });
-      const configService = createMockConfigService();
+      const settingsService = createMockConfigService();
       const ticketRepository = createMockTicketRepository();
 
       await reopenTicket(
         ticket,
         guild as never,
-        configService as never,
+        settingsService as never,
         ticketRepository as never,
       );
 
@@ -546,12 +546,12 @@ describe("bot/features/ticket/services/ticketService", () => {
   describe("createTicketChannel - メンション送信", () => {
     it("チケット作成後に作成者とスタッフロールへのメンションを送信すること", async () => {
       const guild = createMockGuild();
-      const configService = createMockConfigService();
+      const settingsService = createMockConfigService();
       const ticketRepository = createMockTicketRepository();
       ticketRepository.create.mockResolvedValue(
         createMockTicket({ id: "new-ticket" }),
       );
-      configService.incrementCounter.mockResolvedValue(1);
+      settingsService.incrementCounter.mockResolvedValue(1);
 
       await createTicketChannel(
         guild as never,
@@ -559,7 +559,7 @@ describe("bot/features/ticket/services/ticketService", () => {
         "user-1",
         "件名",
         "詳細",
-        configService as never,
+        settingsService as never,
         ticketRepository as never,
       );
 
@@ -594,13 +594,13 @@ describe("bot/features/ticket/services/ticketService", () => {
         status: "closed",
         closedAt: new Date(Date.now() - 1000),
       });
-      const configService = createMockConfigService();
+      const settingsService = createMockConfigService();
       const ticketRepository = createMockTicketRepository();
 
       await reopenTicket(
         ticket,
         guild as never,
-        configService as never,
+        settingsService as never,
         ticketRepository as never,
       );
 
@@ -628,13 +628,13 @@ describe("bot/features/ticket/services/ticketService", () => {
         status: "closed",
         closedAt: new Date(Date.now() - 1000),
       });
-      const configService = createMockConfigService();
+      const settingsService = createMockConfigService();
       const ticketRepository = createMockTicketRepository();
 
       await reopenTicket(
         ticket,
         guild as never,
-        configService as never,
+        settingsService as never,
         ticketRepository as never,
       );
 
@@ -651,7 +651,7 @@ describe("bot/features/ticket/services/ticketService", () => {
         status: "closed",
         closedAt: new Date(Date.now() - 1000),
       });
-      const configService = createMockConfigService();
+      const settingsService = createMockConfigService();
       const ticketRepository = createMockTicketRepository();
 
       // エラーが外部に漏れないこと
@@ -659,7 +659,7 @@ describe("bot/features/ticket/services/ticketService", () => {
         reopenTicket(
           ticket,
           guild as never,
-          configService as never,
+          settingsService as never,
           ticketRepository as never,
         ),
       ).resolves.toBeUndefined();
@@ -685,13 +685,13 @@ describe("bot/features/ticket/services/ticketService", () => {
         status: "closed",
         closedAt: new Date(Date.now() - 1000),
       });
-      const configService = createMockConfigService();
+      const settingsService = createMockConfigService();
       const ticketRepository = createMockTicketRepository();
 
       await reopenTicket(
         ticket,
         guild as never,
-        configService as never,
+        settingsService as never,
         ticketRepository as never,
       );
 
@@ -705,13 +705,13 @@ describe("bot/features/ticket/services/ticketService", () => {
         closedAt: null,
         elapsedDeleteMs: 5000,
       });
-      const configService = createMockConfigService();
+      const settingsService = createMockConfigService();
       const ticketRepository = createMockTicketRepository();
 
       await reopenTicket(
         ticket,
         guild as never,
-        configService as never,
+        settingsService as never,
         ticketRepository as never,
       );
 

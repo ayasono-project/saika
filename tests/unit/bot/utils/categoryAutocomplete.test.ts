@@ -31,7 +31,7 @@ const SUBCOMMANDS = ["setup", "teardown"] as const;
 const OPTS = {
   commandName: COMMAND,
   subcommands: SUBCOMMANDS,
-  topLocaleKey: "vcRecruit:vc-recruit-config.setup.category.top" as const,
+  topLocaleKey: "vcRecruit:vc-recruit-settings.setup.category.top" as const,
   topValue: "TOP",
 };
 

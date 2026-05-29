@@ -10,7 +10,7 @@ datasource db {
 }
 
 // Guild Configuration
-model GuildConfig {
+model GuildSettings {
   id             String   @id @default(cuid())
   guildId        String   @unique
   locale         String   @default("ja")
@@ -41,10 +41,10 @@ model BumpReminder {
   @@map("bump_reminders")
 }
 
-// 機能別設定テーブル（GuildConfig JSON カラムから分割）
+// 機能別設定テーブル（GuildSettings JSON カラムから分割）
 
 // AFK設定
-model GuildAfkConfig {
+model GuildAfkSettings {
   guildId   String  @id @map("guild_id")
   enabled   Boolean @default(false)
   channelId String? @map("channel_id")
@@ -53,7 +53,7 @@ model GuildAfkConfig {
 }
 
 // Bumpリマインダー設定
-model GuildBumpReminderConfig {
+model GuildBumpReminderSettings {
   guildId        String  @id @map("guild_id")
   enabled        Boolean @default(false)
   channelId      String? @map("channel_id")
@@ -64,7 +64,7 @@ model GuildBumpReminderConfig {
 }
 
 // VAC（ボイスチャンネル自動作成）設定
-model GuildVacConfig {
+model GuildVacSettings {
   guildId           String  @id @map("guild_id")
   enabled           Boolean @default(false)
   triggerChannelIds String  @default("[]") @map("trigger_channel_ids") // JSON: string[]
@@ -74,7 +74,7 @@ model GuildVacConfig {
 }
 
 // メンバーログ設定
-model GuildMemberLogConfig {
+model GuildMemberLogSettings {
   guildId      String  @id @map("guild_id")
   enabled      Boolean @default(false)
   channelId    String? @map("channel_id")
@@ -85,7 +85,7 @@ model GuildMemberLogConfig {
 }
 
 // VC募集設定
-model GuildVcRecruitConfig {
+model GuildVcRecruitSettings {
   guildId        String  @id @map("guild_id")
   enabled        Boolean @default(false)
   mentionRoleIds String  @default("[]") @map("mention_role_ids") // JSON: string[]
@@ -111,7 +111,7 @@ model StickyMessage {
 }
 
 // チケットチャンネル設定
-model GuildTicketConfig {
+model GuildTicketSettings {
   guildId          String  @map("guild_id")
   categoryId       String  @map("category_id")
   enabled          Boolean @default(false)

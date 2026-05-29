@@ -106,7 +106,7 @@ export const system = {
   "shutdown.gracefully": "適切にシャットダウンしています...",
   "shutdown.sigterm": "SIGTERMを受信、シャットダウンしています...",
 
-  // データベース操作ログ（GuildConfig 汎用のみ）
+  // データベース操作ログ（GuildSettings 汎用のみ）
   "database.prisma_not_available": "Prismaクライアントが利用できません。",
   "database.get_config_log": "設定取得に失敗 GuildId: {{guildId}}",
   "database.save_config_log": "設定保存に失敗 GuildId: {{guildId}}",

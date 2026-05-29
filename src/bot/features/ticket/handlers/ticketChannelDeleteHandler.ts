@@ -4,7 +4,7 @@
 import type { Channel } from "discord.js";
 import { logPrefixed } from "../../../../shared/locale/localeManager";
 import { logger } from "../../../../shared/utils/logger";
-import { getBotTicketConfigService } from "../../../services/botCompositionRoot";
+import { getBotTicketSettingsService } from "../../../services/botCompositionRoot";
 
 /**
  * channelDelete 時にパネル設置チャンネルの削除を検知し、設定をクリーンアップする
@@ -17,18 +17,18 @@ export async function handleTicketChannelDelete(
   if (!("guildId" in channel) || !channel.guildId) return;
 
   const guildId = channel.guildId;
-  const configService = getBotTicketConfigService();
+  const settingsService = getBotTicketSettingsService();
 
   try {
-    const configs = await configService.findAllByGuild(guildId);
+    const configs = await settingsService.findAllByGuild(guildId);
 
-    const matchedConfigs = configs.filter(
+    const matchedSettings = configs.filter(
       (config) => config.panelChannelId === channel.id,
     );
-    if (matchedConfigs.length === 0) return;
+    if (matchedSettings.length === 0) return;
 
-    for (const config of matchedConfigs) {
-      await configService.delete(config.guildId, config.categoryId);
+    for (const config of matchedSettings) {
+      await settingsService.delete(config.guildId, config.categoryId);
 
       logger.info(
         logPrefixed(

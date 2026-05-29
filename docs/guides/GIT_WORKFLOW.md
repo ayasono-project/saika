@@ -180,7 +180,7 @@ fix(bump-reminder): コマンド登録時に二重登録されるバグを修正
 test(scheduler): scheduleJobのエッジケーステストを追加
 docs: コミット運用ガイドを追加
 ci: developブランチのブランチ保護ルールを追加
-refactor(db): guildConfigRepositoryの責務をusecase/persistenceに分割
+refactor(db): guildSettingsRepositoryの責務をusecase/persistenceに分割
 
 # 悪い例
 update                         # type がない

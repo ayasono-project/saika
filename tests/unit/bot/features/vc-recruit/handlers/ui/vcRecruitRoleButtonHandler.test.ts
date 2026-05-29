@@ -1,6 +1,6 @@
 // tests/unit/bot/features/vc-recruit/handlers/ui/vcRecruitRoleButtonHandler.test.ts
 
-import { VC_RECRUIT_ROLE_CUSTOM_ID } from "@/bot/features/vc-recruit/commands/vcRecruitConfigCommand.constants";
+import { VC_RECRUIT_ROLE_CUSTOM_ID } from "@/bot/features/vc-recruit/commands/vcRecruitSettingsCommand.constants";
 import { vcRecruitRoleButtonHandler } from "@/bot/features/vc-recruit/handlers/ui/vcRecruitRoleButtonHandler";
 import {
   vcRecruitAddRoleSelections,
@@ -16,7 +16,7 @@ const tGuildMock = vi.fn(
 );
 
 vi.mock("@/bot/services/botCompositionRoot", () => ({
-  getBotVcRecruitConfigService: () => ({
+  getBotVcRecruitSettingsService: () => ({
     addMentionRoleId: (...args: unknown[]) => addMentionRoleIdMock(...args),
     removeMentionRoleId: (...args: unknown[]) =>
       removeMentionRoleIdMock(...args),

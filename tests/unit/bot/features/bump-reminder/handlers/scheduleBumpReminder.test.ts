@@ -68,7 +68,7 @@ describe("bot/features/bump-reminder/handlers/usecases/scheduleBumpReminder", ()
 
   it("遅延時間とサービス情報を指定してリマインダーを登録する", async () => {
     const client = { channels: { fetch: vi.fn() } };
-    const configService = { getBumpReminderConfig: vi.fn() };
+    const settingsService = { getBumpReminderSettings: vi.fn() };
 
     await scheduleBumpReminder(
       client as never,
@@ -76,7 +76,7 @@ describe("bot/features/bump-reminder/handlers/usecases/scheduleBumpReminder", ()
       "channel-1",
       "msg-1",
       SERVICE_NAME,
-      configService as never,
+      settingsService as never,
       "panel-1",
     );
 
@@ -88,7 +88,7 @@ describe("bot/features/bump-reminder/handlers/usecases/scheduleBumpReminder", ()
 
   it("登録されたタスクが sendBumpReminder を panelMessageId 付きで実行することを確認する", async () => {
     const client = { channels: { fetch: vi.fn() } };
-    const configService = { getBumpReminderConfig: vi.fn() };
+    const settingsService = { getBumpReminderSettings: vi.fn() };
 
     await scheduleBumpReminder(
       client as never,
@@ -96,7 +96,7 @@ describe("bot/features/bump-reminder/handlers/usecases/scheduleBumpReminder", ()
       "channel-1",
       "msg-1",
       SERVICE_NAME,
-      configService as never,
+      settingsService as never,
       "panel-1",
     );
 
@@ -110,14 +110,14 @@ describe("bot/features/bump-reminder/handlers/usecases/scheduleBumpReminder", ()
       "channel-1",
       "msg-1",
       SERVICE_NAME,
-      configService,
+      settingsService,
       "panel-1",
     );
   });
 
   it("リマインダー登録失敗時にエラーがそのまま伝播する", async () => {
     const client = { channels: { fetch: vi.fn() } };
-    const configService = { getBumpReminderConfig: vi.fn() };
+    const settingsService = { getBumpReminderSettings: vi.fn() };
     setReminderMock.mockRejectedValueOnce(new Error("set failed"));
 
     await expect(
@@ -127,7 +127,7 @@ describe("bot/features/bump-reminder/handlers/usecases/scheduleBumpReminder", ()
         "channel-1",
         "msg-1",
         SERVICE_NAME,
-        configService as never,
+        settingsService as never,
         "panel-1",
       ),
     ).rejects.toThrow("set failed");

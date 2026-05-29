@@ -8,7 +8,7 @@ import {
 } from "discord.js";
 import { tInteraction } from "../../../../../shared/locale/localeManager";
 import type { ButtonHandler } from "../../../../handlers/interactionCreate/ui/types";
-import { getBotStickyMessageConfigService } from "../../../../services/botCompositionRoot";
+import { getBotStickyMessageSettingsService } from "../../../../services/botCompositionRoot";
 import {
   createInfoEmbed,
   createSuccessEmbed,
@@ -47,7 +47,7 @@ export const stickyMessageRemoveButtonHandler: ButtonHandler = {
     // 一時保存をクリア
     stickyMessageRemoveSelections.delete(key);
 
-    const service = getBotStickyMessageConfigService();
+    const service = getBotStickyMessageSettingsService();
     const deletedChannels: string[] = [];
 
     for (const channelId of selectedChannelIds) {

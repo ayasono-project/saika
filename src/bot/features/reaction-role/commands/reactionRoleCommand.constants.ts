@@ -3,8 +3,8 @@
 
 import type { ReactionRoleButton } from "../../../../shared/database/types/reactionRoleTypes";
 
-export const REACTION_ROLE_CONFIG_COMMAND = {
-  NAME: "reaction-role-config",
+export const REACTION_ROLE_SETTINGS_COMMAND = {
+  NAME: "reaction-role-settings",
   SUBCOMMAND: {
     SETUP: "setup",
     TEARDOWN: "teardown",

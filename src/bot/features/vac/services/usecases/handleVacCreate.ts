@@ -9,7 +9,7 @@ import {
   RESTJSONErrorCodes,
   type VoiceState,
 } from "discord.js";
-import type { VacConfigService } from "../../../../../shared/features/vac/vacConfigService";
+import type { VacSettingsService } from "../../../../../shared/features/vac/vacSettingsService";
 import {
   logPrefixed,
   tDefault,
@@ -20,13 +20,13 @@ import {
   notifyWarnChannel,
 } from "../../../../shared/errorChannelNotifier";
 import { sendVcControlPanel } from "../../../vc-panel/vcControlPanel";
-import { VAC_CONFIG_COMMAND } from "../../commands/vacConfigCommand.constants";
+import { VAC_SETTINGS_COMMAND } from "../../commands/vacSettingsCommand.constants";
 
 const VAC_EVENT = {
   /** VC作成時のデフォルトユーザー制限（0 は無制限だが 99 で実質無制限を表現） */
   DEFAULT_LIMIT: 99,
   /** カテゴリ内チャンネル上限 */
-  CATEGORY_CHANNEL_LIMIT: VAC_CONFIG_COMMAND.CATEGORY_CHANNEL_LIMIT,
+  CATEGORY_CHANNEL_LIMIT: VAC_SETTINGS_COMMAND.CATEGORY_CHANNEL_LIMIT,
 } as const;
 
 type GuildChannelsCache = GuildMember["guild"]["channels"]["cache"];
@@ -38,7 +38,7 @@ type GuildChannelsCache = GuildMember["guild"]["channels"]["cache"];
  * @returns 実行完了
  */
 export async function handleVacCreateUseCase(
-  vacRepository: VacConfigService,
+  vacRepository: VacSettingsService,
   newState: VoiceState,
 ): Promise<void> {
   const member = newState.member;
@@ -47,7 +47,7 @@ export async function handleVacCreateUseCase(
     return;
   }
 
-  const config = await vacRepository.getVacConfigOrDefault(member.guild.id);
+  const config = await vacRepository.getVacSettingsOrDefault(member.guild.id);
   if (!config.enabled || !config.triggerChannelIds.includes(newChannel.id)) {
     return;
   }

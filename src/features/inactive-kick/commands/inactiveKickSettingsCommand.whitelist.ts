@@ -2,7 +2,13 @@
 // inactive-kick-settings の whitelist サブコマンドグループ（add / remove / list）
 
 import { ValidationError } from "@ayasono/shared/core";
-import { type ChatInputCommandInteraction, MessageFlags } from "discord.js";
+import {
+  ActionRowBuilder,
+  type ChatInputCommandInteraction,
+  MessageFlags,
+  StringSelectMenuBuilder,
+  StringSelectMenuOptionBuilder,
+} from "discord.js";
 import { getBotInactiveKickSettingsService } from "../../../bot/services/botCompositionRoot";
 import {
   createInfoEmbed,
@@ -12,6 +18,9 @@ import type { AllParseKeys } from "../../../shared/locale/i18n";
 import { tInteraction } from "../../../shared/locale/localeManager";
 import { INACTIVE_KICK_SETTINGS_COMMAND } from "./inactiveKickSettingsCommand.constants";
 import { ensureInactiveKickManageGuildPermission } from "./inactiveKickSettingsCommand.guard";
+
+/** Discord のセレクトメニュー最大選択肢数 */
+const SELECT_MENU_MAX_OPTIONS = 25;
 
 /** ephemeral 応答（成功）を返す */
 async function replyResult(
@@ -75,7 +84,8 @@ export async function handleInactiveKickWhitelistAdd(
 }
 
 /**
- * 除外リストからロール／ユーザーを削除する（いずれか必須）。
+ * 除外リストから削除する項目を選ぶセレクトメニューを表示する。
+ * 登録済みのロール／ユーザーを複数選択でき、選択時に一括削除する（選択応答は select ハンドラ）。
  */
 export async function handleInactiveKickWhitelistRemove(
   interaction: ChatInputCommandInteraction,
@@ -83,43 +93,76 @@ export async function handleInactiveKickWhitelistRemove(
 ): Promise<void> {
   await ensureInactiveKickManageGuildPermission(interaction);
 
-  const role = interaction.options.getRole(
-    INACTIVE_KICK_SETTINGS_COMMAND.OPTION.ROLE,
-  );
-  const user = interaction.options.getUser(
-    INACTIVE_KICK_SETTINGS_COMMAND.OPTION.USER,
-  );
-  if (!role && !user) {
-    throw new ValidationError(
-      tInteraction(
-        interaction.locale,
-        "inactiveKick:user-response.whitelist_requires_target",
-      ),
-    );
-  }
+  const settings =
+    await getBotInactiveKickSettingsService().getSettingsOrDefault(guildId);
+  const guild = interaction.guild;
 
-  const service = getBotInactiveKickSettingsService();
-  if (role) {
-    const removed = await service.removeWhitelistRole(guildId, role.id);
-    await replyResult(
-      interaction,
-      removed
-        ? "inactiveKick:user-response.whitelist_remove_role_success"
-        : "inactiveKick:user-response.whitelist_remove_not_found",
-      { role: `<@&${role.id}>` },
-    );
+  // 登録済みロール／ユーザーを 1 つのセレクト選択肢に集約する
+  const options = [
+    ...settings.whitelistRoleIds.map((id) =>
+      new StringSelectMenuOptionBuilder()
+        .setLabel(guild?.roles.cache.get(id)?.name ?? `Role ${id}`)
+        .setDescription(
+          tInteraction(
+            interaction.locale,
+            "inactiveKick:embed.field.name.whitelist_roles",
+          ),
+        )
+        .setValue(`role:${id}`),
+    ),
+    ...settings.whitelistUserIds.map((id) =>
+      new StringSelectMenuOptionBuilder()
+        .setLabel(guild?.members.cache.get(id)?.displayName ?? `User ${id}`)
+        .setDescription(
+          tInteraction(
+            interaction.locale,
+            "inactiveKick:embed.field.name.whitelist_users",
+          ),
+        )
+        .setValue(`user:${id}`),
+    ),
+  ].slice(0, SELECT_MENU_MAX_OPTIONS);
+
+  // 除外リストが空なら案内のみ
+  if (options.length === 0) {
+    await interaction.reply({
+      embeds: [
+        createInfoEmbed(
+          tInteraction(
+            interaction.locale,
+            "inactiveKick:user-response.whitelist_empty",
+          ),
+          {
+            title: tInteraction(
+              interaction.locale,
+              "inactiveKick:embed.title.whitelist",
+            ),
+          },
+        ),
+      ],
+      flags: MessageFlags.Ephemeral,
+    });
     return;
   }
-  if (user) {
-    const removed = await service.removeWhitelistUser(guildId, user.id);
-    await replyResult(
-      interaction,
-      removed
-        ? "inactiveKick:user-response.whitelist_remove_user_success"
-        : "inactiveKick:user-response.whitelist_remove_not_found",
-      { user: `<@${user.id}>` },
-    );
-  }
+
+  const select = new StringSelectMenuBuilder()
+    .setCustomId(INACTIVE_KICK_SETTINGS_COMMAND.WHITELIST_REMOVE_SELECT_ID)
+    .setPlaceholder(
+      tInteraction(
+        interaction.locale,
+        "inactiveKick:ui.select.whitelist_remove_placeholder",
+      ),
+    )
+    .setMinValues(1)
+    .setMaxValues(options.length)
+    .addOptions(options);
+
+  await interaction.reply({
+    components: [
+      new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(select),
+    ],
+    flags: MessageFlags.Ephemeral,
+  });
 }
 
 /**

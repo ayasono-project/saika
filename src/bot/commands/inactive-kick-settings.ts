@@ -88,16 +88,38 @@ export const inactiveKickSettingsCommand: Command = {
           .setDescriptionLocalizations(d.localizations);
       })
       .addSubcommand((sub) => {
-        const d = desc("inactive-kick-settings.set-warn-message.description");
+        const d = desc(
+          "inactive-kick-settings.set-week-warn-message.description",
+        );
         return sub
-          .setName(SUBCOMMAND.SET_WARN_MESSAGE)
+          .setName(SUBCOMMAND.SET_WEEK_WARN_MESSAGE)
           .setDescription(d.ja)
           .setDescriptionLocalizations(d.localizations);
       })
       .addSubcommand((sub) => {
-        const d = desc("inactive-kick-settings.clear-warn-message.description");
+        const d = desc(
+          "inactive-kick-settings.clear-week-warn-message.description",
+        );
         return sub
-          .setName(SUBCOMMAND.CLEAR_WARN_MESSAGE)
+          .setName(SUBCOMMAND.CLEAR_WEEK_WARN_MESSAGE)
+          .setDescription(d.ja)
+          .setDescriptionLocalizations(d.localizations);
+      })
+      .addSubcommand((sub) => {
+        const d = desc(
+          "inactive-kick-settings.set-final-warn-message.description",
+        );
+        return sub
+          .setName(SUBCOMMAND.SET_FINAL_WARN_MESSAGE)
+          .setDescription(d.ja)
+          .setDescriptionLocalizations(d.localizations);
+      })
+      .addSubcommand((sub) => {
+        const d = desc(
+          "inactive-kick-settings.clear-final-warn-message.description",
+        );
+        return sub
+          .setName(SUBCOMMAND.CLEAR_FINAL_WARN_MESSAGE)
           .setDescription(d.ja)
           .setDescriptionLocalizations(d.localizations);
       })
@@ -170,12 +192,6 @@ export const inactiveKickSettingsCommand: Command = {
           "inactive-kick-settings.whitelist.add.user.description",
         );
         const rmD = desc("inactive-kick-settings.whitelist.remove.description");
-        const rmRole = desc(
-          "inactive-kick-settings.whitelist.remove.role.description",
-        );
-        const rmUser = desc(
-          "inactive-kick-settings.whitelist.remove.user.description",
-        );
         const listD = desc("inactive-kick-settings.whitelist.list.description");
         return group
           .setName(GROUP.WHITELIST)
@@ -200,22 +216,11 @@ export const inactiveKickSettingsCommand: Command = {
               ),
           )
           .addSubcommand((sub) =>
+            // remove は登録済み項目をセレクトメニューで複数選択するためオプションなし
             sub
               .setName(WHITELIST_SUBCOMMAND.REMOVE)
               .setDescription(rmD.ja)
-              .setDescriptionLocalizations(rmD.localizations)
-              .addRoleOption((o) =>
-                o
-                  .setName(OPTION.ROLE)
-                  .setDescription(rmRole.ja)
-                  .setDescriptionLocalizations(rmRole.localizations),
-              )
-              .addUserOption((o) =>
-                o
-                  .setName(OPTION.USER)
-                  .setDescription(rmUser.ja)
-                  .setDescriptionLocalizations(rmUser.localizations),
-              ),
+              .setDescriptionLocalizations(rmD.localizations),
           )
           .addSubcommand((sub) =>
             sub

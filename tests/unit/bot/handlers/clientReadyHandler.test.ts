@@ -80,8 +80,8 @@ vi.mock("@/shared/scheduler/jobScheduler", () => ({
 
 vi.mock("@/features/inactive-kick/services/inactiveKickRunner", () => ({
   INACTIVE_KICK_JOB_ID: "inactive-kick:daily-check",
-  INACTIVE_KICK_JOB_SCHEDULE: "0 4 * * *",
   INACTIVE_KICK_JOB_TIMEZONE: "Asia/Tokyo",
+  resolveInactiveKickSchedule: () => "0 4 * * *",
   runInactiveKickDailyCheck: (...args: unknown[]) =>
     runInactiveKickDailyCheckMock(...args),
 }));

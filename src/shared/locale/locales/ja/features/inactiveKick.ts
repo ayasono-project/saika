@@ -14,10 +14,14 @@ export const inactiveKick = {
     "非アクティブ判定日数（14〜365）",
   "inactive-kick-settings.enable.description": "自動キック機能を有効化",
   "inactive-kick-settings.disable.description": "自動キック機能を無効化",
-  "inactive-kick-settings.set-warn-message.description":
-    "カスタム事前通知メッセージを設定",
-  "inactive-kick-settings.clear-warn-message.description":
-    "カスタム事前通知メッセージを削除",
+  "inactive-kick-settings.set-week-warn-message.description":
+    "1週間前通知のカスタムメッセージを設定",
+  "inactive-kick-settings.clear-week-warn-message.description":
+    "1週間前通知のカスタムメッセージを削除",
+  "inactive-kick-settings.set-final-warn-message.description":
+    "最終警告（3日前）のカスタムメッセージを設定",
+  "inactive-kick-settings.clear-final-warn-message.description":
+    "最終警告（3日前）のカスタムメッセージを削除",
   "inactive-kick-settings.set-kick-message.description":
     "カスタムキック通知メッセージを設定",
   "inactive-kick-settings.clear-kick-message.description":
@@ -34,10 +38,7 @@ export const inactiveKick = {
   "inactive-kick-settings.whitelist.add.role.description": "除外するロール",
   "inactive-kick-settings.whitelist.add.user.description": "除外するユーザー",
   "inactive-kick-settings.whitelist.remove.description":
-    "除外リストからロール／ユーザーを削除",
-  "inactive-kick-settings.whitelist.remove.role.description": "削除するロール",
-  "inactive-kick-settings.whitelist.remove.user.description":
-    "削除するユーザー",
+    "除外リストから項目を選んで削除（複数選択可）",
   "inactive-kick-settings.whitelist.list.description": "除外リストを表示",
   "inactive-kick-settings.preview.description":
     "現在のキック対象・通知対象の一覧を表示",
@@ -58,10 +59,14 @@ export const inactiveKick = {
   "user-response.enable_error_no_channel":
     "通知チャンネルが設定されていません。先に /inactive-kick-settings set-channel を実行してください。",
   "user-response.disable_success": "自動キック機能を無効化しました。",
-  "user-response.set_warn_message_success":
-    "事前通知メッセージを設定しました。",
-  "user-response.clear_warn_message_success":
-    "事前通知メッセージを削除しました。",
+  "user-response.set_week_warn_message_success":
+    "1週間前通知のメッセージを設定しました。",
+  "user-response.clear_week_warn_message_success":
+    "1週間前通知のメッセージを削除しました。",
+  "user-response.set_final_warn_message_success":
+    "最終警告のメッセージを設定しました。",
+  "user-response.clear_final_warn_message_success":
+    "最終警告のメッセージを削除しました。",
   "user-response.set_kick_message_success":
     "キック通知メッセージを設定しました。",
   "user-response.clear_kick_message_success":
@@ -80,12 +85,9 @@ export const inactiveKick = {
   "user-response.whitelist_add_user_success":
     "ユーザー {{user}} を除外リストに追加しました。",
   "user-response.whitelist_add_already": "既に除外リストに登録されています。",
-  "user-response.whitelist_remove_role_success":
-    "ロール {{role}} を除外リストから削除しました。",
-  "user-response.whitelist_remove_user_success":
-    "ユーザー {{user}} を除外リストから削除しました。",
-  "user-response.whitelist_remove_not_found":
-    "指定の対象は除外リストにありません。",
+  "user-response.whitelist_empty": "除外リストは空です。",
+  "user-response.whitelist_remove_count":
+    "{{count}} 件を除外リストから削除しました。",
   "user-response.reset_success": "設定をリセットしました。",
   "user-response.reset_cancelled": "リセットをキャンセルしました。",
   "user-response.channel_deleted_notice":
@@ -97,13 +99,15 @@ export const inactiveKick = {
   "embed.field.name.threshold": "非アクティブ判定日数",
   "embed.field.name.enabled_at": "有効化日時",
   "embed.field.name.marker_role": "対象ロール",
-  "embed.field.name.warn_message": "事前通知メッセージ",
+  "embed.field.name.week_warn_message": "1週間前通知メッセージ",
+  "embed.field.name.final_warn_message": "最終警告メッセージ",
   "embed.field.name.kick_message": "キック通知メッセージ",
   "embed.field.name.whitelist": "除外リスト",
   "embed.field.value.threshold_days": "{{count}} 日",
   "embed.field.value.whitelist_counts":
     "ロール {{roles}} 件 / ユーザー {{users}} 件",
-  "embed.field.value.message_set": "設定済み",
+  "embed.field.value.message_default_prefix": "（未設定・デフォルト文）",
+  "embed.field.value.kick_message_unset": "未設定（本文なし・Embed のみ）",
   "embed.field.name.test_mode_status": "テストモード（全体）",
   "embed.title.reset_confirm": "設定リセット確認",
   "embed.description.reset_confirm":
@@ -131,23 +135,25 @@ export const inactiveKick = {
   // ── 段階通知 Embed（事前通知: 1 週間前 / 最終警告）─────
   "embed.title.warn": "⏰ 非アクティブメンバーの自動キック予告",
   "embed.field.name.target_members": "対象メンバー",
-  "embed.field.name.kick_schedule": "キック予定",
-  "embed.field.value.days_left": "あと {{count}} 日",
-  "embed.field.value.soon": "まもなく",
-  "default.warn_message":
-    "サーバー「{serverName}」で長期間活動のないメンバーが {count} 名います。あと {daysLeft} 日で自動的にキックされます。引き続き参加される場合は、メッセージの投稿やリアクションなどで活動してください。",
+  "embed.field.name.kick_schedule": "キック予定日",
+  "default.week_warn_message":
+    "サーバー「{serverName}」で長期間活動のないメンバーが {count} 名います。このままだとあと {daysLeft} 日ほどで自動的にキックされます。引き続き参加される場合は、メッセージの投稿やリアクションなどで活動してください。",
+  "default.final_warn_message":
+    "【最終警告】サーバー「{serverName}」で活動のないメンバー {count} 名は、あと {daysLeft} 日でキックされます。退出を避けるには、今のうちにメッセージの投稿やリアクションで活動してください。",
 
   // ── キック通知 Embed（当日）─────
   "embed.title.kick": "👋 非アクティブメンバーを自動キックしました",
   "embed.field.name.kicked_members": "キックしたメンバー",
   "embed.field.name.test_mode": "テストモード",
   "embed.field.value.test_mode": "（テストモード: 実際にはキックしていません）",
-  "default.kick_message":
-    "サーバー「{serverName}」で {thresholdDays} 日以上活動のなかった {count} 名のメンバーを自動的にキックしました。",
 
-  // ── UIラベル（モーダル）─────
-  "ui.modal.set_warn_message_title": "事前通知メッセージを設定",
-  "ui.modal.set_warn_message_label": "事前通知メッセージ",
+  // ── UIラベル（セレクト / モーダル）─────
+  "ui.select.whitelist_remove_placeholder":
+    "除外リストから削除する項目を選択（複数選択可）",
+  "ui.modal.set_week_warn_message_title": "1週間前通知メッセージを設定",
+  "ui.modal.set_week_warn_message_label": "1週間前通知メッセージ",
+  "ui.modal.set_final_warn_message_title": "最終警告メッセージを設定",
+  "ui.modal.set_final_warn_message_label": "最終警告メッセージ",
   "ui.modal.set_warn_message_placeholder":
     "{count}, {daysLeft}, {thresholdDays}, {serverName}, {markerRole} を使用可（最大500文字）",
   "ui.modal.set_kick_message_title": "キック通知メッセージを設定",
@@ -164,6 +170,10 @@ export const inactiveKick = {
     "対象ロールの付与に失敗 GuildId: {{guildId}} UserId: {{userId}}",
   "log.activity_cleanup_failed":
     "活動履歴の削除に失敗 GuildId: {{guildId}} UserId: {{userId}}",
+  "log.cron_override":
+    "日次チェックのスケジュールを上書き（INACTIVE_KICK_CRON）: {{schedule}}",
+  "log.cron_invalid":
+    "INACTIVE_KICK_CRON が不正な cron 式のため既定を使用: {{schedule}}",
   "log.daily_check_started": "日次チェック開始",
   "log.daily_check_completed": "日次チェック完了 対象ギルド: {{guildCount}} 件",
   "log.guild_check_failed": "ギルドの日次チェックに失敗 GuildId: {{guildId}}",

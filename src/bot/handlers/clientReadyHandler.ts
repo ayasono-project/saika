@@ -5,8 +5,8 @@ import { ActivityType, PresenceUpdateStatus } from "discord.js";
 import { restoreBumpRemindersOnStartup } from "../../features/bump-reminder/handlers/bumpReminderStartup";
 import {
   INACTIVE_KICK_JOB_ID,
-  INACTIVE_KICK_JOB_SCHEDULE,
   INACTIVE_KICK_JOB_TIMEZONE,
+  resolveInactiveKickSchedule,
   runInactiveKickDailyCheck,
 } from "../../features/inactive-kick/services/inactiveKickRunner";
 import { initGuildInviteCache } from "../../features/member-log/handlers/inviteTracker";
@@ -72,10 +72,11 @@ export async function handleClientReady(client: BotClient): Promise<void> {
     // クローズ済みチケットの自動削除タイマーを復元
     await restoreAutoDeleteTimers(client, getBotTicketRepository());
 
-    // 非アクティブ自動キックの日次チェックを登録（毎日 04:00 JST・多重実行防止）
+    // 非アクティブ自動キックの日次チェックを登録（既定 04:00 JST・多重実行防止）
+    // INACTIVE_KICK_CRON が設定されていれば検証用にスケジュールを上書きする
     jobScheduler.addJob({
       id: INACTIVE_KICK_JOB_ID,
-      schedule: INACTIVE_KICK_JOB_SCHEDULE,
+      schedule: resolveInactiveKickSchedule(),
       timezone: INACTIVE_KICK_JOB_TIMEZONE,
       noOverlap: true,
       task: () => runInactiveKickDailyCheck(client),

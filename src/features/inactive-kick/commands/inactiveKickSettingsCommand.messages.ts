@@ -58,16 +58,30 @@ async function replyCleared(
   await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
 }
 
-/** 事前通知メッセージ設定モーダルを表示する。 */
-export async function handleInactiveKickSetWarnMessage(
+/** 事前通知メッセージ（1週間前）設定モーダルを表示する。 */
+export async function handleInactiveKickSetWeekWarnMessage(
   interaction: ChatInputCommandInteraction,
 ): Promise<void> {
   await showMessageModal(
     interaction,
-    INACTIVE_KICK_SETTINGS_COMMAND.SET_WARN_MESSAGE_MODAL_ID,
-    INACTIVE_KICK_SETTINGS_COMMAND.WARN_MESSAGE_MODAL_INPUT,
-    "inactiveKick:ui.modal.set_warn_message_title",
-    "inactiveKick:ui.modal.set_warn_message_label",
+    INACTIVE_KICK_SETTINGS_COMMAND.SET_WEEK_WARN_MESSAGE_MODAL_ID,
+    INACTIVE_KICK_SETTINGS_COMMAND.WEEK_WARN_MESSAGE_MODAL_INPUT,
+    "inactiveKick:ui.modal.set_week_warn_message_title",
+    "inactiveKick:ui.modal.set_week_warn_message_label",
+    "inactiveKick:ui.modal.set_warn_message_placeholder",
+  );
+}
+
+/** 事前通知メッセージ（最終警告）設定モーダルを表示する。 */
+export async function handleInactiveKickSetFinalWarnMessage(
+  interaction: ChatInputCommandInteraction,
+): Promise<void> {
+  await showMessageModal(
+    interaction,
+    INACTIVE_KICK_SETTINGS_COMMAND.SET_FINAL_WARN_MESSAGE_MODAL_ID,
+    INACTIVE_KICK_SETTINGS_COMMAND.FINAL_WARN_MESSAGE_MODAL_INPUT,
+    "inactiveKick:ui.modal.set_final_warn_message_title",
+    "inactiveKick:ui.modal.set_final_warn_message_label",
     "inactiveKick:ui.modal.set_warn_message_placeholder",
   );
 }
@@ -86,16 +100,29 @@ export async function handleInactiveKickSetKickMessage(
   );
 }
 
-/** 事前通知メッセージを削除する。 */
-export async function handleInactiveKickClearWarnMessage(
+/** 事前通知メッセージ（1週間前）を削除する。 */
+export async function handleInactiveKickClearWeekWarnMessage(
   interaction: ChatInputCommandInteraction,
   guildId: string,
 ): Promise<void> {
   await ensureInactiveKickManageGuildPermission(interaction);
-  await getBotInactiveKickSettingsService().clearWarnMessage(guildId);
+  await getBotInactiveKickSettingsService().clearWeekWarnMessage(guildId);
   await replyCleared(
     interaction,
-    "inactiveKick:user-response.clear_warn_message_success",
+    "inactiveKick:user-response.clear_week_warn_message_success",
+  );
+}
+
+/** 事前通知メッセージ（最終警告）を削除する。 */
+export async function handleInactiveKickClearFinalWarnMessage(
+  interaction: ChatInputCommandInteraction,
+  guildId: string,
+): Promise<void> {
+  await ensureInactiveKickManageGuildPermission(interaction);
+  await getBotInactiveKickSettingsService().clearFinalWarnMessage(guildId);
+  await replyCleared(
+    interaction,
+    "inactiveKick:user-response.clear_final_warn_message_success",
   );
 }
 

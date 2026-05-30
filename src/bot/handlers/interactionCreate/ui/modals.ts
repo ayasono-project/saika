@@ -2,8 +2,9 @@
 // モーダルハンドラーレジストリ
 
 import {
+  inactiveKickSetFinalWarnMessageModalHandler,
   inactiveKickSetKickMessageModalHandler,
-  inactiveKickSetWarnMessageModalHandler,
+  inactiveKickSetWeekWarnMessageModalHandler,
 } from "../../../../features/inactive-kick/handlers/ui/inactiveKickMessageModalHandlers";
 import { memberLogSetJoinMessageModalHandler } from "../../../../features/member-log/handlers/ui/memberLogSetJoinMessageModalHandler";
 import { memberLogSetLeaveMessageModalHandler } from "../../../../features/member-log/handlers/ui/memberLogSetLeaveMessageModalHandler";
@@ -40,8 +41,10 @@ export const modalHandlers: ModalHandler[] = [
   memberLogSetJoinMessageModalHandler,
   // member-log-settings set-leave-message モーダルを処理
   memberLogSetLeaveMessageModalHandler,
-  // inactive-kick-settings 事前通知メッセージ設定モーダルを処理
-  inactiveKickSetWarnMessageModalHandler,
+  // inactive-kick-settings 事前通知メッセージ（1週間前）設定モーダルを処理
+  inactiveKickSetWeekWarnMessageModalHandler,
+  // inactive-kick-settings 事前通知メッセージ（最終警告）設定モーダルを処理
+  inactiveKickSetFinalWarnMessageModalHandler,
   // inactive-kick-settings キック通知メッセージ設定モーダルを処理
   inactiveKickSetKickMessageModalHandler,
   // リアクションロール setup パネル設定モーダルを処理

@@ -91,7 +91,8 @@ model GuildInactiveKickSettings {
   enabledAt        DateTime? @map("enabled_at") // 最後に有効化した時刻（キック起算の下限）
   channelId        String?   @map("channel_id")
   thresholdDays    Int       @default(30) @map("threshold_days")
-  warnMessage      String?   @map("warn_message")
+  weekWarnMessage  String?   @map("week_warn_message") // 1週間前通知のカスタム文
+  finalWarnMessage String?   @map("final_warn_message") // 最終警告（3日前）のカスタム文
   kickMessage      String?   @map("kick_message")
   markerRoleId     String?   @map("marker_role_id") // 警告対象へ自動付与する対象ロール ID
   whitelistRoleIds Json      @default("[]") @map("whitelist_role_ids") // jsonb: string[]

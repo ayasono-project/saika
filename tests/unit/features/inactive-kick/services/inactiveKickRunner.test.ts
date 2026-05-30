@@ -10,7 +10,10 @@ const mocks = vi.hoisted(() => ({
   setWarnStage: vi.fn(),
   deleteActivity: vi.fn(),
   sendPaginatedEmbeds: vi.fn(),
-  env: { TEST_MODE: false },
+  env: {
+    TEST_MODE: false,
+    INACTIVE_KICK_CRON: undefined as string | undefined,
+  },
   logger: { info: vi.fn(), debug: vi.fn(), warn: vi.fn(), error: vi.fn() },
 }));
 
@@ -40,7 +43,9 @@ vi.mock("@/shared/locale/localeManager", () => ({
 vi.mock("@/shared/utils/logger", () => ({ logger: mocks.logger }));
 
 import {
+  INACTIVE_KICK_JOB_SCHEDULE,
   processGuildInactiveKick,
+  resolveInactiveKickSchedule,
   runInactiveKickDailyCheck,
 } from "@/features/inactive-kick/services/inactiveKickRunner";
 
@@ -103,7 +108,8 @@ const baseSettings = {
   enabledAt: OLD,
   channelId: "chan-1",
   thresholdDays: 30,
-  warnMessage: undefined,
+  weekWarnMessage: undefined,
+  finalWarnMessage: undefined,
   kickMessage: undefined,
   markerRoleId: undefined,
   whitelistRoleIds: [] as string[],
@@ -114,6 +120,7 @@ describe("inactive-kick/runner", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.env.TEST_MODE = false;
+    mocks.env.INACTIVE_KICK_CRON = undefined;
     mocks.disableInvalid.mockResolvedValue(undefined);
     mocks.setWarnStage.mockResolvedValue(undefined);
     mocks.deleteActivity.mockResolvedValue(undefined);
@@ -235,5 +242,23 @@ describe("inactive-kick/runner", () => {
     await runInactiveKickDailyCheck(fakeClient(guild));
 
     expect(mocks.logger.info).toHaveBeenCalled();
+  });
+
+  describe("resolveInactiveKickSchedule", () => {
+    it("未設定なら既定（毎日04:00）を返す", () => {
+      mocks.env.INACTIVE_KICK_CRON = undefined;
+      expect(resolveInactiveKickSchedule()).toBe(INACTIVE_KICK_JOB_SCHEDULE);
+    });
+
+    it("有効な cron 上書きがあればそれを返す", () => {
+      mocks.env.INACTIVE_KICK_CRON = "*/5 * * * *";
+      expect(resolveInactiveKickSchedule()).toBe("*/5 * * * *");
+    });
+
+    it("不正な cron 上書きなら既定にフォールバックする", () => {
+      mocks.env.INACTIVE_KICK_CRON = "not-a-cron";
+      expect(resolveInactiveKickSchedule()).toBe(INACTIVE_KICK_JOB_SCHEDULE);
+      expect(mocks.logger.warn).toHaveBeenCalled();
+    });
   });
 });

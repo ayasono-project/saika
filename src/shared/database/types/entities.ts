@@ -60,8 +60,10 @@ export interface InactiveKickSettings {
   channelId?: string;
   // 非アクティブ判定日数（しきい値）
   thresholdDays: number;
-  // カスタム事前通知メッセージ（{count}/{daysLeft}/{thresholdDays}/{serverName}/{markerRole} 置換可）
-  warnMessage?: string;
+  // カスタム事前通知メッセージ: 1週間前（{count}/{daysLeft}/{thresholdDays}/{serverName}/{markerRole} 置換可）
+  weekWarnMessage?: string;
+  // カスタム事前通知メッセージ: 最終警告（3日前・同上の変数）
+  finalWarnMessage?: string;
   // カスタムキック通知メッセージ（{count}/{thresholdDays}/{serverName} 置換可）
   kickMessage?: string;
   // 警告対象へ自動付与する対象ロールID（通知メンション用・未設定時 undefined）

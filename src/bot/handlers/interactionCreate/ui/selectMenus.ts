@@ -1,6 +1,7 @@
 // src/bot/handlers/interactionCreate/ui/selectMenus.ts
 // セレクトメニューハンドラのレジストリ
 
+import { inactiveKickWhitelistRemoveSelectHandler } from "../../../../features/inactive-kick/handlers/ui/inactiveKickWhitelistRemoveSelectHandler";
 import {
   reactionRoleAddButtonColorSelectHandler,
   reactionRoleAddButtonRoleSelectHandler,
@@ -91,4 +92,6 @@ export const stringSelectHandlers: StringSelectHandler[] = [
   ticketTeardownSelectHandler,
   // チケット view のカテゴリ選択を処理
   ticketViewSelectHandler,
+  // 非アクティブ自動キック whitelist remove の項目選択を処理
+  inactiveKickWhitelistRemoveSelectHandler,
 ];

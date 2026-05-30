@@ -15,10 +15,14 @@ export const inactiveKick = {
     "Inactivity threshold in days (14-365)",
   "inactive-kick-settings.enable.description": "Enable the auto-kick feature",
   "inactive-kick-settings.disable.description": "Disable the auto-kick feature",
-  "inactive-kick-settings.set-warn-message.description":
-    "Set a custom advance-notice message",
-  "inactive-kick-settings.clear-warn-message.description":
-    "Clear the custom advance-notice message",
+  "inactive-kick-settings.set-week-warn-message.description":
+    "Set the custom one-week-before notice message",
+  "inactive-kick-settings.clear-week-warn-message.description":
+    "Clear the custom one-week-before notice message",
+  "inactive-kick-settings.set-final-warn-message.description":
+    "Set the custom final-warning (3 days before) message",
+  "inactive-kick-settings.clear-final-warn-message.description":
+    "Clear the custom final-warning (3 days before) message",
   "inactive-kick-settings.set-kick-message.description":
     "Set a custom kick notification message",
   "inactive-kick-settings.clear-kick-message.description":
@@ -36,9 +40,7 @@ export const inactiveKick = {
   "inactive-kick-settings.whitelist.add.role.description": "Role to exclude",
   "inactive-kick-settings.whitelist.add.user.description": "User to exclude",
   "inactive-kick-settings.whitelist.remove.description":
-    "Remove a role/user from the exclusion list",
-  "inactive-kick-settings.whitelist.remove.role.description": "Role to remove",
-  "inactive-kick-settings.whitelist.remove.user.description": "User to remove",
+    "Pick items from the exclusion list to remove (multi-select)",
   "inactive-kick-settings.whitelist.list.description":
     "Show the exclusion list",
   "inactive-kick-settings.preview.description":
@@ -60,9 +62,14 @@ export const inactiveKick = {
   "user-response.enable_error_no_channel":
     "No notification channel is set. Run /inactive-kick-settings set-channel first.",
   "user-response.disable_success": "Disabled the auto-kick feature.",
-  "user-response.set_warn_message_success": "Set the advance-notice message.",
-  "user-response.clear_warn_message_success":
-    "Cleared the advance-notice message.",
+  "user-response.set_week_warn_message_success":
+    "Set the one-week-before notice message.",
+  "user-response.clear_week_warn_message_success":
+    "Cleared the one-week-before notice message.",
+  "user-response.set_final_warn_message_success":
+    "Set the final-warning message.",
+  "user-response.clear_final_warn_message_success":
+    "Cleared the final-warning message.",
   "user-response.set_kick_message_success":
     "Set the kick notification message.",
   "user-response.clear_kick_message_success":
@@ -81,12 +88,9 @@ export const inactiveKick = {
   "user-response.whitelist_add_user_success":
     "Added user {{user}} to the exclusion list.",
   "user-response.whitelist_add_already": "Already in the exclusion list.",
-  "user-response.whitelist_remove_role_success":
-    "Removed role {{role}} from the exclusion list.",
-  "user-response.whitelist_remove_user_success":
-    "Removed user {{user}} from the exclusion list.",
-  "user-response.whitelist_remove_not_found":
-    "The specified target is not in the exclusion list.",
+  "user-response.whitelist_empty": "The exclusion list is empty.",
+  "user-response.whitelist_remove_count":
+    "Removed {{count}} item(s) from the exclusion list.",
   "user-response.reset_success": "Reset the settings.",
   "user-response.reset_cancelled": "Cancelled the reset.",
   "user-response.channel_deleted_notice":
@@ -98,12 +102,14 @@ export const inactiveKick = {
   "embed.field.name.threshold": "Inactivity threshold",
   "embed.field.name.enabled_at": "Enabled at",
   "embed.field.name.marker_role": "Marker role",
-  "embed.field.name.warn_message": "Advance-notice message",
+  "embed.field.name.week_warn_message": "1-week notice message",
+  "embed.field.name.final_warn_message": "Final-warning message",
   "embed.field.name.kick_message": "Kick notification message",
   "embed.field.name.whitelist": "Exclusion list",
   "embed.field.value.threshold_days": "{{count}} days",
   "embed.field.value.whitelist_counts": "{{roles}} role(s) / {{users}} user(s)",
-  "embed.field.value.message_set": "Set",
+  "embed.field.value.message_default_prefix": "(not set — default text)",
+  "embed.field.value.kick_message_unset": "Not set (no body — embed only)",
   "embed.field.name.test_mode_status": "Test mode (global)",
   "embed.title.reset_confirm": "Reset confirmation",
   "embed.description.reset_confirm":
@@ -131,23 +137,25 @@ export const inactiveKick = {
   // ── Staged warning embed ─────
   "embed.title.warn": "⏰ Inactive member auto-kick notice",
   "embed.field.name.target_members": "Target members",
-  "embed.field.name.kick_schedule": "Scheduled kick",
-  "embed.field.value.days_left": "in {{count}} day(s)",
-  "embed.field.value.soon": "soon",
-  "default.warn_message":
-    'There are {count} member(s) inactive for a long time on "{serverName}". They will be automatically kicked in {daysLeft} day(s). To stay, please be active by posting a message or adding a reaction.',
+  "embed.field.name.kick_schedule": "Scheduled kick date",
+  "default.week_warn_message":
+    'There are {count} member(s) inactive for a long time on "{serverName}". At this rate they will be automatically kicked in about {daysLeft} day(s). To stay, please be active by posting a message or adding a reaction.',
+  "default.final_warn_message":
+    '[Final warning] {count} inactive member(s) on "{serverName}" will be kicked in {daysLeft} day(s). To avoid removal, be active now by posting a message or adding a reaction.',
 
   // ── Kick notification embed ─────
   "embed.title.kick": "👋 Inactive members were auto-kicked",
   "embed.field.name.kicked_members": "Kicked members",
   "embed.field.name.test_mode": "Test mode",
   "embed.field.value.test_mode": "(Test mode: no one was actually kicked)",
-  "default.kick_message":
-    'Automatically kicked {count} member(s) who had been inactive for {thresholdDays}+ days on "{serverName}".',
 
   // ── UI labels (modals) ─────
-  "ui.modal.set_warn_message_title": "Set advance-notice message",
-  "ui.modal.set_warn_message_label": "Advance-notice message",
+  "ui.select.whitelist_remove_placeholder":
+    "Select items to remove from the exclusion list (multi-select)",
+  "ui.modal.set_week_warn_message_title": "Set 1-week notice message",
+  "ui.modal.set_week_warn_message_label": "1-week notice message",
+  "ui.modal.set_final_warn_message_title": "Set final-warning message",
+  "ui.modal.set_final_warn_message_label": "Final-warning message",
   "ui.modal.set_warn_message_placeholder":
     "You can use {count}, {daysLeft}, {thresholdDays}, {serverName}, {markerRole} (max 500 chars)",
   "ui.modal.set_kick_message_title": "Set kick notification message",
@@ -164,6 +172,10 @@ export const inactiveKick = {
     "Failed to assign marker role GuildId: {{guildId}} UserId: {{userId}}",
   "log.activity_cleanup_failed":
     "Failed to delete activity record GuildId: {{guildId}} UserId: {{userId}}",
+  "log.cron_override":
+    "Daily-check schedule overridden (INACTIVE_KICK_CRON): {{schedule}}",
+  "log.cron_invalid":
+    "INACTIVE_KICK_CRON is not a valid cron expression; using default: {{schedule}}",
   "log.daily_check_started": "Daily check started",
   "log.daily_check_completed": "Daily check completed Guilds: {{guildCount}}",
   "log.guild_check_failed": "Daily check failed for guild GuildId: {{guildId}}",

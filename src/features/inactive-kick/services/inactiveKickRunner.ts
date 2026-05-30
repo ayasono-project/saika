@@ -8,6 +8,7 @@ import {
   PermissionFlagsBits,
   type SendableChannels,
 } from "discord.js";
+import cron from "node-cron";
 import type { BotClient } from "../../../bot/client";
 import {
   getBotInactiveKickSettingsService,
@@ -32,8 +33,8 @@ import {
 } from "./inactiveKickCandidates";
 import { WARN_STAGE } from "./inactiveKickEligibility";
 import {
-  buildKickEmbedPages,
-  buildWarnEmbedPages,
+  buildKickNotification,
+  buildWarnNotification,
 } from "./inactiveKickNotifier";
 
 /** 日次チェックジョブの固定 ID */
@@ -50,6 +51,31 @@ const WARN_PAGINATOR_PREFIX = "inactive-kick:notify-warn";
 const KICK_PAGINATOR_PREFIX = "inactive-kick:notify-kick";
 
 const LOG_PREFIX = "system:log_prefix.inactive_kick";
+
+/**
+ * 日次チェックの cron 式を解決する。
+ * `INACTIVE_KICK_CRON`（dev/検証用の上書き）が有効な cron 式なら優先し、
+ * 未設定・不正なら既定（毎日 04:00）を用いる。
+ * @returns 使用する cron 式
+ */
+export function resolveInactiveKickSchedule(): string {
+  const override = env.INACTIVE_KICK_CRON;
+  if (!override) return INACTIVE_KICK_JOB_SCHEDULE;
+  if (cron.validate(override)) {
+    logger.warn(
+      logPrefixed(LOG_PREFIX, "inactiveKick:log.cron_override", {
+        schedule: override,
+      }),
+    );
+    return override;
+  }
+  logger.warn(
+    logPrefixed(LOG_PREFIX, "inactiveKick:log.cron_invalid", {
+      schedule: INACTIVE_KICK_JOB_SCHEDULE,
+    }),
+  );
+  return INACTIVE_KICK_JOB_SCHEDULE;
+}
 
 /**
  * GuildMember を区分用の正規化形へ変換する。
@@ -188,29 +214,37 @@ async function sendStageNotification(
   candidates: CategorizedCandidate[],
   nextWarnStage: number,
   settings: InactiveKickSettings,
+  now: Date,
 ): Promise<void> {
   if (candidates.length === 0) return;
 
+  const isFinal = nextWarnStage === WARN_STAGE.FINAL;
   const t = await getGuildTranslator(guild.id);
-  const pages = buildWarnEmbedPages(candidates, {
+  const { content, embeds } = buildWarnNotification(candidates, {
     t,
     serverName: guild.name,
     thresholdDays: settings.thresholdDays,
-    customMessage: settings.warnMessage,
+    now,
+    // 段階ごとに別のカスタム文・デフォルト文を使う
+    customMessage: isFinal
+      ? settings.finalWarnMessage
+      : settings.weekWarnMessage,
+    defaultMessageKey: isFinal
+      ? "inactiveKick:default.final_warn_message"
+      : "inactiveKick:default.week_warn_message",
     markerRoleId: settings.markerRoleId,
   });
 
   try {
     await sendPaginatedEmbeds({
       send: (payload) => channel.send(payload),
-      pages,
+      pages: embeds,
       prefix: `${WARN_PAGINATOR_PREFIX}:${nextWarnStage}`,
       timeMs: NOTIFICATION_COLLECTOR_MS,
+      content,
+      // 本文に {markerRole} が含まれていた場合のみ実際にメンションされる
       ...(settings.markerRoleId
-        ? {
-            content: `<@&${settings.markerRoleId}>`,
-            allowedMentionRoleIds: [settings.markerRoleId],
-          }
+        ? { allowedMentionRoleIds: [settings.markerRoleId] }
         : {}),
     });
   } catch (err) {
@@ -302,7 +336,7 @@ async function processKicks(
 
   if (kickedNames.length === 0) return;
 
-  const pages = buildKickEmbedPages(kickedNames, {
+  const { content, embeds } = buildKickNotification(kickedNames, {
     t,
     serverName: guild.name,
     thresholdDays: settings.thresholdDays,
@@ -311,9 +345,10 @@ async function processKicks(
   });
   await sendPaginatedEmbeds({
     send: (payload) => channel.send(payload),
-    pages,
+    pages: embeds,
     prefix: KICK_PAGINATOR_PREFIX,
     timeMs: NOTIFICATION_COLLECTOR_MS,
+    content,
   }).catch((err) => {
     logger.error(
       logPrefixed(LOG_PREFIX, "inactiveKick:log.notification_failed", {
@@ -393,12 +428,8 @@ export async function processGuildInactiveKick(
     return;
   }
 
-  const buckets = await buildCandidateBuckets(
-    guild,
-    members,
-    settings,
-    new Date(),
-  );
+  const now = new Date();
+  const buckets = await buildCandidateBuckets(guild, members, settings, now);
 
   // 1. 除外メンバーの猶予クリア
   await applyGraceClear(guild, buckets, settings.markerRoleId);
@@ -419,6 +450,7 @@ export async function processGuildInactiveKick(
     buckets.weekWarn,
     WARN_STAGE.WEEK,
     settings,
+    now,
   );
   await sendStageNotification(
     guild,
@@ -426,6 +458,7 @@ export async function processGuildInactiveKick(
     buckets.finalWarn,
     WARN_STAGE.FINAL,
     settings,
+    now,
   );
 
   // 4. キック実行 + 通知

@@ -78,6 +78,28 @@ describe("inactive-kick/InactiveKickSettingsService", () => {
     expect(settings.whitelistUserIds).toEqual([]);
   });
 
+  it("removeFromWhitelist はロール・ユーザーを一括削除し件数を返す", async () => {
+    const service = createInactiveKickSettingsService(createFakeRepository());
+    await service.addWhitelistRole(GUILD, "r1");
+    await service.addWhitelistRole(GUILD, "r2");
+    await service.addWhitelistUser(GUILD, "u1");
+
+    const removed = await service.removeFromWhitelist(GUILD, ["r1"], ["u1"]);
+    expect(removed).toBe(2);
+    const settings = await service.getSettingsOrDefault(GUILD);
+    expect(settings.whitelistRoleIds).toEqual(["r2"]);
+    expect(settings.whitelistUserIds).toEqual([]);
+  });
+
+  it("removeFromWhitelist は該当なしなら 0 を返し更新しない", async () => {
+    const service = createInactiveKickSettingsService(createFakeRepository());
+    await service.addWhitelistRole(GUILD, "r1");
+    const removed = await service.removeFromWhitelist(GUILD, ["x"], ["y"]);
+    expect(removed).toBe(0);
+    const settings = await service.getSettingsOrDefault(GUILD);
+    expect(settings.whitelistRoleIds).toEqual(["r1"]);
+  });
+
   it("setThresholdDays / setMarkerRole / clearMarkerRole が反映される", async () => {
     const service = createInactiveKickSettingsService(createFakeRepository());
     await service.setThresholdDays(GUILD, 90);

@@ -27,7 +27,8 @@ export class InactiveKickSettingsRepository
     enabledAt: Date | null;
     channelId: string | null;
     thresholdDays: number;
-    warnMessage: string | null;
+    weekWarnMessage: string | null;
+    finalWarnMessage: string | null;
     kickMessage: string | null;
     markerRoleId: string | null;
     whitelistRoleIds: unknown;
@@ -38,7 +39,8 @@ export class InactiveKickSettingsRepository
       enabledAt: record.enabledAt ?? undefined,
       channelId: record.channelId ?? undefined,
       thresholdDays: record.thresholdDays,
-      warnMessage: record.warnMessage ?? undefined,
+      weekWarnMessage: record.weekWarnMessage ?? undefined,
+      finalWarnMessage: record.finalWarnMessage ?? undefined,
       kickMessage: record.kickMessage ?? undefined,
       markerRoleId: record.markerRoleId ?? undefined,
       whitelistRoleIds: record.whitelistRoleIds as string[],
@@ -65,7 +67,8 @@ export class InactiveKickSettingsRepository
       enabledAt: settings.enabledAt ?? null,
       channelId: settings.channelId ?? null,
       thresholdDays: settings.thresholdDays,
-      warnMessage: settings.warnMessage ?? null,
+      weekWarnMessage: settings.weekWarnMessage ?? null,
+      finalWarnMessage: settings.finalWarnMessage ?? null,
       kickMessage: settings.kickMessage ?? null,
       markerRoleId: settings.markerRoleId ?? null,
       whitelistRoleIds: settings.whitelistRoleIds,

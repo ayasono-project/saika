@@ -12,10 +12,12 @@ import {
   handleInactiveKickSetMarkerRole,
 } from "./inactiveKickSettingsCommand.markerRole";
 import {
+  handleInactiveKickClearFinalWarnMessage,
   handleInactiveKickClearKickMessage,
-  handleInactiveKickClearWarnMessage,
+  handleInactiveKickClearWeekWarnMessage,
+  handleInactiveKickSetFinalWarnMessage,
   handleInactiveKickSetKickMessage,
-  handleInactiveKickSetWarnMessage,
+  handleInactiveKickSetWeekWarnMessage,
 } from "./inactiveKickSettingsCommand.messages";
 import { handleInactiveKickPreview } from "./inactiveKickSettingsCommand.preview";
 import { handleInactiveKickReset } from "./inactiveKickSettingsCommand.reset";
@@ -83,11 +85,17 @@ export async function executeInactiveKickSettingsCommand(
       case SUBCOMMAND.DISABLE:
         await handleInactiveKickDisable(interaction, guildId);
         break;
-      case SUBCOMMAND.SET_WARN_MESSAGE:
-        await handleInactiveKickSetWarnMessage(interaction);
+      case SUBCOMMAND.SET_WEEK_WARN_MESSAGE:
+        await handleInactiveKickSetWeekWarnMessage(interaction);
         break;
-      case SUBCOMMAND.CLEAR_WARN_MESSAGE:
-        await handleInactiveKickClearWarnMessage(interaction, guildId);
+      case SUBCOMMAND.CLEAR_WEEK_WARN_MESSAGE:
+        await handleInactiveKickClearWeekWarnMessage(interaction, guildId);
+        break;
+      case SUBCOMMAND.SET_FINAL_WARN_MESSAGE:
+        await handleInactiveKickSetFinalWarnMessage(interaction);
+        break;
+      case SUBCOMMAND.CLEAR_FINAL_WARN_MESSAGE:
+        await handleInactiveKickClearFinalWarnMessage(interaction, guildId);
         break;
       case SUBCOMMAND.SET_KICK_MESSAGE:
         await handleInactiveKickSetKickMessage(interaction);

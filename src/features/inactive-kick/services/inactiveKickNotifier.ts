@@ -2,6 +2,7 @@
 // 段階通知・キック通知の Embed 整形（member-log の流儀: 本文可変・embed 固定・単一波括弧変数）
 
 import { EmbedBuilder } from "discord.js";
+import { STATUS_COLORS } from "../../../bot/utils/messageResponse";
 import { EMBED_COLORS } from "../../../shared/constants/embedColors";
 import type { GuildTFunction } from "../../../shared/locale/helpers";
 import type {
@@ -37,39 +38,54 @@ function chunk<T>(items: T[], size: number): T[][] {
   return pages;
 }
 
-/** 段階通知 Embed 構築のコンテキスト */
-export interface WarnEmbedContext {
+/** 通知の構築結果（本文 + 固定 Embed ページ） */
+export interface NotificationContent {
+  /** メッセージ本文（カスタム文。member-log 流儀で本文可変・embed 固定）。未指定なら本文なし */
+  content?: string;
+  /** 固定構成の Embed ページ（対象一覧などの構造化情報） */
+  embeds: EmbedBuilder[];
+}
+
+/** 段階通知 構築のコンテキスト */
+export interface WarnNotificationContext {
   t: GuildTFunction;
   serverName: string;
   thresholdDays: number;
-  /** カスタム事前通知メッセージ（未設定時はデフォルト文を使う） */
+  /** 現在時刻（キック予定日の算出に使用） */
+  now: Date;
+  /** カスタム事前通知メッセージ（未設定時は defaultMessageKey のデフォルト文を使う） */
   customMessage?: string;
-  /** 対象ロール ID（メンション用・未設定時 undefined） */
+  /** カスタム未設定時に使うデフォルト文の翻訳キー（段階別） */
+  defaultMessageKey: Parameters<GuildTFunction>[0];
+  /** 対象ロール ID（`{markerRole}` 置換用・未設定時 undefined） */
   markerRoleId?: string;
 }
 
 /**
- * 段階通知（1 週間前 / 最終警告）の Embed ページ配列を構築する。
- * 件数が 1 ページに収まる場合は単一要素配列を返す。
+ * 段階通知（1 週間前 / 最終警告）の本文 + 固定 Embed を構築する。
+ *
+ * カスタム文は**メッセージ本文**に出す（embed 固定の方針）。`{markerRole}` を本文に
+ * 含めた場合のみロールメンションが入る（自動メンションはしない）。Embed は対象メンバー一覧と
+ * キック予定のみの固定構成で、件数超過時は複数ページに分割する。
  * @param candidates 対象メンバー（同一段階）
  * @param ctx 構築コンテキスト
- * @returns Embed ページ配列（1 件以上）
+ * @returns 本文 + Embed ページ
  */
-export function buildWarnEmbedPages(
+export function buildWarnNotification(
   candidates: CategorizedCandidate[],
-  ctx: WarnEmbedContext,
-): EmbedBuilder[] {
+  ctx: WarnNotificationContext,
+): NotificationContent {
   const total = candidates.length;
   // 最も差し迫った（残日数最小）を代表値として用いる
   const minDaysLeft = candidates.reduce(
     (min, c) => Math.min(min, c.daysLeft),
     Number.POSITIVE_INFINITY,
   );
+  // `{markerRole}` は本文に含まれた場合のみ実メンションになる（未設定なら空文字）
   const markerMention = ctx.markerRoleId ? `<@&${ctx.markerRoleId}>` : "";
 
-  const template =
-    ctx.customMessage ?? ctx.t("inactiveKick:default.warn_message");
-  const description = formatInactiveKickMessage(template, {
+  const template = ctx.customMessage ?? ctx.t(ctx.defaultMessageKey);
+  const content = formatInactiveKickMessage(template, {
     count: total,
     daysLeft: minDaysLeft,
     thresholdDays: ctx.thresholdDays,
@@ -77,19 +93,17 @@ export function buildWarnEmbedPages(
     markerRole: markerMention,
   });
 
-  const scheduleValue =
-    minDaysLeft <= 0
-      ? ctx.t("inactiveKick:embed.field.value.soon")
-      : ctx.t("inactiveKick:embed.field.value.days_left", {
-          count: minDaysLeft,
-        });
+  // キック予定日（推定）= 現在から最短残日数後。Discord タイムスタンプで各自のロケール日付として表示する
+  // （実行は日次チェック時のため時刻までは保証せず、日付粒度で示す）
+  const predictedKickUnix = Math.floor(
+    (ctx.now.getTime() + minDaysLeft * 24 * 60 * 60 * 1000) / 1000,
+  );
+  const scheduleValue = `<t:${predictedKickUnix}:D>`;
 
-  const pages = chunk(candidates, NOTIFICATION_PAGE_SIZE);
-  return pages.map((page) =>
+  const embeds = chunk(candidates, NOTIFICATION_PAGE_SIZE).map((page) =>
     new EmbedBuilder()
       .setColor(EMBED_COLORS.INACTIVE_KICK_WARN)
       .setTitle(ctx.t("inactiveKick:embed.title.warn"))
-      .setDescription(description)
       .addFields(
         {
           name: ctx.t("inactiveKick:embed.field.name.target_members"),
@@ -102,45 +116,48 @@ export function buildWarnEmbedPages(
       )
       .setTimestamp(),
   );
+
+  return { content, embeds };
 }
 
-/** キック通知 Embed 構築のコンテキスト */
-export interface KickEmbedContext {
+/** キック通知 構築のコンテキスト */
+export interface KickNotificationContext {
   t: GuildTFunction;
   serverName: string;
   thresholdDays: number;
-  /** カスタムキック通知メッセージ（未設定時はデフォルト文を使う） */
+  /** カスタムキック通知メッセージ。未設定時は本文を出さない（Embed のみ） */
   customMessage?: string;
   /** テストモード（実際にはキックしていない）か */
   testMode: boolean;
 }
 
 /**
- * キック通知（当日）の Embed ページ配列を構築する。
+ * キック通知（当日）の本文 + 固定 Embed を構築する。
+ * 事前通知と異なりデフォルト文は持たず、**カスタム文が設定されたときだけ**本文を出す
+ * （未設定なら本文なし＝Embed のみ）。Embed はキックしたメンバー一覧（固定）。
  * メンバーは退出後にメンションが解決されないため、キック前に控えた表示名を用いる。
  * @param kickedNames キックしたメンバーの表示名一覧（キック前に控えたもの）
  * @param ctx 構築コンテキスト
- * @returns Embed ページ配列（1 件以上）
+ * @returns 本文（未設定時 undefined） + Embed ページ
  */
-export function buildKickEmbedPages(
+export function buildKickNotification(
   kickedNames: string[],
-  ctx: KickEmbedContext,
-): EmbedBuilder[] {
+  ctx: KickNotificationContext,
+): NotificationContent {
   const total = kickedNames.length;
-  const template =
-    ctx.customMessage ?? ctx.t("inactiveKick:default.kick_message");
-  const description = formatInactiveKickMessage(template, {
-    count: total,
-    thresholdDays: ctx.thresholdDays,
-    serverName: ctx.serverName,
-  });
+  // カスタム文が無ければ本文なし（Embed のみ）
+  const content = ctx.customMessage
+    ? formatInactiveKickMessage(ctx.customMessage, {
+        count: total,
+        thresholdDays: ctx.thresholdDays,
+        serverName: ctx.serverName,
+      })
+    : undefined;
 
-  const pages = chunk(kickedNames, NOTIFICATION_PAGE_SIZE);
-  return pages.map((page) => {
+  const embeds = chunk(kickedNames, NOTIFICATION_PAGE_SIZE).map((page) => {
     const embed = new EmbedBuilder()
       .setColor(EMBED_COLORS.INACTIVE_KICK_KICK)
       .setTitle(ctx.t("inactiveKick:embed.title.kick"))
-      .setDescription(description)
       .addFields({
         name: ctx.t("inactiveKick:embed.field.name.kicked_members"),
         value: page.join("\n"),
@@ -155,6 +172,8 @@ export function buildKickEmbedPages(
     }
     return embed;
   });
+
+  return { content, embeds };
 }
 
 /** preview 1 ページあたりの行数 */
@@ -178,7 +197,7 @@ export function buildPreviewEmbedPages(
   if (total === 0) {
     return [
       new EmbedBuilder()
-        .setColor(EMBED_COLORS.INACTIVE_KICK_WARN)
+        .setColor(STATUS_COLORS.info)
         .setTitle(title)
         .setDescription(t("inactiveKick:preview.none")),
     ];
@@ -212,7 +231,7 @@ export function buildPreviewEmbedPages(
 
   return chunk(lines, PREVIEW_LINES_PER_PAGE).map((pageLines) =>
     new EmbedBuilder()
-      .setColor(EMBED_COLORS.INACTIVE_KICK_WARN)
+      .setColor(STATUS_COLORS.info)
       .setTitle(title)
       .setDescription(pageLines.join("\n"))
       .setTimestamp(),

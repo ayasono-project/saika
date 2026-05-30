@@ -107,17 +107,31 @@ export class InactiveKickSettingsService {
   }
 
   /**
-   * カスタム事前通知メッセージを設定する
+   * カスタム事前通知メッセージ（1週間前）を設定する
    */
-  async setWarnMessage(guildId: string, message: string): Promise<void> {
-    await this.updatePartial(guildId, { warnMessage: message });
+  async setWeekWarnMessage(guildId: string, message: string): Promise<void> {
+    await this.updatePartial(guildId, { weekWarnMessage: message });
   }
 
   /**
-   * カスタム事前通知メッセージを削除する
+   * カスタム事前通知メッセージ（1週間前）を削除する
    */
-  async clearWarnMessage(guildId: string): Promise<void> {
-    await this.updatePartial(guildId, { warnMessage: undefined });
+  async clearWeekWarnMessage(guildId: string): Promise<void> {
+    await this.updatePartial(guildId, { weekWarnMessage: undefined });
+  }
+
+  /**
+   * カスタム事前通知メッセージ（最終警告）を設定する
+   */
+  async setFinalWarnMessage(guildId: string, message: string): Promise<void> {
+    await this.updatePartial(guildId, { finalWarnMessage: message });
+  }
+
+  /**
+   * カスタム事前通知メッセージ（最終警告）を削除する
+   */
+  async clearFinalWarnMessage(guildId: string): Promise<void> {
+    await this.updatePartial(guildId, { finalWarnMessage: undefined });
   }
 
   /**
@@ -172,6 +186,40 @@ export class InactiveKickSettingsService {
       whitelistRoleIds: current.whitelistRoleIds.filter((id) => id !== roleId),
     });
     return true;
+  }
+
+  /**
+   * ホワイトリストから複数のロール／ユーザーを一括削除する（単一更新）。
+   * @param guildId 設定対象のギルドID
+   * @param roleIds 削除するロールID一覧
+   * @param userIds 削除するユーザーID一覧
+   * @returns 実際に削除した件数
+   */
+  async removeFromWhitelist(
+    guildId: string,
+    roleIds: string[],
+    userIds: string[],
+  ): Promise<number> {
+    const current = await this.getSettingsOrDefault(guildId);
+    const roleSet = new Set(roleIds);
+    const userSet = new Set(userIds);
+    const nextRoleIds = current.whitelistRoleIds.filter(
+      (id) => !roleSet.has(id),
+    );
+    const nextUserIds = current.whitelistUserIds.filter(
+      (id) => !userSet.has(id),
+    );
+    const removed =
+      current.whitelistRoleIds.length -
+      nextRoleIds.length +
+      (current.whitelistUserIds.length - nextUserIds.length);
+    if (removed === 0) return 0;
+    await this.repository.updateInactiveKickSettings(guildId, {
+      ...current,
+      whitelistRoleIds: nextRoleIds,
+      whitelistUserIds: nextUserIds,
+    });
+    return removed;
   }
 
   /**

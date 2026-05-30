@@ -5,6 +5,7 @@ import { type ChatInputCommandInteraction, MessageFlags } from "discord.js";
 import { getBotInactiveKickSettingsService } from "../../../bot/services/botCompositionRoot";
 import { createInfoEmbed } from "../../../bot/utils/messageResponse";
 import { env } from "../../../shared/config/env";
+import type { AllParseKeys } from "../../../shared/locale/i18n";
 import { tInteraction } from "../../../shared/locale/localeManager";
 import { ensureInactiveKickManageGuildPermission } from "./inactiveKickSettingsCommand.guard";
 
@@ -24,10 +25,18 @@ export async function handleInactiveKickView(
   const enabled = tInteraction(locale, "common:enabled");
   const disabled = tInteraction(locale, "common:disabled");
   const none = tInteraction(locale, "common:none");
-  const set = tInteraction(
+
+  // メッセージは実際に送られる本文を表示する。
+  // カスタム設定済みならその本文、未設定なら段階別デフォルト文（プレースホルダー入りのまま）を「（デフォルト）」表示する。
+  const defaultPrefix = tInteraction(
     locale,
-    "inactiveKick:embed.field.value.message_set",
+    "inactiveKick:embed.field.value.message_default_prefix",
   );
+  const messageValue = (
+    custom: string | undefined,
+    defaultKey: AllParseKeys,
+  ): string =>
+    custom ?? `${defaultPrefix}\n${tInteraction(locale, defaultKey)}`;
 
   const enabledAtValue = settings.enabledAt
     ? `<t:${Math.floor(settings.enabledAt.getTime() / 1000)}:f>`
@@ -68,18 +77,38 @@ export async function handleInactiveKickView(
       {
         name: tInteraction(
           locale,
-          "inactiveKick:embed.field.name.warn_message",
+          "inactiveKick:embed.field.name.week_warn_message",
         ),
-        value: settings.warnMessage ? set : none,
-        inline: true,
+        value: messageValue(
+          settings.weekWarnMessage,
+          "inactiveKick:default.week_warn_message",
+        ),
+        inline: false,
+      },
+      {
+        name: tInteraction(
+          locale,
+          "inactiveKick:embed.field.name.final_warn_message",
+        ),
+        value: messageValue(
+          settings.finalWarnMessage,
+          "inactiveKick:default.final_warn_message",
+        ),
+        inline: false,
       },
       {
         name: tInteraction(
           locale,
           "inactiveKick:embed.field.name.kick_message",
         ),
-        value: settings.kickMessage ? set : none,
-        inline: true,
+        // キック通知はデフォルト文を持たない。未設定なら本文なし
+        value:
+          settings.kickMessage ??
+          tInteraction(
+            locale,
+            "inactiveKick:embed.field.value.kick_message_unset",
+          ),
+        inline: false,
       },
       {
         name: tInteraction(locale, "inactiveKick:embed.field.name.whitelist"),

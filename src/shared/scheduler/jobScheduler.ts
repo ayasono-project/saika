@@ -12,6 +12,8 @@ interface ScheduledJob {
   description?: string;
   /** cron 評価に用いるタイムゾーン（例: "Asia/Tokyo"）。未指定時はサーバーのローカルタイム */
   timezone?: string;
+  /** 前回実行が長引いた場合に次回発火の重複起動を防ぐ（node-cron v4） */
+  noOverlap?: boolean;
 }
 
 /**
@@ -84,12 +86,18 @@ export class JobScheduler {
     this.replaceExistingJob(job.id);
 
     try {
-      // cron 式ジョブを登録（timezone 指定時のみ TaskOptions を渡す）
-      const scheduledTask = job.timezone
-        ? cron.schedule(job.schedule, () => this.runTask(job.id, job.task), {
-            timezone: job.timezone,
-          })
-        : cron.schedule(job.schedule, () => this.runTask(job.id, job.task));
+      // cron 式ジョブを登録（timezone / noOverlap が指定された場合のみ TaskOptions を渡す）
+      const taskOptions: { timezone?: string; noOverlap?: boolean } = {};
+      if (job.timezone) taskOptions.timezone = job.timezone;
+      if (job.noOverlap) taskOptions.noOverlap = job.noOverlap;
+      const scheduledTask =
+        Object.keys(taskOptions).length > 0
+          ? cron.schedule(
+              job.schedule,
+              () => this.runTask(job.id, job.task),
+              taskOptions,
+            )
+          : cron.schedule(job.schedule, () => this.runTask(job.id, job.task));
 
       // 管理マップへ保存して起動
       this.jobs.set(job.id, scheduledTask);

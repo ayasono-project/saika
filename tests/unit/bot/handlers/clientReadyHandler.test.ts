@@ -15,6 +15,8 @@ const cleanupVacOnStartupMock = vi.fn();
 const initGuildInviteCacheMock = vi.fn();
 const restoreAutoDeleteTimersMock = vi.fn();
 const getBotTicketRepositoryMock = vi.fn();
+const addJobMock = vi.fn();
+const runInactiveKickDailyCheckMock = vi.fn();
 
 vi.mock("@/shared/locale/localeManager", () => ({
   logPrefixed: (
@@ -72,6 +74,18 @@ vi.mock("@/bot/services/botCompositionRoot", () => ({
     getBotTicketRepositoryMock(...args),
 }));
 
+vi.mock("@/shared/scheduler/jobScheduler", () => ({
+  jobScheduler: { addJob: (...args: unknown[]) => addJobMock(...args) },
+}));
+
+vi.mock("@/features/inactive-kick/services/inactiveKickRunner", () => ({
+  INACTIVE_KICK_JOB_ID: "inactive-kick:daily-check",
+  INACTIVE_KICK_JOB_SCHEDULE: "0 4 * * *",
+  INACTIVE_KICK_JOB_TIMEZONE: "Asia/Tokyo",
+  runInactiveKickDailyCheck: (...args: unknown[]) =>
+    runInactiveKickDailyCheckMock(...args),
+}));
+
 // clientReady ハンドラーが
 // 起動ログ出力・プレゼンス設定・各スタートアップタスク（バンプリマインダー復元 / VAC クリーンアップ）の
 // 実行順序とエラー伝播を正しく行うかを検証する
@@ -115,6 +129,15 @@ describe("bot/handlers/clientReadyHandler", () => {
     expect(initGuildInviteCacheMock).toHaveBeenCalledTimes(3);
     expect(restoreBumpRemindersOnStartupMock).toHaveBeenCalledWith(client);
     expect(cleanupVacOnStartupMock).toHaveBeenCalledWith(client);
+    // 非アクティブ自動キックの日次ジョブが登録される
+    expect(addJobMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: "inactive-kick:daily-check",
+        schedule: "0 4 * * *",
+        timezone: "Asia/Tokyo",
+        noOverlap: true,
+      }),
+    );
   });
 
   it("先行スタートア���プタスクが失敗した場合にエラーがログされ例外は伝播しないことを確認", async () => {

@@ -7,6 +7,7 @@ import {
   bumpReminder,
   guildSettings,
   help,
+  inactiveKick,
   memberLog,
   messageDelete,
   ping,
@@ -30,6 +31,7 @@ export const ja: {
   vc: typeof vc;
   messageDelete: typeof messageDelete;
   memberLog: typeof memberLog;
+  inactiveKick: typeof inactiveKick;
   reactionRole: typeof reactionRole;
   stickyMessage: typeof stickyMessage;
   ticket: typeof ticket;
@@ -46,6 +48,7 @@ export const ja: {
   vc,
   messageDelete,
   memberLog,
+  inactiveKick,
   reactionRole,
   stickyMessage,
   ticket,

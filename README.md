@@ -2,7 +2,7 @@
 
 > サーバーに彩りを加え、豊かで快適なコミュニティを実現する多機能&使いやすさ重視のDiscordサーバー管理Bot
 
-**開発開始**: 2026年2月 | **最終更新**: 2026年5月29日 | **AI利用**: コードおよびドキュメントの作成に生成AIを使用しています。
+**開発開始**: 2026年2月 | **最終更新**: 2026年5月31日 | **AI利用**: コードおよびドキュメントの作成に生成AIを使用しています。
 
 ## 概要
 
@@ -33,6 +33,7 @@
 | Bumpリマインダー | Bump検知と2時間後の自動通知・メンション設定・通知登録UI   |  ✅  | [spec](docs/specs/BUMP_REMINDER_SPEC.md)  | [manual](docs/guides/USER_MANUAL.md#bumpリマインダー機能) |
 | チケット         | チケットチャンネルでサポート対応                         |  ✅  | [spec](docs/specs/TICKET_SPEC.md)         | [manual](docs/guides/USER_MANUAL.md#チケット機能)         |
 | リアクションロール | ボタンクリックでロール付与・解除                       |  ✅  | [spec](docs/specs/REACTION_ROLE_SPEC.md)  | [manual](docs/guides/USER_MANUAL.md#リアクションロール機能) |
+| 非アクティブ自動キック | 一定期間活動のないメンバーを事前通知のうえ自動キック   |  ✅  | [spec](docs/specs/INACTIVE_KICK_SPEC.md)  | [manual](docs/guides/USER_MANUAL.md#非アクティブ自動キック機能) |
 
 ---
 
@@ -149,6 +150,7 @@ pnpm lint:fix         # Biome自動修正
 - [Bumpリマインダー機能](docs/specs/BUMP_REMINDER_SPEC.md) - Disboard/ディス速Bump後、次回Bump時刻に自動通知
 - [チケット](docs/specs/TICKET_SPEC.md) - チケットチャンネルでサポート対応
 - [リアクションロール](docs/specs/REACTION_ROLE_SPEC.md) - ボタンクリックでロール付与・解除
+- [非アクティブ自動キック](docs/specs/INACTIVE_KICK_SPEC.md) - 一定期間活動のないメンバーを段階通知のうえ自動キック
 - [メッセージレスポンス](docs/specs/MESSAGE_RESPONSE_SPEC.md) - Embed形式の統一メッセージシステム
 
 ## ライセンス

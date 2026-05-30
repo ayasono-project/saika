@@ -6,11 +6,10 @@ import {
   PermissionFlagsBits,
   RESTJSONErrorCodes,
 } from "discord.js";
-import type { Mock, Mocked } from "vitest";
+import type { Mocked } from "vitest";
 import { notifyErrorChannel } from "@/bot/shared/errorChannelNotifier";
 import { handleVacCreateUseCase } from "@/features/vac/services/usecases/handleVacCreate";
 import type { VacSettingsService } from "@/features/vac/vacSettingsService";
-import { sendVcControlPanel } from "@/features/vc-panel/vcControlPanel";
 
 const loggerInfoMock = vi.fn();
 const loggerWarnMock = vi.fn();
@@ -45,10 +44,6 @@ vi.mock("@/shared/utils/logger", () => ({
     warn: (...args: unknown[]) => loggerWarnMock(...args),
     error: (...args: unknown[]) => loggerErrorMock(...args),
   },
-}));
-
-vi.mock("@/features/vc-panel/vcControlPanel", () => ({
-  sendVcControlPanel: vi.fn(),
 }));
 
 vi.mock("@/bot/shared/errorChannelNotifier", () => ({
@@ -145,7 +140,6 @@ describe("bot/features/vac/services/usecases/handleVacCreate", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.spyOn(Date, "now").mockReturnValue(1700000000000);
-    (sendVcControlPanel as Mock).mockResolvedValue(undefined);
   });
 
   afterEach(() => {
@@ -288,7 +282,6 @@ describe("bot/features/vac/services/usecases/handleVacCreate", () => {
         },
       ],
     });
-    expect(sendVcControlPanel).toHaveBeenCalledTimes(1);
     expect(setChannelMock).toHaveBeenCalledWith({
       id: "created-voice-1",
       type: ChannelType.GuildVoice,
@@ -319,7 +312,6 @@ describe("bot/features/vac/services/usecases/handleVacCreate", () => {
     await handleVacCreateUseCase(repository, newState as never);
 
     expect(createMock).toHaveBeenCalledTimes(1);
-    expect(sendVcControlPanel).not.toHaveBeenCalled();
     expect(setChannelMock).not.toHaveBeenCalled();
     expect(repository.addCreatedVacChannel).not.toHaveBeenCalled();
   });
@@ -416,24 +408,5 @@ describe("bot/features/vac/services/usecases/handleVacCreate", () => {
       expect.objectContaining({ feature: "VAC" }),
     );
     expect(createMock).not.toHaveBeenCalled();
-  });
-
-  it("コントロールパネル送信が失敗してもユーザー移動とチャンネル保存は続行されること", async () => {
-    const repository = createRepositoryMock();
-    const { newState, setChannelMock } = createVoiceStateInput();
-    repository.getVacSettingsOrDefault.mockResolvedValue({
-      enabled: true,
-      triggerChannelIds: ["trigger-1"],
-      createdChannels: [],
-    });
-    (sendVcControlPanel as Mock).mockRejectedValueOnce(
-      new Error("panel failed"),
-    );
-
-    await handleVacCreateUseCase(repository, newState as never);
-
-    expect(loggerErrorMock).toHaveBeenCalledTimes(1);
-    expect(setChannelMock).toHaveBeenCalledTimes(1);
-    expect(repository.addCreatedVacChannel).toHaveBeenCalledTimes(1);
   });
 });

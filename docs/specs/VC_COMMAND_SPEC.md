@@ -2,9 +2,9 @@
 
 > 参加中のボイスチャンネルの設定変更、および VC 参加メンバーの切断・移動を行うコマンド群
 
-最終更新: 2026年5月29日
+最終更新: 2026年5月30日
 
-> **ステータス**: `/vc disconnect` / `/vc move` および共通ユーティリティはたたき台(2026-05-28 追記)。本仕様書末尾の「オープン項目」を確定したうえで実装着手する。
+> **ステータス**: 全コマンド実装完了(2026-05-30)。`/vc disconnect` / `/vc move` / 共通ユーティリティに加え、`/vc rename` / `/vc limit` の public 化も実施済み。末尾「オープン項目」は全て確定済み。
 
 ---
 
@@ -57,8 +57,8 @@
 
 | コマンド | 既定 | 備考 |
 | --- | --- | --- |
-| `/vc rename` | ephemeral(現状) → public(移行予定) | 共有リソースの状態変更のため public 化が事前合意済み。コマンド設計原則の監査で確定 |
-| `/vc limit` | ephemeral(現状) → public(移行予定) | 同上 |
+| `/vc rename` | public | 共有リソースの状態変更のため public（2026-05-30 に ephemeral から移行） |
+| `/vc limit` | public | 同上 |
 | `/vc disconnect` | public | 透明性確保・濫用抑止のため確定 |
 | `/vc move` | public | 同上 |
 
@@ -85,7 +85,7 @@
 1. コマンド実行者がボイスチャンネルに参加中か確認
 2. 参加中のVCが管理対象（VAC管理下 または VC募集の新規作成VC）か確認
 3. VCの名前を変更
-4. 成功メッセージを返す（Ephemeral)
+4. 成功メッセージを返す（public）
 
 **ビジネスルール:**
 
@@ -129,7 +129,7 @@
 2. 参加中のVCが管理対象（VAC管理下 または VC募集の新規作成VC）か確認
 3. `limit` の値が 0〜99 の範囲か検証
 4. VCの人数制限を変更（0 は無制限）
-5. 成功メッセージを返す（Ephemeral)
+5. 成功メッセージを返す（public）
 
 **ビジネスルール:**
 
@@ -168,10 +168,11 @@
 
 | オプション名 | 型 | 必須 | 説明 |
 | --- | --- | --- | --- |
-| `target` | User または Voice Channel | ✅ | 切断対象のメンバー、または対象 VC(VC 指定時は当該 VC の全員) |
+| `target-member` | User | ❌ | 切断対象のメンバー |
+| `target-channel` | Voice Channel | ❌ | 全員を切断する対象 VC |
 | `reason` | String | ❌ | Discord 監査ログに記録する理由 |
 
-Discord の制約上 `User | Channel` の混在オプションは直接定義できない。実装方式は末尾「オープン項目」を参照。
+Discord の制約上 `User | Channel` の混在オプションは直接定義できないため、**案 A** を採用: `target-member`(User) と `target-channel`(VoiceChannel) を両方オプションとして定義し、コード側で「どちらか一方のみ必須」を検証する(両方未指定=エラー、両方指定=競合エラー)。共通解決ヘルパー `resolveVcActionTarget`(`src/bot/shared/vcActionTarget.ts`)で判定する。
 
 ### 動作フロー
 
@@ -215,11 +216,12 @@ Discord の制約上 `User | Channel` の混在オプションは直接定義で
 
 | オプション名 | 型 | 必須 | 説明 |
 | --- | --- | --- | --- |
-| `target` | User または Voice Channel | ✅ | 移動対象のメンバー、または対象 VC |
 | `to` | Voice Channel | ✅ | 移動先 VC |
+| `target-member` | User | ❌ | 移動対象のメンバー |
+| `target-channel` | Voice Channel | ❌ | 全員を移動する対象 VC |
 | `reason` | String | ❌ | Discord 監査ログに記録する理由 |
 
-`target` の型表現は `/vc disconnect` と同方針(オープン項目)。
+`target-member` / `target-channel` の型表現は `/vc disconnect` と同方針(案 A)。Discord の制約上、必須オプション(`to`)は任意オプションより先に定義する。
 
 ### 動作フロー
 
@@ -269,27 +271,31 @@ function formatActionLog({
 
 | 項目 | 内容 |
 | --- | --- |
-| タイトル | ✂️ 切断 / 🚪 AFK 移動 / ➡️ 移動 |
-| カラー | 共通色(オープン項目) |
+| タイトル | ⛓️‍💥 切断 / 🛏️ AFK移動 / ➡️ 移動 |
+| カラー | `VC_ACTION_LOG_COLOR = 0x5865f2`(Discord blurple) |
 | 説明 | アクション別テンプレート(下表) |
 | フィールド: 実行者 | `<@invoker>` |
-| フィールド: 対象 | individual: `<@target>` / bulk: `<#channel> (N 人)` |
+| フィールド: 対象 | individual: `<@target>` / bulk: 対象メンバーのメンション一覧（`<@u1> <@u2> …`、上限 20 件・超過分は「ほか N 件」） |
 | フィールド: 移動先 | move / afk のみ: `<#destinationChannel>` |
 | フィールド: 理由 | `reason` または「指定なし」 |
-| フィールド: 失敗内訳 | 一括時で失敗があった場合のみ表示 |
+| フィールド: 失敗内訳 | 一括時で失敗があった場合のみ表示（メンション一覧） |
 
-**説明テンプレート(オープン項目で文言確定):**
+**説明テンプレート:**
 
 - disconnect (個別): `<@target> を VC から切断しました`
-- disconnect (一括): `<#channel> の参加者 N 人を VC から切断しました`
+- disconnect (一括): `<#channel> の参加者全員を VC から切断しました`
 - afk (個別): `<@target> を <#afkChannel> に移動しました`
-- afk (一括): `<#channel> の参加者 N 人を <#afkChannel> に移動しました`
+- afk (一括): `<#channel> の参加者全員を <#afkChannel> に移動しました`
 - move (個別): `<@target> を <#destinationChannel> に移動しました`
-- move (一括): `<#channel> の参加者 N 人を <#destinationChannel> に移動しました`
+- move (一括): `<#channel> の参加者全員を <#destinationChannel> に移動しました`
+
+> 一括の対象人数は「対象」フィールドのメンション一覧で表現し、説明は「参加者全員」とする（人数を本文に出さない）。
 
 ### ユーティリティ配置
 
-`src/shared/` 配下 または `src/features/vc-command/` 配下(オープン項目)。
+`src/bot/shared/vcActionLog.ts`(確定)。`/vc`(vc-command) と `/afk`(afk) の 2 機能が共有するため、実装ガイドラインの「feature をまたぐ共通は `src/bot/shared/`」に準拠する。`formatActionLog` のほか、監査ログ理由のデフォルト解決 `resolveAuditReason(action, locale, userReason?)` も同ファイルに同梱する。
+
+> アクションログ・確認ダイアログの i18n キーは `vc` 名前空間(`vc:action-log.*` / `vc:bulk-confirm.*`)に集約し、`/afk` 側からも参照する。
 
 ---
 
@@ -302,22 +308,24 @@ target が Channel の場合のみ、誤爆防止のため実行前に ephemeral
 | 項目 | 内容 |
 | --- | --- |
 | タイトル | 確認 |
-| 説明 | `<#channel> の参加者 N 人に対して {action} を実行します。よろしいですか?` |
+| 説明 | `<#channel> の参加者全員に対して {action} を実行します。よろしいですか?` |
 | カラー | 警告系(黄/橙) |
-| フィールド: 対象人数 | N 人(コマンド受付時点のスナップショット) |
+| フィールド: 対象 | コマンド受付時点の対象メンバーのメンション一覧（スナップショット。上限 20 件・超過分は「ほか N 件」） |
 | フィールド: 移動先 | move / afk のみ |
 
 ### ボタン
 
 | customId | ラベル | スタイル | 動作 |
 | --- | --- | --- | --- |
-| `vc-bulk:confirm` | 実行 | Danger | アクション本処理を実行 |
-| `vc-bulk:cancel` | キャンセル | Secondary | ephemeral で「キャンセルしました」 |
+| `vc-bulk:action-confirm:{commandInteractionId}` | 実行 | Danger | アクション本処理を実行 |
+| `vc-bulk:action-cancel:{commandInteractionId}` | キャンセル | Secondary | ephemeral で「キャンセルしました」 |
+
+> customId は実装ガイドラインの `<feature>:<subject>-<qualifier>[:<dynamic>]` に準拠(feature=`vc-bulk`、subject=`action`、qualifier=`confirm`/`cancel`、dynamic=コマンド `interaction.id`)。セッションは `TtlMap`(60s)で `interaction.id` をキーに保持する。
 
 ### タイムアウト
 
-- 自動キャンセル(秒数はオープン項目、30s 仮置き)
-- タイムアウト時は ephemeral で「タイムアウトしました」を返し、以降のボタン押下は無視
+- 自動キャンセル: **60 秒**(`VC_BULK_CONFIRM.TIMEOUT_MS`)。`disableComponentsAfterTimeout` でボタンを無効化する
+- タイムアウト後にボタンが押された場合はセッション失効を検知し、ephemeral で「タイムアウトしました」(`common:interaction.timeout`)を返す
 
 ### 確認時点と実行時点の乖離
 
@@ -348,13 +356,31 @@ target が Channel の場合のみ、誤爆防止のため実行前に ephemeral
 | `vc.rename.name.description` | オプション説明 | 新しいVC名 | New VC name |
 | `vc.limit.description` | サブコマンド説明 | 参加中VCの人数制限を変更 | Change user limit of your current VC |
 | `vc.limit.limit.description` | オプション説明 | 人数制限（0=無制限、0~99） | User limit (0=unlimited, max 99) |
-| `vc.disconnect.description` | サブコマンド説明 | TBD | TBD |
-| `vc.disconnect.target.description` | オプション説明 | TBD | TBD |
-| `vc.disconnect.reason.description` | オプション説明 | TBD | TBD |
-| `vc.move.description` | サブコマンド説明 | TBD | TBD |
-| `vc.move.target.description` | オプション説明 | TBD | TBD |
-| `vc.move.to.description` | オプション説明 | TBD | TBD |
-| `vc.move.reason.description` | オプション説明 | TBD | TBD |
+| `vc.disconnect.description` | サブコマンド説明 | メンバー、またはVC全員をVCから切断 | Disconnect a member, or everyone in a VC |
+| `vc.disconnect.target-member.description` | オプション説明 | 切断する対象メンバー | Member to disconnect |
+| `vc.disconnect.target-channel.description` | オプション説明 | 全員を切断する対象VC | VC whose members will all be disconnected |
+| `vc.disconnect.reason.description` | オプション説明 | 監査ログに記録する理由 | Reason recorded in the audit log |
+| `vc.move.description` | サブコマンド説明 | メンバー、またはVC全員を別のVCに移動 | Move a member, or everyone in a VC, to another VC |
+| `vc.move.target-member.description` | オプション説明 | 移動する対象メンバー | Member to move |
+| `vc.move.target-channel.description` | オプション説明 | 全員を移動する対象VC | VC whose members will all be moved |
+| `vc.move.to.description` | オプション説明 | 移動先のVC | Destination VC |
+| `vc.move.reason.description` | オプション説明 | 監査ログに記録する理由 | Reason recorded in the audit log |
+
+### action-log / bulk-confirm（共通・`vc` 名前空間、`/afk` も参照）
+
+| キー | 用途 | ja |
+| --- | --- | --- |
+| `action-log.title.{disconnect,move,afk}` | アクションログ タイトル | 切断 / 移動 / AFK移動 |
+| `action-log.desc.{action}_{individual,bulk}` | 説明テンプレート(6種) | 「共通: アクションログ Embed」参照 |
+| `action-log.field.{invoker,target,destination,reason,failures}` | フィールド名 | 実行者 / 対象 / 移動先 / 理由 / 失敗 |
+| `action-log.reason_none` | 理由未指定 | 指定なし |
+| `action-log.failures_more` | メンション一覧の省略 | ほか {{count}} 件 |
+| `action-log.audit.{action}` | 監査ログ理由(既定) | Botコマンド /vc disconnect による切断 など |
+| `bulk-confirm.title` | 確認ダイアログ タイトル | 確認 |
+| `bulk-confirm.description` | 確認ダイアログ 本文 | `<#{{channelId}}> の参加者全員に対して{{action}}を実行します。よろしいですか？` |
+| `bulk-confirm.action.{disconnect,move,afk}` | 本文差し込み操作名 | 切断 / 移動 / AFKチャンネルへの移動 |
+| `bulk-confirm.field.{target,destination}` | 確認フィールド名 | 対象 / 移動先 |
+| `ui.button.bulk_execute` | 実行ボタン ラベル | 実行 |
 
 ### ユーザーレスポンス
 
@@ -367,7 +393,18 @@ target が Channel の場合のみ、誤爆防止のため実行前に ephemeral
 | `user-response.not_managed_channel` | 管理対象外エラー | このVCはBot管理のチャンネルではありません。 | This voice channel is not managed by the Bot. |
 | `user-response.limit_out_of_range` | 人数制限範囲エラー | 人数制限は0〜99の範囲で指定してください。 | User limit must be between 0 and 99. |
 
-**disconnect / move 追加分のユーザーレスポンス / Embed / UI / ログのキーは実装着手時に確定する。**
+### disconnect / move 追加分のユーザーレスポンス（`vc` 名前空間）
+
+| キー | 用途 | ja |
+| --- | --- | --- |
+| `user-response.target_required` | 対象未指定 | 対象のメンバー、またはVCを指定してください。 |
+| `user-response.target_conflict` | メンバーとVCの同時指定 | メンバーとVCは同時に指定できません。 |
+| `user-response.target_not_voice` | 非VC指定 | ボイスチャンネルを指定してください。 |
+| `user-response.member_not_found` | 対象メンバー不在 | 対象のメンバーが見つかりませんでした。 |
+| `user-response.target_not_in_voice` | 対象がVC未参加 | 指定されたメンバーはボイスチャンネルにいません。 |
+| `user-response.channel_empty` | 対象VCが空(受付時点) | 対象VCには誰もいません。 |
+| `user-response.channel_empty_now` | 対象VCが空(実行時点) | 実行時点で対象VCには誰もいませんでした。 |
+| `user-response.same_channel` | 移動元=移動先 | 移動元と移動先が同じです。 |
 
 ---
 
@@ -379,7 +416,7 @@ target が Channel の場合のみ、誤爆防止のため実行前に ephemeral
 
 - [x] **VAC管理VC名前変更**: VAC管理下のVCに参加中に名前が変更される
 - [x] **VC募集作成VC名前変更**: VC募集で新規作成されたVCに参加中に名前が変更される
-- [x] **成功通知**: 変更成功時に確認メッセージが表示される（MessageFlags.Ephemeral)
+- [x] **成功通知**: 変更成功時に確認メッセージが public で表示される
 
 #### 異常系
 
@@ -394,7 +431,7 @@ target が Channel の場合のみ、誤爆防止のため実行前に ephemeral
 - [x] **VAC管理VC制限変更**: VAC管理下のVCに参加中に人数制限が変更される
 - [x] **VC募集作成VC制限変更**: VC募集で新規作成されたVCに参加中に人数制限が変更される
 - [x] **無制限設定**: 0を指定すると無制限に設定される
-- [x] **成功通知**: 変更成功時に確認メッセージが表示される（MessageFlags.Ephemeral)
+- [x] **成功通知**: 変更成功時に確認メッセージが public で表示される
 
 #### 異常系
 
@@ -405,39 +442,36 @@ target が Channel の場合のみ、誤爆防止のため実行前に ephemeral
 
 ### `/vc disconnect` コマンド
 
-- [ ] **個別切断 正常系**: 対象が VC 参加中で正常切断、Embed が public、`reason` が監査ログに渡る
-- [ ] **個別切断 異常系**: 対象が VC 未参加でエラー / Bot ロール階層不足で権限不足エラー
-- [ ] **一括切断 正常系**: 確認ダイアログ表示 → 実行 → 全員切断、Embed が public
-- [ ] **一括切断 キャンセル/タイムアウト**: ephemeral でキャンセル応答
-- [ ] **一括切断 部分失敗**: 一部メンバーで失敗時に残りを続行、失敗内訳が Embed に表示
-- [ ] **一括切断 空 VC**: 受付時点 / 確認後の実行時点で空 → no-op エラー
+- [x] **個別切断 正常系**: 対象が VC 参加中で正常切断、Embed が public、`reason` が監査ログに渡る
+- [x] **個別切断 異常系**: 対象未指定/競合/対象が VC 未参加でエラー（Bot ロール階層不足は MissingPermissions として上位ハンドラへ伝播）
+- [x] **一括切断 正常系**: 確認ダイアログ表示 → 実行 → 全員切断、結果が public
+- [x] **一括切断 キャンセル/タイムアウト**: ephemeral でキャンセル / タイムアウト応答
+- [x] **一括切断 部分失敗**: 一部メンバーで失敗時に残りを続行、失敗内訳が Embed に表示
+- [x] **一括切断 空 VC**: 受付時点 / 確認後の実行時点で空 → no-op エラー
 
 ### `/vc move` コマンド
 
-- [ ] **個別移動 正常系**: 通常移動成功
-- [ ] **個別移動 異常系**: `to` が非 VC でエラー
-- [ ] **一括移動**: target=to で同一エラー / 確認ダイアログ動作
+- [x] **個別移動 正常系**: 通常移動成功
+- [x] **個別移動 異常系**: `to` が非 VC でエラー
+- [x] **一括移動**: target=to で同一エラー / 確認ダイアログ動作
 
 ### 共通ユーティリティ
 
-- [ ] **formatActionLog**: 3 アクション × individual/bulk の 6 パターンが各テンプレートに一致
-- [ ] **一括確認ダイアログ**: ボタンの customId が `vc-bulk:confirm` / `vc-bulk:cancel` で発火
+- [x] **formatActionLog**: 3 アクション × individual/bulk の 6 パターンが各テンプレートに一致
+- [x] **一括確認ダイアログ**: ボタンの customId が `vc-bulk:action-confirm` / `vc-bulk:action-cancel` で発火
 
 ---
 
-## オープン項目(本仕様書を確定する前に決める)
+## オープン項目(確定済み・2026-05-30)
 
-- [ ] `target` の型表現(以下から選択):
-  - 案 A: `target_member: User` と `target_channel: Channel` を両方持ち、片方必須
-  - 案 B: `target: Mentionable` で受け、種別判定で分岐
-  - 案 C: `member` / `channel` サブコマンドに分割
-- [ ] アクションログ Embed の説明テンプレート文言(日英)
-- [ ] アクションログ Embed のカラー
-- [ ] 一括確認ダイアログのタイムアウト秒数(30s 仮置き)
-- [ ] 一括確認ダイアログの文言(日英)
-- [ ] リリースノート文言(既存ユーザー向け挙動変更の周知。`/vc rename` / `/vc limit` の public 化と `/afk` の挙動変更が周知対象)
-- [ ] `formatActionLog` の配置場所(`src/shared/` か `src/features/vc-command/` か)
-- [ ] `/vc rename` / `/vc limit` の ephemeral → public 移行のタイミング(本タスクで実施するか、コマンド設計原則策定後に独立で実施するか)
+- [x] `target` の型表現 → **案 A**(`target-member: User` + `target-channel: VoiceChannel` の2オプション、コード側で片方必須を検証)
+- [x] アクションログ Embed の説明テンプレート文言(日英) → 「共通: アクションログ Embed」+「ローカライズ」に確定
+- [x] アクションログ Embed のカラー → `0x5865f2`(Discord blurple)
+- [x] 一括確認ダイアログのタイムアウト秒数 → **60 秒**
+- [x] 一括確認ダイアログの文言(日英) → 「ローカライズ」`bulk-confirm.*` に確定
+- [x] `formatActionLog` の配置場所 → `src/bot/shared/vcActionLog.ts`
+- [x] `/vc rename` / `/vc limit` の ephemeral → public 移行 → **実施済み**(2026-05-30)
+- [ ] リリースノート文言(既存ユーザー向け挙動変更の周知。`/afk` の `user`→`target-member`/`target-channel` 変更と public 化が周知対象) — リリース時に作成
 
 ---
 
@@ -447,7 +481,7 @@ target が Channel の場合のみ、誤爆防止のため実行前に ephemeral
 | --- | --- |
 | VAC（VC自動作成） | `GuildVacSettings.createdChannels` を参照してVAC管理下VCか判定 |
 | VC募集 | `VcRecruitSettings.setups[].createdVoiceChannelIds` を参照してVC募集管理下VCか判定 |
-| vc-panel（操作パネル） | パネルのボタンハンドラーは別途VC参加チェックで動作（本コマンドとは独立） |
+| vc-panel（操作パネル） | **廃止（2026-05-30）**。作成VCのチャットに設置していた操作パネル（rename/limit/AFK/refresh）は撤廃し、全操作を `/vc`・`/afk` slash コマンドに一本化した。理由: 全機能が public な slash で代替可能であり、パネルは「チャットで流れる→refresh で再送」という構造的問題と低利用率、および常設パネル経由の切断はワンタップで濫用しやすく public 抑止が効かない点を抱えていたため |
 | [AFK_SPEC.md](AFK_SPEC.md) | `/afk` 側で `formatActionLog` および一括確認ダイアログを共有 |
 | [IMPLEMENTATION_GUIDELINES.md](../guides/IMPLEMENTATION_GUIDELINES.md) | ephemeral/public 判定原則の親ドキュメント(本タスクで該当セクションを新設) |
 | [MESSAGE_RESPONSE_SPEC.md](MESSAGE_RESPONSE_SPEC.md) | Bot 権限不足エラーの共通フォーマット |

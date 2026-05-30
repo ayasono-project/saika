@@ -28,7 +28,6 @@ import { ticketRoleSelectHandler } from "../../../../features/ticket/handlers/ui
 import { ticketSetupRoleSelectHandler } from "../../../../features/ticket/handlers/ui/ticketSetupRoleSelectHandler";
 import { ticketTeardownSelectHandler } from "../../../../features/ticket/handlers/ui/ticketTeardownSelectHandler";
 import { ticketViewSelectHandler } from "../../../../features/ticket/handlers/ui/ticketViewSelectHandler";
-import { vcPanelUserSelectHandler } from "../../../../features/vc-panel/handlers/ui/vcPanelUserSelect";
 import { vcRecruitAddRoleSelectHandler } from "../../../../features/vc-recruit/handlers/ui/vcRecruitAddRoleSelectHandler";
 import { vcRecruitRemoveRoleSelectHandler } from "../../../../features/vc-recruit/handlers/ui/vcRecruitRemoveRoleSelectHandler";
 import { vcRecruitStringSelectHandler } from "../../../../features/vc-recruit/handlers/ui/vcRecruitStringSelect";
@@ -84,8 +83,6 @@ export const stringSelectHandlers: StringSelectHandler[] = [
   stickyMessageRemoveSelectHandler,
   // sticky-message view コマンドのチャンネル選択を処理
   stickyMessageViewSelectHandler,
-  // VC操作パネルの AFK 移動ユーザー選択を処理（VAC・VC募集など共用）
-  vcPanelUserSelectHandler,
   // VC募集のメンション/VC選択を処理
   vcRecruitStringSelectHandler,
   // VC募集 remove-role のロール選択を処理

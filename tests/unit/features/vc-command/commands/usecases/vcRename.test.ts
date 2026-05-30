@@ -1,6 +1,6 @@
 // tests/unit/bot/features/vc-command/commands/usecases/vcRename.test.ts
 
-import { DiscordAPIError, MessageFlags, RESTJSONErrorCodes } from "discord.js";
+import { DiscordAPIError, RESTJSONErrorCodes } from "discord.js";
 import type { Mock } from "vitest";
 import { createSuccessEmbed } from "@/bot/utils/messageResponse";
 import { resolveVoiceChannelForEdit } from "@/features/vc-command/commands/helpers/vcVoiceChannelResolver";
@@ -51,7 +51,7 @@ describe("bot/features/vc-command/commands/usecases/vcRename", () => {
     vi.clearAllMocks();
   });
 
-  it("チャンネルをリネームしてエフェメラルで成功応答する", async () => {
+  it("チャンネルをリネームして public で成功応答する", async () => {
     const edit = vi.fn().mockResolvedValue(undefined);
     (resolveVoiceChannelForEdit as Mock).mockResolvedValue({ edit });
 
@@ -68,7 +68,6 @@ describe("bot/features/vc-command/commands/usecases/vcRename", () => {
     expect(createSuccessEmbed).toHaveBeenCalledWith("renamed:My VC");
     expect(reply).toHaveBeenCalledWith({
       embeds: [{ description: "renamed:My VC" }],
-      flags: MessageFlags.Ephemeral,
     });
   });
 

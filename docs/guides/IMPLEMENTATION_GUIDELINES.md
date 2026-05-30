@@ -2,7 +2,7 @@
 
 > Implementation Guidelines - 実装方針とコーディング規約
 
-最終更新: 2026年5月29日
+最終更新: 2026年5月30日
 
 ---
 
@@ -479,6 +479,38 @@ await interaction.reply({ components: [selectRow, buttonRow], ... });
 disableComponentsAfterTimeout(interaction, [selectRow, buttonRow], TIMEOUT_MS);
 ```
 
+### コマンド設計原則（ephemeral / public）
+
+コマンド応答の可視性（`MessageFlags.Ephemeral` の有無）は以下の原則で判定する。
+
+**public（非 ephemeral）にするもの:**
+
+- 共有リソースの状態を変更し、その結果をサーバー内で共有・透明化すべき操作の **成功時応答**
+- 透明性により濫用を抑止したい操作（他メンバーへの干渉を伴うもの）
+- チャンネルに常設するパネル投稿
+
+**ephemeral にするもの:**
+
+- 実行者個人にのみ意味がある応答（設定の閲覧・自分向けの情報表示）
+- 設定管理コマンド（`*-settings` 系）
+- **エラー応答全般**（グローバルエラーハンドラ `interactionErrorHandler` が常に ephemeral で返す）
+- 破壊的操作の **確認ダイアログ本体**・キャンセル / タイムアウト応答・no-op（空振り）エラー
+
+> 確認ダイアログは ephemeral、確認後の **結果** は public、という分離を徹底する。一括操作（`/vc disconnect`・`/vc move`・`/afk` の target=channel）は確認を ephemeral で出し、実行結果は `interaction.followUp()` で public に送る。
+
+**コマンド分類（カテゴリ別）:**
+
+| カテゴリ | 可視性 | 該当コマンド | 備考 |
+| --- | --- | --- | --- |
+| 共有リソース変更（他メンバー干渉） | public | `/vc disconnect`・`/vc move`・`/afk` | 結果 Embed は public。確認 / エラー / キャンセルは ephemeral |
+| 自分の管理対象 VC 変更 | public | `/vc rename`・`/vc limit` | 共有リソース変更のため public（2026-05-30 に ephemeral から移行） |
+| 設定管理 | ephemeral | `*-settings` 全般（afk / bump-reminder / guild / member-log / reaction-role / ticket / vac / vc-recruit） | 実行者（管理者）向け |
+| 常設パネル投稿 | public | vc-recruit パネル、bump パネル、チケットパネル、リアクションロールパネル等 | チャンネルに残す UI |
+| 情報表示 | public または ephemeral | `/ping`・`/help`・`/about` | コマンドの性質に応じて選択 |
+| エラー / 確認 / キャンセル / タイムアウト | ephemeral | 全コマンド共通 | グローバルエラーハンドラ・確認ダイアログ |
+
+新規コマンド追加時は上表のカテゴリに当てはめて可視性を決定する。該当カテゴリがない場合は本セクションに追記してから実装する。
+
 ---
 
 ## チェックリスト
@@ -511,6 +543,7 @@ disableComponentsAfterTimeout(interaction, [selectRow, buttonRow], TIMEOUT_MS);
 - [ ] 同一・類似ロジックの重複がない（共通関数に抽出済み）
 - [ ] UI セッション状態に `TtlMap` を使用している（生 Map を使っていない）
 - [ ] コンポーネント無効化に `disableComponentsAfterTimeout` を使用している
+- [ ] コマンド応答の可視性（ephemeral / public）が「コマンド設計原則」のカテゴリに従っている
 
 ### 検証
 

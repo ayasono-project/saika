@@ -34,7 +34,6 @@ import { getVacService } from "../../features/vac/services/vacService";
 import { getVacSettingsRepository } from "../../features/vac/vacSettingsRepository";
 import type { VacSettingsService } from "../../features/vac/vacSettingsService";
 import { createVacSettingsService } from "../../features/vac/vacSettingsService";
-import { registerVcPanelOwnershipChecker } from "../../features/vc-panel/vcPanelOwnershipRegistry";
 import type { IVcRecruitRepository } from "../../features/vc-recruit/repositories/vcRecruitRepository";
 import { createVcRecruitRepository } from "../../features/vc-recruit/repositories/vcRecruitRepository";
 import { getVcRecruitSettingsRepository } from "../../features/vc-recruit/vcRecruitSettingsRepository";
@@ -277,16 +276,6 @@ export function initializeBotCompositionRoot(
     vcRecruitSettingsService,
   );
   setBotVcRecruitRepository(vcRecruitRepository);
-
-  // VC操作パネルの所有権チェッカーを登録（VAC・VC募集）
-  registerVcPanelOwnershipChecker({
-    isManagedVcPanelChannel: (guildId, channelId) =>
-      getBotVacSettingsService().isManagedVacChannel(guildId, channelId),
-  });
-  registerVcPanelOwnershipChecker({
-    isManagedVcPanelChannel: (guildId, channelId) =>
-      getBotVcRecruitRepository().isCreatedVcRecruitChannel(guildId, channelId),
-  });
 
   return {
     guildSettingsService,

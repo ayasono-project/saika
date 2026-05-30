@@ -4,7 +4,8 @@
 export const afk = {
   // ── コマンド定義 ─────────────────────────────
   "afk.description": "AFKチャンネルにユーザーを移動",
-  "afk.user.description": "移動するユーザー（省略で自分）",
+  "afk.target-member.description": "移動するメンバー（省略で自分）",
+  "afk.target-channel.description": "全員をAFKチャンネルに移動する対象VC",
   "afk-settings.description": "AFK機能の設定（サーバー管理権限が必要）",
   "afk-settings.set-channel.description": "AFKチャンネルを設定",
   "afk-settings.set-channel.channel.description":
@@ -25,6 +26,7 @@ export const afk = {
     "AFKチャンネルが見つかりませんでした。\nチャンネルが削除されている可能性があります。",
   "user-response.invalid_channel_type": "ボイスチャンネルを指定してください。",
   "user-response.clear_channel_success": "AFKチャンネル設定を解除しました。",
+  "user-response.target_is_afk": "対象VCがAFKチャンネルと同じです。",
 
   // ── embed: config_view ──────────────────────
   "embed.title.config_view": "AFK機能",

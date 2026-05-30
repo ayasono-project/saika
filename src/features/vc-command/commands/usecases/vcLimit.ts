@@ -37,6 +37,7 @@ export async function executeVcLimit(
   const embed = createSuccessEmbed(
     tInteraction(interaction.locale, "vc:user-response.limit_changed", {
       limit: limitLabel,
+      channel: channelId,
     }),
   );
   // 共有リソース（人数制限）の変更のため public で応答する

@@ -21,8 +21,9 @@ export const vc = {
   "vc.move.reason.description": "Reason recorded in the audit log",
 
   // ── User responses ───────────────────────────
-  "user-response.renamed": "VC name has been changed to {{name}}",
-  "user-response.limit_changed": "User limit has been set to {{limit}}",
+  "user-response.renamed": "Changed the name of <#{{channel}}> to {{name}}",
+  "user-response.limit_changed":
+    "Set the user limit of <#{{channel}}> to {{limit}}",
   "user-response.unlimited": "unlimited",
   "user-response.not_in_any_vc":
     "You must be in a voice channel to use this command.",

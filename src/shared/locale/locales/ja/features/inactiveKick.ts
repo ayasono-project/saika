@@ -2,7 +2,128 @@
 // 非アクティブ自動キック機能の翻訳リソース
 
 export const inactiveKick = {
-  // ── 監査ログ理由（Discord 監査ログに記録される操作理由）─────
+  // ── コマンド定義 ─────────────────────────────
+  "inactive-kick-settings.description":
+    "非アクティブメンバーの自動キック設定（サーバー管理権限が必要）",
+  "inactive-kick-settings.set-channel.description": "通知チャンネルを設定",
+  "inactive-kick-settings.set-channel.channel.description":
+    "通知を送信するテキストチャンネル",
+  "inactive-kick-settings.set-threshold.description":
+    "非アクティブと判定するまでの日数を設定",
+  "inactive-kick-settings.set-threshold.days.description":
+    "非アクティブ判定日数（14〜365）",
+  "inactive-kick-settings.enable.description": "自動キック機能を有効化",
+  "inactive-kick-settings.disable.description": "自動キック機能を無効化",
+  "inactive-kick-settings.set-warn-message.description":
+    "カスタム事前通知メッセージを設定",
+  "inactive-kick-settings.clear-warn-message.description":
+    "カスタム事前通知メッセージを削除",
+  "inactive-kick-settings.set-kick-message.description":
+    "カスタムキック通知メッセージを設定",
+  "inactive-kick-settings.clear-kick-message.description":
+    "カスタムキック通知メッセージを削除",
+  "inactive-kick-settings.set-marker-role.description":
+    "警告対象へ自動付与する対象ロールを設定",
+  "inactive-kick-settings.set-marker-role.role.description":
+    "警告対象へ付与するロール",
+  "inactive-kick-settings.clear-marker-role.description":
+    "対象ロール連携を解除",
+  "inactive-kick-settings.whitelist.description": "キック除外リストを管理",
+  "inactive-kick-settings.whitelist.add.description":
+    "除外リストにロール／ユーザーを追加",
+  "inactive-kick-settings.whitelist.add.role.description": "除外するロール",
+  "inactive-kick-settings.whitelist.add.user.description": "除外するユーザー",
+  "inactive-kick-settings.whitelist.remove.description":
+    "除外リストからロール／ユーザーを削除",
+  "inactive-kick-settings.whitelist.remove.role.description": "削除するロール",
+  "inactive-kick-settings.whitelist.remove.user.description":
+    "削除するユーザー",
+  "inactive-kick-settings.whitelist.list.description": "除外リストを表示",
+  "inactive-kick-settings.preview.description":
+    "現在のキック対象・通知対象の一覧を表示",
+  "inactive-kick-settings.view.description": "現在の設定を表示",
+  "inactive-kick-settings.reset.description": "設定をリセット",
+
+  // ── ユーザーレスポンス ────────────────────────
+  "user-response.set_channel_success":
+    "通知チャンネルを {{channel}} に設定しました。",
+  "user-response.text_channel_only": "テキストチャンネルを指定してください。",
+  "user-response.channel_bot_permission":
+    "そのチャンネルへの送信権限（チャンネルを見る／メッセージを送信／埋め込みリンク）が不足しています。",
+  "user-response.set_threshold_success":
+    "非アクティブ判定日数を {{days}} 日に設定しました。",
+  "user-response.threshold_out_of_range":
+    "日数は 14〜365 の範囲で指定してください。",
+  "user-response.enable_success": "自動キック機能を有効化しました。",
+  "user-response.enable_error_no_channel":
+    "通知チャンネルが設定されていません。先に /inactive-kick-settings set-channel を実行してください。",
+  "user-response.disable_success": "自動キック機能を無効化しました。",
+  "user-response.set_warn_message_success":
+    "事前通知メッセージを設定しました。",
+  "user-response.clear_warn_message_success":
+    "事前通知メッセージを削除しました。",
+  "user-response.set_kick_message_success":
+    "キック通知メッセージを設定しました。",
+  "user-response.clear_kick_message_success":
+    "キック通知メッセージを削除しました。",
+  "user-response.set_marker_role_success":
+    "対象ロールを {{role}} に設定しました。",
+  "user-response.set_marker_role_error_hierarchy":
+    "そのロールは Bot の最上位ロール以上のため付与できません。Bot ロールより下位のロールを指定してください。",
+  "user-response.marker_role_bot_permission":
+    "対象ロールの付与には Bot に「ロールの管理」権限が必要です。",
+  "user-response.clear_marker_role_success": "対象ロール連携を解除しました。",
+  "user-response.whitelist_requires_target":
+    "ロールまたはユーザーのいずれかを指定してください。",
+  "user-response.whitelist_add_role_success":
+    "ロール {{role}} を除外リストに追加しました。",
+  "user-response.whitelist_add_user_success":
+    "ユーザー {{user}} を除外リストに追加しました。",
+  "user-response.whitelist_add_already": "既に除外リストに登録されています。",
+  "user-response.whitelist_remove_role_success":
+    "ロール {{role}} を除外リストから削除しました。",
+  "user-response.whitelist_remove_user_success":
+    "ユーザー {{user}} を除外リストから削除しました。",
+  "user-response.whitelist_remove_not_found":
+    "指定の対象は除外リストにありません。",
+  "user-response.reset_success": "設定をリセットしました。",
+  "user-response.reset_cancelled": "リセットをキャンセルしました。",
+  "user-response.channel_deleted_notice":
+    "⚠️ 自動キックの通知チャンネルが削除されたため、機能を無効化しました。",
+
+  // ── 設定表示 / リセット Embed ─────
+  "embed.title.view": "非アクティブ自動キック設定",
+  "embed.field.name.channel": "通知チャンネル",
+  "embed.field.name.threshold": "非アクティブ判定日数",
+  "embed.field.name.enabled_at": "有効化日時",
+  "embed.field.name.marker_role": "対象ロール",
+  "embed.field.name.warn_message": "事前通知メッセージ",
+  "embed.field.name.kick_message": "キック通知メッセージ",
+  "embed.field.name.whitelist": "除外リスト",
+  "embed.field.value.threshold_days": "{{count}} 日",
+  "embed.field.value.whitelist_counts":
+    "ロール {{roles}} 件 / ユーザー {{users}} 件",
+  "embed.field.value.message_set": "設定済み",
+  "embed.field.name.test_mode_status": "テストモード（全体）",
+  "embed.title.reset_confirm": "設定リセット確認",
+  "embed.description.reset_confirm":
+    "非アクティブ自動キックの設定をリセットしますか？この操作は元に戻せません（活動履歴は保持されます）。",
+  "embed.field.name.reset_target": "削除対象",
+  "embed.field.value.reset_target":
+    "有効/無効 / 通知チャンネル / しきい値 / 各カスタムメッセージ / 対象ロール / 除外リスト / 有効化日時",
+  "embed.title.whitelist": "除外リスト",
+  "embed.field.name.whitelist_roles": "除外ロール",
+  "embed.field.name.whitelist_users": "除外ユーザー",
+
+  // ── preview ─────
+  "preview.title": "🔍 自動キック対象プレビュー",
+  "preview.none": "現在、キック対象・通知対象のメンバーはいません。",
+  "preview.section.kick": "キック対象",
+  "preview.section.final": "最終警告対象",
+  "preview.section.week": "1 週間前通知対象",
+  "preview.entry": "{{user}} — {{days}} 日非アクティブ",
+
+  // ── 監査ログ理由 ─────
   "audit_reason.reactivated": "再活動を検知したため対象ロールを剥奪",
   "audit_reason.marker_assigned": "非アクティブ警告のため対象ロールを付与",
   "audit_reason.kick": "一定期間非アクティブのため自動キック",
@@ -13,7 +134,6 @@ export const inactiveKick = {
   "embed.field.name.kick_schedule": "キック予定",
   "embed.field.value.days_left": "あと {{count}} 日",
   "embed.field.value.soon": "まもなく",
-  // 既定の事前通知メッセージ（単一波括弧プレースホルダーを後段で置換）
   "default.warn_message":
     "サーバー「{serverName}」で長期間活動のないメンバーが {count} 名います。あと {daysLeft} 日で自動的にキックされます。引き続き参加される場合は、メッセージの投稿やリアクションなどで活動してください。",
 
@@ -22,9 +142,18 @@ export const inactiveKick = {
   "embed.field.name.kicked_members": "キックしたメンバー",
   "embed.field.name.test_mode": "テストモード",
   "embed.field.value.test_mode": "（テストモード: 実際にはキックしていません）",
-  // 既定のキック通知メッセージ
   "default.kick_message":
     "サーバー「{serverName}」で {thresholdDays} 日以上活動のなかった {count} 名のメンバーを自動的にキックしました。",
+
+  // ── UIラベル（モーダル）─────
+  "ui.modal.set_warn_message_title": "事前通知メッセージを設定",
+  "ui.modal.set_warn_message_label": "事前通知メッセージ",
+  "ui.modal.set_warn_message_placeholder":
+    "{count}, {daysLeft}, {thresholdDays}, {serverName}, {markerRole} を使用可（最大500文字）",
+  "ui.modal.set_kick_message_title": "キック通知メッセージを設定",
+  "ui.modal.set_kick_message_label": "キック通知メッセージ",
+  "ui.modal.set_kick_message_placeholder":
+    "{count}, {thresholdDays}, {serverName} を使用可（最大500文字）",
 
   // ── ログ ─────────────────────────────────────
   "log.activity_record_failed":
@@ -47,6 +176,7 @@ export const inactiveKick = {
   "log.kick_failed": "キックに失敗 GuildId: {{guildId}} UserId: {{userId}}",
   "log.kick_skipped_unkickable":
     "キック不能のためスキップ GuildId: {{guildId}} UserId: {{userId}}",
+  "log.config_updated": "設定更新 GuildId: {{guildId}} 操作: {{action}}",
 } as const;
 
 export type InactiveKickTranslations = typeof inactiveKick;

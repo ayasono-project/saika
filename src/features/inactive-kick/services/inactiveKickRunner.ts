@@ -73,6 +73,35 @@ function toCandidateInput(
 }
 
 /**
+ * ギルドメンバーと活動履歴から候補区分を算出する（日次チェックと preview で共有）。
+ * @param guild 対象ギルド
+ * @param members 取得済みのギルドメンバー一覧
+ * @param settings 区分に用いる設定
+ * @param now 現在時刻
+ * @returns 区分結果
+ */
+export async function buildCandidateBuckets(
+  guild: Guild,
+  members: GuildMember[],
+  settings: InactiveKickSettings,
+  now: Date,
+): Promise<CandidateBuckets> {
+  const activityList = await getBotMemberActivityRepository().findByGuild(
+    guild.id,
+  );
+  const activities = new Map<string, CandidateActivity>(
+    activityList.map((a) => [
+      a.userId,
+      { lastActivityAt: a.lastActivityAt, warnStage: a.warnStage },
+    ]),
+  );
+  const normalized = members.map((m) =>
+    toCandidateInput(m, guild, settings.markerRoleId),
+  );
+  return categorizeCandidates(normalized, activities, settings, now);
+}
+
+/**
  * 除外メンバーの猶予クリア（warnStage を 0 にリセット・対象ロール剥奪）を行う。
  */
 async function applyGraceClear(
@@ -364,21 +393,12 @@ export async function processGuildInactiveKick(
     return;
   }
 
-  // 活動履歴を userId キーのマップへ
-  const activityRepo = getBotMemberActivityRepository();
-  const activityList = await activityRepo.findByGuild(guild.id);
-  const activities = new Map<string, CandidateActivity>(
-    activityList.map((a) => [
-      a.userId,
-      { lastActivityAt: a.lastActivityAt, warnStage: a.warnStage },
-    ]),
+  const buckets = await buildCandidateBuckets(
+    guild,
+    members,
+    settings,
+    new Date(),
   );
-
-  const now = new Date();
-  const normalized = members.map((m) =>
-    toCandidateInput(m, guild, settings.markerRoleId),
-  );
-  const buckets = categorizeCandidates(normalized, activities, settings, now);
 
   // 1. 除外メンバーの猶予クリア
   await applyGraceClear(guild, buckets, settings.markerRoleId);

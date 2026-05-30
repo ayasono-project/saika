@@ -14,6 +14,10 @@ import { getGuildCoreRepository } from "../../features/guild-settings/guildCoreR
 import { GuildSettingsAggregateRepository } from "../../features/guild-settings/guildSettingsAggregateRepository";
 import type { GuildSettingsService } from "../../features/guild-settings/guildSettingsService";
 import { createGuildSettingsService } from "../../features/guild-settings/guildSettingsService";
+import { getInactiveKickSettingsRepository } from "../../features/inactive-kick/inactiveKickSettingsRepository";
+import type { InactiveKickSettingsService } from "../../features/inactive-kick/inactiveKickSettingsService";
+import { createInactiveKickSettingsService } from "../../features/inactive-kick/inactiveKickSettingsService";
+import { getMemberActivityRepository } from "../../features/inactive-kick/memberActivityRepository";
 import { getMemberLogSettingsRepository } from "../../features/member-log/memberLogSettingsRepository";
 import type { MemberLogSettingsService } from "../../features/member-log/memberLogSettingsService";
 import { createMemberLogSettingsService } from "../../features/member-log/memberLogSettingsService";
@@ -38,7 +42,10 @@ import type { IVcRecruitRepository } from "../../features/vc-recruit/repositorie
 import { createVcRecruitRepository } from "../../features/vc-recruit/repositories/vcRecruitRepository";
 import { getVcRecruitSettingsRepository } from "../../features/vc-recruit/vcRecruitSettingsRepository";
 import { createVcRecruitSettingsService } from "../../features/vc-recruit/vcRecruitSettingsService";
-import type { ITicketRepository } from "../../shared/database/types";
+import type {
+  IMemberActivityRepository,
+  ITicketRepository,
+} from "../../shared/database/types";
 import { localeManager } from "../../shared/locale/localeManager";
 import { createBotServiceAccessor } from "../../shared/utils/serviceFactory";
 
@@ -56,6 +63,7 @@ export interface BotServices {
   stickyMessageSettingsService: StickyMessageSettingsService;
   stickyMessageResendService: StickyMessageResendService;
   memberLogSettingsService: MemberLogSettingsService;
+  inactiveKickSettingsService: InactiveKickSettingsService;
   ticketSettingsService: TicketSettingsService;
   ticketRepository: ITicketRepository;
   reactionRolePanelSettingsService: ReactionRolePanelSettingsService;
@@ -142,6 +150,26 @@ export const setBotMemberLogSettingsService: (
   value: MemberLogSettingsService,
 ) => void = _memberLogSettingsServiceAccessor[1];
 
+const _inactiveKickSettingsServiceAccessor =
+  createBotServiceAccessor<InactiveKickSettingsService>(
+    "InactiveKickSettingsService",
+  );
+export const getBotInactiveKickSettingsService: () => InactiveKickSettingsService =
+  _inactiveKickSettingsServiceAccessor[0];
+export const setBotInactiveKickSettingsService: (
+  value: InactiveKickSettingsService,
+) => void = _inactiveKickSettingsServiceAccessor[1];
+
+const _memberActivityRepositoryAccessor =
+  createBotServiceAccessor<IMemberActivityRepository>(
+    "MemberActivityRepository",
+  );
+export const getBotMemberActivityRepository: () => IMemberActivityRepository =
+  _memberActivityRepositoryAccessor[0];
+export const setBotMemberActivityRepository: (
+  value: IMemberActivityRepository,
+) => void = _memberActivityRepositoryAccessor[1];
+
 const _reactionRolePanelSettingsServiceAccessor =
   createBotServiceAccessor<ReactionRolePanelSettingsService>(
     "ReactionRolePanelSettingsService",
@@ -194,6 +222,8 @@ export function initializeBotCompositionRoot(
   const bumpReminderSettingsRepo = getBumpReminderSettingsRepository(prisma);
   const vacRepo = getVacSettingsRepository(prisma);
   const memberLogRepo = getMemberLogSettingsRepository(prisma);
+  const inactiveKickRepo = getInactiveKickSettingsRepository(prisma);
+  const memberActivityRepo = getMemberActivityRepository(prisma);
   const vcRecruitSettingsRepo = getVcRecruitSettingsRepository(prisma);
   const stickyMessageRepository = getStickyMessageRepository(prisma);
   const reactionRolePanelRepository = getReactionRolePanelRepository(prisma);
@@ -256,6 +286,12 @@ export function initializeBotCompositionRoot(
     createMemberLogSettingsService(memberLogRepo);
   setBotMemberLogSettingsService(memberLogSettingsService);
 
+  // InactiveKick（非アクティブ自動キック）
+  const inactiveKickSettingsService =
+    createInactiveKickSettingsService(inactiveKickRepo);
+  setBotInactiveKickSettingsService(inactiveKickSettingsService);
+  setBotMemberActivityRepository(memberActivityRepo);
+
   // Ticket
   const ticketSettingsService = createTicketSettingsService(
     ticketSettingsRepository,
@@ -287,6 +323,7 @@ export function initializeBotCompositionRoot(
     stickyMessageSettingsService,
     stickyMessageResendService,
     memberLogSettingsService,
+    inactiveKickSettingsService,
     ticketSettingsService,
     ticketRepository,
     reactionRolePanelSettingsService,

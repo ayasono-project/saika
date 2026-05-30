@@ -18,7 +18,6 @@ const getVcRecruitSessionMock = vi.fn();
 const deleteVcRecruitSessionMock = vi.fn();
 const findSetupByPanelChannelIdMock = vi.fn();
 const addCreatedVoiceChannelIdMock = vi.fn();
-const sendVcControlPanelMock = vi.fn();
 const safeReplyMock = vi.fn();
 const tGuildMock = vi.fn(async (_guildId: string, key: string) => key);
 
@@ -35,9 +34,6 @@ vi.mock("@/bot/services/botCompositionRoot", () => ({
     addCreatedVoiceChannelId: (...args: unknown[]) =>
       addCreatedVoiceChannelIdMock(...args),
   }),
-}));
-vi.mock("@/features/vc-panel/vcControlPanel", () => ({
-  sendVcControlPanel: (...args: unknown[]) => sendVcControlPanelMock(...args),
 }));
 vi.mock("@/bot/utils/interaction", () => ({
   safeReply: (...args: unknown[]) => safeReplyMock(...args),
@@ -221,7 +217,6 @@ describe("vcRecruitModalHandler / execute()", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     safeReplyMock.mockResolvedValue(undefined);
-    sendVcControlPanelMock.mockResolvedValue(undefined);
     addCreatedVoiceChannelIdMock.mockResolvedValue(undefined);
   });
 
@@ -289,7 +284,6 @@ describe("vcRecruitModalHandler / execute()", () => {
       PANEL_CH_ID,
       "new-vc-1",
     );
-    expect(sendVcControlPanelMock).toHaveBeenCalledWith(newVc);
     // send() にはコンポーネント（ボタン行）が含まれる
     expect(guild._postChannelSendMock).toHaveBeenCalledWith(
       expect.objectContaining({

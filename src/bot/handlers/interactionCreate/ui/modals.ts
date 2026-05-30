@@ -15,14 +15,11 @@ import { stickyMessageUpdateModalHandler } from "../../../../features/sticky-mes
 import { ticketCreateModalHandler } from "../../../../features/ticket/handlers/ui/ticketCreateModalHandler";
 import { ticketEditPanelModalHandler } from "../../../../features/ticket/handlers/ui/ticketEditPanelModalHandler";
 import { ticketSetupModalHandler } from "../../../../features/ticket/handlers/ui/ticketSetupModalHandler";
-import { vcPanelModalHandler } from "../../../../features/vc-panel/handlers/ui/vcPanelModal";
 import { vcRecruitModalHandler } from "../../../../features/vc-recruit/handlers/ui/vcRecruitModal";
 import { vcRecruitRenameModalHandler } from "../../../../features/vc-recruit/handlers/ui/vcRecruitRenameModal";
 import type { ModalHandler } from "./types";
 
 export const modalHandlers: ModalHandler[] = [
-  // VC操作パネルのモーダル送信を処理（VAC・VC募集など共用）
-  vcPanelModalHandler,
   // VC募集モーダル送信（ステップ1→2）を処理
   vcRecruitModalHandler,
   // VC募集メッセージからのVC名変更モーダルを処理

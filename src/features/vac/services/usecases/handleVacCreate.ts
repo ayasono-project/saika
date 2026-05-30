@@ -15,7 +15,6 @@ import {
 } from "../../../../bot/shared/errorChannelNotifier";
 import { logPrefixed, tDefault } from "../../../../shared/locale/localeManager";
 import { logger } from "../../../../shared/utils/logger";
-import { sendVcControlPanel } from "../../../vc-panel/vcControlPanel";
 import { VAC_SETTINGS_COMMAND } from "../../commands/vacSettingsCommand.constants";
 import type { VacSettingsService } from "../../vacSettingsService";
 
@@ -149,17 +148,6 @@ export async function handleVacCreateUseCase(
   if (voiceChannel.type !== ChannelType.GuildVoice) {
     return;
   }
-
-  await sendVcControlPanel(voiceChannel).catch(async (error) => {
-    logger.error(
-      logPrefixed("system:log_prefix.vac", "vac:log.panel_send_failed"),
-      error,
-    );
-    await notifyErrorChannel(member.guild, error, {
-      feature: "VAC",
-      action: "コントロールパネル送信失敗",
-    });
-  });
 
   try {
     await member.voice.setChannel(voiceChannel);

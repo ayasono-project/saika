@@ -1,7 +1,7 @@
 // tests/unit/bot/features/vc-command/commands/usecases/vcLimit.test.ts
 
 import { ValidationError } from "@ayasono/shared/core";
-import { DiscordAPIError, MessageFlags, RESTJSONErrorCodes } from "discord.js";
+import { DiscordAPIError, RESTJSONErrorCodes } from "discord.js";
 import type { Mock } from "vitest";
 import { createSuccessEmbed } from "@/bot/utils/messageResponse";
 import { resolveVoiceChannelForEdit } from "@/features/vc-command/commands/helpers/vcVoiceChannelResolver";
@@ -84,7 +84,6 @@ describe("bot/features/vc-command/commands/usecases/vcLimit", () => {
     expect(createSuccessEmbed).toHaveBeenCalledWith("limit:unlimited");
     expect(reply).toHaveBeenCalledWith({
       embeds: [{ description: "limit:unlimited" }],
-      flags: MessageFlags.Ephemeral,
     });
   });
 
@@ -131,7 +130,6 @@ describe("bot/features/vc-command/commands/usecases/vcLimit", () => {
     expect(createSuccessEmbed).toHaveBeenCalledWith("limit:8");
     expect(reply).toHaveBeenCalledWith({
       embeds: [{ description: "limit:8" }],
-      flags: MessageFlags.Ephemeral,
     });
   });
 });

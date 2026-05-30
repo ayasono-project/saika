@@ -2,9 +2,9 @@
 
 > ボイスチャンネルの非アクティブユーザー、または指定 VC の参加者全員を手動でAFKチャンネルに移動する機能
 
-最終更新: 2026年5月29日
+最終更新: 2026年5月30日
 
-> **ステータス**: `/afk` の `target` 拡張(VC 一括指定)および public 化はたたき台(2026-05-28 追記)。共通ユーティリティおよびオープン項目は [VC_COMMAND_SPEC.md](VC_COMMAND_SPEC.md) と共有する。
+> **ステータス**: `/afk` の `target` 拡張(VC 一括指定)および public 化は実装完了(2026-05-30)。型表現・共通ユーティリティ・確認ダイアログのオープン項目は [VC_COMMAND_SPEC.md](VC_COMMAND_SPEC.md) で確定済み。
 
 ---
 
@@ -49,15 +49,16 @@
 
 | オプション名 | 型 | 必須 | 説明 |
 | --- | --- | --- | --- |
-| `target` | User または Voice Channel | ❌ | 移動対象のユーザー、または対象 VC。省略時は実行者自身。Channel 指定時は当該 VC の全員をサーバー AFK チャンネルに移動 |
+| `target-member` | User | ❌ | 移動対象のメンバー。省略時は実行者自身 |
+| `target-channel` | Voice Channel | ❌ | 当該 VC の全員をサーバー AFK チャンネルに移動 |
 
-`target` の型表現(`User | Channel`)は Discord の制約上、サブコマンドまたは Mentionable で実現する。実装方式は [VC_COMMAND_SPEC.md](VC_COMMAND_SPEC.md) のオープン項目と統一して確定する。
+`target` の型表現は [VC_COMMAND_SPEC.md](VC_COMMAND_SPEC.md) と統一し **案 A**(2オプション + コード側で「両方未指定=自分 / 両方指定=競合エラー」を判定)を採用。共通解決ヘルパー `resolveVcActionTarget`(`src/bot/shared/vcActionTarget.ts`)を使う。
 
 **従来の `user` オプションからの変更点:**
 
-- `user` → `target` にリネーム(VC 指定にも対応するため)
-- 既存ローカライズキー `afk.user.description` → `afk.target.description` に追従
-- 既存テストの追従が必要
+- `user` → `target-member`(User) + `target-channel`(VoiceChannel) に変更(VC 一括指定に対応)
+- 既存ローカライズキー `afk.user.description` → `afk.target-member.description` / `afk.target-channel.description` に置換
+- 成功時応答は `formatActionLog`(action='afk') の public Embed に変更(従来の `afk:user-response.moved` は未使用化)
 
 ### 動作フロー
 
@@ -226,7 +227,8 @@
 | キー | 用途 | ja | en |
 | --- | --- | --- | --- |
 | `afk.description` | コマンド説明 | AFKチャンネルにユーザーを移動 | Move user to AFK channel |
-| `afk.target.description` | オプション説明(リネーム後) | TBD(User または VC) | TBD (User or voice channel) |
+| `afk.target-member.description` | オプション説明 | 移動するメンバー（省略で自分） | Member to move (default: yourself) |
+| `afk.target-channel.description` | オプション説明 | 全員をAFKチャンネルに移動する対象VC | VC whose members will all be moved to the AFK channel |
 | `afk-settings.description` | コマンド説明 | AFK機能の設定（サーバー管理権限が必要） | Configure AFK feature (requires Manage Server) |
 | `afk-settings.set-channel.description` | サブコマンド説明 | AFKチャンネルを設定 | Configure AFK channel |
 | `afk-settings.set-channel.channel.description` | オプション説明 | AFKチャンネル（ボイスチャンネル） | AFK channel (voice channel) |
@@ -245,6 +247,9 @@
 | `user-response.user_not_in_voice` | VC未参加エラー | 指定されたユーザーはボイスチャンネルにいません。 | The specified user is not in a voice channel. |
 | `user-response.channel_not_found` | チャンネル不在エラー | AFKチャンネルが見つかりませんでした。\nチャンネルが削除されている可能性があります。 | AFK channel not found.\nThe channel may have been deleted. |
 | `user-response.invalid_channel_type` | チャンネル種別エラー | ボイスチャンネルを指定してください。 | Please specify a voice channel. |
+| `user-response.target_is_afk` | 対象VCがAFKチャンネルと同一 | 対象VCがAFKチャンネルと同じです。 | The target VC is the same as the AFK channel. |
+
+> 一括移動時の確認ダイアログ・アクションログ・対象/失敗内訳の文言、メンバー不在/VC未参加エラーは `vc` 名前空間の共通キー(`vc:bulk-confirm.*` / `vc:action-log.*` / `vc:user-response.member_not_found` 等)を参照する。詳細は [VC_COMMAND_SPEC.md](VC_COMMAND_SPEC.md) のローカライズを参照。
 
 ### Embed
 
@@ -285,13 +290,13 @@
 
 ### target 拡張・public 化に伴う追加テスト
 
-- [ ] `/afk` target=user / target省略: 既存挙動が `target` リネーム後も維持され、応答が **public** で返る
-- [ ] `/afk` target=channel 正常系: 確認ダイアログ → 実行 → 対象 VC 全員が AFK チャンネルに移動、Embed が public
-- [ ] `/afk` target=channel: 対象 VC が AFK チャンネル自身でエラー
-- [ ] `/afk` target=channel: 対象 VC が空(受付時点 / 実行後の再取得時点)で no-op エラー
-- [ ] `/afk` target=channel: 確認ダイアログのキャンセル / タイムアウト動作
-- [ ] `/afk` target=channel: 一部メンバーで `setChannel` 失敗時に残りを続行、失敗内訳が Embed に表示
-- [ ] `/afk`: `formatActionLog`(action='afk', individual/bulk)が正しいテンプレートで生成される
+- [x] `/afk` target=member / target省略: 既存挙動が維持され、応答が **public** で返る
+- [x] `/afk` target=channel 正常系: 確認ダイアログ → 実行 → 対象 VC 全員が AFK チャンネルに移動、結果が public
+- [x] `/afk` target=channel: 対象 VC が AFK チャンネル自身でエラー
+- [x] `/afk` target=channel: 対象 VC が空(受付時点 / 実行後の再取得時点)で no-op エラー
+- [x] `/afk` target=channel: 確認ダイアログのキャンセル / タイムアウト動作
+- [x] `/afk` target=channel: 一部メンバーで `setChannel` 失敗時に残りを続行、失敗内訳が Embed に表示（共通 `vcBulkAction` テストで検証）
+- [x] `/afk`: `formatActionLog`(action='afk', individual/bulk)が正しいテンプレートで生成される
 
 ---
 

@@ -1,7 +1,11 @@
 // src/bot/commands/afk.ts
 // AFK機能のコマンド
 
-import { ChatInputCommandInteraction, SlashCommandBuilder } from "discord.js";
+import {
+  ChannelType,
+  ChatInputCommandInteraction,
+  SlashCommandBuilder,
+} from "discord.js";
 import { executeAfkCommand } from "../../features/afk/commands/afkCommand.execute";
 import { getCommandLocalizations } from "../../shared/locale/commandLocalizations";
 import { handleCommandError } from "../errors/interactionErrorHandler";
@@ -11,17 +15,19 @@ import type { Command } from "../types/discord";
 const AFK_COMMAND = {
   NAME: "afk",
   OPTION: {
-    USER: "user",
+    TARGET_MEMBER: "target-member",
+    TARGET_CHANNEL: "target-channel",
   },
 } as const;
 
 const AFK_I18N_KEYS = {
   COMMAND_DESCRIPTION: "afk.description",
-  USER_OPTION_DESCRIPTION: "afk.user.description",
+  TARGET_MEMBER_OPTION_DESCRIPTION: "afk.target-member.description",
+  TARGET_CHANNEL_OPTION_DESCRIPTION: "afk.target-channel.description",
 } as const;
 
 /**
- * AFKコマンド（ユーザー移動）
+ * AFKコマンド（ユーザー / VC全員の移動）
  */
 export const afkCommand: Command = {
   data: (() => {
@@ -30,9 +36,13 @@ export const afkCommand: Command = {
       "afk",
       AFK_I18N_KEYS.COMMAND_DESCRIPTION,
     );
-    const userDesc = getCommandLocalizations(
+    const targetMemberDesc = getCommandLocalizations(
       "afk",
-      AFK_I18N_KEYS.USER_OPTION_DESCRIPTION,
+      AFK_I18N_KEYS.TARGET_MEMBER_OPTION_DESCRIPTION,
+    );
+    const targetChannelDesc = getCommandLocalizations(
+      "afk",
+      AFK_I18N_KEYS.TARGET_CHANNEL_OPTION_DESCRIPTION,
     );
 
     return new SlashCommandBuilder()
@@ -41,9 +51,17 @@ export const afkCommand: Command = {
       .setDescriptionLocalizations(cmdDesc.localizations)
       .addUserOption((option) =>
         option
-          .setName(AFK_COMMAND.OPTION.USER)
-          .setDescription(userDesc.ja)
-          .setDescriptionLocalizations(userDesc.localizations)
+          .setName(AFK_COMMAND.OPTION.TARGET_MEMBER)
+          .setDescription(targetMemberDesc.ja)
+          .setDescriptionLocalizations(targetMemberDesc.localizations)
+          .setRequired(false),
+      )
+      .addChannelOption((option) =>
+        option
+          .setName(AFK_COMMAND.OPTION.TARGET_CHANNEL)
+          .setDescription(targetChannelDesc.ja)
+          .setDescriptionLocalizations(targetChannelDesc.localizations)
+          .addChannelTypes(ChannelType.GuildVoice)
           .setRequired(false),
       );
   })(),

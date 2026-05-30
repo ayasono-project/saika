@@ -2,7 +2,7 @@
 
 > Guild Settings - ギルド全体の共通設定の管理・バックアップ機能
 
-最終更新: 2026年5月29日
+最終更新: 2026年5月30日
 
 ---
 
@@ -288,7 +288,7 @@
 - 添付ファイル名: `guild-settings-{guildId}-{timestamp}.json`
 - `GuildSettings` レコード（locale/errorChannelId を保持）が存在しない場合はエラーメッセージを返す（= まだギルドが Bot を一度も触っていない状態）
 - `state` フィールドは stateful データ（チケット設定 / open チケット / スティッキー / リアクションロールパネル / VAC 作成済み VC）を格納
-- DB 上 JSON 文字列で保存されているフィールド（`StickyMessage.embedData` / `GuildReactionRolePanel.buttons` / `GuildVacSettings.createdChannels` / `GuildVcRecruitSettings.setups` / `GuildVcRecruitSettings.mentionRoleIds` / `GuildBumpReminderSettings.mentionUserIds` / `GuildTicketSettings.staffRoleIds` / `GuildVacSettings.triggerChannelIds`）は export 時にパースしてオブジェクト/配列として書き出し、import 時に再シリアライズして DB に保存する（JSON ファイルの可読性と Postgres 移行後の jsonb 化との整合性を優先）
+- 配列/オブジェクトのフィールド（`GuildReactionRolePanel.buttons` / `GuildVacSettings.createdChannels`・`triggerChannelIds` / `GuildVcRecruitSettings.setups`・`mentionRoleIds` / `GuildBumpReminderSettings.mentionUserIds` / `GuildTicketSettings.staffRoleIds`）は DB 上 **jsonb** で保存され、export では配列/オブジェクトのまま書き出す。`StickyMessage.embedData` も jsonb だが、旧 SQLite 版が出力した export ファイルとの互換のため export 表現では JSON 文字列化し、import 時にパースして jsonb へ保存する
 
 **export 対象外:**
 
@@ -438,7 +438,7 @@
 - チャンネル/ロール ID が見つからない場合は警告表示のみでインポート自体は続行可能
 - マージ方式は下記「インポートマージ方式」に従う
 - インポート全体（設定系の上書き + stateful の insert 群）は単一トランザクション (`prisma.$transaction`) でラップし、部分失敗時は全体をロールバックする
-- JSON 文字列カラムの内容（`embedData` / `buttons` 等）に対する深いスキーマ検証は行わない（export 元が同一インスタンスのため有効データ前提。不正データは実利用時に既存のエラーハンドリング経路で検知される）
+- jsonb カラムの内容（`embedData` / `buttons` 等）に対する深いスキーマ検証は行わない（export 元が同一インスタンスのため有効データ前提。不正データは実利用時に既存のエラーハンドリング経路で検知される）
 
 ### インポートマージ方式
 
@@ -537,7 +537,7 @@ import 時は現 DB に存在しないものだけを追加し、既存レコー
 | --- | --- | --- |
 | `ticketSettings[]` | `GuildTicketSettings[]` | チケット設定パネル（[TICKET_SPEC](TICKET_SPEC.md) 参照） |
 | `openTickets[]` | `Ticket[]` | open 状態のチケットのみ（closed は対象外）。`categoryId` で `ticketSettings[]` と紐付く |
-| `stickyMessages[]` | `StickyMessage[]` | スティッキーメッセージ（[STICKY_MESSAGE_SPEC](STICKY_MESSAGE_SPEC.md) 参照）。`embedData` は DB 上の JSON 文字列をそのまま保持 |
+| `stickyMessages[]` | `StickyMessage[]` | スティッキーメッセージ（[STICKY_MESSAGE_SPEC](STICKY_MESSAGE_SPEC.md) 参照）。`embedData` は DB 上は jsonb だが export 表現では JSON 文字列として保持（旧 SQLite export 互換） |
 | `reactionRolePanels[]` | `GuildReactionRolePanel[]` | リアクションロールパネル（[REACTION_ROLE_SPEC](REACTION_ROLE_SPEC.md) 参照） |
 | `vacCreatedChannels[]` | `VacChannelPair[]` | VAC（ボイス自動作成）が自動生成した VC の追跡情報（`GuildVacSettings.createdChannels`）。Bot 再起動後も VC 管理を継続するために必要 |
 
@@ -663,7 +663,7 @@ import 時は現 DB に存在しないものだけを追加し、既存レコー
 - [x] import: JSON パース/バリデーションエラー、確認ダイアログ、リソース不在警告、正常インポート
 - [x] export: stateful データ（ticketSettings / openTickets / stickyMessages / reactionRolePanels / vacCreatedChannels）が JSON `state` フィールドに含まれる
 - [x] export: `VcRecruitSettings.setups[].createdVoiceChannelIds` が export 対象外であること（aggregate で配列を空にしてから返す）
-- [x] export: `StickyMessage.embedData` が JSON 文字列のままシリアライズされる
+- [x] export: `StickyMessage.embedData`（DB は jsonb）が JSON 文字列としてシリアライズされる
 - [x] import: stateful データのマージ（マージキー一致時スキップ・不一致時 insert）が各モデルで動作
 - [x] import: 確認ダイアログに「設定系サマリー」「stateful 新規追加予定件数」が表示される
 - [x] import: `setups[].createdVoiceChannelIds` が空配列で書き込まれる

@@ -10,13 +10,11 @@
 
 | # | セクション | 概要 | 残件 |
 | --- | --- | --- | ---: |
-| 6 | Postgres 移行 | SQLite → PostgreSQL（コード・スキーマ・ローカル検証は完了。残=本番切替のみ、infra §B 依存） | 1 |
-| 7 | `/vc disconnect` 実装 & ephemeral 監査 | 個別/一括の切断・移動 + ephemeral/public 見直し（完了。rename/limit public 化・操作パネル撤廃まで実施） | 0 |
 | 8 | 自動キック（非アクティブ整理） | 一定期間未活動メンバーの自動キック + 事前通知 | 3 |
 | 9 | 未承認ユーザー自動キック | 認証ロール未取得ユーザーの自動キック + 警告 DM | 3 |
 | 10 | Fastify API 実装 | web 完成後に契約通り実装 | 5 |
 | 11 | Bot 一般公開準備 | コマンド追加・認証申請 | 3 |
-| **合計** | | | **15** |
+| **合計** | | | **14** |
 
 > web ダッシュボード・インフラ（VPS / Cloudflare / Coolify）は別リポジトリで管理。
 > 作業順序は上から順（§5 → §6 → …）。§10 以降は web 側の進行に依存（§10 着手前に web がモック駆動で完成していること）。
@@ -24,29 +22,6 @@
 ---
 
 ## タスク一覧
-
-### 6. Postgres 移行
-
-SQLite → PostgreSQL のデータ層移行（命名リネームは §5 で完了）。schema は Bot 内部要件で確定。**コード・スキーマ・ローカル検証は完了**。本番切替のみ infra 側 Postgres 構築（infra §B）後に実施する。
-
-- [x] `schema.prisma` の provider 切替（sqlite → postgresql）+ 接続を `@prisma/adapter-pg` に変更（Prisma 7 は直接接続に driver adapter 必須のため「アダプタ無しネイティブ」は不可）
-- [x] テーブル名 `@@map` を `guild_*_configs` → `guild_*_settings` にリネーム
-- [x] JSON 文字列カラム 8 件を jsonb 化 + アプリ側の `JSON.parse`/`stringify`/`parseJsonArray` を全廃（ドメイン型を実体型化）
-- [x] migration を PostgreSQL 用に再生成 + ローカル Docker Postgres で検証（起動 / jsonb 往復 / docker build & run）
-- [x] Docker / Compose / `docker-entrypoint.sh` / `.env.example` を PostgreSQL 構成に変更
-- [x] [ARCHITECTURE.md](docs/guides/ARCHITECTURE.md) / [DEPLOYMENT.md](docs/guides/DEPLOYMENT.md) / [DEV_TIPS.md](docs/guides/DEV_TIPS.md) 更新
-- [ ] **本番切替（infra §B 完了後）**: saika 停止 → `/guild-settings export` → 新 Postgres へ import → `DATABASE_URL` 切替 → Coolify デプロイ → 起動確認
-
-### 7. `/vc disconnect` 実装 & ephemeral / public 監査
-
-VC 完全切断/移動コマンドの追加と、既存コマンドの ephemeral/public 設定の全面見直し。確定事項・オープン項目は [VC_COMMAND_SPEC.md](docs/specs/VC_COMMAND_SPEC.md) / [AFK_SPEC.md](docs/specs/AFK_SPEC.md) に集約（出力は Embed・public 統一、`/vc disconnect`・`/vc move`・`/afk` を `target:<member|channel>` 対応、channel 時のみ確認ダイアログ、`/afk`・`/vc rename`・`/vc limit` を ephemeral→public）。
-
-- [x] 仕様確定: VC_COMMAND_SPEC.md / AFK_SPEC.md のオープン項目を埋める（target 型=案A / カラー=blurple / TO=60s / 配置=src/bot/shared/ 等）
-- [x] [IMPLEMENTATION_GUIDELINES.md](docs/guides/IMPLEMENTATION_GUIDELINES.md) に「コマンド設計原則（ephemeral/public）」を追加し全コマンド分類
-- [x] 実装（`/vc disconnect`・`/vc move` 個別+一括 / `/afk` target 拡張 + public 化 / Embed 共通ユーティリティ `formatActionLog` + 一括確認ダイアログ）
-- [x] テスト（個別/一括・確認/キャンセル/タイムアウト・部分失敗・空VC no-op・target 競合 / formatActionLog 6 パターン）
-- [x] `/vc rename`・`/vc limit` の ephemeral→public 移行
-- [x] 操作パネル（vc-panel）撤廃（全機能を `/vc`・`/afk` に一本化。VAC・VC募集の自動パネル送信を廃止、ハンドラ/locale/docs/テストを整理）
 
 ### 8. 自動キック機能（非アクティブメンバー整理）
 
@@ -95,6 +70,29 @@ web フロントエンドがモック駆動（MSW 等）で完成した後、契
 ## 完了済み
 
 > 詳細な作業経過は git log を参照。
+
+### VC 操作コマンド拡張 & ephemeral/public 監査（§7・2026-05-30 完了・本番デプロイ済み）
+
+VC 切断/移動コマンドの追加と、VC 操作系の出力可視性の全面整理。`/vc disconnect`・`/vc move`（個別 + VC 全員の一括、`target-member`/`target-channel` 方式）と `/afk` の target 拡張（VC 全員一括）を追加。共通の `formatActionLog` / 一括確認ダイアログ（60s）を `src/bot/shared/` に新設し、一括は「参加者全員」+ 対象メンバーのメンション一覧で表示。
+
+- [x] 仕様確定: VC_COMMAND_SPEC / AFK_SPEC のオープン項目（target 型=案A / カラー=blurple / TO=60s / 配置=src/bot/shared/）
+- [x] [IMPLEMENTATION_GUIDELINES.md](docs/guides/IMPLEMENTATION_GUIDELINES.md) に「コマンド設計原則（ephemeral/public）」を追加し全コマンド分類
+- [x] 実装（`/vc disconnect`・`/vc move` 個別+一括 / `/afk` target 拡張 + public 化 / `formatActionLog` + 一括確認ダイアログ）
+- [x] テスト（個別/一括・確認/キャンセル/タイムアウト・部分失敗・空VC no-op・target 競合 / formatActionLog）
+- [x] `/vc rename`・`/vc limit` を public 化し、成功メッセージに対象VCを表示
+- [x] 操作パネル（vc-panel）撤廃（全機能を `/vc`・`/afk` に一本化、VAC・VC募集の自動パネル送信を廃止）
+
+### Postgres 移行（§6・2026-05-30 完了・本番デプロイ済み）
+
+SQLite → PostgreSQL のデータ層移行。コード・スキーマ・ローカル検証に加え、**本番切替まで完了**。
+
+- [x] `schema.prisma` の provider 切替（sqlite → postgresql）+ 接続を `@prisma/adapter-pg` に変更（Prisma 7 は直接接続に driver adapter 必須）
+- [x] テーブル名 `@@map` を `guild_*_configs` → `guild_*_settings` にリネーム
+- [x] JSON 文字列カラム 8 件を jsonb 化 + アプリ側の `JSON.parse`/`stringify`/`parseJsonArray` を全廃
+- [x] migration を PostgreSQL 用に再生成 + ローカル Docker Postgres で検証
+- [x] Docker / Compose / `docker-entrypoint.sh` / `.env.example` を PostgreSQL 構成に変更
+- [x] [ARCHITECTURE.md](docs/guides/ARCHITECTURE.md) / [DEPLOYMENT.md](docs/guides/DEPLOYMENT.md) / [DEV_TIPS.md](docs/guides/DEV_TIPS.md) 更新
+- [x] **本番切替**: infra で Coolify マネージド PostgreSQL 17 + R2 バックアップ構築 → `/guild-settings export` → `DATABASE_URL` 切替 → release deploy → `/guild-settings import` → 検証OK。ホットフィックス2件対応済み（import の upsert 化 / reaction-role の messageId 解決）。旧 sqlite ボリュームは温存中（数週間後に削除予定）
 
 ### ディレクトリ再編 + 命名整理（§5・2026-05-29 完了）
 

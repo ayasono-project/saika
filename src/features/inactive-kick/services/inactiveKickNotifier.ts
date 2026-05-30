@@ -4,7 +4,10 @@
 import { EmbedBuilder } from "discord.js";
 import { EMBED_COLORS } from "../../../shared/constants/embedColors";
 import type { GuildTFunction } from "../../../shared/locale/helpers";
-import type { CategorizedCandidate } from "./inactiveKickCandidates";
+import type {
+  CandidateBuckets,
+  CategorizedCandidate,
+} from "./inactiveKickCandidates";
 
 /** 1 ページあたりの対象メンバー件数（1 フィールド 1024 文字制約に十分収まる件数） */
 export const NOTIFICATION_PAGE_SIZE = 25;
@@ -152,4 +155,66 @@ export function buildKickEmbedPages(
     }
     return embed;
   });
+}
+
+/** preview 1 ページあたりの行数 */
+const PREVIEW_LINES_PER_PAGE = 20;
+
+/**
+ * preview（現在のキック対象・通知対象の一覧）の Embed ページ配列を構築する。
+ * 段階別にメンバーと非アクティブ日数を表示する。対象 0 件なら「対象なし」を返す。
+ * @param buckets 区分結果
+ * @param t 翻訳関数（interaction.locale ベース）
+ * @returns Embed ページ配列（1 件以上）
+ */
+export function buildPreviewEmbedPages(
+  buckets: CandidateBuckets,
+  t: GuildTFunction,
+): EmbedBuilder[] {
+  const total =
+    buckets.kick.length + buckets.finalWarn.length + buckets.weekWarn.length;
+
+  const title = t("inactiveKick:preview.title");
+  if (total === 0) {
+    return [
+      new EmbedBuilder()
+        .setColor(EMBED_COLORS.INACTIVE_KICK_WARN)
+        .setTitle(title)
+        .setDescription(t("inactiveKick:preview.none")),
+    ];
+  }
+
+  // 段階見出し + 各メンバー行を 1 本のリストに連結する
+  const sections: Array<{
+    labelKey: Parameters<GuildTFunction>[0];
+    items: CategorizedCandidate[];
+  }> = [
+    { labelKey: "inactiveKick:preview.section.kick", items: buckets.kick },
+    {
+      labelKey: "inactiveKick:preview.section.final",
+      items: buckets.finalWarn,
+    },
+    { labelKey: "inactiveKick:preview.section.week", items: buckets.weekWarn },
+  ];
+  const lines: string[] = [];
+  for (const section of sections) {
+    if (section.items.length === 0) continue;
+    lines.push(`**${t(section.labelKey)}** (${section.items.length})`);
+    for (const c of section.items) {
+      lines.push(
+        t("inactiveKick:preview.entry", {
+          user: `<@${c.userId}>`,
+          days: c.inactiveDays,
+        }),
+      );
+    }
+  }
+
+  return chunk(lines, PREVIEW_LINES_PER_PAGE).map((pageLines) =>
+    new EmbedBuilder()
+      .setColor(EMBED_COLORS.INACTIVE_KICK_WARN)
+      .setTitle(title)
+      .setDescription(pageLines.join("\n"))
+      .setTimestamp(),
+  );
 }

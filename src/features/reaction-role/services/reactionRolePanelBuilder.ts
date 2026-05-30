@@ -26,7 +26,6 @@ import {
   REACTION_ROLE_BUTTONS_PER_ROW,
   REACTION_ROLE_COLOR_PLACEHOLDER,
   REACTION_ROLE_CUSTOM_ID,
-  REACTION_ROLE_DEFAULT_BUTTON_STYLE,
 } from "../commands/reactionRoleCommand.constants";
 
 /** lowercase のスタイル値から discord.js ButtonStyle への変換マップ */
@@ -219,13 +218,15 @@ export function validateSelectedRolesHierarchy(
 
 /**
  * ボタン色選択 StringSelectMenu を構築する（ロケール非依存の英語固定）
+ *
+ * いずれの選択肢も default 選択しない。default を付けると、その選択肢を選んでも
+ * Discord が「変更なし」と判断してインタラクションを発火せず、フローが次へ進めなくなるため。
+ * （ユーザーが明示的に色を選ぶことで必ず発火させる）
  * @param customId セレクトメニューのカスタムID
- * @param defaultStyle default 選択する DB 保存値（lowercase）。未指定時は primary
  * @returns 色選択 StringSelectMenu
  */
 export function buildColorSelectMenu(
   customId: string,
-  defaultStyle: string = REACTION_ROLE_DEFAULT_BUTTON_STYLE,
 ): StringSelectMenuBuilder {
   return new StringSelectMenuBuilder()
     .setCustomId(customId)
@@ -236,8 +237,7 @@ export function buildColorSelectMenu(
       REACTION_ROLE_BUTTON_COLORS.map((color) =>
         new StringSelectMenuOptionBuilder()
           .setLabel(color.label)
-          .setValue(color.value)
-          .setDefault(color.value === defaultStyle),
+          .setValue(color.value),
       ),
     );
 }

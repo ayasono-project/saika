@@ -335,10 +335,9 @@ describe("bot/features/reaction-role/handlers/ui/reactionRoleEditButtonHandler",
           emoji: "🎉",
           style: "",
         });
-        // 現在値 "success" が default として色 SelectMenu に渡される
+        // default は付けない（付けるとその色を選んでもインタラクションが発火せず次へ進めないため）
         expect(mockBuildColorSelectMenu).toHaveBeenCalledWith(
           expect.stringContaining("reaction-role:edit-button-color:"),
-          "success",
         );
         expect(interaction.reply).toHaveBeenCalledWith(
           expect.objectContaining({

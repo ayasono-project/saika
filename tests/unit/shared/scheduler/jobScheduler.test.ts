@@ -194,6 +194,25 @@ describe("shared/scheduler/jobScheduler", () => {
     );
   });
 
+  // noOverlap / timezone 併用時に両オプションが cron.schedule へ渡ることを検証
+  it("noOverlap 指定時に cron.schedule へ noOverlap オプションを渡すこと", () => {
+    cronScheduleMock.mockReturnValueOnce({ start: vi.fn(), stop: vi.fn() });
+
+    scheduler.addJob({
+      id: "job-nooverlap",
+      schedule: "0 4 * * *",
+      task: vi.fn(),
+      timezone: "Asia/Tokyo",
+      noOverlap: true,
+    });
+
+    expect(cronScheduleMock).toHaveBeenCalledWith(
+      "0 4 * * *",
+      expect.any(Function),
+      { timezone: "Asia/Tokyo", noOverlap: true },
+    );
+  });
+
   // cron 登録時に同一 ID の one-time ジョブも置き換える（両マップを確認するガード）ことを検証
   it("cron ジョブ登録時に同一 ID の one-time ジョブを停止して置き換えること", () => {
     const oneTimeTask = vi.fn();

@@ -3,10 +3,17 @@
 
 import { ActivityType, PresenceUpdateStatus } from "discord.js";
 import { restoreBumpRemindersOnStartup } from "../../features/bump-reminder/handlers/bumpReminderStartup";
+import {
+  INACTIVE_KICK_JOB_ID,
+  INACTIVE_KICK_JOB_SCHEDULE,
+  INACTIVE_KICK_JOB_TIMEZONE,
+  runInactiveKickDailyCheck,
+} from "../../features/inactive-kick/services/inactiveKickRunner";
 import { initGuildInviteCache } from "../../features/member-log/handlers/inviteTracker";
 import { restoreAutoDeleteTimers } from "../../features/ticket/services/ticketAutoDeleteService";
 import { cleanupVacOnStartup } from "../../features/vac/handlers/vacStartupCleanup";
 import { logPrefixed, tDefault } from "../../shared/locale/localeManager";
+import { jobScheduler } from "../../shared/scheduler/jobScheduler";
 import { logger } from "../../shared/utils/logger";
 import type { BotClient } from "../client";
 import { getBotTicketRepository } from "../services/botCompositionRoot";
@@ -64,6 +71,15 @@ export async function handleClientReady(client: BotClient): Promise<void> {
     await cleanupVacOnStartup(client);
     // クローズ済みチケットの自動削除タイマーを復元
     await restoreAutoDeleteTimers(client, getBotTicketRepository());
+
+    // 非アクティブ自動キックの日次チェックを登録（毎日 04:00 JST・多重実行防止）
+    jobScheduler.addJob({
+      id: INACTIVE_KICK_JOB_ID,
+      schedule: INACTIVE_KICK_JOB_SCHEDULE,
+      timezone: INACTIVE_KICK_JOB_TIMEZONE,
+      noOverlap: true,
+      task: () => runInactiveKickDailyCheck(client),
+    });
   } catch (error) {
     logger.error(
       logPrefixed(

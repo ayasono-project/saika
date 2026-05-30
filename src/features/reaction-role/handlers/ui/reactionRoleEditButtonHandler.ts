@@ -216,20 +216,12 @@ export const reactionRoleEditButtonModalHandler: ModalHandler = {
       return;
     }
 
-    // 現在のボタン色を取得して色 SelectMenu の default に使う
-    const settingsService = getBotReactionRolePanelSettingsService();
-    const panel = await settingsService.findById(session.panelId);
-    const currentStyle =
-      (panel?.buttons ?? []).find((b) => b.buttonId === session.buttonId)
-        ?.style ?? "";
-
     // 色は SelectMenu で選択するため、label / emoji のみ一時保存
     session.pendingButton = { label, emoji, style: "" };
 
-    // 色選択 StringSelectMenu を表示（現在値を default 選択）
+    // 色選択 StringSelectMenu を表示（default は付けない＝必ず明示選択させる）
     const colorSelect = buildColorSelectMenu(
       `${REACTION_ROLE_CUSTOM_ID.EDIT_BUTTON_COLOR_PREFIX}${sessionId}`,
-      currentStyle,
     );
     const row = new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
       colorSelect,

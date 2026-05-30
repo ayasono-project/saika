@@ -10,12 +10,11 @@
 
 | # | セクション | 概要 | 残件 |
 | --- | --- | --- | ---: |
-| 8 | 自動キック（非アクティブ整理） | 一定期間未活動メンバーの自動キック + 事前通知 | 2 |
 | 9 | 未承認ユーザー自動キック | 認証ロール未取得ユーザーの自動キック + 警告 DM | 3 |
 | 10 | VC 参加招待メッセージ | VC参加時に指定チャンネルへカスタム招待メッセージを自動投稿 | 3 |
 | 11 | Fastify API 実装 | web 完成後に契約通り実装 | 5 |
 | 12 | Bot 一般公開準備 | コマンド追加・認証申請 | 3 |
-| **合計** | | | **16** |
+| **合計** | | | **14** |
 
 > web ダッシュボード・インフラ（VPS / Cloudflare / Coolify）は別リポジトリで管理。
 > 作業順序は上から順（§8 → §9 → …）。§11（Fastify API）は web 側の進行に依存（着手前に web がモック駆動で完成していること）。
@@ -23,14 +22,6 @@
 ---
 
 ## タスク一覧
-
-### 8. 自動キック機能（非アクティブメンバー整理）
-
-一定期間テキスト/VC で活動がないメンバーを自動キック。[member-log](src/bot/features/member-log/) の流儀（本文可変・embed 固定・DB 保存・変数差し込み）に揃える。§5 完了後、新ディレクトリ構造で実装。
-
-- [x] 仕様書作成: [INACTIVE_KICK_SPEC.md](docs/specs/INACTIVE_KICK_SPEC.md)（活動=テキスト+VC+リアクション / 段階通知=チャンネルのみ 1週間前・3日前・当日 / 除外=Bot・Administrator・whitelist・VC接続中 / dry-run=`TEST_MODE` / 対象ロール自動付与 / 単一波括弧。安全策: 警告ゲート `warnStage==2` 必須・`enabledAt` 起算下限・送信成功後に warnStage 前進・除外時の猶予クリア）
-- [ ] 実装（DB スキーマ `GuildInactiveKickSettings`/`MemberActivity` + `/inactive-kick-settings` コマンド群 + アクティビティ記録ハンドラ + 日次チェック `addJob` + 段階通知 + キック実行。`GuildMessageReactions` Intent / Partials 追加）
-- [ ] テスト（候補抽出・段階判定・警告ゲート / 除外・猶予クリア / 通知文整形 / 日次チェック通し）
 
 ### 9. 未承認ユーザー自動キック
 
@@ -87,6 +78,16 @@ web フロントエンドがモック駆動（MSW 等）で完成した後、契
 ## 完了済み
 
 > 詳細な作業経過は git log を参照。
+
+### 自動キック機能（非アクティブメンバー整理）（§8・2026-05-31 完了）
+
+一定期間テキスト/VC/リアクションで活動がないメンバーを、段階通知（1週間前・3日前）を経て日次で自動キック。誤キック防止の安全策（警告ゲート `warnStage==2` 必須・`enabledAt` 起算下限・送信成功後に warnStage 前進・除外時の猶予クリア・dry-run `TEST_MODE`）を中核に据えた。member-log の流儀（本文可変・embed 固定・DB 保存・単一波括弧）に準拠。
+
+- [x] 仕様書作成: [INACTIVE_KICK_SPEC.md](docs/specs/INACTIVE_KICK_SPEC.md)（活動=テキスト+VC+リアクション / 段階通知 / 除外=Bot・Administrator・whitelist・オーナー・VC接続中 / dry-run=`TEST_MODE` / 対象ロール自動付与。デフォルトしきい値 30 日）
+- [x] 実装（DB `GuildInactiveKickSettings`/`MemberActivity` + リポジトリ/サービス + アクティビティ記録ハンドラ〔throttle 1h〕 + `/inactive-kick-settings` コマンド群〔13 サブコマンド + whitelist グループ + preview〕 + 日次チェック `addJob`〔04:00 JST・`noOverlap`〕 + 段階通知/キック実行 + `GuildMessageReactions` Intent / Partials 追加）
+- [x] テスト（eligibility/candidates/notifier/runner/設定サービス/コマンド定義・全 2302 通過）
+
+> NOTE: 対象ロールの階層不足スキップ・guildDelete の新テーブル一括削除はロジック実装済みだがユニットテスト未整備（spec テストケース参照）。本番デプロイは未実施。
 
 ### VC 操作コマンド拡張 & ephemeral/public 監査（§7・2026-05-30 完了・本番デプロイ済み）
 

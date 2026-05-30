@@ -20,11 +20,6 @@ export const vac = {
     "トリガーチャンネル {{channel}} を削除しました。",
   "user-response.triggers_removed":
     "{{count}}件のトリガーチャンネルを削除しました。",
-  "user-response.renamed": "VC名を {{name}} に変更しました。",
-  "user-response.limit_changed": "人数制限を {{limit}} に設定しました。",
-  "user-response.members_moved": "{{channel}} へ移動しました。",
-  "user-response.panel_refreshed": "パネルを最下部に移動しました。",
-  "user-response.unlimited": "無制限",
   "user-response.not_configured": "VC自動作成機能が設定されていません。",
   "user-response.trigger_not_found":
     "指定されたカテゴリーにはトリガーチャンネルはありません。",
@@ -33,14 +28,7 @@ export const vac = {
     "カテゴリ内のチャンネル数が上限に達しています。",
   "user-response.no_permission":
     "チャンネルを作成または編集する権限がありません。",
-  "user-response.not_in_vc": "このVCに参加しているユーザーのみ操作できます。",
   "user-response.not_in_any_vc": "このコマンドはVC参加中にのみ使用できます。",
-  "user-response.not_vac_channel": "このVCは自動作成チャンネルではありません。",
-  "user-response.name_required": "VC名を入力してください。",
-  "user-response.limit_out_of_range":
-    "人数制限は0〜99の範囲で指定してください。",
-  "user-response.afk_move_failed":
-    "AFK チャンネルへの移動に失敗しました。対象ユーザーがVCから退出した可能性があります。",
 
   // ── embed: remove_error ────────────────────────
   "embed.title.remove_error": "削除エラー",
@@ -53,19 +41,10 @@ export const vac = {
   "embed.field.value.no_created_vcs": "なし",
   "embed.field.value.top": "TOP",
 
-  // ── embed: panel ───────────────────────────────
-  "embed.title.panel": "ボイスチャンネル操作パネル",
-  "embed.description.panel": "このパネルからVCの設定を変更できます。",
-
   // ── UIラベル ──────────────────────────────────
   "ui.select.trigger_remove_placeholder":
     "削除するトリガーチャンネルを選択（複数選択可）",
   "ui.button.trigger_remove_confirm": "削除する",
-  "ui.button.rename": "VC名を変更",
-  "ui.button.limit": "人数制限を変更",
-  "ui.modal.limit_placeholder": "0〜99（0: 無制限）",
-  "ui.button.afk": "メンバーをAFKに移動",
-  "ui.button.refresh": "パネルを最下部に移動",
 
   // ── ログ ─────────────────────────────────────
   "log.startup_cleanup_stale_trigger_removed":
@@ -90,7 +69,6 @@ export const vac = {
   "log.channel_delete_sync_failed": "channelDelete同期処理失敗",
   "log.channel_create_failed":
     "Bot権限不足によるVCチャンネル作成失敗 GuildId: {{guildId}}",
-  "log.panel_send_failed": "操作パネル送信失敗",
   "log.startup_cleanup_failed": "起動時クリーンアップ失敗",
   "log.database_trigger_added":
     "VACトリガーチャンネルを追加 GuildId: {{guildId}} ChannelId: {{channelId}}",

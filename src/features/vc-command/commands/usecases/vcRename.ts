@@ -1,7 +1,7 @@
 // src/bot/features/vc-command/commands/usecases/vcRename.ts
 // VC名変更ユースケース
 
-import { type ChatInputCommandInteraction, MessageFlags } from "discord.js";
+import type { ChatInputCommandInteraction } from "discord.js";
 import { createSuccessEmbed } from "../../../../bot/utils/messageResponse";
 import { tInteraction } from "../../../../shared/locale/localeManager";
 import { resolveVoiceChannelForEdit } from "../helpers/vcVoiceChannelResolver";
@@ -27,8 +27,6 @@ export async function executeVcRename(
       name: newName,
     }),
   );
-  await interaction.reply({
-    embeds: [embed],
-    flags: MessageFlags.Ephemeral,
-  });
+  // 共有リソース（VC名）の変更のため public で応答する
+  await interaction.reply({ embeds: [embed] });
 }

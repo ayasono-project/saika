@@ -21,8 +21,20 @@ vi.mock("@/bot/errors/interactionErrorHandler", () => ({
 vi.mock("@/features/vc-command/commands/vcCommand.constants", () => ({
   VC_COMMAND: {
     NAME: "vc",
-    SUBCOMMAND: { RENAME: "rename", LIMIT: "limit" },
-    OPTION: { NAME: "name", LIMIT: "limit" },
+    SUBCOMMAND: {
+      RENAME: "rename",
+      LIMIT: "limit",
+      DISCONNECT: "disconnect",
+      MOVE: "move",
+    },
+    OPTION: {
+      NAME: "name",
+      LIMIT: "limit",
+      TARGET_MEMBER: "target-member",
+      TARGET_CHANNEL: "target-channel",
+      TO: "to",
+      REASON: "reason",
+    },
     LIMIT_MIN: 0,
     LIMIT_MAX: 99,
   },

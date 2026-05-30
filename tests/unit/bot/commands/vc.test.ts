@@ -1,5 +1,5 @@
 // tests/unit/bot/commands/vc.test.ts
-import { ChannelType, MessageFlags } from "discord.js";
+import { ChannelType } from "discord.js";
 
 const isManagedVacChannelMock = vi.fn();
 const isCreatedVcRecruitChannelMock = vi.fn();
@@ -94,7 +94,6 @@ describe("bot/commands/vc", () => {
     expect(editMock).toHaveBeenCalledWith({ name: "Renamed VC" });
     expect(interaction.reply).toHaveBeenCalledWith({
       embeds: [{ description: expect.any(String) }],
-      flags: MessageFlags.Ephemeral,
     });
   });
 
@@ -136,7 +135,6 @@ describe("bot/commands/vc", () => {
     expect(editMock).toHaveBeenCalledWith({ name: "Renamed VC" });
     expect(interaction.reply).toHaveBeenCalledWith({
       embeds: [{ description: expect.any(String) }],
-      flags: MessageFlags.Ephemeral,
     });
   });
 
@@ -175,7 +173,6 @@ describe("bot/commands/vc", () => {
     expect(editMock).toHaveBeenCalledWith({ userLimit: 12 });
     expect(interaction.reply).toHaveBeenCalledWith({
       embeds: [{ description: expect.any(String) }],
-      flags: MessageFlags.Ephemeral,
     });
   });
 
@@ -215,7 +212,6 @@ describe("bot/commands/vc", () => {
     expect(createSuccessEmbedMock).toHaveBeenCalled();
     expect(interaction.reply).toHaveBeenCalledWith({
       embeds: [{ description: expect.any(String) }],
-      flags: MessageFlags.Ephemeral,
     });
   });
 });

@@ -21,7 +21,6 @@ import {
   createWarningEmbed,
 } from "../../../../bot/utils/messageResponse";
 import { tGuild, tInteraction } from "../../../../shared/locale/localeManager";
-import { sendVcControlPanel } from "../../../vc-panel/vcControlPanel";
 import {
   VC_RECRUIT_PANEL_COLOR,
   VC_RECRUIT_PANEL_CUSTOM_ID,
@@ -213,9 +212,6 @@ export const vcRecruitModalHandler: ModalHandler = {
         setup.panelChannelId,
         voiceChannel.id,
       );
-
-      // VC操作パネルを新規VCに送信
-      await sendVcControlPanel(voiceChannel);
     } else {
       // 既存VC
       const existing = await guild.channels

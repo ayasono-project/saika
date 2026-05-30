@@ -263,10 +263,16 @@ describe("AFK Commands Integration", () => {
 
       await handler(interaction as never);
 
-      expect(setChannelMock).toHaveBeenCalledWith(afkChannel);
+      // 監査ログ理由つきで AFK チャンネルへ移動する
+      expect(setChannelMock).toHaveBeenCalledWith(
+        afkChannel,
+        expect.any(String),
+      );
       expect(replyMock).toHaveBeenCalledTimes(1);
-      const embed = replyMock.mock.calls[0][0].embeds[0];
-      expect(embed.type).toBe("success");
+      // 成功時応答は public（ephemeral フラグなし）の formatActionLog Embed
+      const replyArg = replyMock.mock.calls[0][0];
+      expect(replyArg.embeds).toHaveLength(1);
+      expect(replyArg.flags).toBeUndefined();
     });
 
     it("対象ユーザーを指定して移動できること", async () => {
@@ -340,7 +346,13 @@ describe("AFK Commands Integration", () => {
         channelId: "vc-afk-1",
       });
 
-      const { interaction, fetchMemberMock } = createInteraction();
+      const { interaction, fetchMemberMock, fetchChannelMock } =
+        createInteraction();
+      // AFK チャンネルは存在する（メンバーの VC 未参加を検証するため）
+      fetchChannelMock.mockResolvedValue({
+        id: "vc-afk-1",
+        type: ChannelType.GuildVoice,
+      });
       fetchMemberMock.mockResolvedValue({
         voice: { channel: null },
       });

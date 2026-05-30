@@ -45,11 +45,6 @@ vi.mock("@/shared/locale/localeManager", () => ({
   tInteraction: (...args: unknown[]) => args[1],
 }));
 
-// VC コントロールパネルのモック
-vi.mock("@/features/vc-panel/vcControlPanel", () => ({
-  sendVcControlPanel: vi.fn().mockResolvedValue(undefined),
-}));
-
 // errorHandling のモック（実処理に近い形で委譲）
 vi.mock("@/shared/utils/errorHandling", () => ({
   executeWithLoggedError: async (

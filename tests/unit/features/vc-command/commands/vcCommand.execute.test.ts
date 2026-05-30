@@ -2,7 +2,9 @@
 
 import type { Mock } from "vitest";
 import { handleCommandError } from "@/bot/errors/interactionErrorHandler";
+import { executeVcDisconnect } from "@/features/vc-command/commands/usecases/vcDisconnect";
 import { executeVcLimit } from "@/features/vc-command/commands/usecases/vcLimit";
+import { executeVcMove } from "@/features/vc-command/commands/usecases/vcMove";
 import { executeVcRename } from "@/features/vc-command/commands/usecases/vcRename";
 import { getManagedVoiceChannel } from "@/features/vc-command/commands/usecases/vcVoiceChannelGuard";
 import { VC_COMMAND } from "@/features/vc-command/commands/vcCommand.constants";
@@ -14,6 +16,14 @@ vi.mock("@/features/vc-command/commands/usecases/vcLimit", () => ({
 
 vi.mock("@/features/vc-command/commands/usecases/vcRename", () => ({
   executeVcRename: vi.fn(),
+}));
+
+vi.mock("@/features/vc-command/commands/usecases/vcDisconnect", () => ({
+  executeVcDisconnect: vi.fn(),
+}));
+
+vi.mock("@/features/vc-command/commands/usecases/vcMove", () => ({
+  executeVcMove: vi.fn(),
 }));
 
 vi.mock("@/features/vc-command/commands/usecases/vcVoiceChannelGuard", () => ({
@@ -101,6 +111,30 @@ describe("bot/features/vc-command/commands/vcCommand.execute", () => {
     expect(getManagedVoiceChannel).toHaveBeenCalledWith(interaction, "guild-1");
     expect(executeVcLimit).toHaveBeenCalledWith(interaction, "voice-1");
     expect(executeVcRename).not.toHaveBeenCalled();
+  });
+
+  it("disconnectサブコマンドは管理対象ガードを通さずexecuteVcDisconnectへ委譲する", async () => {
+    const interaction = createInteraction({
+      subcommand: VC_COMMAND.SUBCOMMAND.DISCONNECT,
+    });
+
+    await executeVcCommand(interaction as never);
+
+    expect(getManagedVoiceChannel).not.toHaveBeenCalled();
+    expect(executeVcDisconnect).toHaveBeenCalledWith(interaction, "guild-1");
+    expect(executeVcMove).not.toHaveBeenCalled();
+  });
+
+  it("moveサブコマンドは管理対象ガードを通さずexecuteVcMoveへ委譲する", async () => {
+    const interaction = createInteraction({
+      subcommand: VC_COMMAND.SUBCOMMAND.MOVE,
+    });
+
+    await executeVcCommand(interaction as never);
+
+    expect(getManagedVoiceChannel).not.toHaveBeenCalled();
+    expect(executeVcMove).toHaveBeenCalledWith(interaction, "guild-1");
+    expect(executeVcDisconnect).not.toHaveBeenCalled();
   });
 
   it("定義外のサブコマンド名が渡された場合はエラーハンドラへ委譲する", async () => {

@@ -4,7 +4,9 @@
 export const afk = {
   // ── Command definitions ──────────────────────
   "afk.description": "Move user to AFK channel",
-  "afk.user.description": "User to move (default: yourself)",
+  "afk.target-member.description": "Member to move (default: yourself)",
+  "afk.target-channel.description":
+    "VC whose members will all be moved to the AFK channel",
   "afk-settings.description": "Configure AFK feature (requires Manage Server)",
   "afk-settings.set-channel.description": "Configure AFK channel",
   "afk-settings.set-channel.channel.description": "AFK channel (voice channel)",
@@ -24,6 +26,8 @@ export const afk = {
   "user-response.invalid_channel_type": "Please specify a voice channel.",
   "user-response.clear_channel_success":
     "AFK channel setting has been cleared.",
+  "user-response.target_is_afk":
+    "The target VC is the same as the AFK channel.",
 
   // ── embed: config_view ──────────────────────
   "embed.title.config_view": "AFK",

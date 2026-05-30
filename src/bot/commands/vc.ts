@@ -2,6 +2,7 @@
 // VC操作コマンド定義
 
 import {
+  ChannelType,
   type ChatInputCommandInteraction,
   SlashCommandBuilder,
 } from "discord.js";
@@ -13,7 +14,7 @@ import type { Command } from "../types/discord";
 
 /**
  * VC操作コマンド
- * Bot管理下VCのリネーム・人数制限変更を提供する
+ * Bot管理下VCのリネーム・人数制限変更、および任意メンバー/VCの切断・移動を提供する
  */
 export const vcCommand: Command = {
   data: (() => {
@@ -27,6 +28,36 @@ export const vcCommand: Command = {
     const limitValueDesc = getCommandLocalizations(
       "vc",
       "vc.limit.limit.description",
+    );
+    const disconnectDesc = getCommandLocalizations(
+      "vc",
+      "vc.disconnect.description",
+    );
+    const disconnectMemberDesc = getCommandLocalizations(
+      "vc",
+      "vc.disconnect.target-member.description",
+    );
+    const disconnectChannelDesc = getCommandLocalizations(
+      "vc",
+      "vc.disconnect.target-channel.description",
+    );
+    const disconnectReasonDesc = getCommandLocalizations(
+      "vc",
+      "vc.disconnect.reason.description",
+    );
+    const moveDesc = getCommandLocalizations("vc", "vc.move.description");
+    const moveMemberDesc = getCommandLocalizations(
+      "vc",
+      "vc.move.target-member.description",
+    );
+    const moveChannelDesc = getCommandLocalizations(
+      "vc",
+      "vc.move.target-channel.description",
+    );
+    const moveToDesc = getCommandLocalizations("vc", "vc.move.to.description");
+    const moveReasonDesc = getCommandLocalizations(
+      "vc",
+      "vc.move.reason.description",
     );
 
     return new SlashCommandBuilder()
@@ -60,6 +91,70 @@ export const vcCommand: Command = {
               .setRequired(true)
               .setMinValue(VC_COMMAND.LIMIT_MIN)
               .setMaxValue(VC_COMMAND.LIMIT_MAX),
+          ),
+      )
+      .addSubcommand((subcommand) =>
+        subcommand
+          .setName(VC_COMMAND.SUBCOMMAND.DISCONNECT)
+          .setDescription(disconnectDesc.ja)
+          .setDescriptionLocalizations(disconnectDesc.localizations)
+          .addUserOption((option) =>
+            option
+              .setName(VC_COMMAND.OPTION.TARGET_MEMBER)
+              .setDescription(disconnectMemberDesc.ja)
+              .setDescriptionLocalizations(disconnectMemberDesc.localizations)
+              .setRequired(false),
+          )
+          .addChannelOption((option) =>
+            option
+              .setName(VC_COMMAND.OPTION.TARGET_CHANNEL)
+              .setDescription(disconnectChannelDesc.ja)
+              .setDescriptionLocalizations(disconnectChannelDesc.localizations)
+              .addChannelTypes(ChannelType.GuildVoice)
+              .setRequired(false),
+          )
+          .addStringOption((option) =>
+            option
+              .setName(VC_COMMAND.OPTION.REASON)
+              .setDescription(disconnectReasonDesc.ja)
+              .setDescriptionLocalizations(disconnectReasonDesc.localizations)
+              .setRequired(false),
+          ),
+      )
+      .addSubcommand((subcommand) =>
+        subcommand
+          .setName(VC_COMMAND.SUBCOMMAND.MOVE)
+          .setDescription(moveDesc.ja)
+          .setDescriptionLocalizations(moveDesc.localizations)
+          .addChannelOption((option) =>
+            option
+              .setName(VC_COMMAND.OPTION.TO)
+              .setDescription(moveToDesc.ja)
+              .setDescriptionLocalizations(moveToDesc.localizations)
+              .addChannelTypes(ChannelType.GuildVoice)
+              .setRequired(true),
+          )
+          .addUserOption((option) =>
+            option
+              .setName(VC_COMMAND.OPTION.TARGET_MEMBER)
+              .setDescription(moveMemberDesc.ja)
+              .setDescriptionLocalizations(moveMemberDesc.localizations)
+              .setRequired(false),
+          )
+          .addChannelOption((option) =>
+            option
+              .setName(VC_COMMAND.OPTION.TARGET_CHANNEL)
+              .setDescription(moveChannelDesc.ja)
+              .setDescriptionLocalizations(moveChannelDesc.localizations)
+              .addChannelTypes(ChannelType.GuildVoice)
+              .setRequired(false),
+          )
+          .addStringOption((option) =>
+            option
+              .setName(VC_COMMAND.OPTION.REASON)
+              .setDescription(moveReasonDesc.ja)
+              .setDescriptionLocalizations(moveReasonDesc.localizations)
+              .setRequired(false),
           ),
       );
   })(),

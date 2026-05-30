@@ -176,6 +176,47 @@ describe("shared/scheduler/jobScheduler", () => {
     );
   });
 
+  // timezone 指定時に cron.schedule へ TaskOptions が渡ることを検証
+  it("timezone 指定時に cron.schedule へ timezone オプションを渡すこと", () => {
+    cronScheduleMock.mockReturnValueOnce({ start: vi.fn(), stop: vi.fn() });
+
+    scheduler.addJob({
+      id: "job-tz",
+      schedule: "0 4 * * *",
+      task: vi.fn(),
+      timezone: "Asia/Tokyo",
+    });
+
+    expect(cronScheduleMock).toHaveBeenCalledWith(
+      "0 4 * * *",
+      expect.any(Function),
+      { timezone: "Asia/Tokyo" },
+    );
+  });
+
+  // cron 登録時に同一 ID の one-time ジョブも置き換える（両マップを確認するガード）ことを検証
+  it("cron ジョブ登録時に同一 ID の one-time ジョブを停止して置き換えること", () => {
+    const oneTimeTask = vi.fn();
+    scheduler.addOneTimeJob("dup-id", 1_000, oneTimeTask);
+    expect(scheduler.hasJob("dup-id")).toBe(true);
+
+    cronScheduleMock.mockReturnValueOnce({ start: vi.fn(), stop: vi.fn() });
+    scheduler.addJob({
+      id: "dup-id",
+      schedule: "* * * * * *",
+      task: vi.fn(),
+    });
+
+    expect(logger.warn).toHaveBeenCalledWith(
+      expect.stringContaining("system:scheduler.job_exists"),
+    );
+    // one-time が消えて cron ジョブのみが残る（両マップに同 ID が並存しない）
+    expect(scheduler.getJobCount()).toBe(1);
+
+    vi.runOnlyPendingTimers();
+    expect(oneTimeTask).not.toHaveBeenCalled();
+  });
+
   // one-timeジョブは0未満遅延を0に補正し、実行後に自動削除されることを検証
   it("ワンタイムジョブが遅延を 0 にクランプして実行後に自動削除されること", async () => {
     const task = vi.fn().mockResolvedValue(undefined);

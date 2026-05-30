@@ -10,6 +10,10 @@ interface ScheduledJob {
   schedule: string;
   task: () => Promise<void> | void;
   description?: string;
+  /** cron 評価に用いるタイムゾーン（例: "Asia/Tokyo"）。未指定時はサーバーのローカルタイム */
+  timezone?: string;
+  /** 前回実行が長引いた場合に次回発火の重複起動を防ぐ（node-cron v4） */
+  noOverlap?: boolean;
 }
 
 /**
@@ -21,51 +25,79 @@ export class JobScheduler {
   private oneTimeJobs: Map<string, NodeJS.Timeout> = new Map();
 
   /**
-   * 繰り返しジョブを追加（cron式）
+   * 同IDの既存ジョブ（cron・one-time いずれも）を停止して置き換える（多重実行を防止）
+   * @param id ジョブID
    */
-  public addJob(job: ScheduledJob): void {
-    // 同IDの既存ジョブは置き換え（多重実行を防止）
-    if (this.jobs.has(job.id)) {
+  private replaceExistingJob(id: string): void {
+    if (this.jobs.has(id) || this.oneTimeJobs.has(id)) {
       logger.warn(
         logPrefixed(
           "system:log_prefix.scheduler",
           "system:scheduler.job_exists",
-          { jobId: job.id },
+          { jobId: id },
         ),
       );
-      this.removeJob(job.id);
+      this.removeJob(id);
     }
+  }
+
+  /**
+   * タスクを実行ログ付きで安全に実行する（例外は捕捉してログのみ・スケジューラ全体は落とさない）
+   * @param id ジョブID
+   * @param task 実行するタスク
+   */
+  private async runTask(
+    id: string,
+    task: () => Promise<void> | void,
+  ): Promise<void> {
+    try {
+      logger.debug(
+        logPrefixed(
+          "system:log_prefix.scheduler",
+          "system:scheduler.executing_job",
+          { jobId: id },
+        ),
+      );
+      await task();
+      logger.debug(
+        logPrefixed(
+          "system:log_prefix.scheduler",
+          "system:scheduler.job_completed",
+          { jobId: id },
+        ),
+      );
+    } catch (error) {
+      logger.error(
+        logPrefixed(
+          "system:log_prefix.scheduler",
+          "system:scheduler.job_error",
+          { jobId: id },
+        ),
+        error,
+      );
+    }
+  }
+
+  /**
+   * 繰り返しジョブを追加（cron式）
+   */
+  public addJob(job: ScheduledJob): void {
+    // 同IDの既存ジョブは置き換え（多重実行を防止）
+    this.replaceExistingJob(job.id);
 
     try {
-      // cron 式ジョブを登録（実行時の例外は内部で捕捉）
-      const scheduledTask = cron.schedule(job.schedule, async () => {
-        try {
-          logger.debug(
-            logPrefixed(
-              "system:log_prefix.scheduler",
-              "system:scheduler.executing_job",
-              { jobId: job.id },
-            ),
-          );
-          await job.task();
-          logger.debug(
-            logPrefixed(
-              "system:log_prefix.scheduler",
-              "system:scheduler.job_completed",
-              { jobId: job.id },
-            ),
-          );
-        } catch (error) {
-          logger.error(
-            logPrefixed(
-              "system:log_prefix.scheduler",
-              "system:scheduler.job_error",
-              { jobId: job.id },
-            ),
-            error,
-          );
-        }
-      });
+      // cron 式ジョブを登録（timezone / noOverlap が指定された場合のみ TaskOptions を渡す）
+      const taskOptions: { timezone?: string; noOverlap?: boolean } = {};
+      if (job.timezone) taskOptions.timezone = job.timezone;
+      if (job.noOverlap) taskOptions.noOverlap = job.noOverlap;
+      const scheduledTask =
+        Object.keys(taskOptions).length > 0
+          ? cron.schedule(
+              job.schedule,
+              () => this.runTask(job.id, job.task),
+              taskOptions,
+            )
+          : cron.schedule(job.schedule, () => this.runTask(job.id, job.task));
 
       // 管理マップへ保存して起動
       this.jobs.set(job.id, scheduledTask);
@@ -104,16 +136,7 @@ export class JobScheduler {
     task: () => Promise<void> | void,
   ): void {
     // 既存の同IDジョブをキャンセル
-    if (this.oneTimeJobs.has(id) || this.jobs.has(id)) {
-      logger.warn(
-        logPrefixed(
-          "system:log_prefix.scheduler",
-          "system:scheduler.job_exists",
-          { jobId: id },
-        ),
-      );
-      this.removeJob(id);
-    }
+    this.replaceExistingJob(id);
 
     // 負数遅延は0に丸めて即時実行扱いにする
     const safeDelay = Math.max(0, delayMs);
@@ -122,32 +145,7 @@ export class JobScheduler {
     const handle = setTimeout(async () => {
       // 実行開始時点で管理マップから除去
       this.oneTimeJobs.delete(id);
-      try {
-        logger.debug(
-          logPrefixed(
-            "system:log_prefix.scheduler",
-            "system:scheduler.executing_job",
-            { jobId: id },
-          ),
-        );
-        await task();
-        logger.debug(
-          logPrefixed(
-            "system:log_prefix.scheduler",
-            "system:scheduler.job_completed",
-            { jobId: id },
-          ),
-        );
-      } catch (error) {
-        logger.error(
-          logPrefixed(
-            "system:log_prefix.scheduler",
-            "system:scheduler.job_error",
-            { jobId: id },
-          ),
-          error,
-        );
-      }
+      await this.runTask(id, task);
     }, safeDelay);
 
     // Node.js が終了を待たないようにする

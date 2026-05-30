@@ -84,6 +84,36 @@ model GuildMemberLogSettings {
   @@map("guild_member_log_settings")
 }
 
+// 非アクティブ自動キック設定
+model GuildInactiveKickSettings {
+  guildId          String    @id @map("guild_id")
+  enabled          Boolean   @default(false)
+  enabledAt        DateTime? @map("enabled_at") // 最後に有効化した時刻（キック起算の下限）
+  channelId        String?   @map("channel_id")
+  thresholdDays    Int       @default(30) @map("threshold_days")
+  weekWarnMessage  String?   @map("week_warn_message") // 1週間前通知のカスタム文
+  finalWarnMessage String?   @map("final_warn_message") // 最終警告（3日前）のカスタム文
+  kickMessage      String?   @map("kick_message")
+  markerRoleId     String?   @map("marker_role_id") // 警告対象へ自動付与する対象ロール ID
+  whitelistRoleIds Json      @default("[]") @map("whitelist_role_ids") // jsonb: string[]
+  whitelistUserIds Json      @default("[]") @map("whitelist_user_ids") // jsonb: string[]
+
+  @@map("guild_inactive_kick_settings")
+}
+
+// メンバー活動履歴（非アクティブ自動キックの起算に使用）
+model MemberActivity {
+  id             String   @id @default(cuid())
+  guildId        String   @map("guild_id")
+  userId         String   @map("user_id")
+  lastActivityAt DateTime @map("last_activity_at")
+  warnStage      Int      @default(0) @map("warn_stage") // 0=未通知, 1=1週間前済, 2=最終警告済
+
+  @@unique([guildId, userId])
+  @@index([guildId])
+  @@map("member_activities")
+}
+
 // VC募集設定
 model GuildVcRecruitSettings {
   guildId        String  @id @map("guild_id")

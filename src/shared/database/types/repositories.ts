@@ -12,6 +12,8 @@ import type {
   AfkSettings,
   BumpReminderSettings,
   GuildSettings,
+  InactiveKickSettings,
+  MemberActivity,
   MemberLogSettings,
   VacSettings,
 } from "./entities";
@@ -120,6 +122,40 @@ export interface IMemberLogSettingsRepository {
     guildId: string,
     memberLogSettings: MemberLogSettings,
   ): Promise<void>;
+}
+
+export interface IInactiveKickSettingsRepository {
+  getInactiveKickSettings(
+    guildId: string,
+  ): Promise<InactiveKickSettings | null>;
+  updateInactiveKickSettings(
+    guildId: string,
+    inactiveKickSettings: InactiveKickSettings,
+  ): Promise<void>;
+  /** 有効な全ギルドの設定を取得（日次チェック用） */
+  getAllEnabled(): Promise<Array<InactiveKickSettings & { guildId: string }>>;
+  deleteInactiveKickSettings(guildId: string): Promise<void>;
+}
+
+export interface IMemberActivityRepository {
+  /** 活動を記録（upsert で lastActivityAt 更新・warnStage は指定時のみ更新） */
+  recordActivity(
+    guildId: string,
+    userId: string,
+    lastActivityAt: Date,
+    warnStage?: number,
+  ): Promise<void>;
+  /** warnStage のみ更新（通知送信成功後の前進用） */
+  setWarnStage(
+    guildId: string,
+    userId: string,
+    warnStage: number,
+  ): Promise<void>;
+  getActivity(guildId: string, userId: string): Promise<MemberActivity | null>;
+  /** ギルドの全活動履歴を取得（日次チェック・preview 用） */
+  findByGuild(guildId: string): Promise<MemberActivity[]>;
+  deleteActivity(guildId: string, userId: string): Promise<void>;
+  deleteByGuild(guildId: string): Promise<void>;
 }
 
 export interface IVcRecruitSettingsRepository {

@@ -8,6 +8,7 @@ export const system = {
   "log_prefix.bump_reminder": "Bumpリマインダー",
   "log_prefix.sticky_message": "スティッキーメッセージ",
   "log_prefix.member_log": "メンバーログ",
+  "log_prefix.inactive_kick": "非アクティブキック",
   "log_prefix.vac": "VAC",
   "log_prefix.vc_recruit": "VC募集",
   "log_prefix.msg_del": "メッセージ削除",

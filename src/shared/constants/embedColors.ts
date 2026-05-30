@@ -12,6 +12,10 @@ export const EMBED_COLORS = {
   MEMBER_LOG_JOIN: 0x008969,
   /** メンバーログ: 退出（紅色） */
   MEMBER_LOG_LEAVE: 0xb7282d,
+  /** 非アクティブ自動キック: 事前通知（黄・警告） */
+  INACTIVE_KICK_WARN: 0xf1c40f,
+  /** 非アクティブ自動キック: キック通知（茜色 #b7282d） */
+  INACTIVE_KICK_KICK: 0xb7282d,
   /** スティッキーメッセージ デフォルト（ビリジアン��� */
   STICKY_MESSAGE_DEFAULT: 0x008969,
   /** VC募集パネル・投稿（ターコイズ #24B9B8） */

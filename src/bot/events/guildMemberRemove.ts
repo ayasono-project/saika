@@ -3,6 +3,7 @@
 
 import { Events } from "discord.js";
 import { handleBumpReminderMemberRemove } from "../../features/bump-reminder/handlers/bumpReminderMemberRemoveHandler";
+import { handleInactiveKickMemberRemove } from "../../features/inactive-kick/handlers/activityEventHandlers";
 import { handleGuildMemberRemove } from "../../features/member-log/handlers/guildMemberRemoveHandler";
 import type { BotEvent } from "../types/discord";
 
@@ -22,5 +23,7 @@ export const guildMemberRemoveEvent: BotEvent<typeof Events.GuildMemberRemove> =
       await handleGuildMemberRemove(member);
       // Bumpリマインダーの mentionUserIds から退出ユーザーを除去
       await handleBumpReminderMemberRemove(member);
+      // 非アクティブ自動キックの活動履歴を掃除（孤児レコード防止）
+      await handleInactiveKickMemberRemove(member);
     },
   };

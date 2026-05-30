@@ -1,7 +1,7 @@
 // src/bot/client.ts
 // Discord Client初期化
 
-import { Client, Collection, GatewayIntentBits } from "discord.js";
+import { Client, Collection, GatewayIntentBits, Partials } from "discord.js";
 import { logPrefixed } from "../shared/locale/localeManager";
 import { logger } from "../shared/utils/logger";
 import { CooldownManager } from "./services/cooldownManager";
@@ -24,7 +24,11 @@ export class BotClient extends Client {
         GatewayIntentBits.GuildMessages,
         GatewayIntentBits.GuildMembers,
         GatewayIntentBits.GuildVoiceStates,
+        // 非アクティブ自動キックのリアクション活動記録に使用
+        GatewayIntentBits.GuildMessageReactions,
       ],
+      // 未キャッシュメッセージへのリアクションも受信する（非アクティブ自動キック）
+      partials: [Partials.Message, Partials.Reaction],
     });
 
     // 実行時レジストリ（コマンド）とクールダウン管理を初期化

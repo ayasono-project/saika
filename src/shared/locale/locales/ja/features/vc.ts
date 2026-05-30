@@ -20,8 +20,9 @@ export const vc = {
   "vc.move.reason.description": "監査ログに記録する理由",
 
   // ── ユーザーレスポンス ────────────────────────
-  "user-response.renamed": "VC名を {{name}} に変更しました。",
-  "user-response.limit_changed": "人数制限を {{limit}} に設定しました。",
+  "user-response.renamed": "<#{{channel}}> のVC名を {{name}} に変更しました。",
+  "user-response.limit_changed":
+    "<#{{channel}}> の人数制限を {{limit}} に設定しました。",
   "user-response.unlimited": "無制限",
   "user-response.not_in_any_vc": "このコマンドはVC参加中にのみ使用できます。",
   "user-response.not_managed_channel":

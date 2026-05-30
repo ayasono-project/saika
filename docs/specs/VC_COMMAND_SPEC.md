@@ -98,7 +98,7 @@
 **成功時の応答:**
 
 ```
-✅ VC名を みんなのたまり場 に変更しました
+✅ <#対象VC> のVC名を みんなのたまり場 に変更しました
 ```
 
 **エラー時の応答:**
@@ -143,8 +143,8 @@
 **成功時の応答:**
 
 ```
-✅ 人数制限を 5 に設定しました
-✅ 人数制限を 無制限 に設定しました
+✅ <#対象VC> の人数制限を 5 に設定しました
+✅ <#対象VC> の人数制限を 無制限 に設定しました
 ```
 
 **エラー時の応答:**
@@ -386,8 +386,8 @@ target が Channel の場合のみ、誤爆防止のため実行前に ephemeral
 
 | キー | 用途 | ja | en |
 | --- | --- | --- | --- |
-| `user-response.renamed` | VC名変更成功 | VC名を {{name}} に変更しました。 | VC name has been changed to {{name}} |
-| `user-response.limit_changed` | 人数制限変更成功 | 人数制限を {{limit}} に設定しました。 | User limit has been set to {{limit}} |
+| `user-response.renamed` | VC名変更成功 | <#{{channel}}> のVC名を {{name}} に変更しました。 | Changed the name of <#{{channel}}> to {{name}} |
+| `user-response.limit_changed` | 人数制限変更成功 | <#{{channel}}> の人数制限を {{limit}} に設定しました。 | Set the user limit of <#{{channel}}> to {{limit}} |
 | `user-response.unlimited` | 無制限表示 | 無制限 | unlimited |
 | `user-response.not_in_any_vc` | VC未参加エラー | このコマンドはVC参加中にのみ使用できます。 | You must be in a voice channel to use this command. |
 | `user-response.not_managed_channel` | 管理対象外エラー | このVCはBot管理のチャンネルではありません。 | This voice channel is not managed by the Bot. |

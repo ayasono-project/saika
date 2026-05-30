@@ -25,6 +25,7 @@ export async function executeVcRename(
   const embed = createSuccessEmbed(
     tInteraction(interaction.locale, "vc:user-response.renamed", {
       name: newName,
+      channel: channelId,
     }),
   );
   // 共有リソース（VC名）の変更のため public で応答する

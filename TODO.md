@@ -10,12 +10,11 @@
 
 | # | セクション | 概要 | 残件 |
 | --- | --- | --- | ---: |
-| 1 | 未承認ユーザー自動キック | 認証ロール未取得ユーザーの自動キック + 警告 DM | 3 |
 | 2 | VC 参加招待メッセージ | VC参加時に指定チャンネルへカスタム招待メッセージを自動投稿 | 3 |
 | 3 | メッセージ削除機能の改善 | 退出済みメンバーのメッセージ一括削除（ユーザー指定の拡張） | 3 |
 | 10 | Fastify API 実装 | web 完成後に契約通り実装 | 5 |
 | 11 | Bot 一般公開準備 | コマンド追加・認証申請 | 3 |
-| **合計** | | | **17** |
+| **合計** | | | **14** |
 
 > web ダッシュボード・インフラ（VPS / Cloudflare / Coolify）は別リポジトリで管理。
 > 作業順序は上から順（§1 → §2 → §3 → …）。§10 以降（Fastify API / Bot 一般公開準備）は web 側の進行に依存するため番号を分けている（§10 着手前に web がモック駆動で完成していること）。
@@ -23,14 +22,6 @@
 ---
 
 ## タスク一覧
-
-### 1. 未承認ユーザー自動キック
-
-参加から指定期間内に認証ロール未取得のユーザーを自動キック（Ikoitter の手動運用を公開 Bot 向けに汎用化）。確定事項は Notion [引き継ぎ](https://www.notion.so/3638e698a89281eb967ec072a47751e3) 参照（1 日 1 回 cron / `graceDays` 1–30 / Embed ログ / 起算点 `joinedAt` / バリデーション失敗時 `enabled=false`）。
-
-- [ ] 仕様書作成: `docs/specs/UNVERIFIED_KICK_SPEC.md`（警告 DM テンプレート・変数 / `/autokick preview` のページング / プロフィールリンクの扱いを確定）
-- [ ] 実装（`AutoKickConfig` + `/autokick` コマンド群 + 日次 cron + 警告 DM + バリデーション + Embed ログ）
-- [ ] テスト（判定ロジック / 自動 disable / preview 整形 / 警告 DM 24h ウィンドウ）
 
 ### 2. VC 参加時の招待メッセージ自動投稿
 
@@ -94,6 +85,16 @@ web フロントエンドがモック駆動（MSW 等）で完成した後、契
 ## 完了済み
 
 > 詳細な作業経過は git log を参照。
+
+### 未承認ユーザー自動キック（§1・2026-05-31 完了・未デプロイ）
+
+参加から猶予日数（`graceDays` 1〜30）内に認証ロール未取得のメンバーを、事前警告（本人へ DM + 任意で通知チャンネルへキック予告）を経て日次で自動キック。判定は単一条件（`joinedAt` 起算・認証ロール未取得・Bot/管理者/オーナー/除外ロール以外）で per-member 状態テーブルを持たないステートレス設計。`enabledAt` 起算下限で有効化直後の無警告一斉キックを防止。Notion 引き継ぎを一次情報源に、コマンド構成は inactive-kick（§8）に、本文可変・Embed 固定は member-log 流儀に揃えて実装。
+
+- [x] 仕様書作成: [UNVERIFIED_KICK_SPEC.md](docs/specs/UNVERIFIED_KICK_SPEC.md)（`/unverified-kick-settings` / DM + 通知/ログ 2チャンネル分離 / 対象ロール〔通知直前付与・認証時 `guildMemberUpdate` 剥奪〕 / `enabledAt` 起算下限 / dry-run=`TEST_MODE`）
+- [x] 実装（DB `GuildUnverifiedKickSettings` + リポジトリ/サービス + `/unverified-kick-settings` コマンド群〔19 サブコマンド + exempt グループ + preview〕 + 日次チェック `addJob`〔03:00 JST・`noOverlap`・`UNVERIFIED_KICK_CRON` 上書き〕 + 警告 DM + 通知/ログ Embed〔キック予告本文も本文可変・Embed 固定でカスタム可〕 + 対象ロール付与/剥奪 + `guildMemberUpdate` ハンドラ + guildDelete 一括削除）
+- [x] テスト（eligibility/candidates/notifier/runner/設定サービス/コマンド定義・全 2377 通過）
+
+> NOTE: 警告 DM 送信・通知投稿・対象ロールの通知直前付与順序・`guildMemberUpdate` 認証時剥奪はロジック実装済みだがユニットテスト未整備（Discord 副作用のため・判定ロジックは別途担保）。**未デプロイ**: 実機検証（`pnpm start` 起動 + 動作確認）と release PR（develop→main）は未実施。
 
 ### 自動キック機能（非アクティブメンバー整理）（§8・2026-05-31 完了）
 

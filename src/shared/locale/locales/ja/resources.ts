@@ -14,6 +14,7 @@ import {
   reactionRole,
   stickyMessage,
   ticket,
+  unverifiedKick,
   vac,
   vc,
   vcRecruit,
@@ -32,6 +33,7 @@ export const ja: {
   messageDelete: typeof messageDelete;
   memberLog: typeof memberLog;
   inactiveKick: typeof inactiveKick;
+  unverifiedKick: typeof unverifiedKick;
   reactionRole: typeof reactionRole;
   stickyMessage: typeof stickyMessage;
   ticket: typeof ticket;
@@ -49,6 +51,7 @@ export const ja: {
   messageDelete,
   memberLog,
   inactiveKick,
+  unverifiedKick,
   reactionRole,
   stickyMessage,
   ticket,

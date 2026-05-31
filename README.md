@@ -34,6 +34,7 @@
 | チケット         | チケットチャンネルでサポート対応                         |  ✅  | [spec](docs/specs/TICKET_SPEC.md)         | [manual](docs/guides/USER_MANUAL.md#チケット機能)         |
 | リアクションロール | ボタンクリックでロール付与・解除                       |  ✅  | [spec](docs/specs/REACTION_ROLE_SPEC.md)  | [manual](docs/guides/USER_MANUAL.md#リアクションロール機能) |
 | 非アクティブ自動キック | 一定期間活動のないメンバーを事前通知のうえ自動キック   |  ✅  | [spec](docs/specs/INACTIVE_KICK_SPEC.md)  | [manual](docs/guides/USER_MANUAL.md#非アクティブ自動キック機能) |
+| 未承認ユーザー自動キック | 認証ロール未取得のメンバーを事前警告のうえ自動キック   |  ✅  | [spec](docs/specs/UNVERIFIED_KICK_SPEC.md) | [manual](docs/guides/USER_MANUAL.md#未承認ユーザー自動キック機能) |
 
 ---
 
@@ -151,6 +152,7 @@ pnpm lint:fix         # Biome自動修正
 - [チケット](docs/specs/TICKET_SPEC.md) - チケットチャンネルでサポート対応
 - [リアクションロール](docs/specs/REACTION_ROLE_SPEC.md) - ボタンクリックでロール付与・解除
 - [非アクティブ自動キック](docs/specs/INACTIVE_KICK_SPEC.md) - 一定期間活動のないメンバーを段階通知のうえ自動キック
+- [未承認ユーザー自動キック](docs/specs/UNVERIFIED_KICK_SPEC.md) - 認証ロール未取得のメンバーを事前警告のうえ自動キック
 - [メッセージレスポンス](docs/specs/MESSAGE_RESPONSE_SPEC.md) - Embed形式の統一メッセージシステム
 
 ## ライセンス

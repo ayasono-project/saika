@@ -12,6 +12,7 @@ export { ping } from "./ping";
 export { reactionRole } from "./reactionRole";
 export { stickyMessage } from "./stickyMessage";
 export { ticket } from "./ticket";
+export { unverifiedKick } from "./unverifiedKick";
 export { vac } from "./vac";
 export { vc } from "./vc";
 export { vcRecruit } from "./vcRecruit";

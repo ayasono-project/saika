@@ -11,6 +11,12 @@ import {
 } from "../../features/inactive-kick/services/inactiveKickRunner";
 import { initGuildInviteCache } from "../../features/member-log/handlers/inviteTracker";
 import { restoreAutoDeleteTimers } from "../../features/ticket/services/ticketAutoDeleteService";
+import {
+  resolveUnverifiedKickSchedule,
+  runUnverifiedKickDailyCheck,
+  UNVERIFIED_KICK_JOB_ID,
+  UNVERIFIED_KICK_JOB_TIMEZONE,
+} from "../../features/unverified-kick/services/unverifiedKickRunner";
 import { cleanupVacOnStartup } from "../../features/vac/handlers/vacStartupCleanup";
 import { logPrefixed, tDefault } from "../../shared/locale/localeManager";
 import { jobScheduler } from "../../shared/scheduler/jobScheduler";
@@ -80,6 +86,16 @@ export async function handleClientReady(client: BotClient): Promise<void> {
       timezone: INACTIVE_KICK_JOB_TIMEZONE,
       noOverlap: true,
       task: () => runInactiveKickDailyCheck(client),
+    });
+
+    // 未承認ユーザー自動キックの日次チェックを登録（既定 03:00 JST・多重実行防止）
+    // UNVERIFIED_KICK_CRON が設定されていれば検証用にスケジュールを上書きする
+    jobScheduler.addJob({
+      id: UNVERIFIED_KICK_JOB_ID,
+      schedule: resolveUnverifiedKickSchedule(),
+      timezone: UNVERIFIED_KICK_JOB_TIMEZONE,
+      noOverlap: true,
+      task: () => runUnverifiedKickDailyCheck(client),
     });
   } catch (error) {
     logger.error(

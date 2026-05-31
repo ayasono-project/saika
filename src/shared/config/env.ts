@@ -33,6 +33,7 @@ export type Env = {
   TEST_MODE: boolean;
   USER_MANUAL_URL?: string | undefined;
   INACTIVE_KICK_CRON?: string | undefined;
+  UNVERIFIED_KICK_CRON?: string | undefined;
 };
 
 // 環境変数スキーマ定義（起動時バリデーション用）
@@ -68,6 +69,9 @@ export const envSchema: z.ZodType<Env> = z.object({
 
   // 非アクティブ自動キックの日次チェック cron 上書き（dev/検証用・未設定時は既定の 04:00）
   INACTIVE_KICK_CRON: z.string().optional(),
+
+  // 未承認ユーザー自動キックの日次チェック cron 上書き（dev/検証用・未設定時は既定の 03:00）
+  UNVERIFIED_KICK_CRON: z.string().optional(),
 });
 
 // 実行環境変数を検証して利用可能な設定へ変換する

@@ -74,6 +74,31 @@ export interface InactiveKickSettings {
   whitelistUserIds: string[];
 }
 
+export interface UnverifiedKickSettings {
+  // 機能有効フラグ
+  enabled: boolean;
+  // 最後に有効化した時刻（キック起算の下限・未有効化時 undefined）
+  enabledAt?: Date;
+  // 認証ロールID（保持していればキック対象外・未設定時 undefined）
+  verifiedRoleId?: string;
+  // 参加からキックまでの猶予日数
+  graceDays: number;
+  // 事前警告を送る参加経過日数（undefined = 警告無効）
+  warnDays?: number;
+  // キック予告（メンバー/スタッフ向け）チャンネルID
+  notifyChannelId?: string;
+  // 監査ログ（キック実行・自動無効化）チャンネルID
+  logChannelId?: string;
+  // 警告対象へ自動付与する対象ロールID（通知メンション用・未設定時 undefined）
+  markerRoleId?: string;
+  // カスタム警告DM本文（{serverName}/{graceDays}/{warnDays}/{remainingDays} 置換可）
+  dmTemplate?: string;
+  // カスタムキック予告本文（通知チャンネル・{count}/{serverName}/{graceDays}/{warnDays}/{remainingDays}/{markerRole} 置換可）
+  notifyTemplate?: string;
+  // 除外ロールID一覧
+  exemptRoleIds: string[];
+}
+
 export interface MemberActivity {
   // ギルドID
   guildId: string;

@@ -33,6 +33,9 @@ import { getTicketRepository } from "../../features/ticket/repositories/ticketRe
 import { getTicketSettingsRepository } from "../../features/ticket/ticketSettingsRepository";
 import type { TicketSettingsService } from "../../features/ticket/ticketSettingsService";
 import { createTicketSettingsService } from "../../features/ticket/ticketSettingsService";
+import { getUnverifiedKickSettingsRepository } from "../../features/unverified-kick/unverifiedKickSettingsRepository";
+import type { UnverifiedKickSettingsService } from "../../features/unverified-kick/unverifiedKickSettingsService";
+import { createUnverifiedKickSettingsService } from "../../features/unverified-kick/unverifiedKickSettingsService";
 import type { VacService } from "../../features/vac/services/vacService";
 import { getVacService } from "../../features/vac/services/vacService";
 import { getVacSettingsRepository } from "../../features/vac/vacSettingsRepository";
@@ -64,6 +67,7 @@ export interface BotServices {
   stickyMessageResendService: StickyMessageResendService;
   memberLogSettingsService: MemberLogSettingsService;
   inactiveKickSettingsService: InactiveKickSettingsService;
+  unverifiedKickSettingsService: UnverifiedKickSettingsService;
   ticketSettingsService: TicketSettingsService;
   ticketRepository: ITicketRepository;
   reactionRolePanelSettingsService: ReactionRolePanelSettingsService;
@@ -170,6 +174,16 @@ export const setBotMemberActivityRepository: (
   value: IMemberActivityRepository,
 ) => void = _memberActivityRepositoryAccessor[1];
 
+const _unverifiedKickSettingsServiceAccessor =
+  createBotServiceAccessor<UnverifiedKickSettingsService>(
+    "UnverifiedKickSettingsService",
+  );
+export const getBotUnverifiedKickSettingsService: () => UnverifiedKickSettingsService =
+  _unverifiedKickSettingsServiceAccessor[0];
+export const setBotUnverifiedKickSettingsService: (
+  value: UnverifiedKickSettingsService,
+) => void = _unverifiedKickSettingsServiceAccessor[1];
+
 const _reactionRolePanelSettingsServiceAccessor =
   createBotServiceAccessor<ReactionRolePanelSettingsService>(
     "ReactionRolePanelSettingsService",
@@ -224,6 +238,7 @@ export function initializeBotCompositionRoot(
   const memberLogRepo = getMemberLogSettingsRepository(prisma);
   const inactiveKickRepo = getInactiveKickSettingsRepository(prisma);
   const memberActivityRepo = getMemberActivityRepository(prisma);
+  const unverifiedKickRepo = getUnverifiedKickSettingsRepository(prisma);
   const vcRecruitSettingsRepo = getVcRecruitSettingsRepository(prisma);
   const stickyMessageRepository = getStickyMessageRepository(prisma);
   const reactionRolePanelRepository = getReactionRolePanelRepository(prisma);
@@ -292,6 +307,11 @@ export function initializeBotCompositionRoot(
   setBotInactiveKickSettingsService(inactiveKickSettingsService);
   setBotMemberActivityRepository(memberActivityRepo);
 
+  // UnverifiedKick（未承認ユーザー自動キック）
+  const unverifiedKickSettingsService =
+    createUnverifiedKickSettingsService(unverifiedKickRepo);
+  setBotUnverifiedKickSettingsService(unverifiedKickSettingsService);
+
   // Ticket
   const ticketSettingsService = createTicketSettingsService(
     ticketSettingsRepository,
@@ -324,6 +344,7 @@ export function initializeBotCompositionRoot(
     stickyMessageResendService,
     memberLogSettingsService,
     inactiveKickSettingsService,
+    unverifiedKickSettingsService,
     ticketSettingsService,
     ticketRepository,
     reactionRolePanelSettingsService,

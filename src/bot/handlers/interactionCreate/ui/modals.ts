@@ -20,6 +20,10 @@ import { stickyMessageUpdateModalHandler } from "../../../../features/sticky-mes
 import { ticketCreateModalHandler } from "../../../../features/ticket/handlers/ui/ticketCreateModalHandler";
 import { ticketEditPanelModalHandler } from "../../../../features/ticket/handlers/ui/ticketEditPanelModalHandler";
 import { ticketSetupModalHandler } from "../../../../features/ticket/handlers/ui/ticketSetupModalHandler";
+import {
+  unverifiedKickSetDmMessageModalHandler,
+  unverifiedKickSetNotifyMessageModalHandler,
+} from "../../../../features/unverified-kick/handlers/ui/unverifiedKickDmMessageModalHandler";
 import { vcRecruitModalHandler } from "../../../../features/vc-recruit/handlers/ui/vcRecruitModal";
 import { vcRecruitRenameModalHandler } from "../../../../features/vc-recruit/handlers/ui/vcRecruitRenameModal";
 import type { ModalHandler } from "./types";
@@ -47,6 +51,10 @@ export const modalHandlers: ModalHandler[] = [
   inactiveKickSetFinalWarnMessageModalHandler,
   // inactive-kick-settings キック通知メッセージ設定モーダルを処理
   inactiveKickSetKickMessageModalHandler,
+  // unverified-kick-settings 警告 DM メッセージ設定モーダルを処理
+  unverifiedKickSetDmMessageModalHandler,
+  // unverified-kick-settings キック予告メッセージ設定モーダルを処理
+  unverifiedKickSetNotifyMessageModalHandler,
   // リアクションロール setup パネル設定モーダルを処理
   reactionRoleSetupModalHandler,
   // リアクションロール setup ボタン設定モーダルを処理

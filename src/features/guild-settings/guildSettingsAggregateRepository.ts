@@ -416,6 +416,9 @@ export class GuildSettingsAggregateRepository
       this.prisma.guildMemberLogSettings.deleteMany({ where: { guildId } }),
       this.prisma.guildInactiveKickSettings.deleteMany({ where: { guildId } }),
       this.prisma.memberActivity.deleteMany({ where: { guildId } }),
+      this.prisma.guildUnverifiedKickSettings.deleteMany({
+        where: { guildId },
+      }),
       this.prisma.guildVcRecruitSettings.deleteMany({ where: { guildId } }),
       this.prisma.guildSettings.deleteMany({ where: { guildId } }),
     ]);

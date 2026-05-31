@@ -15,6 +15,7 @@ import type {
   InactiveKickSettings,
   MemberActivity,
   MemberLogSettings,
+  UnverifiedKickSettings,
   VacSettings,
 } from "./entities";
 import type {
@@ -135,6 +136,19 @@ export interface IInactiveKickSettingsRepository {
   /** 有効な全ギルドの設定を取得（日次チェック用） */
   getAllEnabled(): Promise<Array<InactiveKickSettings & { guildId: string }>>;
   deleteInactiveKickSettings(guildId: string): Promise<void>;
+}
+
+export interface IUnverifiedKickSettingsRepository {
+  getUnverifiedKickSettings(
+    guildId: string,
+  ): Promise<UnverifiedKickSettings | null>;
+  updateUnverifiedKickSettings(
+    guildId: string,
+    unverifiedKickSettings: UnverifiedKickSettings,
+  ): Promise<void>;
+  /** 有効な全ギルドの設定を取得（日次チェック用） */
+  getAllEnabled(): Promise<Array<UnverifiedKickSettings & { guildId: string }>>;
+  deleteUnverifiedKickSettings(guildId: string): Promise<void>;
 }
 
 export interface IMemberActivityRepository {

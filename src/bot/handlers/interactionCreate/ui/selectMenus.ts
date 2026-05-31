@@ -29,6 +29,7 @@ import { ticketRoleSelectHandler } from "../../../../features/ticket/handlers/ui
 import { ticketSetupRoleSelectHandler } from "../../../../features/ticket/handlers/ui/ticketSetupRoleSelectHandler";
 import { ticketTeardownSelectHandler } from "../../../../features/ticket/handlers/ui/ticketTeardownSelectHandler";
 import { ticketViewSelectHandler } from "../../../../features/ticket/handlers/ui/ticketViewSelectHandler";
+import { unverifiedKickExemptRemoveSelectHandler } from "../../../../features/unverified-kick/handlers/ui/unverifiedKickExemptRemoveSelectHandler";
 import { vcRecruitAddRoleSelectHandler } from "../../../../features/vc-recruit/handlers/ui/vcRecruitAddRoleSelectHandler";
 import { vcRecruitRemoveRoleSelectHandler } from "../../../../features/vc-recruit/handlers/ui/vcRecruitRemoveRoleSelectHandler";
 import { vcRecruitStringSelectHandler } from "../../../../features/vc-recruit/handlers/ui/vcRecruitStringSelect";
@@ -94,4 +95,6 @@ export const stringSelectHandlers: StringSelectHandler[] = [
   ticketViewSelectHandler,
   // 非アクティブ自動キック whitelist remove の項目選択を処理
   inactiveKickWhitelistRemoveSelectHandler,
+  // 未承認ユーザー自動キック exempt remove の項目選択を処理
+  unverifiedKickExemptRemoveSelectHandler,
 ];

@@ -114,6 +114,24 @@ model MemberActivity {
   @@map("member_activities")
 }
 
+// 未承認ユーザー自動キック設定
+model GuildUnverifiedKickSettings {
+  guildId         String    @id @map("guild_id")
+  enabled         Boolean   @default(false)
+  enabledAt       DateTime? @map("enabled_at") // 最後に有効化した時刻（キック起算の下限）
+  verifiedRoleId  String?   @map("verified_role_id") // 認証ロール ID（保持していれば対象外）
+  graceDays       Int       @default(7) @map("grace_days") // 参加からキックまでの猶予日数
+  warnDays        Int?      @map("warn_days") // 事前警告を送る参加経過日数（null = 警告無効）
+  notifyChannelId String?   @map("notify_channel_id") // キック予告チャンネル ID
+  logChannelId    String?   @map("log_channel_id") // 監査ログチャンネル ID
+  markerRoleId    String?   @map("marker_role_id") // 警告対象へ自動付与する対象ロール ID
+  dmTemplate      String?   @map("dm_template") // カスタム警告 DM 本文
+  notifyTemplate  String?   @map("notify_template") // カスタムキック予告本文（通知チャンネル）
+  exemptRoleIds   Json      @default("[]") @map("exempt_role_ids") // jsonb: string[]
+
+  @@map("guild_unverified_kick_settings")
+}
+
 // VC募集設定
 model GuildVcRecruitSettings {
   guildId        String  @id @map("guild_id")

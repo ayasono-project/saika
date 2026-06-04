@@ -116,6 +116,37 @@ describe("bot/features/message-delete/services/messageDeleteService", () => {
   });
 
   // ─────────────────────────────────────────────────────────────
+  // matchesAuthorType
+  // ─────────────────────────────────────────────────────────────
+
+  // 投稿者タイプ判定（bot / human / left / 未指定）を検証
+  describe("matchesAuthorType", () => {
+    it("undefined は常に一致する（全投稿者）", async () => {
+      const { matchesAuthorType } = await loadModule();
+      expect(matchesAuthorType(undefined, true, false)).toBe(true);
+      expect(matchesAuthorType(undefined, false, true)).toBe(true);
+    });
+
+    it("bot は isBot のときのみ一致する", async () => {
+      const { matchesAuthorType } = await loadModule();
+      expect(matchesAuthorType("bot", true, true)).toBe(true);
+      expect(matchesAuthorType("bot", false, true)).toBe(false);
+    });
+
+    it("human は非 bot のときのみ一致する", async () => {
+      const { matchesAuthorType } = await loadModule();
+      expect(matchesAuthorType("human", false, true)).toBe(true);
+      expect(matchesAuthorType("human", true, true)).toBe(false);
+    });
+
+    it("left は非メンバー（退出済み）のときのみ一致する", async () => {
+      const { matchesAuthorType } = await loadModule();
+      expect(matchesAuthorType("left", false, false)).toBe(true);
+      expect(matchesAuthorType("left", false, true)).toBe(false);
+    });
+  });
+
+  // ─────────────────────────────────────────────────────────────
   // scanMessages
   // ─────────────────────────────────────────────────────────────
 
@@ -126,11 +157,15 @@ describe("bot/features/message-delete/services/messageDeleteService", () => {
       authorId: string,
       content: string,
       createdTimestamp: number,
-      opts: { attachments?: number; embeds?: { title?: string }[] } = {},
+      opts: {
+        attachments?: number;
+        embeds?: { title?: string }[];
+        bot?: boolean;
+      } = {},
     ) {
       return {
         id,
-        author: { id: authorId, displayName: authorId },
+        author: { id: authorId, displayName: authorId, bot: opts.bot ?? false },
         webhookId: null,
         content,
         createdTimestamp,
@@ -252,6 +287,121 @@ describe("bot/features/message-delete/services/messageDeleteService", () => {
       });
 
       expect(result).toHaveLength(1);
+    });
+
+    it("各メッセージに authorIsBot / authorIsMember を刻む", async () => {
+      const { scanMessages } = await loadModule();
+
+      const now = Date.now();
+      const human = makeMessage("msg-1", "user-1", "hi", now - 1000);
+      const bot = makeMessage("msg-2", "bot-1", "beep", now - 2000, {
+        bot: true,
+      });
+
+      const channel = makeChannel("ch-1");
+      (channel.messages.fetch as Mock)
+        .mockResolvedValueOnce(makeCollection([human, bot]))
+        .mockResolvedValue(makeCollection([]));
+
+      const result = await scanMessages([channel as never], {
+        count: 10,
+        targetUserIds: [],
+        afterTs: 0,
+        beforeTs: Infinity,
+        locale: "ja",
+        // user-1 のみ在籍。bot-1 は不在 = 退出済み扱い
+        memberIds: new Set(["user-1"]),
+      });
+
+      const byId = new Map(result.map((m) => [m.messageId, m]));
+      expect(byId.get("msg-1")).toMatchObject({
+        authorIsBot: false,
+        authorIsMember: true,
+      });
+      expect(byId.get("msg-2")).toMatchObject({
+        authorIsBot: true,
+        authorIsMember: false,
+      });
+    });
+
+    it("authorType=bot で bot の投稿のみ収集する", async () => {
+      const { scanMessages } = await loadModule();
+
+      const now = Date.now();
+      const human = makeMessage("msg-1", "user-1", "hi", now - 1000);
+      const bot = makeMessage("msg-2", "bot-1", "beep", now - 2000, {
+        bot: true,
+      });
+
+      const channel = makeChannel("ch-1");
+      (channel.messages.fetch as Mock)
+        .mockResolvedValueOnce(makeCollection([human, bot]))
+        .mockResolvedValue(makeCollection([]));
+
+      const result = await scanMessages([channel as never], {
+        count: 10,
+        targetUserIds: [],
+        authorType: "bot",
+        afterTs: 0,
+        beforeTs: Infinity,
+        locale: "ja",
+      });
+
+      expect(result).toHaveLength(1);
+      expect(result[0].messageId).toBe("msg-2");
+    });
+
+    it("authorType=human で人間の投稿のみ収集する", async () => {
+      const { scanMessages } = await loadModule();
+
+      const now = Date.now();
+      const human = makeMessage("msg-1", "user-1", "hi", now - 1000);
+      const bot = makeMessage("msg-2", "bot-1", "beep", now - 2000, {
+        bot: true,
+      });
+
+      const channel = makeChannel("ch-1");
+      (channel.messages.fetch as Mock)
+        .mockResolvedValueOnce(makeCollection([human, bot]))
+        .mockResolvedValue(makeCollection([]));
+
+      const result = await scanMessages([channel as never], {
+        count: 10,
+        targetUserIds: [],
+        authorType: "human",
+        afterTs: 0,
+        beforeTs: Infinity,
+        locale: "ja",
+      });
+
+      expect(result).toHaveLength(1);
+      expect(result[0].messageId).toBe("msg-1");
+    });
+
+    it("authorType=left で退出済みメンバー（memberIds 不在）の投稿のみ収集する", async () => {
+      const { scanMessages } = await loadModule();
+
+      const now = Date.now();
+      const current = makeMessage("msg-1", "user-1", "hi", now - 1000);
+      const left = makeMessage("msg-2", "user-gone", "bye", now - 2000);
+
+      const channel = makeChannel("ch-1");
+      (channel.messages.fetch as Mock)
+        .mockResolvedValueOnce(makeCollection([current, left]))
+        .mockResolvedValue(makeCollection([]));
+
+      const result = await scanMessages([channel as never], {
+        count: 10,
+        targetUserIds: [],
+        authorType: "left",
+        afterTs: 0,
+        beforeTs: Infinity,
+        locale: "ja",
+        memberIds: new Set(["user-1"]),
+      });
+
+      expect(result).toHaveLength(1);
+      expect(result[0].messageId).toBe("msg-2");
     });
 
     it("count の上限に達した場合にスキャンを停止する", async () => {

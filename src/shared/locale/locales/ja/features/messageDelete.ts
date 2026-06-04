@@ -39,6 +39,11 @@ export const messageDelete = {
   "ui.button.reset": "リセット",
   "ui.select.author_placeholder": "投稿者でフィルター",
   "ui.select.author_all": "（全投稿者）",
+  "ui.select.author_type_bot": "botのみ",
+  "ui.select.author_type_human": "人のみ",
+  "ui.select.author_type_left": "既に居ない人のみ",
+  "ui.select.condition_author_type_placeholder":
+    "投稿者タイプで絞り込み（任意）",
   "ui.modal.keyword_title": "内容でフィルター",
   "ui.modal.keyword_label": "キーワード",
   "ui.modal.keyword_placeholder": "フィルターするキーワードを入力",
@@ -81,11 +86,16 @@ export const messageDelete = {
   "embed.field.value.user_all": "(全員対象)",
   "embed.field.value.none": "(なし)",
   "embed.field.value.channel_all": "(サーバー全体)",
+  "embed.field.name.author_type": "投稿者タイプ",
+  "embed.field.value.author_type_all": "(全投稿者)",
+  "embed.field.value.author_type_bot": "🤖 botのみ",
+  "embed.field.value.author_type_human": "👤 人のみ",
+  "embed.field.value.author_type_left": "🚪 既に居ない人のみ",
   "embed.field.value.days_value": "過去{{days}}日間",
   "embed.field.value.after_value": "{{date}} 以降",
   "embed.field.value.before_value": "{{date}} 以前",
   "embed.title.condition_step":
-    "対象ユーザー・チャンネルを選択してください（任意）",
+    "対象ユーザー・チャンネル・投稿者タイプを選択してください（任意）",
   "embed.field.value.empty_content": "*(本文なし)*",
   "embed.field.value.attachments": "📎 {{count}}件",
   "embed.field.value.embed_no_title": "🔗 埋め込みコンテンツ",
@@ -149,7 +159,7 @@ export const messageDelete = {
   "user-response.condition_step_timeout":
     "条件設定がタイムアウトしました。再度コマンドを実行してください。",
   "user-response.condition_step_no_filter":
-    "フィルタ条件が指定されていないため実行できません。\n`count`・`keyword`・`days`・`after`・`before` のいずれかのコマンドオプション、または対象ユーザーを選択してください。",
+    "フィルタ条件が指定されていないため実行できません。\n`count`・`keyword`・`days`・`after`・`before` のいずれかのコマンドオプション、または対象ユーザー・投稿者タイプを選択してください。",
 
   // ── ログ ─────────────────────────────────────
   "log.cmd_all_channels_start": "全チャンネル取得開始",
@@ -164,6 +174,8 @@ export const messageDelete = {
   "log.svc_bulk_delete_chunk": "bulkDelete チャンク size={{size}}",
   "log.svc_message_delete_failed":
     "メッセージ削除失敗 messageId={{messageId}}: {{error}}",
+  "log.member_fetch_failed":
+    "メンバー一覧の取得に失敗、キャッシュにフォールバック: {{error}}",
   "log.scan_error": "スキャンエラー: {{error}}",
   "log.delete_error": "削除処理エラー: {{error}}",
   "log.deleted":

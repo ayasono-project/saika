@@ -2,7 +2,7 @@
 
 > モデレーター向けメッセージ一括削除
 
-最終更新: 2026年3月18日
+最終更新: 2026年6月4日
 
 ---
 
@@ -54,6 +54,21 @@
 | ------------ | ----------------- | ---- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `user`       | UserSelectMenu    | ❌   | 削除対象ユーザー（最大25人、複数選択可）。Webhook は別途モーダルで ID 入力                                                                                |
 | `channel`    | ChannelSelectMenu | ❌   | 対象チャンネル（最大25、複数選択可）。未指定でサーバー全体。対象種別: TextChannel / NewsChannel / Thread / VoiceChannel（テキストチャット機能を持つため） |
+| 投稿者タイプ | StringSelect      | ❌   | 投稿者の種別で絞り込み（単一選択）。全投稿者 / bot のみ / 人のみ / 既に居ない人（退出済み）のみ。`user` と AND で併用可                                    |
+
+**投稿者タイプフィルター:**
+
+投稿者の属性で削除対象を絞り込む。スキャン時（収集対象の絞り込み）とプレビュー時（表示の絞り込み）の双方で利用でき、判定ロジックは `matchesAuthorType` で共用する。
+
+| 種別                     | 判定                                          |
+| ------------------------ | --------------------------------------------- |
+| 全投稿者（既定）         | フィルターなし                                |
+| bot のみ                 | `message.author.bot === true`                 |
+| 人のみ                   | `message.author.bot === false`                |
+| 既に居ない人（退出済み） | 投稿者が現在のサーバーメンバーに不在          |
+
+- 「既に居ない人」判定のため、スキャン直前に `guild.members.fetch()` で現在のメンバーID集合を一括取得する（GuildMembers Intent 前提。取得失敗時はキャッシュにフォールバックして警告ログ）。
+- 各スキャン済みメッセージに `authorIsBot` / `authorIsMember` を保持し、プレビューでのフィルターは追加のフェッチなしで判定する。
 
 **`after` / `before` の日時解釈:**
 
@@ -117,7 +132,7 @@ stateDiagram-v2
 
 フィルタ条件検証（スキャン開始ボタン押下時）:
 
-- `count`・`user`・`keyword`・`days`・`after`・`before` のいずれも未指定の場合はスキャン開始を拒否
+- `count`・`user`・`keyword`・`days`・`after`・`before`・投稿者タイプのいずれも未指定の場合はスキャン開始を拒否
 - `channel` のみ指定も拒否（フィルタ条件なしでチャンネル全削除になるため）
 
 **UIコンポーネント:**
@@ -126,7 +141,8 @@ stateDiagram-v2
 | --- | ----------------- | ------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
 | 1   | UserSelectMenu    | `message-delete:user-select`                                                                | 最大25人、複数選択可。`minValues: 0`、`maxValues: 25`                 |
 | 2   | ChannelSelectMenu | `message-delete:channel-select`                                                             | 最大25チャンネル、テキストベースのみ。`minValues: 0`、`maxValues: 25` |
-| 3   | ボタン×3          | `message-delete:scan-start` / `message-delete:webhook-input` / `message-delete:condition-cancel` | スキャン開始 / Webhook ID 入力モーダル / キャンセル                   |
+| 3   | StringSelect      | `message-delete:author-type-select`                                                         | 投稿者タイプ（全投稿者 / bot のみ / 人のみ / 既に居ない人のみ）。`minValues: 0`、`maxValues: 1` |
+| 4   | ボタン×3          | `message-delete:scan-start` / `message-delete:webhook-input` / `message-delete:condition-cancel` | スキャン開始 / Webhook ID 入力モーダル / キャンセル                   |
 
 **Webhook ID 入力モーダル:**
 
@@ -219,6 +235,7 @@ flowchart TD
 | ------------ | ------------------- | ---------------------------------------------- |
 | `count`      | `500 件`            | `(上限なし: 1000 件)`                          |
 | `user`       | `<@ID1> <@ID2> ...` | `(全員対象)`                                   |
+| 投稿者タイプ | `🤖 botのみ` / `👤 人のみ` / `🚪 既に居ない人のみ` | `(全投稿者)`                       |
 | `keyword`    | `"スパム"`          | `(なし)`                                       |
 | `days`       | `過去 7 日間`       | —（after/before と排他、設定された方のみ表示） |
 | `after`      | `2026-01-01 以降`   | `(なし)`                                       |
@@ -254,7 +271,10 @@ flowchart TD
 
 | コンポーネント | 種別 | 設定 |
 | --- | --- | --- |
-| `message-delete:author-filter` | StringSelect | 投稿者フィルター。選択肢はスキャン全体から収集（フィルター状態に依存しない） |
+| `message-delete:author-filter` | StringSelect | 投稿者フィルター（単一選択）。先頭に投稿者タイプカテゴリ（`全投稿者` / `🤖 botのみ` / `👤 人のみ` / `🚪 既に居ない人のみ`）、続けて個別投稿者（スキャン全体から収集・フィルター状態に依存しない）を表示。カテゴリと個別投稿者は排他。Discord の25件上限のため個別投稿者はカテゴリ4件を除いた21件まで。現在の選択を `default` で反映 |
+
+- カテゴリ（bot/人/退出済み）を選ぶと `authorType` が設定され `authorId` は解除、個別投稿者を選ぶと `authorId` が設定され `authorType` は解除、`全投稿者` で両方解除。
+- 退出済み・bot・人の判定はスキャン時に各メッセージへ保持した `authorIsBot` / `authorIsMember` を用いる（表示の絞り込みのみで削除対象件数には影響しない）。
 
 **Row 3 - フィルターボタン:**
 
@@ -457,7 +477,7 @@ flowchart TD
 | `user-response.scan_timed_out_empty` | スキャンがタイムアウトしました。削除可能なメッセージが見つかりませんでした。 | Scan timed out. No deletable messages were found. |
 | `user-response.delete_timed_out` | 削除処理がタイムアウトしました。削除済み: {{count}}件 | Deletion timed out. Messages deleted: {{count}} |
 | `user-response.condition_step_timeout` | 条件設定がタイムアウトしました。再度コマンドを実行してください。 | Condition setup timed out. Please run the command again. |
-| `user-response.condition_step_no_filter` | フィルタ条件が指定されていないため実行できません。\`count\`・\`keyword\`・\`days\`・\`after\`・\`before\` のいずれかのコマンドオプション、または対象ユーザーを選択してください。 | No filter conditions specified. Please specify at least one of: \`count\`, \`keyword\`, \`days\`, \`after\`, \`before\`, or select target users. |
+| `user-response.condition_step_no_filter` | フィルタ条件が指定されていないため実行できません。\`count\`・\`keyword\`・\`days\`・\`after\`・\`before\` のいずれかのコマンドオプション、または対象ユーザー・投稿者タイプを選択してください。 | No filter conditions specified. Please specify at least one of: \`count\`, \`keyword\`, \`days\`, \`after\`, \`before\`, or select target users or an author type. |
 
 ### UIラベル
 
@@ -482,6 +502,10 @@ flowchart TD
 | `ui.button.reset` | リセット | Reset |
 | `ui.select.author_placeholder` | 投稿者でフィルター | Filter by author |
 | `ui.select.author_all` | （全投稿者） | (All authors) |
+| `ui.select.author_type_bot` | botのみ | Bots only |
+| `ui.select.author_type_human` | 人のみ | Humans only |
+| `ui.select.author_type_left` | 既に居ない人のみ | Left members only |
+| `ui.select.condition_author_type_placeholder` | 投稿者タイプで絞り込み（任意） | Filter by author type (optional) |
 | `ui.modal.keyword_title` | 内容でフィルター | Filter by Content |
 | `ui.modal.keyword_label` | キーワード | Keyword |
 | `ui.modal.keyword_placeholder` | フィルターするキーワードを入力 | Enter keyword to filter |
@@ -526,10 +550,15 @@ flowchart TD
 | `embed.field.value.user_all` | (全員対象) | (all users) |
 | `embed.field.value.none` | (なし) | (none) |
 | `embed.field.value.channel_all` | (サーバー全体) | (entire server) |
+| `embed.field.name.author_type` | 投稿者タイプ | Author type |
+| `embed.field.value.author_type_all` | (全投稿者) | (all authors) |
+| `embed.field.value.author_type_bot` | 🤖 botのみ | 🤖 Bots only |
+| `embed.field.value.author_type_human` | 👤 人のみ | 👤 Humans only |
+| `embed.field.value.author_type_left` | 🚪 既に居ない人のみ | 🚪 Left members only |
 | `embed.field.value.days_value` | 過去{{days}}日間 | Past {{days}} days |
 | `embed.field.value.after_value` | {{date}} 以降 | After {{date}} |
 | `embed.field.value.before_value` | {{date}} 以前 | Before {{date}} |
-| `embed.title.condition_step` | 対象ユーザー・チャンネルを選択してください（任意） | Select target users and channels (optional) |
+| `embed.title.condition_step` | 対象ユーザー・チャンネル・投稿者タイプを選択してください（任意） | Select target users, channels, and author type (optional) |
 | `embed.field.value.empty_content` | *(本文なし)* | *(no content)* |
 | `embed.field.value.attachments` | 📎 {{count}}件 | 📎 {{count}} attachment(s) |
 | `embed.field.value.embed_no_title` | 🔗 埋め込みコンテンツ | 🔗 Embedded content |
@@ -548,6 +577,7 @@ flowchart TD
 | `log.svc_channel_no_access` | チャンネル {{channelId}} はアクセス権なし、スキップ | channel {{channelId}} skipped (no access) |
 | `log.svc_bulk_delete_chunk` | bulkDelete チャンク size={{size}} | bulkDelete chunk size={{size}} |
 | `log.svc_message_delete_failed` | メッセージ削除失敗 messageId={{messageId}}: {{error}} | failed to delete messageId={{messageId}}: {{error}} |
+| `log.member_fetch_failed` | メンバー一覧の取得に失敗、キャッシュにフォールバック: {{error}} | failed to fetch member list, falling back to cache: {{error}} |
 | `log.scan_error` | スキャンエラー: {{error}} | scan error: {{error}} |
 | `log.delete_error` | 削除処理エラー: {{error}} | delete error: {{error}} |
 | `log.deleted` | {{userId}} deleted {{count}} messages{{countPart}}{{targetPart}}{{keywordPart}}{{periodPart}} channels=[{{channels}}] | {{userId}} deleted {{count}} messages{{countPart}}{{targetPart}}{{keywordPart}}{{periodPart}} channels=[{{channels}}] |
@@ -564,11 +594,12 @@ flowchart TD
 
 - [x] オプション検証: days+日付範囲排他、after/beforeフォーマット・未来日時・大小関係、ManageMessages権限、Bot権限不足
 - [x] 対象チャンネル構築: 指定チャンネル/全チャンネル、非テキストスキップ、Botアクセス不可スキップ+警告、全アクセス不可エラー
-- [x] スキャンフェーズ: チャンネルスキャン、ユーザー/キーワード/日付フィルタ、count上限、abort signal、進捗コールバック
-- [x] プレビューダイアログ: ページネーション、除外セレクト、投稿者フィルタ、確認/キャンセル/タイムアウト
+- [x] スキャンフェーズ: チャンネルスキャン、ユーザー/キーワード/日付フィルタ、投稿者タイプ（bot/人/退出済み）フィルタ、`authorIsBot`/`authorIsMember` 刻み、count上限、abort signal、進捗コールバック
+- [x] 投稿者タイプ判定: `matchesAuthorType`（bot/human/left/未指定）
+- [x] プレビューダイアログ: ページネーション、除外セレクト、投稿者フィルタ（個別投稿者 + タイプカテゴリ）、確認/キャンセル/タイムアウト
 - [x] 最終確認ダイアログ: ページネーション、確認/キャンセル/戻る/タイムアウト
 - [x] 削除実行: 正常削除+完了Embed、例外時エラーEmbed、タイムアウト中断
-- [x] 条件設定: ユーザー/チャンネル選択、Webhook ID入力+バリデーション、フィルタなし警告、キャンセル/タイムアウト
+- [x] 条件設定: ユーザー/チャンネル/投稿者タイプ選択、Webhook ID入力+バリデーション、フィルタなし警告、キャンセル/タイムアウト
 - [x] 同一ギルドロック: 重複実行防止
 
 ### インテグレーションテスト

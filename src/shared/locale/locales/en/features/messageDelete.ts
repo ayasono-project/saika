@@ -39,6 +39,11 @@ export const messageDelete = {
   "ui.button.reset": "Reset",
   "ui.select.author_placeholder": "Filter by author",
   "ui.select.author_all": "(All authors)",
+  "ui.select.author_type_bot": "Bots only",
+  "ui.select.author_type_human": "Humans only",
+  "ui.select.author_type_left": "Left members only",
+  "ui.select.condition_author_type_placeholder":
+    "Filter by author type (optional)",
   "ui.modal.keyword_title": "Filter by Content",
   "ui.modal.keyword_label": "Keyword",
   "ui.modal.keyword_placeholder": "Enter keyword to filter",
@@ -81,10 +86,16 @@ export const messageDelete = {
   "embed.field.value.user_all": "(all users)",
   "embed.field.value.none": "(none)",
   "embed.field.value.channel_all": "(entire server)",
+  "embed.field.name.author_type": "Author type",
+  "embed.field.value.author_type_all": "(all authors)",
+  "embed.field.value.author_type_bot": "🤖 Bots only",
+  "embed.field.value.author_type_human": "👤 Humans only",
+  "embed.field.value.author_type_left": "🚪 Left members only",
   "embed.field.value.days_value": "Past {{days}} days",
   "embed.field.value.after_value": "After {{date}}",
   "embed.field.value.before_value": "Before {{date}}",
-  "embed.title.condition_step": "Select target users and channels (optional)",
+  "embed.title.condition_step":
+    "Select target users, channels, and author type (optional)",
   "embed.field.value.empty_content": "*(no content)*",
   "embed.field.value.attachments": "📎 {{count}} attachment(s)",
   "embed.field.value.embed_no_title": "🔗 Embedded content",
@@ -146,7 +157,7 @@ export const messageDelete = {
   "user-response.condition_step_timeout":
     "Condition setup timed out. Please run the command again.",
   "user-response.condition_step_no_filter":
-    "No filter conditions specified.\nPlease specify at least one of: `count`, `keyword`, `days`, `after`, `before`, or select target users.",
+    "No filter conditions specified.\nPlease specify at least one of: `count`, `keyword`, `days`, `after`, `before`, or select target users or an author type.",
 
   // ── Logs ─────────────────────────────────────
   "log.cmd_all_channels_start": "fetching all channels",
@@ -160,6 +171,8 @@ export const messageDelete = {
   "log.svc_bulk_delete_chunk": "bulkDelete chunk size={{size}}",
   "log.svc_message_delete_failed":
     "failed to delete messageId={{messageId}}: {{error}}",
+  "log.member_fetch_failed":
+    "failed to fetch member list, falling back to cache: {{error}}",
   "log.scan_error": "scan error: {{error}}",
   "log.delete_error": "delete error: {{error}}",
   "log.deleted":

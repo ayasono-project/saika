@@ -60,6 +60,8 @@ const mockOptions: import("@/features/message-delete/commands/usecases/dialogUti
     beforeTs: Infinity,
   };
 
+const mockMemberIds = new Set<string>(["user-1"]);
+
 function makeMockCollector() {
   const handlers: Record<string, ((...args: unknown[]) => void)[]> = {};
   return {
@@ -108,6 +110,7 @@ describe("bot/features/message-delete/commands/usecases/runScanPhase", () => {
       interaction as never,
       [] as never,
       mockOptions,
+      mockMemberIds,
     );
 
     expect(result).toBe(messages);
@@ -122,6 +125,7 @@ describe("bot/features/message-delete/commands/usecases/runScanPhase", () => {
       interaction as never,
       [] as never,
       mockOptions,
+      mockMemberIds,
     );
 
     expect(result).toBeNull();
@@ -155,6 +159,7 @@ describe("bot/features/message-delete/commands/usecases/runScanPhase", () => {
       interaction as never,
       [] as never,
       mockOptions,
+      mockMemberIds,
     );
 
     // Either null (aborted with 0 results) or the messages array
@@ -191,6 +196,7 @@ describe("bot/features/message-delete/commands/usecases/runScanPhase", () => {
       interaction as never,
       [] as never,
       mockOptions,
+      mockMemberIds,
     );
 
     // scanMessages が開始されるまで待機
@@ -235,6 +241,7 @@ describe("bot/features/message-delete/commands/usecases/runScanPhase", () => {
       interaction as never,
       [] as never,
       mockOptions,
+      mockMemberIds,
     );
 
     // scanMessages が開始されるまで待機
@@ -285,6 +292,7 @@ describe("bot/features/message-delete/commands/usecases/runScanPhase", () => {
       interaction as never,
       [] as never,
       mockOptions,
+      mockMemberIds,
     );
 
     // タイムアウトタイマーを発火させる
@@ -323,7 +331,12 @@ describe("bot/features/message-delete/commands/usecases/runScanPhase", () => {
     );
 
     const interaction = makeInteraction();
-    await runScanPhase(interaction as never, [] as never, mockOptions);
+    await runScanPhase(
+      interaction as never,
+      [] as never,
+      mockOptions,
+      mockMemberIds,
+    );
 
     // editReply should have been called at least once
     expect(interaction.editReply).toHaveBeenCalled();

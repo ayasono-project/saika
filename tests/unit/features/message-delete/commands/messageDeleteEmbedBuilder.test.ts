@@ -36,12 +36,15 @@ function makeMsg(
   authorId = "user-1",
   channelId = "ch-1",
   createdAt = new Date("2024-01-01T00:00:00Z"),
+  opts: { authorIsBot?: boolean; authorIsMember?: boolean } = {},
 ): ScannedMessage {
   return {
     messageId: id,
     guildId: "guild-1",
     authorId,
     authorDisplayName: `User ${authorId}`,
+    authorIsBot: opts.authorIsBot ?? false,
+    authorIsMember: opts.authorIsMember ?? true,
     channelId,
     channelName: "general",
     createdAt,
@@ -139,6 +142,57 @@ describe("bot/features/message-delete/commands/messageDeleteEmbedBuilder", () =>
         keyword: "hello",
       });
       expect(result).toHaveLength(1);
+    });
+
+    it("authorType=bot で bot の投稿のみフィルタリングする", async () => {
+      const { buildFilteredMessages } = await loadModule();
+      const msgs = [
+        makeMsg("msg-1", "bot-1", "ch-1", undefined, { authorIsBot: true }),
+        makeMsg("msg-2", "user-1", "ch-1", undefined, { authorIsBot: false }),
+      ];
+      const result = buildFilteredMessages(msgs, { authorType: "bot" });
+      expect(result).toHaveLength(1);
+      expect(result[0].messageId).toBe("msg-1");
+    });
+
+    it("authorType=human で人間の投稿のみフィルタリングする", async () => {
+      const { buildFilteredMessages } = await loadModule();
+      const msgs = [
+        makeMsg("msg-1", "bot-1", "ch-1", undefined, { authorIsBot: true }),
+        makeMsg("msg-2", "user-1", "ch-1", undefined, { authorIsBot: false }),
+      ];
+      const result = buildFilteredMessages(msgs, { authorType: "human" });
+      expect(result).toHaveLength(1);
+      expect(result[0].messageId).toBe("msg-2");
+    });
+
+    it("authorType=left で退出済みメンバーの投稿のみフィルタリングする", async () => {
+      const { buildFilteredMessages } = await loadModule();
+      const msgs = [
+        makeMsg("msg-1", "left-1", "ch-1", undefined, {
+          authorIsMember: false,
+        }),
+        makeMsg("msg-2", "user-1", "ch-1", undefined, { authorIsMember: true }),
+      ];
+      const result = buildFilteredMessages(msgs, { authorType: "left" });
+      expect(result).toHaveLength(1);
+      expect(result[0].messageId).toBe("msg-1");
+    });
+
+    it("authorType と keyword を組み合わせて適用する（AND）", async () => {
+      const { buildFilteredMessages } = await loadModule();
+      const msgs = [
+        makeMsg("msg-1", "bot-1", "ch-1", undefined, { authorIsBot: true }),
+        makeMsg("msg-2", "bot-2", "ch-1", undefined, { authorIsBot: true }),
+      ];
+      msgs[0].content = "spam";
+      msgs[1].content = "hello";
+      const result = buildFilteredMessages(msgs, {
+        authorType: "bot",
+        keyword: "spam",
+      });
+      expect(result).toHaveLength(1);
+      expect(result[0].messageId).toBe("msg-1");
     });
   });
 

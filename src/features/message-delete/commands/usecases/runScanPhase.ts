@@ -37,14 +37,17 @@ import type { ParsedOptions } from "./dialogUtils";
  * @param interaction 条件設定フェーズから渡された interaction（fresh な15分 token）
  * @param channels スキャン対象のチャンネル一覧
  * @param options パース済みコマンドオプション
+ * @param memberIds 現在のサーバーメンバーのID集合（投稿者タイプ判定・退出済み表示に使用）
  * @returns 収集済みメッセージ配列（null の場合は処理終了）
  */
 export async function runScanPhase(
   interaction: ChatInputCommandInteraction | MessageComponentInteraction,
   channels: GuildTextBasedChannel[],
   options: ParsedOptions,
+  memberIds: ReadonlySet<string>,
 ): Promise<ScannedMessageWithChannel[] | null> {
-  const { count, targetUserIds, keyword, afterTs, beforeTs } = options;
+  const { count, targetUserIds, keyword, authorType, afterTs, beforeTs } =
+    options;
   const controller = new AbortController();
 
   // タイムアウト原因の追跡（タイムアウト vs ユーザー中断）
@@ -134,6 +137,8 @@ export async function runScanPhase(
       count,
       targetUserIds,
       keyword,
+      authorType,
+      memberIds,
       afterTs,
       beforeTs,
       signal: controller.signal,

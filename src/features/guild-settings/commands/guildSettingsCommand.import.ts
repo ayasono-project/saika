@@ -237,6 +237,9 @@ function buildSettingsSummary(data: GuildSettingsExportData): string {
   items.push(`vac: ${c.vac ? "○" : "—"}`);
   items.push(`memberLog: ${c.memberLog ? "○" : "—"}`);
   items.push(`vcRecruit: ${c.vcRecruit ? "○" : "—"}`);
+  items.push(`vcAutoRecruit: ${c.vcAutoRecruit ? "○" : "—"}`);
+  items.push(`inactiveKick: ${c.inactiveKick ? "○" : "—"}`);
+  items.push(`unverifiedKick: ${c.unverifiedKick ? "○" : "—"}`);
   return items.join(" / ");
 }
 
@@ -274,6 +277,58 @@ function checkMissingResources(
     !guild.roles.cache.has(c.bumpReminder.mentionRoleId)
   ) {
     missing.push(c.bumpReminder.mentionRoleId);
+  }
+  if (
+    c.vcAutoRecruit?.channelId &&
+    !guild.channels.cache.has(c.vcAutoRecruit.channelId)
+  ) {
+    missing.push(c.vcAutoRecruit.channelId);
+  }
+  if (c.inactiveKick) {
+    if (
+      c.inactiveKick.channelId &&
+      !guild.channels.cache.has(c.inactiveKick.channelId)
+    ) {
+      missing.push(c.inactiveKick.channelId);
+    }
+    if (
+      c.inactiveKick.markerRoleId &&
+      !guild.roles.cache.has(c.inactiveKick.markerRoleId)
+    ) {
+      missing.push(c.inactiveKick.markerRoleId);
+    }
+    for (const roleId of c.inactiveKick.whitelistRoleIds) {
+      if (!guild.roles.cache.has(roleId)) missing.push(roleId);
+    }
+  }
+  if (c.unverifiedKick) {
+    if (
+      c.unverifiedKick.verifiedRoleId &&
+      !guild.roles.cache.has(c.unverifiedKick.verifiedRoleId)
+    ) {
+      missing.push(c.unverifiedKick.verifiedRoleId);
+    }
+    if (
+      c.unverifiedKick.markerRoleId &&
+      !guild.roles.cache.has(c.unverifiedKick.markerRoleId)
+    ) {
+      missing.push(c.unverifiedKick.markerRoleId);
+    }
+    if (
+      c.unverifiedKick.notifyChannelId &&
+      !guild.channels.cache.has(c.unverifiedKick.notifyChannelId)
+    ) {
+      missing.push(c.unverifiedKick.notifyChannelId);
+    }
+    if (
+      c.unverifiedKick.logChannelId &&
+      !guild.channels.cache.has(c.unverifiedKick.logChannelId)
+    ) {
+      missing.push(c.unverifiedKick.logChannelId);
+    }
+    for (const roleId of c.unverifiedKick.exemptRoleIds) {
+      if (!guild.roles.cache.has(roleId)) missing.push(roleId);
+    }
   }
 
   // stateful データのチャンネル/ロール

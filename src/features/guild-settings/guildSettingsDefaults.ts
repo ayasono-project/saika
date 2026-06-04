@@ -5,8 +5,11 @@ import type {
   AfkSettings,
   BumpReminderSettings,
   FullGuildState,
+  InactiveKickSettings,
   MemberLogSettings,
+  UnverifiedKickSettings,
   VacSettings,
+  VcAutoRecruitSettings,
   VcRecruitSettings,
 } from "../../shared/database/types";
 
@@ -25,6 +28,9 @@ export interface GuildSettingsExportSettings {
   vac?: Pick<VacSettings, "enabled" | "triggerChannelIds">;
   memberLog?: MemberLogSettings;
   vcRecruit?: VcRecruitSettings;
+  vcAutoRecruit?: VcAutoRecruitSettings;
+  inactiveKick?: InactiveKickSettings;
+  unverifiedKick?: UnverifiedKickSettings;
 }
 
 /** エクスポートJSON の構造型（v1） */

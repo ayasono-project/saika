@@ -4,12 +4,21 @@ import { Events } from "discord.js";
 import { voiceStateUpdateEvent } from "@/bot/events/voiceStateUpdate";
 
 const handleVacVoiceStateUpdateMock = vi.fn();
+const handleVcAutoRecruitVoiceStateUpdateMock = vi.fn();
 const handleInactiveKickVoiceActivityMock = vi.fn();
 
 vi.mock("@/features/vac/handlers/vacVoiceStateUpdate", () => ({
   handleVacVoiceStateUpdate: (...args: unknown[]) =>
     handleVacVoiceStateUpdateMock(...args),
 }));
+
+vi.mock(
+  "@/features/vc-auto-recruit/handlers/vcAutoRecruitVoiceStateUpdate",
+  () => ({
+    handleVcAutoRecruitVoiceStateUpdate: (...args: unknown[]) =>
+      handleVcAutoRecruitVoiceStateUpdateMock(...args),
+  }),
+);
 
 vi.mock("@/features/inactive-kick/handlers/activityEventHandlers", () => ({
   handleInactiveKickVoiceActivity: (...args: unknown[]) =>
@@ -48,6 +57,18 @@ describe("bot/events/voiceStateUpdate", () => {
 
     // VAC のみが呼ばれ、VC募集のハンドラーは存在しない
     expect(handleVacVoiceStateUpdateMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("旧・新ボイス状態が handleVcAutoRecruitVoiceStateUpdate へ委譲されることを確認", async () => {
+    const oldState = { channelId: "old" };
+    const newState = { channelId: "new" };
+
+    await voiceStateUpdateEvent.execute(oldState as never, newState as never);
+
+    expect(handleVcAutoRecruitVoiceStateUpdateMock).toHaveBeenCalledWith(
+      oldState,
+      newState,
+    );
   });
 
   it("旧・新ボイス状態が handleInactiveKickVoiceActivity へ委譲されることを確認", async () => {

@@ -70,6 +70,9 @@ export interface FullGuildSettings {
   vac?: Pick<VacSettings, "enabled" | "triggerChannelIds">;
   memberLog?: MemberLogSettings;
   vcRecruit?: VcRecruitSettings;
+  vcAutoRecruit?: VcAutoRecruitSettings;
+  inactiveKick?: InactiveKickSettings;
+  unverifiedKick?: UnverifiedKickSettings;
   /** stateful データ（チケット設定 / open チケット / スティッキー / リアクションロールパネル / VAC 作成済み VC） */
   state?: FullGuildState;
 }

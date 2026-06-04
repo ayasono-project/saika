@@ -32,6 +32,18 @@ describe("shared/database/repositories/guildSettingsAggregateRepository", () => 
     getVcRecruitSettings: Mock;
     updateVcRecruitSettings: Mock;
   };
+  let vcAutoRecruitRepo: {
+    getVcAutoRecruitSettings: Mock;
+    updateVcAutoRecruitSettings: Mock;
+  };
+  let inactiveKickRepo: {
+    getInactiveKickSettings: Mock;
+    updateInactiveKickSettings: Mock;
+  };
+  let unverifiedKickRepo: {
+    getUnverifiedKickSettings: Mock;
+    updateUnverifiedKickSettings: Mock;
+  };
   let stickyMessageRepo: { findAllByGuild: Mock };
   let reactionRolePanelRepo: { findAllByGuild: Mock };
   let ticketSettingsRepo: { findAllByGuild: Mock };
@@ -59,6 +71,18 @@ describe("shared/database/repositories/guildSettingsAggregateRepository", () => 
       getVcRecruitSettings: vi.fn(),
       updateVcRecruitSettings: vi.fn(),
     };
+    vcAutoRecruitRepo = {
+      getVcAutoRecruitSettings: vi.fn(),
+      updateVcAutoRecruitSettings: vi.fn(),
+    };
+    inactiveKickRepo = {
+      getInactiveKickSettings: vi.fn(),
+      updateInactiveKickSettings: vi.fn(),
+    };
+    unverifiedKickRepo = {
+      getUnverifiedKickSettings: vi.fn(),
+      updateUnverifiedKickSettings: vi.fn(),
+    };
     stickyMessageRepo = { findAllByGuild: vi.fn() };
     reactionRolePanelRepo = { findAllByGuild: vi.fn() };
     ticketSettingsRepo = { findAllByGuild: vi.fn() };
@@ -70,6 +94,9 @@ describe("shared/database/repositories/guildSettingsAggregateRepository", () => 
       guildBumpReminderSettings: { upsert: vi.fn() },
       guildMemberLogSettings: { upsert: vi.fn() },
       guildVcRecruitSettings: { upsert: vi.fn() },
+      guildVcAutoRecruitSettings: { upsert: vi.fn() },
+      guildInactiveKickSettings: { upsert: vi.fn() },
+      guildUnverifiedKickSettings: { upsert: vi.fn() },
       guildVacSettings: { upsert: vi.fn(), findUnique: vi.fn() },
       guildTicketSettings: { findUnique: vi.fn(), create: vi.fn() },
       ticket: { findFirst: vi.fn(), create: vi.fn() },
@@ -93,6 +120,9 @@ describe("shared/database/repositories/guildSettingsAggregateRepository", () => 
       vacRepo as never,
       memberLogRepo as never,
       vcRecruitRepo as never,
+      vcAutoRecruitRepo as never,
+      inactiveKickRepo as never,
+      unverifiedKickRepo as never,
       stickyMessageRepo as never,
       reactionRolePanelRepo as never,
       ticketSettingsRepo as never,
@@ -324,6 +354,58 @@ describe("shared/database/repositories/guildSettingsAggregateRepository", () => 
 
       const result = await repo.getFullSettings("g1");
       expect(result?.vcRecruit?.setups[0]?.createdVoiceChannelIds).toEqual([]);
+    });
+
+    it("vcAutoRecruit / inactiveKick / unverifiedKick を設定系に含めること（activeInvites は除外）", async () => {
+      coreRepo.getSettings.mockResolvedValue({ guildId: "g1", locale: "ja" });
+      afkRepo.getAfkSettings.mockResolvedValue(null);
+      bumpReminderRepo.getBumpReminderSettings.mockResolvedValue(null);
+      vacRepo.getVacSettings.mockResolvedValue(null);
+      memberLogRepo.getMemberLogSettings.mockResolvedValue(null);
+      vcRecruitRepo.getVcRecruitSettings.mockResolvedValue(null);
+      vcAutoRecruitRepo.getVcAutoRecruitSettings.mockResolvedValue({
+        enabled: true,
+        channelId: "ch-1",
+        message: "msg",
+        embedEnabled: true,
+        enabledCategoryIds: ["TOP", "cat-1"],
+        activeInvites: [
+          {
+            voiceChannelId: "vc-1",
+            postChannelId: "post-1",
+            messageId: "m-1",
+            createdAt: 100,
+          },
+        ],
+      });
+      const enabledAt = new Date("2026-01-01T00:00:00.000Z");
+      inactiveKickRepo.getInactiveKickSettings.mockResolvedValue({
+        enabled: true,
+        enabledAt,
+        thresholdDays: 30,
+        whitelistRoleIds: ["r-1"],
+        whitelistUserIds: ["u-1"],
+      });
+      unverifiedKickRepo.getUnverifiedKickSettings.mockResolvedValue({
+        enabled: true,
+        enabledAt,
+        graceDays: 7,
+        exemptRoleIds: ["r-2"],
+      });
+      ticketSettingsRepo.findAllByGuild.mockResolvedValue([]);
+      ticketRepo.findAllOpenByGuild.mockResolvedValue([]);
+      stickyMessageRepo.findAllByGuild.mockResolvedValue([]);
+      reactionRolePanelRepo.findAllByGuild.mockResolvedValue([]);
+
+      const result = await repo.getFullSettings("g1");
+      // activeInvites はランタイム参照のため空配列で除外
+      expect(result?.vcAutoRecruit?.activeInvites).toEqual([]);
+      expect(result?.vcAutoRecruit?.enabledCategoryIds).toEqual([
+        "TOP",
+        "cat-1",
+      ]);
+      expect(result?.inactiveKick?.enabledAt).toBe(enabledAt);
+      expect(result?.unverifiedKick?.exemptRoleIds).toEqual(["r-2"]);
     });
   });
 
@@ -562,6 +644,92 @@ describe("shared/database/repositories/guildSettingsAggregateRepository", () => 
         createdVoiceChannelIds: string[];
       }[];
       expect(setupsJson[0]?.createdVoiceChannelIds).toEqual([]);
+    });
+
+    it("vcAutoRecruit: activeInvites が空配列で書き込まれること", async () => {
+      const data: FullGuildSettings = {
+        locale: "ja",
+        vcAutoRecruit: {
+          enabled: true,
+          channelId: "ch-1",
+          message: "msg",
+          embedEnabled: false,
+          enabledCategoryIds: ["TOP"],
+          activeInvites: [
+            {
+              voiceChannelId: "vc-1",
+              postChannelId: "post-1",
+              messageId: "m-1",
+              createdAt: 100,
+            },
+          ],
+        },
+      };
+
+      await repo.importFullSettings("g1", data);
+      const callArgs =
+        prismaTx.guildVcAutoRecruitSettings?.upsert?.mock.calls[0]?.[0];
+      expect(callArgs.create.activeInvites).toEqual([]);
+      expect(callArgs.create.enabledCategoryIds).toEqual(["TOP"]);
+    });
+
+    it("inactiveKick: enabledAt が ISO 文字列でも Date に正規化されて upsert されること", async () => {
+      const data: FullGuildSettings = {
+        locale: "ja",
+        inactiveKick: {
+          enabled: true,
+          // export JSON 経由では enabledAt は ISO 文字列になる
+          enabledAt: "2026-01-01T00:00:00.000Z" as unknown as Date,
+          thresholdDays: 30,
+          whitelistRoleIds: ["r-1"],
+          whitelistUserIds: ["u-1"],
+        },
+      };
+
+      await repo.importFullSettings("g1", data);
+      const callArgs =
+        prismaTx.guildInactiveKickSettings?.upsert?.mock.calls[0]?.[0];
+      expect(callArgs.create.enabledAt).toBeInstanceOf(Date);
+      expect((callArgs.create.enabledAt as Date).toISOString()).toBe(
+        "2026-01-01T00:00:00.000Z",
+      );
+      expect(callArgs.update.whitelistRoleIds).toEqual(["r-1"]);
+    });
+
+    it("inactiveKick: enabledAt 未設定なら null で書き込まれること", async () => {
+      const data: FullGuildSettings = {
+        locale: "ja",
+        inactiveKick: {
+          enabled: false,
+          thresholdDays: 30,
+          whitelistRoleIds: [],
+          whitelistUserIds: [],
+        },
+      };
+
+      await repo.importFullSettings("g1", data);
+      const callArgs =
+        prismaTx.guildInactiveKickSettings?.upsert?.mock.calls[0]?.[0];
+      expect(callArgs.create.enabledAt).toBeNull();
+    });
+
+    it("unverifiedKick: warnDays 未設定は null・enabledAt は Date 正規化されること", async () => {
+      const data: FullGuildSettings = {
+        locale: "ja",
+        unverifiedKick: {
+          enabled: true,
+          enabledAt: "2026-02-02T00:00:00.000Z" as unknown as Date,
+          graceDays: 7,
+          exemptRoleIds: ["r-2"],
+        },
+      };
+
+      await repo.importFullSettings("g1", data);
+      const callArgs =
+        prismaTx.guildUnverifiedKickSettings?.upsert?.mock.calls[0]?.[0];
+      expect(callArgs.create.warnDays).toBeNull();
+      expect(callArgs.create.enabledAt).toBeInstanceOf(Date);
+      expect(callArgs.update.exemptRoleIds).toEqual(["r-2"]);
     });
 
     it("VAC createdChannels: 既存配列に新規分だけ追加される（union マージ）", async () => {

@@ -6,12 +6,12 @@ import { type ChatInputCommandInteraction } from "discord.js";
 import { handleCommandError } from "../../../bot/errors/interactionErrorHandler";
 import { COMMON_I18N_KEYS } from "../../../bot/shared/i18nKeys";
 import { ensureManageGuildPermission } from "../../../bot/shared/permissionGuards";
+import { handleVcAutoRecruitSettingsAddCategory } from "./vcAutoRecruitSettingsCommand.addCategory";
 import { handleVcAutoRecruitSettingsClearMessage } from "./vcAutoRecruitSettingsCommand.clearMessage";
 import { VC_AUTO_RECRUIT_SETTINGS_COMMAND } from "./vcAutoRecruitSettingsCommand.constants";
 import { handleVcAutoRecruitSettingsDisable } from "./vcAutoRecruitSettingsCommand.disable";
-import { handleVcAutoRecruitSettingsDisableCategory } from "./vcAutoRecruitSettingsCommand.disableCategory";
 import { handleVcAutoRecruitSettingsEnable } from "./vcAutoRecruitSettingsCommand.enable";
-import { handleVcAutoRecruitSettingsEnableCategory } from "./vcAutoRecruitSettingsCommand.enableCategory";
+import { handleVcAutoRecruitSettingsRemoveCategory } from "./vcAutoRecruitSettingsCommand.removeCategory";
 import { handleVcAutoRecruitSettingsReset } from "./vcAutoRecruitSettingsCommand.reset";
 import { handleVcAutoRecruitSettingsSetChannel } from "./vcAutoRecruitSettingsCommand.setChannel";
 import { handleVcAutoRecruitSettingsSetEmbed } from "./vcAutoRecruitSettingsCommand.setEmbed";
@@ -65,12 +65,12 @@ export async function executeVcAutoRecruitSettingsCommand(
         await handleVcAutoRecruitSettingsSetEmbed(interaction, guildId);
         break;
 
-      case VC_AUTO_RECRUIT_SETTINGS_COMMAND.SUBCOMMAND.ENABLE_CATEGORY:
-        await handleVcAutoRecruitSettingsEnableCategory(interaction, guildId);
+      case VC_AUTO_RECRUIT_SETTINGS_COMMAND.SUBCOMMAND.ADD_CATEGORY:
+        await handleVcAutoRecruitSettingsAddCategory(interaction, guildId);
         break;
 
-      case VC_AUTO_RECRUIT_SETTINGS_COMMAND.SUBCOMMAND.DISABLE_CATEGORY:
-        await handleVcAutoRecruitSettingsDisableCategory(interaction, guildId);
+      case VC_AUTO_RECRUIT_SETTINGS_COMMAND.SUBCOMMAND.REMOVE_CATEGORY:
+        await handleVcAutoRecruitSettingsRemoveCategory(interaction, guildId);
         break;
 
       case VC_AUTO_RECRUIT_SETTINGS_COMMAND.SUBCOMMAND.VIEW:

@@ -51,7 +51,9 @@ export async function handleVcAutoRecruitSettingsView(
   const labelDisabled = tInteraction(locale, "common:disabled");
   const labelNone = tInteraction(locale, "common:none");
 
-  // 有効カテゴリ一覧（TOP は専用ラベル、それ以外はカテゴリメンション）。未設定時は警告込みの表示
+  // 有効カテゴリ一覧（TOP は専用ラベル、それ以外はカテゴリ名）。カテゴリメンション（<#id>）は
+  // embed 内でクリックできず先頭に "#" が付くだけのため、カテゴリ名をプレーンテキストで表示する。
+  // キャッシュ未取得時は id にフォールバック。未設定時は警告込みの表示。
   const categoriesValue =
     config.enabledCategoryIds.length === 0
       ? tInteraction(locale, "vcAutoRecruit:embed.field.value.categories_none")
@@ -59,7 +61,7 @@ export async function handleVcAutoRecruitSettingsView(
           .map((id) =>
             id === VC_AUTO_RECRUIT_ROOT_CATEGORY
               ? tInteraction(locale, "vcAutoRecruit:embed.field.value.top")
-              : `<#${id}>`,
+              : (interaction.guild?.channels.cache.get(id)?.name ?? id),
           )
           .join(", ");
 

@@ -30,6 +30,8 @@ import { ticketSetupRoleSelectHandler } from "../../../../features/ticket/handle
 import { ticketTeardownSelectHandler } from "../../../../features/ticket/handlers/ui/ticketTeardownSelectHandler";
 import { ticketViewSelectHandler } from "../../../../features/ticket/handlers/ui/ticketViewSelectHandler";
 import { unverifiedKickExemptRemoveSelectHandler } from "../../../../features/unverified-kick/handlers/ui/unverifiedKickExemptRemoveSelectHandler";
+import { vcAutoRecruitAddCategorySelectHandler } from "../../../../features/vc-auto-recruit/handlers/ui/vcAutoRecruitAddCategorySelectHandler";
+import { vcAutoRecruitRemoveCategorySelectHandler } from "../../../../features/vc-auto-recruit/handlers/ui/vcAutoRecruitRemoveCategorySelectHandler";
 import { vcRecruitAddRoleSelectHandler } from "../../../../features/vc-recruit/handlers/ui/vcRecruitAddRoleSelectHandler";
 import { vcRecruitRemoveRoleSelectHandler } from "../../../../features/vc-recruit/handlers/ui/vcRecruitRemoveRoleSelectHandler";
 import { vcRecruitStringSelectHandler } from "../../../../features/vc-recruit/handlers/ui/vcRecruitStringSelect";
@@ -97,4 +99,8 @@ export const stringSelectHandlers: StringSelectHandler[] = [
   inactiveKickWhitelistRemoveSelectHandler,
   // 未承認ユーザー自動キック exempt remove の項目選択を処理
   unverifiedKickExemptRemoveSelectHandler,
+  // VC自動募集 add-category のカテゴリ選択を処理
+  vcAutoRecruitAddCategorySelectHandler,
+  // VC自動募集 remove-category のカテゴリ選択を処理
+  vcAutoRecruitRemoveCategorySelectHandler,
 ];

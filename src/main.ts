@@ -4,7 +4,9 @@
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "@prisma/client";
 import { Routes } from "discord.js";
+import type { FastifyInstance } from "fastify";
 import { resolve } from "path";
+import { startApiServer } from "./api/server";
 import { createBotClient } from "./bot/client";
 import { initializeBotCompositionRoot } from "./bot/services/botCompositionRoot";
 import { registerBotEvents } from "./bot/services/botEventRegistration";
@@ -79,8 +81,13 @@ async function startBot() {
   // Discord クライアント生成（command/cooldown など含む）
   const client = createBotClient();
 
+  // web ダッシュボード向け API サーバー（Bot ログイン後に起動）。
+  // シャットダウン時に close するためここで参照を保持する。
+  let apiServer: FastifyInstance | undefined;
+
   // グレースフルシャットダウンを設定
   setupGracefulShutdown(async () => {
+    await apiServer?.close();
     await client.shutdown();
     await prisma.$disconnect();
   });
@@ -138,6 +145,12 @@ async function startBot() {
 
     // Discord Gateway へログイン
     await client.login(env.DISCORD_TOKEN);
+
+    // web ダッシュボード向け API サーバーを起動（Bot と同一プロセス）。
+    // API を介して discord.js のライブキャッシュ・設定サービスを共有する。
+    if (env.API_ENABLED) {
+      apiServer = await startApiServer({ client, prisma });
+    }
   } catch (error) {
     // 起動途中エラー時は DB 接続を閉じて非0終了
     logger.error(

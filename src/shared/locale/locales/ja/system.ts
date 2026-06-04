@@ -181,6 +181,8 @@ export const system = {
   "web.guild_id_required": "ギルド ID が必要です。",
   "web.guild_not_member": "このサーバーのメンバーではありません。",
   "web.guild_permission_denied": "このサーバーの管理権限がありません。",
+  "web.not_found_route": "エンドポイントが見つかりません。",
+  "web.not_ready": "サービスの準備ができていません。",
 
   // Discord エラー通知
   "discord.error_notification_title": "🚨 {{appName}} エラー通知",

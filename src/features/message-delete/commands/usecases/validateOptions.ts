@@ -225,6 +225,8 @@ export async function parseAndValidateOptions(
     afterStr: afterStr ?? undefined,
     beforeStr: beforeStr ?? undefined,
     daysOption: daysOption ?? undefined,
+    // 投稿者タイプは条件設定フェーズで選択するためここでは未指定
+    authorType: undefined,
     channelIds: [],
   };
 }

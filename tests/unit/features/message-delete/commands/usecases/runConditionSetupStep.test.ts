@@ -70,6 +70,7 @@ vi.mock("discord.js", async (importOriginal) => {
     ...actual,
     UserSelectMenuBuilder: makeChainableClass(),
     ChannelSelectMenuBuilder: makeChainableClass(),
+    StringSelectMenuBuilder: makeChainableClass(),
     ButtonBuilder: makeChainableClass(),
     ModalBuilder: makeChainableClass(),
     TextInputBuilder: makeChainableClass(),
@@ -216,6 +217,79 @@ describe("bot/features/message-delete/commands/usecases/runConditionSetupStep", 
       expect(result).not.toBeNull();
       expect(result!.targetUserIds).toEqual([]);
       expect(result!.channelIds).toEqual(["ch-1", "ch-2"]);
+    });
+  });
+
+  // 投稿者タイプセレクト → スキャン開始（フィルタ条件として算入される）
+  describe("投稿者タイプ選択 → スキャン開始", () => {
+    it("投稿者タイプセレクトのみでスキャン開始でき、authorType が結果に含まれる", async () => {
+      const { runConditionSetupStep } = await loadModule();
+
+      const collector = makeMockCollector();
+      const interaction = makeInteraction(collector);
+
+      // hasSlashCommandFilter=false でも投稿者タイプ選択でフィルタ条件を満たす
+      const promise = runConditionSetupStep(interaction as never, false);
+      await flushMicrotasks();
+
+      // 投稿者タイプ選択（既に居ない人のみ）
+      const authorTypeInteraction = makeComponentInteraction(
+        "message-delete:author-type-select",
+        {
+          componentType: ComponentType.StringSelect,
+          values: ["__left__"],
+        },
+      );
+      await collector._trigger("collect", authorTypeInteraction);
+
+      // スキャン開始ボタン
+      const startScanInteraction = makeComponentInteraction(
+        "message-delete:scan-start",
+      );
+      await collector._trigger("collect", startScanInteraction);
+
+      const result = await promise;
+
+      expect(result).not.toBeNull();
+      expect(result!.authorType).toBe("left");
+      expect(result!.targetUserIds).toEqual([]);
+    });
+
+    it("投稿者タイプを ALL で解除した場合は authorType が undefined になる", async () => {
+      const { runConditionSetupStep } = await loadModule();
+
+      const collector = makeMockCollector();
+      const interaction = makeInteraction(collector);
+
+      // hasSlashCommandFilter=true でフィルタ条件は別途満たす
+      const promise = runConditionSetupStep(interaction as never, true);
+      await flushMicrotasks();
+
+      // 一旦 bot を選択 → ALL で解除
+      await collector._trigger(
+        "collect",
+        makeComponentInteraction("message-delete:author-type-select", {
+          componentType: ComponentType.StringSelect,
+          values: ["__bot__"],
+        }),
+      );
+      await collector._trigger(
+        "collect",
+        makeComponentInteraction("message-delete:author-type-select", {
+          componentType: ComponentType.StringSelect,
+          values: ["__all__"],
+        }),
+      );
+
+      const startScanInteraction = makeComponentInteraction(
+        "message-delete:scan-start",
+      );
+      await collector._trigger("collect", startScanInteraction);
+
+      const result = await promise;
+
+      expect(result).not.toBeNull();
+      expect(result!.authorType).toBeUndefined();
     });
   });
 

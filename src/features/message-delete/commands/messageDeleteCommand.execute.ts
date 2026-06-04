@@ -3,6 +3,7 @@
 
 import {
   type ChatInputCommandInteraction,
+  type Guild,
   type MessageComponentInteraction,
   MessageFlags,
 } from "discord.js";
@@ -41,6 +42,28 @@ import {
 // スキャン〜削除実行の間はロックを保持し、同一サーバー内の重複実行を防止する
 // Bot 再起動でクリアされるメモリ管理のため、永続化は不要
 const executingGuilds = new Set<string>();
+
+/**
+ * 投稿者タイプフィルター（既に居ない人）判定用に、現在のサーバーメンバーのID集合を取得する。
+ * GuildMembers Intent 前提で全件 fetch し、失敗時はキャッシュにフォールバックして警告ログを残す。
+ * @param guild 対象ギルド
+ * @returns 現在のメンバーのユーザーID集合
+ */
+async function fetchGuildMemberIds(guild: Guild): Promise<Set<string>> {
+  try {
+    const members = await guild.members.fetch();
+    return new Set(members.keys());
+  } catch (error) {
+    logger.warn(
+      logPrefixed(
+        "system:log_prefix.msg_del",
+        "messageDelete:log.member_fetch_failed",
+        { error: String(error) },
+      ),
+    );
+    return new Set(guild.members.cache.keys());
+  }
+}
 
 // ===== メインエクスポート =====
 
@@ -157,6 +180,7 @@ export async function executeMessageDeleteCommand(
       // 条件設定フェーズの結果をオプションに反映
       options.targetUserIds = conditionResult.targetUserIds;
       options.channelIds = conditionResult.channelIds;
+      options.authorType = conditionResult.authorType;
 
       // 条件設定フェーズの「スキャン開始」ボタンで得た fresh token を以降のフェーズで使う
       const scanInteraction = conditionResult.scanInteraction;
@@ -167,10 +191,15 @@ export async function executeMessageDeleteCommand(
       );
       if (!targetChannels) return;
 
+      // 投稿者タイプ判定（既に居ない人フィルター）・プレビューの退出済み表示に使う
+      // 現在のサーバーメンバーID集合をスキャン前に一括取得する
+      const memberIds = await fetchGuildMemberIds(interaction.guild);
+
       const scannedMessages = await runScanPhase(
         scanInteraction,
         targetChannels,
         options,
+        memberIds,
       );
       if (!scannedMessages) return;
 

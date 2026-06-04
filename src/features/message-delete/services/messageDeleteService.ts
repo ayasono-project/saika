@@ -14,6 +14,7 @@ import {
 } from "../../../shared/locale/localeManager";
 import { logger } from "../../../shared/utils/logger";
 import {
+  type AuthorType,
   DISCORD_EPOCH,
   MSG_DEL_BULK_BATCH_SIZE,
   MSG_DEL_BULK_MAX_AGE_MS,
@@ -36,6 +37,14 @@ export interface MessageScanOptions {
   targetUserIds: string[];
   /** キーワード部分一致（case-insensitive、未指定でフィルタなし） */
   keyword?: string;
+  /** 投稿者タイプフィルター（未指定で全投稿者） */
+  authorType?: AuthorType;
+  /**
+   * 現在のサーバーメンバーのユーザーID集合。
+   * 各メッセージの authorIsMember 判定と authorType="left" フィルターに使用する。
+   * 未指定の場合は全投稿者を在籍扱い（authorIsMember=true）とする。
+   */
+  memberIds?: ReadonlySet<string>;
   /** afterTs の Unix ミリ秒（0 = 制限なし） */
   afterTs: number;
   /** beforeTs の Unix ミリ秒（Infinity = 制限なし） */
@@ -80,6 +89,31 @@ export interface MessageDeleteResult {
   totalDeleted: number;
   /** チャンネル別削除件数（キー: チャンネルID） */
   channelBreakdown: Record<string, { name: string; count: number }>;
+}
+
+/**
+ * 投稿者タイプフィルターに一致するかを判定する。
+ * スキャン時（収集対象の絞り込み）とプレビュー時（表示の絞り込み）の双方で共用する。
+ * @param authorType フィルター種別（undefined で全投稿者 = 常に一致）
+ * @param isBot 投稿者が bot かどうか
+ * @param isMember 投稿者が現在のサーバーメンバーかどうか
+ * @returns フィルターに一致する場合は true
+ */
+export function matchesAuthorType(
+  authorType: AuthorType | undefined,
+  isBot: boolean,
+  isMember: boolean,
+): boolean {
+  switch (authorType) {
+    case "bot":
+      return isBot;
+    case "human":
+      return !isBot;
+    case "left":
+      return !isMember;
+    default:
+      return true;
+  }
 }
 
 /**
@@ -157,6 +191,8 @@ export async function scanMessages(
     count,
     targetUserIds,
     keyword,
+    authorType,
+    memberIds,
     afterTs,
     beforeTs,
     onProgress,
@@ -340,12 +376,19 @@ export async function scanMessages(
     if (keyword && !msg.content.toLowerCase().includes(keyword.toLowerCase()))
       continue;
 
+    // 投稿者タイプ判定（memberIds 未指定時は全員を在籍扱い）
+    const authorIsBot = msg.author.bot;
+    const authorIsMember = memberIds ? memberIds.has(msg.author.id) : true;
+    if (!matchesAuthorType(authorType, authorIsBot, authorIsMember)) continue;
+
     scanned.push({
       messageId: msg.id,
       guildId: bestCursor.channel.guildId,
       authorId: msg.author.id,
       // サーバーニックネーム → グローバル表示名 → ユーザー名 の優先順で取得
       authorDisplayName: msg.member?.displayName ?? msg.author.displayName,
+      authorIsBot,
+      authorIsMember,
       channelId: bestCursor.channel.id,
       channelName: bestCursor.channel.name,
       createdAt: msg.createdAt,

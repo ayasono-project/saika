@@ -8,6 +8,7 @@ import { authRoutes } from "../auth/routes";
 import { API_INFO } from "../constants";
 import type { ApiServerDeps } from "../types";
 import { guildRoutes } from "./guilds";
+import { settingsRoutes } from "./settings";
 
 /** apiRoutes プラグインのオプション */
 export interface ApiRoutesOptions {
@@ -40,6 +41,12 @@ export const apiRoutes: FastifyPluginAsync<ApiRoutesOptions> = async (
     deps: opts.deps,
     oauth: opts.oauth,
     guildCache: opts.guildCache,
+  });
+
+  // 機能別設定（/guilds 配下に同居）
+  await fastify.register(settingsRoutes, {
+    prefix: "/guilds",
+    deps: opts.deps,
   });
 
   // API メタ情報（疎通確認用）

@@ -18,14 +18,10 @@ export const vcAutoRecruit = {
     "Embed の有効/無効を切り替え",
   "vc-auto-recruit-settings.set-embed.enabled.description":
     "Embed を投稿に含めるか",
-  "vc-auto-recruit-settings.enable-category.description":
-    "対象カテゴリを有効化（省略で TOP）",
-  "vc-auto-recruit-settings.enable-category.category.description":
-    "有効化するカテゴリ（省略時は TOP＝ルート）",
-  "vc-auto-recruit-settings.disable-category.description":
-    "対象カテゴリを無効化（省略で TOP）",
-  "vc-auto-recruit-settings.disable-category.category.description":
-    "無効化するカテゴリ（省略時は TOP）",
+  "vc-auto-recruit-settings.add-category.description":
+    "募集対象カテゴリをメニューから選んで追加",
+  "vc-auto-recruit-settings.remove-category.description":
+    "募集対象カテゴリをメニューから選んで解除",
   "vc-auto-recruit-settings.view.description": "現在の設定を表示",
   "vc-auto-recruit-settings.reset.description": "VC自動募集設定をリセット",
 
@@ -45,14 +41,16 @@ export const vcAutoRecruit = {
     "⚠️ VC自動募集の投稿先チャンネルが削除されました。\n設定をリセットしたので、`/vc-auto-recruit-settings set-channel` で再設定してください。",
   "user-response.reset_success": "VC自動募集設定をリセットしました。",
   "user-response.reset_cancelled": "リセットをキャンセルしました。",
-  "user-response.category_enabled": "{{category}} で募集を有効にしました。",
-  "user-response.category_disabled": "{{category}} で募集を無効にしました。",
-  "user-response.category_already_enabled": "{{category}} は既に有効です。",
-  "user-response.category_not_found":
-    "{{category}} は有効カテゴリに登録されていません。",
-  "user-response.not_a_category": "カテゴリを指定してください。",
+  "user-response.categories_added_count":
+    "{{count}} 件のカテゴリを募集対象に追加しました。",
+  "user-response.categories_removed_count":
+    "{{count}} 件のカテゴリを募集対象から解除しました。",
+  "user-response.no_addable_categories":
+    "追加できるカテゴリがありません。すべて登録済みです。",
+  "user-response.no_enabled_categories":
+    "解除できる募集対象カテゴリがありません。",
   "user-response.enable_warning_no_category":
-    "有効化しましたが、有効カテゴリが未設定のため投稿されません。`/vc-auto-recruit-settings enable-category` でカテゴリを追加してください。",
+    "有効化しましたが、有効カテゴリが未設定のため投稿されません。`/vc-auto-recruit-settings add-category` でカテゴリを追加してください。",
   "user-response.category_top_label": "TOP（カテゴリなし）",
 
   // ── 投稿本文（content） ───────────────────────
@@ -87,6 +85,9 @@ export const vcAutoRecruit = {
   "ui.modal.set_message_label": "募集メッセージ",
   "ui.modal.set_message_placeholder":
     "{userMention}, {userName}, {channelMention}, {channelName}, {serverName} を使用可（最大500文字）",
+  "ui.select.add_category_placeholder": "追加するカテゴリを選択（複数選択可）",
+  "ui.select.remove_category_placeholder":
+    "解除するカテゴリを選択（複数選択可）",
   "ui.button.join": "VCに参加",
   "ui.button.ended": "募集終了",
 
@@ -112,10 +113,10 @@ export const vcAutoRecruit = {
   "log.config_disabled": "無効化 GuildId: {{guildId}}",
   "log.config_message_set": "募集メッセージ設定 GuildId: {{guildId}}",
   "log.config_message_cleared": "募集メッセージ削除 GuildId: {{guildId}}",
-  "log.config_category_enabled":
-    "有効カテゴリ追加 GuildId: {{guildId}} CategoryId: {{categoryId}}",
-  "log.config_category_disabled":
-    "有効カテゴリ削除 GuildId: {{guildId}} CategoryId: {{categoryId}}",
+  "log.config_category_added":
+    "募集対象カテゴリ追加 GuildId: {{guildId}} CategoryId: {{categoryId}}",
+  "log.config_category_removed":
+    "募集対象カテゴリ解除 GuildId: {{guildId}} CategoryId: {{categoryId}}",
   "log.category_removed_by_delete":
     "削除されたカテゴリを有効カテゴリから除外 GuildId: {{guildId}} CategoryId: {{categoryId}}",
   "log.config_embed_set":

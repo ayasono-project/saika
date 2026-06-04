@@ -84,6 +84,18 @@ model GuildMemberLogSettings {
   @@map("guild_member_log_settings")
 }
 
+// VC自動募集設定
+model GuildVcAutoRecruitSettings {
+  guildId       String  @id @map("guild_id")
+  enabled       Boolean @default(false)
+  channelId     String? @map("channel_id")
+  message       String?
+  embedEnabled  Boolean @default(true) @map("embed_enabled")
+  activeInvites Json    @default("[]") @map("active_invites") // jsonb: VcAutoRecruitRef[]
+
+  @@map("guild_vc_invite_settings")
+}
+
 // 非アクティブ自動キック設定
 model GuildInactiveKickSettings {
   guildId          String    @id @map("guild_id")

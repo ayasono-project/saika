@@ -99,6 +99,30 @@ export interface UnverifiedKickSettings {
   exemptRoleIds: string[];
 }
 
+export interface VcAutoRecruitSettings {
+  // 機能有効フラグ
+  enabled: boolean;
+  // 募集メッセージ投稿先（固定の通知チャンネル）
+  channelId?: string;
+  // カスタム募集メッセージ（{userMention}/{userName}/{channelMention}/{channelName}/{serverName} 置換可・content として送信）
+  message?: string;
+  // 募集 Embed を投稿に含めるか
+  embedEnabled: boolean;
+  // 投稿済みで「募集中」状態の募集メッセージ参照（募集終了処理で参照・編集後に除去）
+  activeInvites: VcAutoRecruitRef[];
+}
+
+export interface VcAutoRecruitRef {
+  // 募集対象のボイスチャンネルID
+  voiceChannelId: string;
+  // 募集メッセージを投稿したテキストチャンネルID
+  postChannelId: string;
+  // 投稿した募集メッセージID（募集終了時にこのメッセージを編集）
+  messageId: string;
+  // 投稿時刻（epoch ms）
+  createdAt: number;
+}
+
 export interface MemberActivity {
   // ギルドID
   guildId: string;

@@ -6,6 +6,7 @@ import { handleReactionRoleChannelDelete } from "../../features/reaction-role/ha
 import { handleStickyMessageChannelDelete } from "../../features/sticky-message/handlers/stickyMessageChannelDeleteHandler";
 import { handleTicketChannelDelete } from "../../features/ticket/handlers/ticketChannelDeleteHandler";
 import { handleVacChannelDelete } from "../../features/vac/handlers/vacChannelDelete";
+import { handleVcAutoRecruitChannelDelete } from "../../features/vc-auto-recruit/handlers/vcAutoRecruitChannelDelete";
 import { handleVcRecruitChannelDelete } from "../../features/vc-recruit/handlers/vcRecruitChannelDeleteHandler";
 import type { BotEvent } from "../types/discord";
 
@@ -22,6 +23,8 @@ export const channelDeleteEvent: BotEvent<typeof Events.ChannelDelete> = {
   async execute(channel) {
     // VAC関連の整合性調整は機能ハンドラへ委譲
     await handleVacChannelDelete(channel);
+    // VC自動募集: 追跡中VCの削除→募集終了 / 投稿先削除→設定クリア
+    await handleVcAutoRecruitChannelDelete(channel);
     // スティッキーメッセージのDBレコード・タイマーを破棄
     await handleStickyMessageChannelDelete(channel);
     // VC募集セットアップのペアチャンネルとDBレコードを破棄

@@ -28,6 +28,7 @@ export const I18N_NAMESPACES = [
   "bumpReminder",
   "vac",
   "vc",
+  "vcAutoRecruit",
   "messageDelete",
   "memberLog",
   "inactiveKick",

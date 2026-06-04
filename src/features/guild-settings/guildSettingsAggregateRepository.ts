@@ -9,12 +9,15 @@ import type {
   IGuildCoreRepository,
   IGuildSettingsAggregateRepository,
   IGuildTicketSettingsRepository,
+  IInactiveKickSettingsRepository,
   IMemberLogSettingsRepository,
   ImportMergePlan,
   IReactionRolePanelRepository,
   IStickyMessageRepository,
   ITicketRepository,
+  IUnverifiedKickSettingsRepository,
   IVacSettingsRepository,
+  IVcAutoRecruitSettingsRepository,
   IVcRecruitSettingsRepository,
 } from "../../shared/database/types";
 import {
@@ -42,6 +45,9 @@ export class GuildSettingsAggregateRepository
   private readonly vacRepo: IVacSettingsRepository;
   private readonly memberLogRepo: IMemberLogSettingsRepository;
   private readonly vcRecruitRepo: IVcRecruitSettingsRepository;
+  private readonly vcAutoRecruitRepo: IVcAutoRecruitSettingsRepository;
+  private readonly inactiveKickRepo: IInactiveKickSettingsRepository;
+  private readonly unverifiedKickRepo: IUnverifiedKickSettingsRepository;
   private readonly stickyMessageRepo: IStickyMessageRepository;
   private readonly reactionRolePanelRepo: IReactionRolePanelRepository;
   private readonly ticketSettingsRepo: IGuildTicketSettingsRepository;
@@ -55,6 +61,9 @@ export class GuildSettingsAggregateRepository
     vacRepo: IVacSettingsRepository,
     memberLogRepo: IMemberLogSettingsRepository,
     vcRecruitRepo: IVcRecruitSettingsRepository,
+    vcAutoRecruitRepo: IVcAutoRecruitSettingsRepository,
+    inactiveKickRepo: IInactiveKickSettingsRepository,
+    unverifiedKickRepo: IUnverifiedKickSettingsRepository,
     stickyMessageRepo: IStickyMessageRepository,
     reactionRolePanelRepo: IReactionRolePanelRepository,
     ticketSettingsRepo: IGuildTicketSettingsRepository,
@@ -67,6 +76,9 @@ export class GuildSettingsAggregateRepository
     this.vacRepo = vacRepo;
     this.memberLogRepo = memberLogRepo;
     this.vcRecruitRepo = vcRecruitRepo;
+    this.vcAutoRecruitRepo = vcAutoRecruitRepo;
+    this.inactiveKickRepo = inactiveKickRepo;
+    this.unverifiedKickRepo = unverifiedKickRepo;
     this.stickyMessageRepo = stickyMessageRepo;
     this.reactionRolePanelRepo = reactionRolePanelRepo;
     this.ticketSettingsRepo = ticketSettingsRepo;
@@ -87,6 +99,9 @@ export class GuildSettingsAggregateRepository
       vac,
       memberLog,
       vcRecruit,
+      vcAutoRecruit,
+      inactiveKick,
+      unverifiedKick,
       ticketSettings,
       openTickets,
       stickyMessages,
@@ -97,6 +112,9 @@ export class GuildSettingsAggregateRepository
       this.vacRepo.getVacSettings(guildId),
       this.memberLogRepo.getMemberLogSettings(guildId),
       this.vcRecruitRepo.getVcRecruitSettings(guildId),
+      this.vcAutoRecruitRepo.getVcAutoRecruitSettings(guildId),
+      this.inactiveKickRepo.getInactiveKickSettings(guildId),
+      this.unverifiedKickRepo.getUnverifiedKickSettings(guildId),
       this.ticketSettingsRepo.findAllByGuild(guildId),
       this.ticketRepo.findAllOpenByGuild(guildId),
       this.stickyMessageRepo.findAllByGuild(guildId),
@@ -127,6 +145,12 @@ export class GuildSettingsAggregateRepository
         })),
       };
     }
+    if (vcAutoRecruit) {
+      // activeInvites は投稿中募集のランタイム参照のため export 対象外
+      result.vcAutoRecruit = { ...vcAutoRecruit, activeInvites: [] };
+    }
+    if (inactiveKick) result.inactiveKick = inactiveKick;
+    if (unverifiedKick) result.unverifiedKick = unverifiedKick;
 
     result.state = {
       ticketSettings: ticketSettings.map(toTicketSettingsExport),
@@ -302,6 +326,71 @@ export class GuildSettingsAggregateRepository
         });
       }
 
+      if (data.vcAutoRecruit) {
+        // activeInvites は空配列で書き込む（投稿中募集のランタイム参照のため）
+        const vcAutoRecruitData = {
+          enabled: data.vcAutoRecruit.enabled,
+          channelId: data.vcAutoRecruit.channelId ?? null,
+          message: data.vcAutoRecruit.message ?? null,
+          embedEnabled: data.vcAutoRecruit.embedEnabled,
+          enabledCategoryIds: data.vcAutoRecruit
+            .enabledCategoryIds as unknown as Prisma.InputJsonValue,
+          activeInvites: [] as unknown as Prisma.InputJsonValue,
+        };
+        await tx.guildVcAutoRecruitSettings.upsert({
+          where: { guildId },
+          create: { guildId, ...vcAutoRecruitData },
+          update: vcAutoRecruitData,
+        });
+      }
+
+      if (data.inactiveKick) {
+        // enabledAt は export JSON で ISO 文字列化されるため import 時に Date へ正規化する
+        const inactiveKickData = {
+          enabled: data.inactiveKick.enabled,
+          enabledAt: data.inactiveKick.enabledAt
+            ? new Date(data.inactiveKick.enabledAt)
+            : null,
+          channelId: data.inactiveKick.channelId ?? null,
+          thresholdDays: data.inactiveKick.thresholdDays,
+          weekWarnMessage: data.inactiveKick.weekWarnMessage ?? null,
+          finalWarnMessage: data.inactiveKick.finalWarnMessage ?? null,
+          kickMessage: data.inactiveKick.kickMessage ?? null,
+          markerRoleId: data.inactiveKick.markerRoleId ?? null,
+          whitelistRoleIds: data.inactiveKick.whitelistRoleIds,
+          whitelistUserIds: data.inactiveKick.whitelistUserIds,
+        };
+        await tx.guildInactiveKickSettings.upsert({
+          where: { guildId },
+          create: { guildId, ...inactiveKickData },
+          update: inactiveKickData,
+        });
+      }
+
+      if (data.unverifiedKick) {
+        // enabledAt は export JSON で ISO 文字列化されるため import 時に Date へ正規化する
+        const unverifiedKickData = {
+          enabled: data.unverifiedKick.enabled,
+          enabledAt: data.unverifiedKick.enabledAt
+            ? new Date(data.unverifiedKick.enabledAt)
+            : null,
+          verifiedRoleId: data.unverifiedKick.verifiedRoleId ?? null,
+          graceDays: data.unverifiedKick.graceDays,
+          warnDays: data.unverifiedKick.warnDays ?? null,
+          notifyChannelId: data.unverifiedKick.notifyChannelId ?? null,
+          logChannelId: data.unverifiedKick.logChannelId ?? null,
+          markerRoleId: data.unverifiedKick.markerRoleId ?? null,
+          dmTemplate: data.unverifiedKick.dmTemplate ?? null,
+          notifyTemplate: data.unverifiedKick.notifyTemplate ?? null,
+          exemptRoleIds: data.unverifiedKick.exemptRoleIds,
+        };
+        await tx.guildUnverifiedKickSettings.upsert({
+          where: { guildId },
+          create: { guildId, ...unverifiedKickData },
+          update: unverifiedKickData,
+        });
+      }
+
       // VAC: 設定系（enabled / triggerChannelIds）は上書き、createdChannels は stateful 扱いで union マージ
       if (data.vac || data.state?.vacCreatedChannels?.length) {
         const existing = await tx.guildVacSettings.findUnique({
@@ -420,6 +509,7 @@ export class GuildSettingsAggregateRepository
         where: { guildId },
       }),
       this.prisma.guildVcRecruitSettings.deleteMany({ where: { guildId } }),
+      this.prisma.guildVcAutoRecruitSettings.deleteMany({ where: { guildId } }),
       this.prisma.guildSettings.deleteMany({ where: { guildId } }),
     ]);
   }

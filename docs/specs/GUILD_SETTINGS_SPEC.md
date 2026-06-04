@@ -2,7 +2,7 @@
 
 > Guild Settings - ギルド全体の共通設定の管理・バックアップ機能
 
-最終更新: 2026年5月30日
+最終更新: 2026年6月4日
 
 ---
 
@@ -258,7 +258,7 @@
 | --- | --- |
 | タイトル | 全設定リセット確認 |
 | 説明 | 全機能の設定をリセットしますか？\n以下の設定がすべて削除されます。この操作は元に戻せません。 |
-| フィールド | 削除対象: 言語設定 / エラー通知チャンネル / AFK / VAC / VC募集 / メッセージ固定 / メンバーログ / Bumpリマインダー |
+| フィールド | 削除対象: 言語設定 / エラー通知チャンネル / AFK / VAC / VC募集 / VC自動募集 / メッセージ固定 / メンバーログ / Bumpリマインダー / 非アクティブキック / 未承認キック |
 
 **ボタン:**
 
@@ -297,6 +297,8 @@
 | `BumpReminder`（予約済みリマインダーキュー） | 時刻ベースのスケジュールで鮮度が落ちる |
 | `Ticket` の `status="closed"` | 履歴扱い・運用復元には不要 |
 | `VcRecruitSettings.setups[].createdVoiceChannelIds` | VC 募集が作成した一時 VC のランタイム追跡情報。バックアップ価値が薄い。export 時は JSON から省略し、import 時は `setups[].createdVoiceChannelIds = []` で書き込む |
+| `VcAutoRecruitSettings.activeInvites` | VC 自動募集が投稿中の募集メッセージへのランタイム参照。export 時は空配列で書き出し、import 時も `activeInvites = []` で書き込む |
+| `MemberActivity`（メンバー活動履歴） | 非アクティブキック起算用のランタイム追跡情報。Bot 稼働中に逐次再構築される |
 
 ### UI
 
@@ -344,6 +346,38 @@
           "threadArchiveDuration": 1440
         }
       ]
+    },
+    "vcAutoRecruit": {
+      "enabled": true,
+      "channelId": "121212121212121212",
+      "message": null,
+      "embedEnabled": true,
+      "enabledCategoryIds": ["TOP", "888888888888888888"]
+    },
+    "inactiveKick": {
+      "enabled": true,
+      "enabledAt": "2026-05-01T00:00:00.000Z",
+      "channelId": "131313131313131313",
+      "thresholdDays": 30,
+      "weekWarnMessage": null,
+      "finalWarnMessage": null,
+      "kickMessage": null,
+      "markerRoleId": null,
+      "whitelistRoleIds": [],
+      "whitelistUserIds": []
+    },
+    "unverifiedKick": {
+      "enabled": true,
+      "enabledAt": "2026-05-01T00:00:00.000Z",
+      "verifiedRoleId": "141414141414141414",
+      "graceDays": 7,
+      "warnDays": 3,
+      "notifyChannelId": "151515151515151515",
+      "logChannelId": "161616161616161616",
+      "markerRoleId": null,
+      "dmTemplate": null,
+      "notifyTemplate": null,
+      "exemptRoleIds": []
     }
   },
   "state": {
@@ -444,8 +478,9 @@
 
 **設定系（`settings.*`）: export 上書き**
 
-- `locale` / `errorChannelId` / `afk` / `bumpReminder` / `vac.enabled` / `vac.triggerChannelIds` / `memberLog` / `vcRecruit` を現在の DB 値に関係なく export 値で上書き
+- `locale` / `errorChannelId` / `afk` / `bumpReminder` / `vac.enabled` / `vac.triggerChannelIds` / `memberLog` / `vcRecruit` / `vcAutoRecruit` / `inactiveKick` / `unverifiedKick` を現在の DB 値に関係なく export 値で上書き
 - 既存レコードがなければ insert、あれば update
+- `inactiveKick.enabledAt` / `unverifiedKick.enabledAt` は export JSON では ISO 8601 文字列になるため、import 時に `Date` へ正規化して書き込む（未設定は `null`）
 
 **stateful データ（`state.*`）: 現 DB 優先 + 欠落分のみ insert（削除はしない）**
 
@@ -476,7 +511,7 @@ import 時は現 DB に存在しないものだけを追加し、既存レコー
 | --- | --- |
 | タイトル | ギルド設定インポート確認 |
 | 説明 | 設定系は上書き、stateful データはマージ（既存優先）で取り込みます。この操作は元に戻せません。 |
-| フィールド「設定系」 | 各機能の設定有無サマリー（言語 / エラー通知 / AFK / Bump リマインダー / VAC / メンバーログ / VC 募集） |
+| フィールド「設定系」 | 各機能の設定有無サマリー（言語 / エラー通知 / AFK / Bump リマインダー / VAC / メンバーログ / VC 募集 / VC 自動募集 / 非アクティブキック / 未承認キック） |
 | フィールド「stateful（新規追加予定）」 | チケット設定 N 件 / open チケット N 件 / スティッキー N 件 / リアクションロールパネル N 件 / VAC 作成済み VC N 件 |
 
 **ボタン:**
@@ -530,6 +565,9 @@ import 時は現 DB に存在しないものだけを追加し、既存レコー
 | `vac` | `{enabled, triggerChannelIds[]}`? | VAC 設定（createdChannels は `state` 側） |
 | `memberLog` | `MemberLogSettings`? | メンバーログ設定 |
 | `vcRecruit` | `VcRecruitSettings`? | VC 募集設定（[VC_RECRUIT_SPEC](VC_RECRUIT_SPEC.md) 参照） |
+| `vcAutoRecruit` | `VcAutoRecruitSettings`? | VC 自動募集設定（[VC_AUTO_RECRUIT_SPEC](VC_AUTO_RECRUIT_SPEC.md) 参照）。`activeInvites` は export 対象外 |
+| `inactiveKick` | `InactiveKickSettings`? | 非アクティブ自動キック設定（[INACTIVE_KICK_SPEC](INACTIVE_KICK_SPEC.md) 参照）。`enabledAt` は ISO 8601 文字列 |
+| `unverifiedKick` | `UnverifiedKickSettings`? | 未承認自動キック設定（[UNVERIFIED_KICK_SPEC](UNVERIFIED_KICK_SPEC.md) 参照）。`enabledAt` は ISO 8601 文字列 |
 
 **`state` フィールドの内訳:**
 

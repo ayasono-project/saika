@@ -320,6 +320,93 @@ describe("features/vc-auto-recruit/vcAutoRecruitSettingsService", () => {
       expect(result).toBe(false);
       expect(repository.updateVcAutoRecruitSettings).not.toHaveBeenCalled();
     });
+
+    it("addEnabledCategories が未登録分のみ一括追加し追加分を返すこと", async () => {
+      const { module } = await loadModule();
+      const repository = createRepositoryMock();
+      const service = new module.VcAutoRecruitSettingsService(
+        repository as never,
+      );
+      repository.getVcAutoRecruitSettings.mockResolvedValueOnce({
+        ...baseConfig(),
+        enabledCategoryIds: ["cat-1"],
+      });
+
+      // cat-1 は既存・重複指定、TOP/cat-2 が新規
+      const result = await service.addEnabledCategories("g-1", [
+        "cat-1",
+        "TOP",
+        "cat-2",
+        "TOP",
+      ]);
+
+      expect(result).toEqual(["TOP", "cat-2"]);
+      expect(repository.updateVcAutoRecruitSettings).toHaveBeenCalledWith(
+        "g-1",
+        expect.objectContaining({
+          enabledCategoryIds: ["cat-1", "TOP", "cat-2"],
+        }),
+      );
+    });
+
+    it("addEnabledCategories は新規が無ければ保存せず空配列を返すこと", async () => {
+      const { module } = await loadModule();
+      const repository = createRepositoryMock();
+      const service = new module.VcAutoRecruitSettingsService(
+        repository as never,
+      );
+      repository.getVcAutoRecruitSettings.mockResolvedValueOnce({
+        ...baseConfig(),
+        enabledCategoryIds: ["cat-1"],
+      });
+
+      const result = await service.addEnabledCategories("g-1", ["cat-1"]);
+
+      expect(result).toEqual([]);
+      expect(repository.updateVcAutoRecruitSettings).not.toHaveBeenCalled();
+    });
+
+    it("removeEnabledCategories が登録済み分のみ一括解除し解除分を返すこと", async () => {
+      const { module } = await loadModule();
+      const repository = createRepositoryMock();
+      const service = new module.VcAutoRecruitSettingsService(
+        repository as never,
+      );
+      repository.getVcAutoRecruitSettings.mockResolvedValueOnce({
+        ...baseConfig(),
+        enabledCategoryIds: ["cat-1", "TOP", "cat-2"],
+      });
+
+      // cat-x は未登録なので無視される
+      const result = await service.removeEnabledCategories("g-1", [
+        "cat-1",
+        "cat-x",
+        "TOP",
+      ]);
+
+      expect(result).toEqual(["cat-1", "TOP"]);
+      expect(repository.updateVcAutoRecruitSettings).toHaveBeenCalledWith(
+        "g-1",
+        expect.objectContaining({ enabledCategoryIds: ["cat-2"] }),
+      );
+    });
+
+    it("removeEnabledCategories は対象が無ければ保存せず空配列を返すこと", async () => {
+      const { module } = await loadModule();
+      const repository = createRepositoryMock();
+      const service = new module.VcAutoRecruitSettingsService(
+        repository as never,
+      );
+      repository.getVcAutoRecruitSettings.mockResolvedValueOnce({
+        ...baseConfig(),
+        enabledCategoryIds: ["cat-1"],
+      });
+
+      const result = await service.removeEnabledCategories("g-1", ["cat-x"]);
+
+      expect(result).toEqual([]);
+      expect(repository.updateVcAutoRecruitSettings).not.toHaveBeenCalled();
+    });
   });
 
   describe("getVcAutoRecruitSettingsService", () => {

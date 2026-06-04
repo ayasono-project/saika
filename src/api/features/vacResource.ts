@@ -5,14 +5,13 @@ import type {
   ActiveVac,
   VacSettings as ContractVacSettings,
 } from "@ayasono/shared/api";
-import { formatDistanceToNow } from "date-fns";
-import { ja } from "date-fns/locale";
 import type { Guild as DiscordGuild } from "discord.js";
 import type { BotClient } from "../../bot/client";
 import { getBotVacSettingsService } from "../../bot/services/botCompositionRoot";
 import type { VacChannelPair, VacSettings } from "../../shared/database/types";
 import { tDefault } from "../../shared/locale/localeManager";
 import { ApiHttpError } from "../lib/httpError";
+import { relativeLabel } from "../lib/time";
 import type { SettingsResource } from "../routes/settingsResource";
 
 /** ドメイン → 契約（createdChannels は state 側のため除外） */
@@ -78,10 +77,7 @@ export function toActiveVac(
     id: pair.voiceChannelId,
     name: channel?.name ?? pair.voiceChannelId,
     owner: owner?.displayName ?? pair.ownerId,
-    createdLabel: formatDistanceToNow(new Date(pair.createdAt), {
-      addSuffix: true,
-      locale: ja,
-    }),
+    createdLabel: relativeLabel(pair.createdAt),
   };
 }
 

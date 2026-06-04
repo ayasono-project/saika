@@ -5,8 +5,14 @@ import type { FastifyPluginAsync } from "fastify";
 import { createAfkResource } from "../features/afkResource";
 import { createBumpResource } from "../features/bumpResource";
 import { createConfigResource } from "../features/configResource";
+import { createInactiveKickResource } from "../features/inactiveKickResource";
 import { createMemberLogResource } from "../features/memberLogResource";
+import { createUnverifiedKickResource } from "../features/unverifiedKickResource";
 import { createVacResource, listActiveVacs } from "../features/vacResource";
+import {
+  createVcAutoRecruitResource,
+  listActiveInvites,
+} from "../features/vcAutoRecruitResource";
 import { getGuildId } from "../lib/request";
 import type { ApiServerDeps } from "../types";
 import { registerSettingsResource } from "./settingsResource";
@@ -31,6 +37,9 @@ export const settingsRoutes: FastifyPluginAsync<SettingsRoutesOptions> = async (
   registerSettingsResource(fastify, createVacResource());
   registerSettingsResource(fastify, createMemberLogResource(deps.prisma));
   registerSettingsResource(fastify, createBumpResource());
+  registerSettingsResource(fastify, createVcAutoRecruitResource(deps.prisma));
+  registerSettingsResource(fastify, createInactiveKickResource(deps.prisma));
+  registerSettingsResource(fastify, createUnverifiedKickResource(deps.prisma));
 
   const guarded = {
     preHandler: [fastify.authenticate, fastify.requireGuildAccess],
@@ -39,5 +48,10 @@ export const settingsRoutes: FastifyPluginAsync<SettingsRoutesOptions> = async (
   // VAC が作成・追跡中の VC 一覧（読み取り専用）
   fastify.get("/:guildId/vac/active", guarded, async (request) => {
     return { data: await listActiveVacs(deps.client, getGuildId(request)) };
+  });
+
+  // VC自動募集が投稿中の募集一覧（読み取り専用）
+  fastify.get("/:guildId/vc-auto-recruit/active", guarded, async (request) => {
+    return { data: await listActiveInvites(deps.client, getGuildId(request)) };
   });
 };

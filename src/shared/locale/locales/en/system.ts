@@ -182,6 +182,7 @@ export const system = {
     "You do not have management permissions for this server.",
   "web.not_found_route": "Endpoint not found.",
   "web.not_ready": "Service is not ready.",
+  "web.bot_not_in_guild": "The bot is not a member of this server.",
 
   // Discord error notification
   "discord.error_notification_title": "🚨 {{appName}} Error Notification",

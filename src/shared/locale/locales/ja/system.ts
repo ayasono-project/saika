@@ -183,6 +183,7 @@ export const system = {
   "web.guild_permission_denied": "このサーバーの管理権限がありません。",
   "web.not_found_route": "エンドポイントが見つかりません。",
   "web.not_ready": "サービスの準備ができていません。",
+  "web.bot_not_in_guild": "Bot がこのサーバーに参加していません。",
 
   // Discord エラー通知
   "discord.error_notification_title": "🚨 {{appName}} エラー通知",

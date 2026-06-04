@@ -3,14 +3,17 @@
 
 import type { FastifyPluginAsync } from "fastify";
 import type { DiscordOAuthService } from "../auth/discordOAuthService";
+import type { GuildAccessCache } from "../auth/guildAccess";
 import { authRoutes } from "../auth/routes";
 import { API_INFO } from "../constants";
 import type { ApiServerDeps } from "../types";
+import { guildRoutes } from "./guilds";
 
 /** apiRoutes プラグインのオプション */
 export interface ApiRoutesOptions {
   deps: ApiServerDeps;
   oauth: DiscordOAuthService;
+  guildCache: GuildAccessCache;
 }
 
 /**
@@ -29,6 +32,14 @@ export const apiRoutes: FastifyPluginAsync<ApiRoutesOptions> = async (
   await fastify.register(authRoutes, {
     prefix: "/auth",
     oauth: opts.oauth,
+  });
+
+  // ギルド/Discord リソース（authenticate / requireGuildAccess で保護）
+  await fastify.register(guildRoutes, {
+    prefix: "/guilds",
+    deps: opts.deps,
+    oauth: opts.oauth,
+    guildCache: opts.guildCache,
   });
 
   // API メタ情報（疎通確認用）

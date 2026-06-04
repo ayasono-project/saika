@@ -11,7 +11,9 @@ import { getTimezoneOffsetForLocale } from "../../../../shared/locale/helpers";
 import { tInteraction } from "../../../../shared/locale/localeManager";
 import { logger } from "../../../../shared/utils/logger";
 import {
+  authorTypeFromValue,
   type MessageDeleteFilter,
+  MSG_DEL_AUTHOR_TYPE_VALUE,
   MSG_DEL_COLLECTOR_IDLE_MS,
   MSG_DEL_CUSTOM_ID,
   MSG_DEL_PAGE_SIZE,
@@ -236,15 +238,22 @@ export async function showPreviewDialog(
         return;
       }
 
-      // ── 投稿者フィルター ──
+      // ── 投稿者フィルター（カテゴリ or 個別投稿者の単一選択） ──
       if (
         i.customId === MSG_DEL_CUSTOM_ID.FILTER_AUTHOR &&
         i.isStringSelectMenu()
       ) {
-        filter =
-          i.values.length > 0 && i.values[0] !== "__all__"
-            ? { ...filter, authorId: i.values[0] }
-            : { ...filter, authorId: undefined };
+        const value = i.values[0];
+        if (!value || value === MSG_DEL_AUTHOR_TYPE_VALUE.ALL) {
+          // 全投稿者: authorType / authorId 両方を解除
+          filter = { ...filter, authorType: undefined, authorId: undefined };
+        } else {
+          const authorType = authorTypeFromValue(value);
+          // カテゴリ（bot/人/退出済み）か個別投稿者IDかで振り分け（互いに排他）
+          filter = authorType
+            ? { ...filter, authorType, authorId: undefined }
+            : { ...filter, authorType: undefined, authorId: value };
+        }
         currentPage = 0;
         await i.update(buildReplyPayload(currentPage)).catch(() => {});
         return;

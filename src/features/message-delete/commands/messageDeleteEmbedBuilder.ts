@@ -15,15 +15,18 @@ import {
 } from "../../../bot/utils/messageResponse";
 import { tInteraction } from "../../../shared/locale/localeManager";
 import {
+  authorTypeToValue,
   type CommandConditionsDisplay,
   type MessageDeleteFilter,
   MS_PER_DAY,
+  MSG_DEL_AUTHOR_TYPE_VALUE,
   MSG_DEL_CUSTOM_ID,
   MSG_DEL_DEFAULT_COUNT,
   MSG_DEL_PAGE_SIZE,
   MSG_DEL_SELECT_MAX_OPTIONS,
   type ScannedMessage,
 } from "../constants/messageDeleteConstants";
+import { matchesAuthorType } from "../services/messageDeleteService";
 
 /**
  * メッセージ 1 件分の Embed フィールド（name/value）を生成する
@@ -82,6 +85,12 @@ export function buildFilteredMessages<T extends ScannedMessage>(
 
   if (filter.authorId) {
     result = result.filter((m) => m.authorId === filter.authorId);
+  }
+  if (filter.authorType) {
+    const authorType = filter.authorType;
+    result = result.filter((m) =>
+      matchesAuthorType(authorType, m.authorIsBot, m.authorIsMember),
+    );
   }
   if (filter.keyword) {
     const kw = filter.keyword.toLowerCase();
@@ -216,11 +225,17 @@ export function buildPreviewComponents(
   const navRow = buildPaginationNavRow(locale, page, totalPages);
 
   // Row 2: 投稿者フィルターセレクト
+  // 投稿者タイプカテゴリ（全投稿者 / botのみ / 人のみ / 既に居ない人のみ）と個別投稿者を
+  // 1つの単一選択セレクトに統合する（カテゴリと個別投稿者は排他）。
   const uniqueAuthors = [
     ...new Map(
       allMessagesForAuthorSelect.map((m) => [m.authorId, m.authorDisplayName]),
     ).entries(),
   ];
+  // 現在の選択値（authorType 優先 → authorId → 全投稿者）
+  const selectedAuthorValue = filter.authorType
+    ? authorTypeToValue(filter.authorType)
+    : (filter.authorId ?? MSG_DEL_AUTHOR_TYPE_VALUE.ALL);
   const authorSelect = new StringSelectMenuBuilder()
     .setCustomId(MSG_DEL_CUSTOM_ID.FILTER_AUTHOR)
     .setPlaceholder(
@@ -231,11 +246,38 @@ export function buildPreviewComponents(
     .addOptions([
       {
         label: tInteraction(locale, "messageDelete:ui.select.author_all"),
-        value: "__all__",
+        value: MSG_DEL_AUTHOR_TYPE_VALUE.ALL,
+        default: selectedAuthorValue === MSG_DEL_AUTHOR_TYPE_VALUE.ALL,
+      },
+      {
+        label: tInteraction(locale, "messageDelete:ui.select.author_type_bot"),
+        emoji: "🤖",
+        value: MSG_DEL_AUTHOR_TYPE_VALUE.BOT,
+        default: selectedAuthorValue === MSG_DEL_AUTHOR_TYPE_VALUE.BOT,
+      },
+      {
+        label: tInteraction(
+          locale,
+          "messageDelete:ui.select.author_type_human",
+        ),
+        emoji: "👤",
+        value: MSG_DEL_AUTHOR_TYPE_VALUE.HUMAN,
+        default: selectedAuthorValue === MSG_DEL_AUTHOR_TYPE_VALUE.HUMAN,
+      },
+      {
+        label: tInteraction(locale, "messageDelete:ui.select.author_type_left"),
+        emoji: "🚪",
+        value: MSG_DEL_AUTHOR_TYPE_VALUE.LEFT,
+        default: selectedAuthorValue === MSG_DEL_AUTHOR_TYPE_VALUE.LEFT,
       },
       ...uniqueAuthors
-        .slice(0, MSG_DEL_SELECT_MAX_OPTIONS - 1) // Discord SelectMenu は最大25件（先頭の「全員」分を含む）
-        .map(([id, tag]) => ({ label: tag, value: id })),
+        // Discord SelectMenu は最大25件（先頭の「全投稿者」+ カテゴリ3件分を含む）
+        .slice(0, MSG_DEL_SELECT_MAX_OPTIONS - 4)
+        .map(([id, tag]) => ({
+          label: tag,
+          value: id,
+          default: id === selectedAuthorValue,
+        })),
     ]);
 
   // Row 3: 日付/キーワードフィルターボタン
@@ -526,6 +568,7 @@ export function buildCommandConditionsEmbed(
     daysOption,
     afterStr,
     beforeStr,
+    authorType,
     channelIds,
   } = conditions;
 
@@ -558,6 +601,18 @@ export function buildCommandConditionsEmbed(
     channelIds.length > 0
       ? channelIds.map((id) => `<#${id}>`).join(" ")
       : tInteraction(locale, "messageDelete:embed.field.value.channel_all");
+
+  // 投稿者タイプ（未指定で全投稿者）
+  const authorTypeValue = tInteraction(
+    locale,
+    authorType === "bot"
+      ? "messageDelete:embed.field.value.author_type_bot"
+      : authorType === "human"
+        ? "messageDelete:embed.field.value.author_type_human"
+        : authorType === "left"
+          ? "messageDelete:embed.field.value.author_type_left"
+          : "messageDelete:embed.field.value.author_type_all",
+  );
 
   // days と after/before は排他。指定されている方のフィールドのみ表示し、もう一方は省略する
   const periodFields: { name: string; value: string; inline: true }[] = [];
@@ -615,6 +670,14 @@ export function buildCommandConditionsEmbed(
     .addFields(
       { name: "count", value: countValue, inline: true },
       { name: "user", value: userValue, inline: true },
+      {
+        name: tInteraction(
+          locale,
+          "messageDelete:embed.field.name.author_type",
+        ),
+        value: authorTypeValue,
+        inline: true,
+      },
       { name: "keyword", value: keywordValue, inline: true },
       ...periodFields,
       { name: "channel", value: channelValue, inline: true },

@@ -740,6 +740,42 @@ describe("bot/features/message-delete/commands/usecases/runPreviewDialog", () =>
     }
   });
 
+  it("投稿者タイプカテゴリ（__bot__）選択時に authorType が設定され authorId が解除される", async () => {
+    const { showPreviewDialog } = await loadModule();
+    const collector = makeMockCollector();
+    const baseInteraction = makeBaseInteraction(collector);
+
+    // 事前に個別投稿者フィルターが適用された状態で開始
+    const promise = showPreviewDialog(
+      baseInteraction as never,
+      [],
+      { authorId: "author-123" },
+      new Set(),
+      DUMMY_OPTIONS as never,
+      60000,
+    );
+    await flushMicrotasks();
+
+    const authorInteraction = makeComponentInteraction(
+      MSG_DEL_CUSTOM_ID.FILTER_AUTHOR,
+      "user-1",
+      { isStringSelectMenu: true, values: ["__bot__"] },
+    );
+    await collector._trigger("collect", authorInteraction);
+
+    await collector._trigger(
+      "collect",
+      makeComponentInteraction(MSG_DEL_CUSTOM_ID.CONFIRM_YES),
+    );
+
+    const result = await promise;
+    expect(result.type).toBe("confirm");
+    if (result.type === "confirm") {
+      expect(result.filter.authorType).toBe("bot");
+      expect(result.filter.authorId).toBeUndefined();
+    }
+  });
+
   // ─── フィルターリセット ───────────────────────────────────────────────────
 
   it("FILTER_RESET クリック時にフィルターをリセットする", async () => {

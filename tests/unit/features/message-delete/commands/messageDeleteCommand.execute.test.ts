@@ -221,7 +221,12 @@ function createInteraction(overrides: InteractionOverrides = {}) {
     guild: guildId
       ? {
           id: guildId,
-          members: { me },
+          members: {
+            me,
+            // 投稿者タイプ判定用のメンバー一覧取得（fetchGuildMemberIds）
+            fetch: vi.fn().mockResolvedValue(new Map([["user-1", {}]])),
+            cache: new Map([["user-1", {}]]),
+          },
           channels: {
             fetch: vi
               .fn()
@@ -264,6 +269,8 @@ const mockScannedMessages: ScannedMessageWithChannel[] = [
     guildId: "guild-1",
     authorId: "user-1",
     authorDisplayName: "User One",
+    authorIsBot: false,
+    authorIsMember: true,
     channelId: "channel-1",
     channelName: "general",
     createdAt: new Date("2024-01-01T00:00:00Z"),

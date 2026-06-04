@@ -12,6 +12,7 @@ import {
 import type { AllParseKeys } from "../../../../shared/locale/i18n";
 import { tInteraction } from "../../../../shared/locale/localeManager";
 import {
+  type AuthorType,
   type MessageDeleteFilter,
   MSG_DEL_CUSTOM_ID,
   MSG_DEL_MODAL_TIMEOUT_MS,
@@ -33,6 +34,8 @@ export interface ParsedOptions {
   afterStr?: string;
   beforeStr?: string;
   daysOption?: number;
+  /** 投稿者タイプ（条件設定フェーズで選択、未指定で全投稿者） */
+  authorType?: AuthorType;
   /** 対象チャンネルID一覧（条件設定フェーズで選択、空配列でサーバー全体） */
   channelIds: string[];
 }

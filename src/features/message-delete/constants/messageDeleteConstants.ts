@@ -11,6 +11,7 @@ export const MSG_DEL_CUSTOM_ID = {
   // 条件設定フェーズ
   SELECT_USER: "message-delete:user-select",
   SELECT_CHANNEL: "message-delete:channel-select",
+  SELECT_AUTHOR_TYPE: "message-delete:author-type-select",
   START_SCAN: "message-delete:scan-start",
   WEBHOOK_INPUT: "message-delete:webhook-input",
   COND_CANCEL: "message-delete:condition-cancel",
@@ -114,6 +115,51 @@ export const DISCORD_EPOCH = 1420070400000n;
 /** 1日あたりのミリ秒数 */
 export const MS_PER_DAY: number = 24 * 60 * 60 * 1000;
 
+/**
+ * 投稿者タイプフィルターの種別
+ * - bot: bot の投稿のみ
+ * - human: 人間（非bot）の投稿のみ
+ * - left: サーバーを退出済みのユーザーの投稿のみ（現在のメンバーに不在）
+ */
+export type AuthorType = "bot" | "human" | "left";
+
+/**
+ * 投稿者タイプ選択の値（条件設定セレクト・プレビューの投稿者セレクト共通）
+ * ALL は「フィルターなし」を表すセンチネル。BOT/HUMAN/LEFT は AuthorType に対応。
+ */
+export const MSG_DEL_AUTHOR_TYPE_VALUE = {
+  ALL: "__all__",
+  BOT: "__bot__",
+  HUMAN: "__human__",
+  LEFT: "__left__",
+} as const;
+
+/** 投稿者タイプ選択の値（MSG_DEL_AUTHOR_TYPE_VALUE.BOT 等）を AuthorType に変換する（ALL/不正値は undefined） */
+export function authorTypeFromValue(value: string): AuthorType | undefined {
+  switch (value) {
+    case MSG_DEL_AUTHOR_TYPE_VALUE.BOT:
+      return "bot";
+    case MSG_DEL_AUTHOR_TYPE_VALUE.HUMAN:
+      return "human";
+    case MSG_DEL_AUTHOR_TYPE_VALUE.LEFT:
+      return "left";
+    default:
+      return undefined;
+  }
+}
+
+/** AuthorType を投稿者タイプ選択の値に変換する（セレクトの default 表示・逆引きに使用） */
+export function authorTypeToValue(authorType: AuthorType): string {
+  switch (authorType) {
+    case "bot":
+      return MSG_DEL_AUTHOR_TYPE_VALUE.BOT;
+    case "human":
+      return MSG_DEL_AUTHOR_TYPE_VALUE.HUMAN;
+    case "left":
+      return MSG_DEL_AUTHOR_TYPE_VALUE.LEFT;
+  }
+}
+
 /** コマンド名定数 */
 export const MSG_DEL_COMMAND = {
   NAME: "message-delete",
@@ -139,6 +185,10 @@ export interface ScannedMessage {
   authorId: string;
   /** 表示名（サーバーニックネーム → グローバル表示名 → ユーザー名 の優先順） */
   authorDisplayName: string;
+  /** 投稿者が bot かどうか（投稿者タイプフィルター用） */
+  authorIsBot: boolean;
+  /** 投稿者が現在のサーバーメンバーかどうか（false = 退出済み。投稿者タイプフィルター用） */
+  authorIsMember: boolean;
   /** 投稿されたチャンネルID */
   channelId: string;
   /** 投稿されたチャンネル名 */
@@ -171,6 +221,8 @@ export interface CommandConditionsDisplay {
   afterStr?: string;
   /** before オプションの入力文字列 */
   beforeStr?: string;
+  /** 投稿者タイプ（条件設定で選択、未指定で全投稿者） */
+  authorType?: AuthorType;
   /** 対象チャンネルID一覧（空配列でサーバー全体） */
   channelIds: string[];
 }
@@ -181,6 +233,8 @@ export interface ConditionSetupResult {
   targetUserIds: string[];
   /** 選択されたチャンネルID一覧 */
   channelIds: string[];
+  /** 選択された投稿者タイプ（未指定で全投稿者） */
+  authorType?: AuthorType;
   /** スキャン開始ボタン押下時の interaction（後続フェーズで fresh token として使用） */
   scanInteraction: MessageComponentInteraction;
 }
@@ -195,6 +249,7 @@ export interface ConditionSetupResult {
 export type MessageDeleteFilter =
   | {
       authorId?: string;
+      authorType?: AuthorType;
       keyword?: string;
       days: number;
       after?: undefined;
@@ -202,6 +257,7 @@ export type MessageDeleteFilter =
     }
   | {
       authorId?: string;
+      authorType?: AuthorType;
       keyword?: string;
       days?: undefined;
       after?: Date;

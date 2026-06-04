@@ -10,6 +10,7 @@ import {
   type ChatInputCommandInteraction,
   ComponentType,
   ModalBuilder,
+  StringSelectMenuBuilder,
   TextInputBuilder,
   TextInputStyle,
   UserSelectMenuBuilder,
@@ -20,7 +21,10 @@ import {
 } from "../../../../bot/utils/messageResponse";
 import { tInteraction } from "../../../../shared/locale/localeManager";
 import {
+  type AuthorType,
+  authorTypeFromValue,
   type ConditionSetupResult,
+  MSG_DEL_AUTHOR_TYPE_VALUE,
   MSG_DEL_CONDITION_STEP_TIMEOUT_MS,
   MSG_DEL_CUSTOM_ID,
   MSG_DEL_MODAL_TIMEOUT_MS,
@@ -46,6 +50,7 @@ export async function runConditionSetupStep(
   let selectedUserIds: string[] = [];
   let selectedChannelIds: string[] = [];
   let webhookIds: string[] = [];
+  let selectedAuthorType: AuthorType | undefined;
 
   // Row 1: UserSelectMenu
   const userSelect = new UserSelectMenuBuilder()
@@ -79,7 +84,52 @@ export async function runConditionSetupStep(
       ChannelType.GuildVoice,
     );
 
-  // Row 3: ボタン（スキャン開始・Webhook ID 入力・キャンセル）
+  // Row 3: 投稿者タイプセレクト（全投稿者 / botのみ / 人のみ / 既に居ない人のみ）
+  const authorTypeSelect = new StringSelectMenuBuilder()
+    .setCustomId(MSG_DEL_CUSTOM_ID.SELECT_AUTHOR_TYPE)
+    .setPlaceholder(
+      tInteraction(
+        interaction.locale,
+        "messageDelete:ui.select.condition_author_type_placeholder",
+      ),
+    )
+    .setMinValues(0)
+    .setMaxValues(1)
+    .addOptions([
+      {
+        label: tInteraction(
+          interaction.locale,
+          "messageDelete:ui.select.author_all",
+        ),
+        value: MSG_DEL_AUTHOR_TYPE_VALUE.ALL,
+      },
+      {
+        label: tInteraction(
+          interaction.locale,
+          "messageDelete:ui.select.author_type_bot",
+        ),
+        emoji: "🤖",
+        value: MSG_DEL_AUTHOR_TYPE_VALUE.BOT,
+      },
+      {
+        label: tInteraction(
+          interaction.locale,
+          "messageDelete:ui.select.author_type_human",
+        ),
+        emoji: "👤",
+        value: MSG_DEL_AUTHOR_TYPE_VALUE.HUMAN,
+      },
+      {
+        label: tInteraction(
+          interaction.locale,
+          "messageDelete:ui.select.author_type_left",
+        ),
+        emoji: "🚪",
+        value: MSG_DEL_AUTHOR_TYPE_VALUE.LEFT,
+      },
+    ]);
+
+  // Row 4: ボタン（スキャン開始・Webhook ID 入力・キャンセル）
   const buttonRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
     new ButtonBuilder()
       .setCustomId(MSG_DEL_CUSTOM_ID.START_SCAN)
@@ -125,6 +175,9 @@ export async function runConditionSetupStep(
       new ActionRowBuilder<ChannelSelectMenuBuilder>().addComponents(
         channelSelect,
       ),
+      new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
+        authorTypeSelect,
+      ),
       buttonRow,
     ],
     content: "",
@@ -164,6 +217,17 @@ export async function runConditionSetupStep(
         i.componentType === ComponentType.ChannelSelect
       ) {
         selectedChannelIds = [...i.values];
+        await i.deferUpdate().catch(() => {});
+        return;
+      }
+
+      // 投稿者タイプセレクト（未選択 or ALL で解除）
+      if (
+        customId === MSG_DEL_CUSTOM_ID.SELECT_AUTHOR_TYPE &&
+        i.componentType === ComponentType.StringSelect
+      ) {
+        selectedAuthorType =
+          i.values.length > 0 ? authorTypeFromValue(i.values[0]) : undefined;
         await i.deferUpdate().catch(() => {});
         return;
       }
@@ -238,7 +302,9 @@ export async function runConditionSetupStep(
       if (customId === MSG_DEL_CUSTOM_ID.START_SCAN) {
         // フィルタ条件の最終バリデーション
         const hasUserFilter =
-          selectedUserIds.length > 0 || webhookIds.length > 0;
+          selectedUserIds.length > 0 ||
+          webhookIds.length > 0 ||
+          selectedAuthorType !== undefined;
         if (!hasSlashCommandFilter && !hasUserFilter) {
           await i.reply({
             embeds: [
@@ -263,6 +329,7 @@ export async function runConditionSetupStep(
         resolve({
           targetUserIds: [...selectedUserIds, ...webhookIds],
           channelIds: selectedChannelIds,
+          authorType: selectedAuthorType,
           scanInteraction: i,
         });
         return;

@@ -38,6 +38,11 @@ export type Env = {
   API_HOST: string;
   API_PORT: number;
   WEB_ORIGIN: string;
+  WEB_BASE_URL: string;
+  API_PUBLIC_URL: string;
+  DISCORD_CLIENT_SECRET?: string | undefined;
+  JWT_SECRET?: string | undefined;
+  COOKIE_DOMAIN?: string | undefined;
 };
 
 // 環境変数スキーマ定義（起動時バリデーション用）
@@ -89,6 +94,16 @@ export const envSchema: z.ZodType<Env> = z.object({
   API_PORT: z.coerce.number().int().positive().default(8080),
   // CORS 許可オリジン（web ダッシュボードの配信元・カンマ区切りで複数可）
   WEB_ORIGIN: z.string().default("http://localhost:5173"),
+  // ログイン後・エラー時のリダイレクト先となる web フロントエンドのベース URL
+  WEB_BASE_URL: z.string().default("http://localhost:5173"),
+  // API 自身の公開ベース URL（OAuth2 redirect_uri = {API_PUBLIC_URL}/api/auth/callback の生成に使用）
+  API_PUBLIC_URL: z.string().default("http://localhost:8080"),
+  // Discord OAuth2 クライアントシークレット（本番必須・dev は OAuth フロー無効）
+  DISCORD_CLIENT_SECRET: z.string().optional(),
+  // JWT 署名鍵（HMAC-SHA256・本番必須・dev は固定鍵にフォールバック）
+  JWT_SECRET: z.string().optional(),
+  // 認証 Cookie の Domain 属性（サブドメイン共有用・例: .sonozaki.net・未設定でホスト限定）
+  COOKIE_DOMAIN: z.string().optional(),
 });
 
 // 実行環境変数を検証して利用可能な設定へ変換する

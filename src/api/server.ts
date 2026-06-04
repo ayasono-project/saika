@@ -1,13 +1,17 @@
 // src/api/server.ts
 // web ダッシュボード向け Fastify API サーバー（Bot と同一プロセスで起動）
 
+import { ConfigurationError } from "@ayasono/shared/core";
 import cookie from "@fastify/cookie";
 import cors from "@fastify/cors";
 import rateLimit from "@fastify/rate-limit";
 import Fastify, { type FastifyInstance } from "fastify";
-import { env } from "../shared/config/env";
+import { env, NODE_ENV } from "../shared/config/env";
 import { logPrefixed, tDefault } from "../shared/locale/localeManager";
 import { logger } from "../shared/utils/logger";
+import { createAuthenticate } from "./auth/authenticate";
+import { DiscordOAuthService } from "./auth/discordOAuthService";
+import { createRequireGuildAccess, GuildAccessCache } from "./auth/guildAccess";
 import { RATE_LIMIT } from "./constants";
 import { toErrorResponse } from "./lib/httpError";
 import { apiRoutes } from "./routes/index";
@@ -16,6 +20,31 @@ import type { ApiServerDeps } from "./types";
 /** /ready で 503 を返す HTTP ステータス */
 const SERVICE_UNAVAILABLE = 503;
 const HTTP_NOT_FOUND = 404;
+
+/** env から Discord OAuth サービスを構築する */
+function createOAuthService(): DiscordOAuthService {
+  return new DiscordOAuthService({
+    clientId: env.DISCORD_APP_ID,
+    clientSecret: env.DISCORD_CLIENT_SECRET ?? "",
+    redirectUri: `${env.API_PUBLIC_URL}/api/auth/callback`,
+  });
+}
+
+/**
+ * 本番環境で必須の認証関連シークレットが設定されているか検証する。
+ * 未設定なら起動を中断する（不正設定での公開を防ぐ）。
+ */
+function assertProductionConfig(): void {
+  if (env.NODE_ENV !== NODE_ENV.PRODUCTION) return;
+  const missing: string[] = [];
+  if (!env.DISCORD_CLIENT_SECRET) missing.push("DISCORD_CLIENT_SECRET");
+  if (!env.JWT_SECRET) missing.push("JWT_SECRET");
+  if (missing.length > 0) {
+    throw new ConfigurationError(
+      `API requires environment variables in production: ${missing.join(", ")}`,
+    );
+  }
+}
 
 /**
  * 依存（DB・Discord クライアント）の準備状況を確認する。
@@ -43,7 +72,7 @@ export async function buildApiServer(
   // Cloudflare/Coolify のリバースプロキシ配下のため trustProxy を有効化。
   const app = Fastify({ logger: false, trustProxy: true });
 
-  // Cookie（認証 state / JWT は後続ユニットで使用）
+  // Cookie（認証 state / access JWT / refresh の格納に使用）
   await app.register(cookie);
 
   // CORS: web ダッシュボードの配信元のみ許可し、Cookie 送信を有効化
@@ -57,6 +86,16 @@ export async function buildApiServer(
     max: RATE_LIMIT.max,
     timeWindow: RATE_LIMIT.timeWindow,
   });
+
+  // 認証層: OAuth サービス・ギルドキャッシュを構築し、preHandler をデコレート。
+  // デコレータは子プラグイン（apiRoutes 配下の機能ルート）から参照される。
+  const oauth = createOAuthService();
+  const guildCache = new GuildAccessCache();
+  app.decorate("authenticate", createAuthenticate(oauth));
+  app.decorate(
+    "requireGuildAccess",
+    createRequireGuildAccess(oauth, guildCache),
+  );
 
   // 例外 → エラー封筒への一元変換
   app.setErrorHandler((error, _request, reply) => {
@@ -101,8 +140,8 @@ export async function buildApiServer(
     return { status: "ready" };
   });
 
-  // /api 配下の機能ルート
-  await app.register(apiRoutes, { prefix: "/api", deps });
+  // /api 配下の機能ルート（認証ルートを含む）
+  await app.register(apiRoutes, { prefix: "/api", deps, oauth });
 
   return app;
 }
@@ -117,6 +156,7 @@ export async function buildApiServer(
 export async function startApiServer(
   deps: ApiServerDeps,
 ): Promise<FastifyInstance> {
+  assertProductionConfig();
   const app = await buildApiServer(deps);
   await app.listen({ host: env.API_HOST, port: env.API_PORT });
   logger.info(

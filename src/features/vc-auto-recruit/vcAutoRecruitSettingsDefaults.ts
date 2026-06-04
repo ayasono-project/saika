@@ -7,6 +7,7 @@ import type { VcAutoRecruitSettings } from "../../shared/database/types";
 export const DEFAULT_VC_AUTO_RECRUIT_SETTINGS: VcAutoRecruitSettings = {
   enabled: false,
   embedEnabled: true,
+  enabledCategoryIds: [],
   activeInvites: [],
 };
 
@@ -19,6 +20,7 @@ export function createDefaultVcAutoRecruitSettings(): VcAutoRecruitSettings {
   return {
     enabled: DEFAULT_VC_AUTO_RECRUIT_SETTINGS.enabled,
     embedEnabled: DEFAULT_VC_AUTO_RECRUIT_SETTINGS.embedEnabled,
+    enabledCategoryIds: [],
     activeInvites: [],
   };
 }
@@ -37,6 +39,7 @@ export function normalizeVcAutoRecruitSettings(
     channelId: config.channelId,
     message: config.message,
     embedEnabled: config.embedEnabled,
+    enabledCategoryIds: [...config.enabledCategoryIds],
     activeInvites: [...config.activeInvites],
   };
 }

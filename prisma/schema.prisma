@@ -86,12 +86,13 @@ model GuildMemberLogSettings {
 
 // VC自動募集設定
 model GuildVcAutoRecruitSettings {
-  guildId       String  @id @map("guild_id")
-  enabled       Boolean @default(false)
-  channelId     String? @map("channel_id")
-  message       String?
-  embedEnabled  Boolean @default(true) @map("embed_enabled")
-  activeInvites Json    @default("[]") @map("active_invites") // jsonb: VcAutoRecruitRef[]
+  guildId            String  @id @map("guild_id")
+  enabled            Boolean @default(false)
+  channelId          String? @map("channel_id")
+  message            String?
+  embedEnabled       Boolean @default(true) @map("embed_enabled")
+  enabledCategoryIds Json    @default("[]") @map("enabled_category_ids") // jsonb: string[]（ルートは "TOP"）
+  activeInvites      Json    @default("[]") @map("active_invites") // jsonb: VcAutoRecruitRef[]
 
   @@map("guild_vc_invite_settings")
 }

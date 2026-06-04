@@ -13,12 +13,15 @@ export const VC_AUTO_RECRUIT_SETTINGS_COMMAND = {
     SET_MESSAGE: "set-message",
     CLEAR_MESSAGE: "clear-message",
     SET_EMBED: "set-embed",
+    ENABLE_CATEGORY: "enable-category",
+    DISABLE_CATEGORY: "disable-category",
     VIEW: "view",
     RESET: "reset",
   },
   OPTION: {
     CHANNEL: "channel",
     ENABLED: "enabled",
+    CATEGORY: "category",
   },
   /** カスタム募集メッセージ設定モーダルの customId */
   SET_MESSAGE_MODAL_ID: "vc-auto-recruit-settings:message-modal",

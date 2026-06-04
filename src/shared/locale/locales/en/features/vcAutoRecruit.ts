@@ -20,6 +20,14 @@ export const vcAutoRecruit = {
   "vc-auto-recruit-settings.set-embed.description": "Toggle the recruit embed",
   "vc-auto-recruit-settings.set-embed.enabled.description":
     "Whether to include the embed",
+  "vc-auto-recruit-settings.enable-category.description":
+    "Enable a target category (omit for TOP)",
+  "vc-auto-recruit-settings.enable-category.category.description":
+    "Category to enable (defaults to TOP/root)",
+  "vc-auto-recruit-settings.disable-category.description":
+    "Disable a target category (omit for TOP)",
+  "vc-auto-recruit-settings.disable-category.category.description":
+    "Category to disable (defaults to TOP)",
   "vc-auto-recruit-settings.view.description": "Show current settings",
   "vc-auto-recruit-settings.reset.description":
     "Reset VC auto recruit settings",
@@ -40,6 +48,15 @@ export const vcAutoRecruit = {
     "⚠️ The VC auto recruit notification channel has been deleted.\nSettings have been reset. Please reconfigure with `/vc-auto-recruit-settings set-channel`.",
   "user-response.reset_success": "VC auto recruit settings have been reset.",
   "user-response.reset_cancelled": "Reset has been cancelled.",
+  "user-response.category_enabled": "Recruitment enabled for {{category}}",
+  "user-response.category_disabled": "Recruitment disabled for {{category}}",
+  "user-response.category_already_enabled": "{{category}} is already enabled.",
+  "user-response.category_not_found":
+    "{{category}} is not in the enabled categories.",
+  "user-response.not_a_category": "Please specify a category.",
+  "user-response.enable_warning_no_category":
+    "Enabled, but no category is enabled so nothing will be posted. Add one with /vc-auto-recruit-settings enable-category.",
+  "user-response.category_top_label": "TOP (no category)",
 
   // ── Recruit content ───────────────────────────
   "content.invite_default":
@@ -51,6 +68,9 @@ export const vcAutoRecruit = {
   "embed.field.name.channel": "Notification Channel",
   "embed.field.name.embed": "Embed",
   "embed.field.name.message": "Custom Message",
+  "embed.field.name.categories": "Enabled Categories",
+  "embed.field.value.categories_none": "Not set (nothing will be posted)",
+  "embed.field.value.top": "TOP (no category)",
 
   // ── Embed: recruit notification ───────────────
   "embed.title.invite": "🔊 A voice call has started",
@@ -63,7 +83,7 @@ export const vcAutoRecruit = {
     "Reset VC auto recruit settings?\nThe following settings will be deleted. This action cannot be undone.",
   "embed.field.name.reset_target": "Targets",
   "embed.field.value.reset_target":
-    "Enabled/Disabled / Notification Channel / Embed Setting / Custom Message / Active recruits",
+    "Enabled/Disabled / Notification Channel / Embed Setting / Custom Message / Enabled Categories / Active recruits",
 
   // ── UI labels ─────────────────────────────────
   "ui.modal.set_message_title": "Set Recruit Message",
@@ -95,6 +115,12 @@ export const vcAutoRecruit = {
   "log.config_disabled": "disabled GuildId: {{guildId}}",
   "log.config_message_set": "recruit message set GuildId: {{guildId}}",
   "log.config_message_cleared": "recruit message cleared GuildId: {{guildId}}",
+  "log.config_category_enabled":
+    "enabled category added GuildId: {{guildId}} CategoryId: {{categoryId}}",
+  "log.config_category_disabled":
+    "enabled category removed GuildId: {{guildId}} CategoryId: {{categoryId}}",
+  "log.category_removed_by_delete":
+    "removed deleted category from enabled list GuildId: {{guildId}} CategoryId: {{categoryId}}",
   "log.config_embed_set":
     "embed setting changed GuildId: {{guildId}} Enabled: {{enabled}}",
   "log.config_reset": "settings reset GuildId: {{guildId}}",

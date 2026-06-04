@@ -59,7 +59,7 @@ web フロントエンドがモック駆動（MSW 等）で完成した後、契
 ## 機能拡張アイデア
 
 - **VC自動募集のユーザー個別 opt-out（§2 拡張）** — 1人で通話/作業するユーザーが「最初の1人」として毎回告知されるのを避ける用。推奨方針=`GuildVcAutoRecruitSettings` 内に `optedOutUserIds: String[]`（jsonb）を追加し本人トグルコマンドで管理（発火条件に「参加者が `optedOutUserIds` に含まれない」を追加）。v1 見送り理由は [VC_AUTO_RECRUIT_SPEC.md](docs/specs/VC_AUTO_RECRUIT_SPEC.md) 「今後の拡張」節を参照
-- **VC自動募集の対象VC指定・除外リスト（§2 拡張）** — 「全VC（トリガー除く）」ではなく特定VC・カテゴリのみ対象／特定VC除外に対応
+- **VC自動募集の VC（チャンネル）単位指定・除外（§2 拡張）** — カテゴリ単位の allowlist（`enable-category`/`disable-category`）は実装済み。さらに細かい特定VC単位の指定／除外が必要になれば検討
 - **VC自動募集の招待リンク方式（§2 拡張）** — 参加ボタンをチャンネルジャンプ URL から Discord 招待リンク（`createInvite`）に変更（外部共有が必要になった場合・`CreateInstantInvite` 権限と寿命管理が必要）
 - **予約募集(イベント募集)機能** — 他タスク完了後に実装可否判断。骨子: 予約時に VC + Discord Scheduled Event 作成 / RSVP・リマインダー・開始通知は Discord 標準任せ / VC 自動削除なし(投稿削除 or イベント終了ボタンで手動)/ 編集機能あり(日時・タイトル・説明)/ setup は既存 VC 募集と同構成 / VC 名変更は既存 `/vc rename` 流用。細部は実装決定時に詰める
 - 自動翻訳機能(DeepL API 等)
@@ -72,15 +72,16 @@ web フロントエンドがモック駆動（MSW 等）で完成した後、契
 
 > 詳細な作業経過は git log を参照。
 
-### VC自動募集（§2・2026-06-04 完了・未デプロイ）
+### VC自動募集（§2・2026-06-04 完了・本番デプロイ済み）
 
 VC が **0人→1人（最初の1人）** になった時、指定チャンネルへ募集メッセージ（カスタム本文＋固定 Embed＋「🔊 VCに参加」Link ボタン）を自動投稿。VC から全員退出すると投稿済みメッセージのボタンを無効の「募集終了」へ差し替え（募集終了は `enabled` 非依存・空室時のみ・開始者の在室は不問）。CreateVC トリガー・AFK・Bot 参加は除外し、VAC 作成 VC は対象。募集文は content として送信し `allowedMentions` でメンションを実ピング。設計・実装は member-log/VAC 流儀（本文可変・Embed 固定・DB 保存・jsonb 配列・起動クリーンアップ）に準拠。
 
-- [x] 仕様書作成: [VC_AUTO_RECRUIT_SPEC.md](docs/specs/VC_AUTO_RECRUIT_SPEC.md)（投稿先=固定通知チャンネル / 対象=全VC〔CreateVC トリガー・AFK 除外、VAC 作成 VC は対象〕 / 0→1 のみ / カスタム本文 + Embed + ボタン / 全員退出で募集終了 / 60s 連投抑制 / opt-out は将来拡張）
-- [x] 実装（DB `GuildVcAutoRecruitSettings`〔`activeInvites` jsonb〕 + migration + リポジトリ/設定サービス + イベントサービス `VcAutoRecruitService`〔投稿・募集終了・channelDelete・起動クリーンアップ〕 + `/vc-auto-recruit-settings` コマンド群〔8 サブコマンド〕 + set-message モーダル + content/Embed/ボタンビルダー + `voiceStateUpdate`/`channelDelete`/clientReady 配線 + composition root + help 追加）
-- [x] テスト（設定サービス / defaults / メッセージビルダー / VcAutoRecruitService〔0→1発火・2人目非発火・Bot非発火・トリガー/AFK除外・無効時非発火・連投抑制・空室で募集終了・開始者退出のみ据え置き・channelDelete設定クリア〕 + 既存イベント委譲テスト追補・全 2409 通過）
+- [x] 仕様書作成: [VC_AUTO_RECRUIT_SPEC.md](docs/specs/VC_AUTO_RECRUIT_SPEC.md)（投稿先=固定通知チャンネル / 0→1 のみ / カスタム本文 + Embed + ボタン / 全員退出で募集終了 / 60s 連投抑制 / opt-out は将来拡張）
+- [x] 実装（DB `GuildVcAutoRecruitSettings`〔`activeInvites` jsonb〕 + migration + リポジトリ/設定サービス + イベントサービス `VcAutoRecruitService`〔投稿・募集終了・channelDelete・起動クリーンアップ〕 + `/vc-auto-recruit-settings` コマンド群 + set-message モーダル + content/Embed/ボタンビルダー + `voiceStateUpdate`/`channelDelete`/clientReady 配線 + composition root + help 追加）
+- [x] **本番リリース**: release PR #44（develop→main・2026-06-04）。命名は当初 `vc-invite`→ ユーザー指示で **VC自動募集 / `/vc-auto-recruit-settings`** に全面リネーム
+- [x] **カテゴリ allowlist 追加（§2 拡張・後追い）**: 募集は**明示的に有効化したカテゴリの VC でのみ**投稿（`enabledCategoryIds` jsonb・ルート直下は sentinel `"TOP"`）。`enable-category`/`disable-category` 追加、空＝投稿なし、`@everyone` 可視性は判定に使わず認証制サーバーのメンバー専用 VC も有効カテゴリなら投稿、カテゴリ削除で allowlist 自動掃除。全 2418 通過
 
-> NOTE: 起動クリーンアップ・closeInvite の Discord 副作用経路はロジック実装済み（ユニットでは主要分岐を担保）。**未デプロイ**: 実機検証（`pnpm start` 起動・本番経路）と release PR（develop→main）は未実施。
+> NOTE: 起動クリーンアップ・closeInvite の Discord 副作用経路はロジック実装済み（ユニットでは主要分岐を担保）。カテゴリ allowlist 拡張は別 release PR で本番反映予定。
 
 ### 未承認ユーザー自動キック（§1・2026-05-31 完了・未デプロイ）
 

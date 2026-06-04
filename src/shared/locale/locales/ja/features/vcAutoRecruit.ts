@@ -18,6 +18,14 @@ export const vcAutoRecruit = {
     "Embed の有効/無効を切り替え",
   "vc-auto-recruit-settings.set-embed.enabled.description":
     "Embed を投稿に含めるか",
+  "vc-auto-recruit-settings.enable-category.description":
+    "対象カテゴリを有効化（省略で TOP）",
+  "vc-auto-recruit-settings.enable-category.category.description":
+    "有効化するカテゴリ（省略時は TOP＝ルート）",
+  "vc-auto-recruit-settings.disable-category.description":
+    "対象カテゴリを無効化（省略で TOP）",
+  "vc-auto-recruit-settings.disable-category.category.description":
+    "無効化するカテゴリ（省略時は TOP）",
   "vc-auto-recruit-settings.view.description": "現在の設定を表示",
   "vc-auto-recruit-settings.reset.description": "VC自動募集設定をリセット",
 
@@ -37,6 +45,15 @@ export const vcAutoRecruit = {
     "⚠️ VC自動募集の投稿先チャンネルが削除されました。\n設定をリセットしたので、`/vc-auto-recruit-settings set-channel` で再設定してください。",
   "user-response.reset_success": "VC自動募集設定をリセットしました。",
   "user-response.reset_cancelled": "リセットをキャンセルしました。",
+  "user-response.category_enabled": "{{category}} で募集を有効にしました。",
+  "user-response.category_disabled": "{{category}} で募集を無効にしました。",
+  "user-response.category_already_enabled": "{{category}} は既に有効です。",
+  "user-response.category_not_found":
+    "{{category}} は有効カテゴリに登録されていません。",
+  "user-response.not_a_category": "カテゴリを指定してください。",
+  "user-response.enable_warning_no_category":
+    "有効化しましたが、有効カテゴリが未設定のため投稿されません。`/vc-auto-recruit-settings enable-category` でカテゴリを追加してください。",
+  "user-response.category_top_label": "TOP（カテゴリなし）",
 
   // ── 投稿本文（content） ───────────────────────
   "content.invite_default":
@@ -48,6 +65,9 @@ export const vcAutoRecruit = {
   "embed.field.name.channel": "投稿先チャンネル",
   "embed.field.name.embed": "Embed",
   "embed.field.name.message": "カスタムメッセージ",
+  "embed.field.name.categories": "有効カテゴリ",
+  "embed.field.value.categories_none": "未設定（どこにも投稿されません）",
+  "embed.field.value.top": "TOP（カテゴリなし）",
 
   // ── Embed: 募集通知 ──────────────────────────
   "embed.title.invite": "🔊 通話がはじまりました",
@@ -60,7 +80,7 @@ export const vcAutoRecruit = {
     "VC自動募集設定をリセットしますか？\n以下の設定が削除されます。この操作は元に戻せません。",
   "embed.field.name.reset_target": "削除対象",
   "embed.field.value.reset_target":
-    "有効/無効設定 / 投稿先チャンネル / Embed 設定 / カスタムメッセージ / 追跡中の募集",
+    "有効/無効設定 / 投稿先チャンネル / Embed 設定 / カスタムメッセージ / 有効カテゴリ / 追跡中の募集",
 
   // ── UIラベル ──────────────────────────────────
   "ui.modal.set_message_title": "募集メッセージを設定",
@@ -92,6 +112,12 @@ export const vcAutoRecruit = {
   "log.config_disabled": "無効化 GuildId: {{guildId}}",
   "log.config_message_set": "募集メッセージ設定 GuildId: {{guildId}}",
   "log.config_message_cleared": "募集メッセージ削除 GuildId: {{guildId}}",
+  "log.config_category_enabled":
+    "有効カテゴリ追加 GuildId: {{guildId}} CategoryId: {{categoryId}}",
+  "log.config_category_disabled":
+    "有効カテゴリ削除 GuildId: {{guildId}} CategoryId: {{categoryId}}",
+  "log.category_removed_by_delete":
+    "削除されたカテゴリを有効カテゴリから除外 GuildId: {{guildId}} CategoryId: {{categoryId}}",
   "log.config_embed_set":
     "Embed 設定変更 GuildId: {{guildId}} Enabled: {{enabled}}",
   "log.config_reset": "設定リセット GuildId: {{guildId}}",

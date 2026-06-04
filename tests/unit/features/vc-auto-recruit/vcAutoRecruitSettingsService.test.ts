@@ -32,6 +32,7 @@ describe("features/vc-auto-recruit/vcAutoRecruitSettingsService", () => {
     enabled: true,
     channelId: "ch-1",
     embedEnabled: true,
+    enabledCategoryIds: [],
     activeInvites: [],
   });
 
@@ -58,6 +59,7 @@ describe("features/vc-auto-recruit/vcAutoRecruitSettingsService", () => {
       expect(await service.getVcAutoRecruitSettingsOrDefault("g-1")).toEqual({
         enabled: false,
         embedEnabled: true,
+        enabledCategoryIds: [],
         activeInvites: [],
       });
     });
@@ -71,6 +73,7 @@ describe("features/vc-auto-recruit/vcAutoRecruitSettingsService", () => {
       repository.getVcAutoRecruitSettings.mockResolvedValueOnce({
         enabled: false,
         embedEnabled: true,
+        enabledCategoryIds: [],
         activeInvites: [],
       });
 
@@ -81,6 +84,7 @@ describe("features/vc-auto-recruit/vcAutoRecruitSettingsService", () => {
         {
           enabled: false,
           embedEnabled: true,
+          enabledCategoryIds: [],
           activeInvites: [],
           channelId: "ch-new",
         },
@@ -152,6 +156,7 @@ describe("features/vc-auto-recruit/vcAutoRecruitSettingsService", () => {
         {
           enabled: false,
           embedEnabled: true,
+          enabledCategoryIds: [],
           activeInvites: [],
         },
       );
@@ -245,6 +250,74 @@ describe("features/vc-auto-recruit/vcAutoRecruitSettingsService", () => {
 
       await service.removeActiveInvite("g-1", "vc-x");
 
+      expect(repository.updateVcAutoRecruitSettings).not.toHaveBeenCalled();
+    });
+
+    it("addEnabledCategory が新規カテゴリを追加して true を返すこと", async () => {
+      const { module } = await loadModule();
+      const repository = createRepositoryMock();
+      const service = new module.VcAutoRecruitSettingsService(
+        repository as never,
+      );
+      repository.getVcAutoRecruitSettings.mockResolvedValueOnce(baseConfig());
+
+      const result = await service.addEnabledCategory("g-1", "cat-1");
+
+      expect(result).toBe(true);
+      expect(repository.updateVcAutoRecruitSettings).toHaveBeenCalledWith(
+        "g-1",
+        expect.objectContaining({ enabledCategoryIds: ["cat-1"] }),
+      );
+    });
+
+    it("addEnabledCategory は既に有効なら保存せず false を返すこと", async () => {
+      const { module } = await loadModule();
+      const repository = createRepositoryMock();
+      const service = new module.VcAutoRecruitSettingsService(
+        repository as never,
+      );
+      repository.getVcAutoRecruitSettings.mockResolvedValueOnce({
+        ...baseConfig(),
+        enabledCategoryIds: ["cat-1"],
+      });
+
+      const result = await service.addEnabledCategory("g-1", "cat-1");
+
+      expect(result).toBe(false);
+      expect(repository.updateVcAutoRecruitSettings).not.toHaveBeenCalled();
+    });
+
+    it("removeEnabledCategory が対象を除去して true を返すこと", async () => {
+      const { module } = await loadModule();
+      const repository = createRepositoryMock();
+      const service = new module.VcAutoRecruitSettingsService(
+        repository as never,
+      );
+      repository.getVcAutoRecruitSettings.mockResolvedValueOnce({
+        ...baseConfig(),
+        enabledCategoryIds: ["cat-1", "TOP"],
+      });
+
+      const result = await service.removeEnabledCategory("g-1", "cat-1");
+
+      expect(result).toBe(true);
+      expect(repository.updateVcAutoRecruitSettings).toHaveBeenCalledWith(
+        "g-1",
+        expect.objectContaining({ enabledCategoryIds: ["TOP"] }),
+      );
+    });
+
+    it("removeEnabledCategory は未登録なら保存せず false を返すこと", async () => {
+      const { module } = await loadModule();
+      const repository = createRepositoryMock();
+      const service = new module.VcAutoRecruitSettingsService(
+        repository as never,
+      );
+      repository.getVcAutoRecruitSettings.mockResolvedValueOnce(baseConfig());
+
+      const result = await service.removeEnabledCategory("g-1", "cat-x");
+
+      expect(result).toBe(false);
       expect(repository.updateVcAutoRecruitSettings).not.toHaveBeenCalled();
     });
   });

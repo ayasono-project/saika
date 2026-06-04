@@ -108,6 +108,8 @@ export interface VcAutoRecruitSettings {
   message?: string;
   // 募集 Embed を投稿に含めるか
   embedEnabled: boolean;
+  // 募集を投稿する対象カテゴリ ID の allowlist（ルート直下は sentinel "TOP"・空＝どこにも投稿しない）
+  enabledCategoryIds: string[];
   // 投稿済みで「募集中」状態の募集メッセージ参照（募集終了処理で参照・編集後に除去）
   activeInvites: VcAutoRecruitRef[];
 }

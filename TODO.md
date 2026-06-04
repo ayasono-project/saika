@@ -59,7 +59,7 @@ web フロントエンドがモック駆動（MSW 等）で完成した後、契
 ## 機能拡張アイデア
 
 - **VC自動募集のユーザー個別 opt-out（§2 拡張）** — 1人で通話/作業するユーザーが「最初の1人」として毎回告知されるのを避ける用。推奨方針=`GuildVcAutoRecruitSettings` 内に `optedOutUserIds: String[]`（jsonb）を追加し本人トグルコマンドで管理（発火条件に「参加者が `optedOutUserIds` に含まれない」を追加）。v1 見送り理由は [VC_AUTO_RECRUIT_SPEC.md](docs/specs/VC_AUTO_RECRUIT_SPEC.md) 「今後の拡張」節を参照
-- **VC自動募集の VC（チャンネル）単位指定・除外（§2 拡張）** — カテゴリ単位の allowlist（`enable-category`/`disable-category`）は実装済み。さらに細かい特定VC単位の指定／除外が必要になれば検討
+- **VC自動募集の VC（チャンネル）単位指定・除外（§2 拡張）** — カテゴリ単位の allowlist（`add-category`/`remove-category`）は実装済み。さらに細かい特定VC単位の指定／除外が必要になれば検討
 - **VC自動募集の招待リンク方式（§2 拡張）** — 参加ボタンをチャンネルジャンプ URL から Discord 招待リンク（`createInvite`）に変更（外部共有が必要になった場合・`CreateInstantInvite` 権限と寿命管理が必要）
 - **予約募集(イベント募集)機能** — 他タスク完了後に実装可否判断。骨子: 予約時に VC + Discord Scheduled Event 作成 / RSVP・リマインダー・開始通知は Discord 標準任せ / VC 自動削除なし(投稿削除 or イベント終了ボタンで手動)/ 編集機能あり(日時・タイトル・説明)/ setup は既存 VC 募集と同構成 / VC 名変更は既存 `/vc rename` 流用。細部は実装決定時に詰める
 - 自動翻訳機能(DeepL API 等)

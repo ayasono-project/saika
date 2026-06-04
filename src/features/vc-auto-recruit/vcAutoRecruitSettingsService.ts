@@ -167,6 +167,55 @@ export class VcAutoRecruitSettingsService {
   }
 
   /**
+   * 募集対象カテゴリ（allowlist）を複数まとめて追加する
+   * @param guildId 設定対象のギルドID
+   * @param categoryKeys 追加するカテゴリ ID 群（ルートは sentinel "TOP"）
+   * @returns 実際に新規追加できたカテゴリ ID の配列（既に追加済みのものは含まない）
+   */
+  async addEnabledCategories(
+    guildId: string,
+    categoryKeys: string[],
+  ): Promise<string[]> {
+    const current = await this.getVcAutoRecruitSettingsOrDefault(guildId);
+    // 既に登録済みのものを除いた新規分だけを追加対象として確定する（重複・冪等）
+    const existing = new Set(current.enabledCategoryIds);
+    const added = [...new Set(categoryKeys)].filter((id) => !existing.has(id));
+    // 変化がない場合は保存をスキップ
+    if (added.length === 0) {
+      return [];
+    }
+    const enabledCategoryIds = [...current.enabledCategoryIds, ...added];
+    await this.updatePartial(guildId, { enabledCategoryIds });
+    return added;
+  }
+
+  /**
+   * 募集対象カテゴリ（allowlist）を複数まとめて解除する
+   * @param guildId 設定対象のギルドID
+   * @param categoryKeys 解除するカテゴリ ID 群（ルートは sentinel "TOP"）
+   * @returns 実際に解除できたカテゴリ ID の配列（未登録だったものは含まない）
+   */
+  async removeEnabledCategories(
+    guildId: string,
+    categoryKeys: string[],
+  ): Promise<string[]> {
+    const current = await this.getVcAutoRecruitSettingsOrDefault(guildId);
+    // 現在登録済みのものだけを解除対象として確定する（未登録は無視）
+    const targets = new Set(categoryKeys);
+    const removed = current.enabledCategoryIds.filter((id) => targets.has(id));
+    // 変化がない場合は保存をスキップ
+    if (removed.length === 0) {
+      return [];
+    }
+    const removedSet = new Set(removed);
+    const enabledCategoryIds = current.enabledCategoryIds.filter(
+      (id) => !removedSet.has(id),
+    );
+    await this.updatePartial(guildId, { enabledCategoryIds });
+    return removed;
+  }
+
+  /**
    * 設定をデフォルト状態へリセットする（追跡中の募集も破棄）
    * @param guildId 設定対象のギルドID
    */

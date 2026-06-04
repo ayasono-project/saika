@@ -13,18 +13,24 @@ export const VC_AUTO_RECRUIT_SETTINGS_COMMAND = {
     SET_MESSAGE: "set-message",
     CLEAR_MESSAGE: "clear-message",
     SET_EMBED: "set-embed",
-    ENABLE_CATEGORY: "enable-category",
-    DISABLE_CATEGORY: "disable-category",
+    ADD_CATEGORY: "add-category",
+    REMOVE_CATEGORY: "remove-category",
     VIEW: "view",
     RESET: "reset",
   },
   OPTION: {
     CHANNEL: "channel",
     ENABLED: "enabled",
-    CATEGORY: "category",
   },
   /** カスタム募集メッセージ設定モーダルの customId */
   SET_MESSAGE_MODAL_ID: "vc-auto-recruit-settings:message-modal",
   /** モーダル内テキスト入力欄の customId */
   MODAL_INPUT_MESSAGE: "vc-auto-recruit-settings:message-modal-input",
+  /** 募集対象カテゴリ追加セレクトメニューの customId */
+  ADD_CATEGORY_SELECT_ID: "vc-auto-recruit-settings:add-category-select",
+  /** 募集対象カテゴリ解除セレクトメニューの customId */
+  REMOVE_CATEGORY_SELECT_ID: "vc-auto-recruit-settings:remove-category-select",
 } as const;
+
+/** 募集対象カテゴリ追加/解除セレクトメニューの操作受付タイムアウト（ms） */
+export const VC_AUTO_RECRUIT_CATEGORY_SELECT_TIMEOUT_MS: number = 3 * 60 * 1000;

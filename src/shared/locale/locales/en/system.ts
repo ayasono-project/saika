@@ -180,6 +180,8 @@ export const system = {
   "web.guild_not_member": "You are not a member of this server.",
   "web.guild_permission_denied":
     "You do not have management permissions for this server.",
+  "web.not_found_route": "Endpoint not found.",
+  "web.not_ready": "Service is not ready.",
 
   // Discord error notification
   "discord.error_notification_title": "🚨 {{appName}} Error Notification",

@@ -19,10 +19,13 @@ export const voiceStateUpdateEvent: BotEvent<typeof Events.VoiceStateUpdate> = {
    * @returns 実行完了を示す Promise
    */
   async execute(oldState: VoiceState, newState: VoiceState) {
-    // VAC同期ロジックは専用ハンドラへ委譲
-    await handleVacVoiceStateUpdate(oldState, newState);
-    // VC自動募集（参加=投稿 / 空室=募集終了）を専用ハンドラへ委譲
+    // VC自動募集を VAC より先に評価する。VAC の setChannel はライブ参照の
+    // newState.channelId を破壊的に書き換えるため、VAC を先に await すると
+    // CreateVC 参加時にトリガー参加イベントの newState が生成 VC を指してしまい、
+    // トリガー除外をすり抜けて移動イベントと合わせ二重投稿になる。
     await handleVcAutoRecruitVoiceStateUpdate(oldState, newState);
+    // VAC同期ロジック（トリガー参加→VC生成→移動 / 空室削除）を専用ハンドラへ委譲
+    await handleVacVoiceStateUpdate(oldState, newState);
     // 非アクティブ自動キックのアクティビティ記録（VC 参加を活動とみなす）
     await handleInactiveKickVoiceActivity(oldState, newState);
     // VC募集で作成したVCは明示的削除（ボタン）のみ。自動削除は行わない

@@ -10,6 +10,9 @@ export const VC_AUTO_RECRUIT_MESSAGE_MAX_LENGTH = 500;
 /** 同一 VC への連投抑制クールダウン（ms） */
 export const VC_AUTO_RECRUIT_REPOST_COOLDOWN_MS = 60_000;
 
+/** カテゴリに属さないルート直下 VC を表す allowlist の sentinel キー */
+export const VC_AUTO_RECRUIT_ROOT_CATEGORY = "TOP";
+
 /**
  * 募集メッセージ内ボタンの customId
  * join はチャンネルジャンプ URL の Link ボタンのため customId を持たず、

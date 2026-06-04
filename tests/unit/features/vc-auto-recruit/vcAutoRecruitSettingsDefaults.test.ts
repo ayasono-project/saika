@@ -12,6 +12,7 @@ describe("features/vc-auto-recruit/vcAutoRecruitSettingsDefaults", () => {
     expect(DEFAULT_VC_AUTO_RECRUIT_SETTINGS).toEqual({
       enabled: false,
       embedEnabled: true,
+      enabledCategoryIds: [],
       activeInvites: [],
     });
   });
@@ -31,6 +32,7 @@ describe("features/vc-auto-recruit/vcAutoRecruitSettingsDefaults", () => {
       channelId: "ch-1",
       message: "hi",
       embedEnabled: false,
+      enabledCategoryIds: ["cat-1", "TOP"],
       activeInvites: [
         {
           voiceChannelId: "vc-1",

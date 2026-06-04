@@ -43,10 +43,12 @@ function makeVoiceChannel(
   humanCount: number,
   botCount = 0,
   name = "VC",
+  parentId: string | null = null,
 ) {
   return {
     id,
     name,
+    parentId,
     type: ChannelType.GuildVoice,
     members: makeMembers(humanCount, botCount),
   };
@@ -96,6 +98,7 @@ function createServices() {
     addActiveInvite: vi.fn(),
     getActiveInvite: vi.fn(),
     removeActiveInvite: vi.fn(),
+    removeEnabledCategory: vi.fn(),
     disableAndClearChannel: vi.fn(),
   };
   const vacSettingsService = {
@@ -113,6 +116,8 @@ const enabledConfig = (overrides?: Record<string, unknown>) => ({
   channelId: "ch-1",
   embedEnabled: true,
   message: undefined,
+  // 既定では TOP（カテゴリなし）を有効化（テストの VC は parentId 未設定＝TOP 扱い）
+  enabledCategoryIds: ["TOP"],
   activeInvites: [],
   ...overrides,
 });
@@ -320,6 +325,58 @@ describe("features/vc-auto-recruit/vcAutoRecruitService", () => {
     });
   });
 
+  describe("カテゴリ allowlist ゲート", () => {
+    /** 指定の enabledCategoryIds・parentId で投稿可否を評価するヘルパー */
+    async function runJoin(
+      enabledCategoryIds: string[],
+      parentId: string | null,
+    ) {
+      const { settingsService, vacSettingsService } = createServices();
+      const post = makePostChannel();
+      const guild = makeGuild(post);
+      settingsService.getVcAutoRecruitSettings.mockResolvedValue(
+        enabledConfig({ enabledCategoryIds }),
+      );
+      const service = new VcAutoRecruitService(
+        settingsService as never,
+        vacSettingsService as never,
+      );
+      await service.handleVoiceStateUpdate(
+        { channelId: null, guild, channel: null } as never,
+        {
+          channelId: "vc-1",
+          guild,
+          channel: makeVoiceChannel("vc-1", 1, 0, "VC", parentId),
+          member: makeMember(),
+        } as never,
+      );
+      return post;
+    }
+
+    it("有効カテゴリ内の VC では投稿すること", async () => {
+      const post = await runJoin(["cat-1"], "cat-1");
+      expect(post.send).toHaveBeenCalledTimes(1);
+    });
+
+    it("非有効カテゴリの VC では投稿しないこと", async () => {
+      const post = await runJoin(["cat-1"], "cat-2");
+      expect(post.send).not.toHaveBeenCalled();
+    });
+
+    it("有効カテゴリ未設定（空）ならどこにも投稿しないこと", async () => {
+      const post = await runJoin([], "cat-1");
+      expect(post.send).not.toHaveBeenCalled();
+    });
+
+    it("ルート直下 VC は TOP 有効時のみ投稿すること", async () => {
+      const withTop = await runJoin(["TOP"], null);
+      expect(withTop.send).toHaveBeenCalledTimes(1);
+
+      const withoutTop = await runJoin(["cat-1"], null);
+      expect(withoutTop.send).not.toHaveBeenCalled();
+    });
+  });
+
   describe("handleVoiceStateUpdate（退出=募集終了）", () => {
     const ref = {
       voiceChannelId: "vc-1",
@@ -401,6 +458,31 @@ describe("features/vc-auto-recruit/vcAutoRecruitService", () => {
 
       expect(settingsService.disableAndClearChannel).toHaveBeenCalledWith(
         "g-1",
+      );
+    });
+
+    it("有効カテゴリが削除されたら allowlist から除去すること", async () => {
+      const { settingsService, vacSettingsService } = createServices();
+      const post = makePostChannel();
+      const guild = makeGuild(post);
+      settingsService.getVcAutoRecruitSettings.mockResolvedValue(
+        enabledConfig({ enabledCategoryIds: ["cat-1"], activeInvites: [] }),
+      );
+
+      const service = new VcAutoRecruitService(
+        settingsService as never,
+        vacSettingsService as never,
+      );
+      await service.handleChannelDelete({
+        id: "cat-1",
+        guild,
+        isDMBased: () => false,
+        type: ChannelType.GuildCategory,
+      } as never);
+
+      expect(settingsService.removeEnabledCategory).toHaveBeenCalledWith(
+        "g-1",
+        "cat-1",
       );
     });
   });

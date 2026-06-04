@@ -125,6 +125,48 @@ export class VcAutoRecruitSettingsService {
   }
 
   /**
+   * 募集対象カテゴリ（allowlist）を追加する
+   * @param guildId 設定対象のギルドID
+   * @param categoryKey 追加するカテゴリ ID（ルートは sentinel "TOP"）
+   * @returns 新規追加できた場合 true、既に有効だった場合 false
+   */
+  async addEnabledCategory(
+    guildId: string,
+    categoryKey: string,
+  ): Promise<boolean> {
+    const current = await this.getVcAutoRecruitSettingsOrDefault(guildId);
+    // 既に有効なら何もしない（冪等）
+    if (current.enabledCategoryIds.includes(categoryKey)) {
+      return false;
+    }
+    const enabledCategoryIds = [...current.enabledCategoryIds, categoryKey];
+    await this.updatePartial(guildId, { enabledCategoryIds });
+    return true;
+  }
+
+  /**
+   * 募集対象カテゴリ（allowlist）を解除する
+   * @param guildId 設定対象のギルドID
+   * @param categoryKey 解除するカテゴリ ID（ルートは sentinel "TOP"）
+   * @returns 解除できた場合 true、未登録だった場合 false
+   */
+  async removeEnabledCategory(
+    guildId: string,
+    categoryKey: string,
+  ): Promise<boolean> {
+    const current = await this.getVcAutoRecruitSettingsOrDefault(guildId);
+    const enabledCategoryIds = current.enabledCategoryIds.filter(
+      (id) => id !== categoryKey,
+    );
+    // 変化がない（未登録）場合は保存をスキップ
+    if (enabledCategoryIds.length === current.enabledCategoryIds.length) {
+      return false;
+    }
+    await this.updatePartial(guildId, { enabledCategoryIds });
+    return true;
+  }
+
+  /**
    * 設定をデフォルト状態へリセットする（追跡中の募集も破棄）
    * @param guildId 設定対象のギルドID
    */

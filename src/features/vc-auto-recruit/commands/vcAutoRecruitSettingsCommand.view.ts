@@ -5,6 +5,7 @@ import { type ChatInputCommandInteraction, MessageFlags } from "discord.js";
 import { getBotVcAutoRecruitSettingsService } from "../../../bot/services/botCompositionRoot";
 import { createInfoEmbed } from "../../../bot/utils/messageResponse";
 import { tInteraction } from "../../../shared/locale/localeManager";
+import { VC_AUTO_RECRUIT_ROOT_CATEGORY } from "../constants/vcAutoRecruit.constants";
 import { ensureVcAutoRecruitManageGuildPermission } from "./vcAutoRecruitSettingsCommand.guard";
 
 /**
@@ -50,6 +51,18 @@ export async function handleVcAutoRecruitSettingsView(
   const labelDisabled = tInteraction(locale, "common:disabled");
   const labelNone = tInteraction(locale, "common:none");
 
+  // 有効カテゴリ一覧（TOP は専用ラベル、それ以外はカテゴリメンション）。未設定時は警告込みの表示
+  const categoriesValue =
+    config.enabledCategoryIds.length === 0
+      ? tInteraction(locale, "vcAutoRecruit:embed.field.value.categories_none")
+      : config.enabledCategoryIds
+          .map((id) =>
+            id === VC_AUTO_RECRUIT_ROOT_CATEGORY
+              ? tInteraction(locale, "vcAutoRecruit:embed.field.value.top")
+              : `<#${id}>`,
+          )
+          .join(", ");
+
   // 設定内容を固定構成で表示
   const embed = createInfoEmbed("", {
     title: viewTitle,
@@ -72,6 +85,11 @@ export async function handleVcAutoRecruitSettingsView(
       {
         name: tInteraction(locale, "vcAutoRecruit:embed.field.name.message"),
         value: config.message ?? labelNone,
+        inline: false,
+      },
+      {
+        name: tInteraction(locale, "vcAutoRecruit:embed.field.name.categories"),
+        value: categoriesValue,
         inline: false,
       },
     ],

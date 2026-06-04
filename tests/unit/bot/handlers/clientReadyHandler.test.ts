@@ -59,6 +59,15 @@ vi.mock("@/features/vac/handlers/vacStartupCleanup", () => ({
   cleanupVacOnStartup: (...args: unknown[]) => cleanupVacOnStartupMock(...args),
 }));
 
+const cleanupVcAutoRecruitOnStartupMock = vi.fn();
+vi.mock(
+  "@/features/vc-auto-recruit/handlers/vcAutoRecruitStartupCleanup",
+  () => ({
+    cleanupVcAutoRecruitOnStartup: (...args: unknown[]) =>
+      cleanupVcAutoRecruitOnStartupMock(...args),
+  }),
+);
+
 vi.mock("@/features/member-log/handlers/inviteTracker", () => ({
   initGuildInviteCache: (...args: unknown[]) =>
     initGuildInviteCacheMock(...args),

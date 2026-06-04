@@ -17,6 +17,7 @@ import type {
   MemberLogSettings,
   UnverifiedKickSettings,
   VacSettings,
+  VcAutoRecruitSettings,
 } from "./entities";
 import type {
   FullGuildState,
@@ -122,6 +123,16 @@ export interface IMemberLogSettingsRepository {
   updateMemberLogSettings(
     guildId: string,
     memberLogSettings: MemberLogSettings,
+  ): Promise<void>;
+}
+
+export interface IVcAutoRecruitSettingsRepository {
+  getVcAutoRecruitSettings(
+    guildId: string,
+  ): Promise<VcAutoRecruitSettings | null>;
+  updateVcAutoRecruitSettings(
+    guildId: string,
+    vcAutoRecruitSettings: VcAutoRecruitSettings,
   ): Promise<void>;
 }
 

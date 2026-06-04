@@ -12,6 +12,7 @@ export const system = {
   "log_prefix.unverified_kick": "未承認キック",
   "log_prefix.vac": "VAC",
   "log_prefix.vc_recruit": "VC募集",
+  "log_prefix.vc_auto_recruit": "VC自動募集",
   "log_prefix.msg_del": "メッセージ削除",
   "log_prefix.afk": "AFK",
   "log_prefix.database": "データベース",

@@ -27,6 +27,7 @@
 | AFK              | VC非アクティブメンバーを指定AFKチャンネルへ手動移動       |  ✅  | [spec](docs/specs/AFK_SPEC.md)            | [manual](docs/guides/USER_MANUAL.md#afk機能)              |
 | VC自動作成       | トリガーVC参加で専用VC自動作成・操作パネル・自動削除     |  ✅  | [spec](docs/specs/VAC_SPEC.md)            | [manual](docs/guides/USER_MANUAL.md#vc自動作成機能)       |
 | VC募集           | 専用チャンネルでパネルUIによるVC募集投稿・管理           |  ✅  | [spec](docs/specs/VC_RECRUIT_SPEC.md)     | [manual](docs/guides/USER_MANUAL.md#vc募集機能)           |
+| VC自動募集       | VC参加(0→1)時に指定チャンネルへ募集メッセージを自動投稿   |  ✅  | [spec](docs/specs/VC_AUTO_RECRUIT_SPEC.md) | [manual](docs/guides/USER_MANUAL.md#vc自動募集機能) |
 | メッセージ固定   | 指定メッセージを新着投稿時に再送しチャンネル最下部に維持 |  ✅  | [spec](docs/specs/STICKY_MESSAGE_SPEC.md) | [manual](docs/guides/USER_MANUAL.md#メッセージ固定機能)   |
 | メンバーログ     | 参加・脱退の通知パネルと参加経路・滞在期間の記録         |  ✅  | [spec](docs/specs/MEMBER_LOG_SPEC.md)     | [manual](docs/guides/USER_MANUAL.md#メンバーログ機能)     |
 | メッセージ削除   | フィルタ条件指定・プレビュー付きメッセージ一括削除       |  ✅  | [spec](docs/specs/MESSAGE_DELETE_SPEC.md) | [manual](docs/guides/USER_MANUAL.md#メッセージ削除機能)   |
@@ -145,6 +146,7 @@ pnpm lint:fix         # Biome自動修正
 - [AFK機能](docs/specs/AFK_SPEC.md) - VCの非アクティブユーザーを手動でAFKチャンネルに移動
 - [VC自動作成機能](docs/specs/VAC_SPEC.md) - トリガーチャンネル参加時に専用VCを作成・管理
 - [VC募集機能](docs/specs/VC_RECRUIT_SPEC.md) - 専用チャンネルでVC参加者を募る投稿を作成
+- [VC自動募集機能](docs/specs/VC_AUTO_RECRUIT_SPEC.md) - VC参加時に指定チャンネルへ募集メッセージを自動投稿（VCが空になると「募集終了」へ）
 - [メッセージ固定機能](docs/specs/STICKY_MESSAGE_SPEC.md) - 指定メッセージをチャンネル最下部に固定表示
 - [メンバーログ機能](docs/specs/MEMBER_LOG_SPEC.md) - メンバーの参加・脱退を指定チャンネルに記録
 - [メッセージ削除](docs/specs/MESSAGE_DELETE_SPEC.md) - モデレーター向けメッセージ一括削除コマンド

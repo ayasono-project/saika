@@ -24,6 +24,7 @@ import {
   unverifiedKickSetDmMessageModalHandler,
   unverifiedKickSetNotifyMessageModalHandler,
 } from "../../../../features/unverified-kick/handlers/ui/unverifiedKickDmMessageModalHandler";
+import { vcAutoRecruitSetMessageModalHandler } from "../../../../features/vc-auto-recruit/handlers/ui/vcAutoRecruitSetMessageModalHandler";
 import { vcRecruitModalHandler } from "../../../../features/vc-recruit/handlers/ui/vcRecruitModal";
 import { vcRecruitRenameModalHandler } from "../../../../features/vc-recruit/handlers/ui/vcRecruitRenameModal";
 import type { ModalHandler } from "./types";
@@ -45,6 +46,8 @@ export const modalHandlers: ModalHandler[] = [
   memberLogSetJoinMessageModalHandler,
   // member-log-settings set-leave-message モーダルを処理
   memberLogSetLeaveMessageModalHandler,
+  // vc-auto-recruit-settings set-message モーダルを処理
+  vcAutoRecruitSetMessageModalHandler,
   // inactive-kick-settings 事前通知メッセージ（1週間前）設定モーダルを処理
   inactiveKickSetWeekWarnMessageModalHandler,
   // inactive-kick-settings 事前通知メッセージ（最終警告）設定モーダルを処理

@@ -18,6 +18,7 @@ import {
   UNVERIFIED_KICK_JOB_TIMEZONE,
 } from "../../features/unverified-kick/services/unverifiedKickRunner";
 import { cleanupVacOnStartup } from "../../features/vac/handlers/vacStartupCleanup";
+import { cleanupVcAutoRecruitOnStartup } from "../../features/vc-auto-recruit/handlers/vcAutoRecruitStartupCleanup";
 import { logPrefixed, tDefault } from "../../shared/locale/localeManager";
 import { jobScheduler } from "../../shared/scheduler/jobScheduler";
 import { logger } from "../../shared/utils/logger";
@@ -75,6 +76,8 @@ export async function handleClientReady(client: BotClient): Promise<void> {
     await restoreBumpRemindersOnStartup(client);
     // Bump 復元後に VAC 掃除を行い、起動後の状態を最終整合
     await cleanupVacOnStartup(client);
+    // 空・不在 VC の募集投稿を募集終了へ差し替えて追跡を整理
+    await cleanupVcAutoRecruitOnStartup(client);
     // クローズ済みチケットの自動削除タイマーを復元
     await restoreAutoDeleteTimers(client, getBotTicketRepository());
 

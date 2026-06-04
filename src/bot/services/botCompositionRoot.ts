@@ -41,6 +41,11 @@ import { getVacService } from "../../features/vac/services/vacService";
 import { getVacSettingsRepository } from "../../features/vac/vacSettingsRepository";
 import type { VacSettingsService } from "../../features/vac/vacSettingsService";
 import { createVacSettingsService } from "../../features/vac/vacSettingsService";
+import type { VcAutoRecruitService } from "../../features/vc-auto-recruit/services/vcAutoRecruitService";
+import { getVcAutoRecruitService } from "../../features/vc-auto-recruit/services/vcAutoRecruitService";
+import { getVcAutoRecruitSettingsRepository } from "../../features/vc-auto-recruit/vcAutoRecruitSettingsRepository";
+import type { VcAutoRecruitSettingsService } from "../../features/vc-auto-recruit/vcAutoRecruitSettingsService";
+import { createVcAutoRecruitSettingsService } from "../../features/vc-auto-recruit/vcAutoRecruitSettingsService";
 import type { IVcRecruitRepository } from "../../features/vc-recruit/repositories/vcRecruitRepository";
 import { createVcRecruitRepository } from "../../features/vc-recruit/repositories/vcRecruitRepository";
 import { getVcRecruitSettingsRepository } from "../../features/vc-recruit/vcRecruitSettingsRepository";
@@ -63,6 +68,8 @@ export interface BotServices {
   bumpReminderManager: BumpReminderManager;
   vacSettingsService: VacSettingsService;
   vacService: VacService;
+  vcAutoRecruitSettingsService: VcAutoRecruitSettingsService;
+  vcAutoRecruitService: VcAutoRecruitService;
   stickyMessageSettingsService: StickyMessageSettingsService;
   stickyMessageResendService: StickyMessageResendService;
   memberLogSettingsService: MemberLogSettingsService;
@@ -123,6 +130,23 @@ const _vacServiceAccessor = createBotServiceAccessor<VacService>("VacService");
 export const getBotVacService: () => VacService = _vacServiceAccessor[0];
 export const setBotVacService: (value: VacService) => void =
   _vacServiceAccessor[1];
+
+const _vcAutoRecruitSettingsServiceAccessor =
+  createBotServiceAccessor<VcAutoRecruitSettingsService>(
+    "VcAutoRecruitSettingsService",
+  );
+export const getBotVcAutoRecruitSettingsService: () => VcAutoRecruitSettingsService =
+  _vcAutoRecruitSettingsServiceAccessor[0];
+export const setBotVcAutoRecruitSettingsService: (
+  value: VcAutoRecruitSettingsService,
+) => void = _vcAutoRecruitSettingsServiceAccessor[1];
+
+const _vcAutoRecruitServiceAccessor =
+  createBotServiceAccessor<VcAutoRecruitService>("VcAutoRecruitService");
+export const getBotVcAutoRecruitService: () => VcAutoRecruitService =
+  _vcAutoRecruitServiceAccessor[0];
+export const setBotVcAutoRecruitService: (value: VcAutoRecruitService) => void =
+  _vcAutoRecruitServiceAccessor[1];
 
 const _stickyMessageSettingsServiceAccessor =
   createBotServiceAccessor<StickyMessageSettingsService>(
@@ -235,6 +259,7 @@ export function initializeBotCompositionRoot(
   const afkRepo = getAfkSettingsRepository(prisma);
   const bumpReminderSettingsRepo = getBumpReminderSettingsRepository(prisma);
   const vacRepo = getVacSettingsRepository(prisma);
+  const vcAutoRecruitRepo = getVcAutoRecruitSettingsRepository(prisma);
   const memberLogRepo = getMemberLogSettingsRepository(prisma);
   const inactiveKickRepo = getInactiveKickSettingsRepository(prisma);
   const memberActivityRepo = getMemberActivityRepository(prisma);
@@ -285,6 +310,16 @@ export function initializeBotCompositionRoot(
   const vacService = getVacService(vacSettingsService);
   setBotVacSettingsService(vacSettingsService);
   setBotVacService(vacService);
+
+  // VcAutoRecruit（VC自動募集）
+  const vcAutoRecruitSettingsService =
+    createVcAutoRecruitSettingsService(vcAutoRecruitRepo);
+  const vcAutoRecruitService = getVcAutoRecruitService(
+    vcAutoRecruitSettingsService,
+    vacSettingsService,
+  );
+  setBotVcAutoRecruitSettingsService(vcAutoRecruitSettingsService);
+  setBotVcAutoRecruitService(vcAutoRecruitService);
 
   // StickyMessage
   const stickyMessageSettingsService = createStickyMessageSettingsService(
@@ -340,6 +375,8 @@ export function initializeBotCompositionRoot(
     bumpReminderManager,
     vacSettingsService,
     vacService,
+    vcAutoRecruitSettingsService,
+    vcAutoRecruitService,
     stickyMessageSettingsService,
     stickyMessageResendService,
     memberLogSettingsService,

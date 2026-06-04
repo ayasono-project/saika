@@ -17,6 +17,7 @@ import {
   unverifiedKick,
   vac,
   vc,
+  vcAutoRecruit,
   vcRecruit,
 } from "./features";
 import { system } from "./system";
@@ -30,6 +31,7 @@ export const ja: {
   bumpReminder: typeof bumpReminder;
   vac: typeof vac;
   vc: typeof vc;
+  vcAutoRecruit: typeof vcAutoRecruit;
   messageDelete: typeof messageDelete;
   memberLog: typeof memberLog;
   inactiveKick: typeof inactiveKick;
@@ -48,6 +50,7 @@ export const ja: {
   bumpReminder,
   vac,
   vc,
+  vcAutoRecruit,
   messageDelete,
   memberLog,
   inactiveKick,

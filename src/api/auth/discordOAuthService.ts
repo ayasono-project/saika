@@ -25,6 +25,8 @@ export interface DiscordUser {
 export interface DiscordPartialGuild {
   id: string;
   name: string;
+  /** ギルドアイコンハッシュ（未設定で null） */
+  icon: string | null;
   owner: boolean;
   /** 権限ビットフィールド（文字列・64bit のため BigInt で判定する） */
   permissions: string;

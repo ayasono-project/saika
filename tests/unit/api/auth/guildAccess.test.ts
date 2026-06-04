@@ -17,18 +17,21 @@ import { ApiHttpError } from "@/api/lib/httpError";
 const GUILD_MANAGE: DiscordPartialGuild = {
   id: "g-manage",
   name: "Manage",
+  icon: null,
   owner: false,
   permissions: String(1n << 5n), // ManageGuild
 };
 const GUILD_OWNER: DiscordPartialGuild = {
   id: "g-owner",
   name: "Owner",
+  icon: null,
   owner: true,
   permissions: "0",
 };
 const GUILD_NONE: DiscordPartialGuild = {
   id: "g-none",
   name: "None",
+  icon: null,
   owner: false,
   permissions: "0",
 };

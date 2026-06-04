@@ -140,8 +140,8 @@ export async function buildApiServer(
     return { status: "ready" };
   });
 
-  // /api 配下の機能ルート（認証ルートを含む）
-  await app.register(apiRoutes, { prefix: "/api", deps, oauth });
+  // /api 配下の機能ルート（認証・ギルドリソースを含む）
+  await app.register(apiRoutes, { prefix: "/api", deps, oauth, guildCache });
 
   return app;
 }

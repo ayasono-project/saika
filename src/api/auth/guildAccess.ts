@@ -43,7 +43,7 @@ export class GuildAccessCache {
 }
 
 /** ギルドに対する ManageGuild 権限（またはオーナー）を持つか判定する */
-function hasManageGuild(guild: DiscordPartialGuild): boolean {
+export function hasManageGuild(guild: DiscordPartialGuild): boolean {
   if (guild.owner) return true;
   try {
     // permissions は 64bit ビットフィールド文字列のため BigInt で判定
@@ -56,8 +56,9 @@ function hasManageGuild(guild: DiscordPartialGuild): boolean {
 /**
  * ユーザーの所属ギルド一覧を取得する（キャッシュ優先）。
  * キャッシュミス時は refresh トークンでアクセストークンを取得して Discord から取得する。
+ * 認証済み（request.authUser あり）のルートから再利用する。
  */
-async function fetchUserGuildsCached(
+export async function getUserGuilds(
   userId: string,
   request: FastifyRequest,
   reply: FastifyReply,
@@ -108,7 +109,7 @@ export function createRequireGuildAccess(
       throw ApiHttpError.validation(tDefault("system:web.guild_id_required"));
     }
 
-    const guilds = await fetchUserGuildsCached(
+    const guilds = await getUserGuilds(
       session.discordUserId,
       request,
       reply,

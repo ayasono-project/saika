@@ -57,6 +57,35 @@ export async function handleVcAutoRecruitSettingsEnable(
   // 機能を有効化
   await getBotVcAutoRecruitSettingsService().setEnabled(guildId, true);
 
+  // 有効カテゴリが未設定だと投稿されないため、その場合は警告で案内する
+  if (config.enabledCategoryIds.length === 0) {
+    await interaction.reply({
+      embeds: [
+        createWarningEmbed(
+          tInteraction(
+            interaction.locale,
+            "vcAutoRecruit:user-response.enable_warning_no_category",
+          ),
+          {
+            title: tInteraction(
+              interaction.locale,
+              "common:embed.title.success",
+            ),
+          },
+        ),
+      ],
+      flags: MessageFlags.Ephemeral,
+    });
+    logger.info(
+      logPrefixed(
+        "system:log_prefix.vc_auto_recruit",
+        "vcAutoRecruit:log.config_enabled",
+        { guildId },
+      ),
+    );
+    return;
+  }
+
   const description = tInteraction(
     interaction.locale,
     "vcAutoRecruit:user-response.enable_success",

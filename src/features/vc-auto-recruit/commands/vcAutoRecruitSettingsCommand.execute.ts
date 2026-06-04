@@ -9,7 +9,9 @@ import { ensureManageGuildPermission } from "../../../bot/shared/permissionGuard
 import { handleVcAutoRecruitSettingsClearMessage } from "./vcAutoRecruitSettingsCommand.clearMessage";
 import { VC_AUTO_RECRUIT_SETTINGS_COMMAND } from "./vcAutoRecruitSettingsCommand.constants";
 import { handleVcAutoRecruitSettingsDisable } from "./vcAutoRecruitSettingsCommand.disable";
+import { handleVcAutoRecruitSettingsDisableCategory } from "./vcAutoRecruitSettingsCommand.disableCategory";
 import { handleVcAutoRecruitSettingsEnable } from "./vcAutoRecruitSettingsCommand.enable";
+import { handleVcAutoRecruitSettingsEnableCategory } from "./vcAutoRecruitSettingsCommand.enableCategory";
 import { handleVcAutoRecruitSettingsReset } from "./vcAutoRecruitSettingsCommand.reset";
 import { handleVcAutoRecruitSettingsSetChannel } from "./vcAutoRecruitSettingsCommand.setChannel";
 import { handleVcAutoRecruitSettingsSetEmbed } from "./vcAutoRecruitSettingsCommand.setEmbed";
@@ -61,6 +63,14 @@ export async function executeVcAutoRecruitSettingsCommand(
 
       case VC_AUTO_RECRUIT_SETTINGS_COMMAND.SUBCOMMAND.SET_EMBED:
         await handleVcAutoRecruitSettingsSetEmbed(interaction, guildId);
+        break;
+
+      case VC_AUTO_RECRUIT_SETTINGS_COMMAND.SUBCOMMAND.ENABLE_CATEGORY:
+        await handleVcAutoRecruitSettingsEnableCategory(interaction, guildId);
+        break;
+
+      case VC_AUTO_RECRUIT_SETTINGS_COMMAND.SUBCOMMAND.DISABLE_CATEGORY:
+        await handleVcAutoRecruitSettingsDisableCategory(interaction, guildId);
         break;
 
       case VC_AUTO_RECRUIT_SETTINGS_COMMAND.SUBCOMMAND.VIEW:

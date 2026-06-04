@@ -55,6 +55,22 @@ export const vcAutoRecruitSettingsCommand: Command = {
       "vcAutoRecruit",
       "vc-auto-recruit-settings.set-embed.enabled.description",
     );
+    const enableCategoryDesc = getCommandLocalizations(
+      "vcAutoRecruit",
+      "vc-auto-recruit-settings.enable-category.description",
+    );
+    const enableCategoryCategoryDesc = getCommandLocalizations(
+      "vcAutoRecruit",
+      "vc-auto-recruit-settings.enable-category.category.description",
+    );
+    const disableCategoryDesc = getCommandLocalizations(
+      "vcAutoRecruit",
+      "vc-auto-recruit-settings.disable-category.description",
+    );
+    const disableCategoryCategoryDesc = getCommandLocalizations(
+      "vcAutoRecruit",
+      "vc-auto-recruit-settings.disable-category.category.description",
+    );
     const viewDesc = getCommandLocalizations(
       "vcAutoRecruit",
       "vc-auto-recruit-settings.view.description",
@@ -129,6 +145,44 @@ export const vcAutoRecruitSettingsCommand: Command = {
                 .setDescription(setEmbedEnabledDesc.ja)
                 .setDescriptionLocalizations(setEmbedEnabledDesc.localizations)
                 .setRequired(true),
+            ),
+        )
+        .addSubcommand((subcommand) =>
+          // 募集対象カテゴリ追加（省略で TOP）
+          subcommand
+            .setName(
+              VC_AUTO_RECRUIT_SETTINGS_COMMAND.SUBCOMMAND.ENABLE_CATEGORY,
+            )
+            .setDescription(enableCategoryDesc.ja)
+            .setDescriptionLocalizations(enableCategoryDesc.localizations)
+            .addChannelOption((option) =>
+              option
+                .setName(VC_AUTO_RECRUIT_SETTINGS_COMMAND.OPTION.CATEGORY)
+                .setDescription(enableCategoryCategoryDesc.ja)
+                .setDescriptionLocalizations(
+                  enableCategoryCategoryDesc.localizations,
+                )
+                .addChannelTypes(ChannelType.GuildCategory)
+                .setRequired(false),
+            ),
+        )
+        .addSubcommand((subcommand) =>
+          // 募集対象カテゴリ解除（省略で TOP）
+          subcommand
+            .setName(
+              VC_AUTO_RECRUIT_SETTINGS_COMMAND.SUBCOMMAND.DISABLE_CATEGORY,
+            )
+            .setDescription(disableCategoryDesc.ja)
+            .setDescriptionLocalizations(disableCategoryDesc.localizations)
+            .addChannelOption((option) =>
+              option
+                .setName(VC_AUTO_RECRUIT_SETTINGS_COMMAND.OPTION.CATEGORY)
+                .setDescription(disableCategoryCategoryDesc.ja)
+                .setDescriptionLocalizations(
+                  disableCategoryCategoryDesc.localizations,
+                )
+                .addChannelTypes(ChannelType.GuildCategory)
+                .setRequired(false),
             ),
         )
         .addSubcommand((subcommand) =>

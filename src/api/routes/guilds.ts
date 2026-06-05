@@ -6,26 +6,13 @@ import type { Guild as DiscordGuild } from "discord.js";
 import type { FastifyPluginAsync } from "fastify";
 import type { BotClient } from "../../bot/client";
 import { tDefault } from "../../shared/locale/localeManager";
-import type { DiscordOAuthService } from "../auth/discordOAuthService";
-import {
-  type GuildAccessCache,
-  getUserGuilds,
-  hasManageGuild,
-} from "../auth/guildAccess";
-import {
-  mapChannel,
-  mapGuildSummary,
-  mapMember,
-  mapRole,
-} from "../lib/discordMappers";
+import { mapChannel, mapMember, mapRole } from "../lib/discordMappers";
 import { ApiHttpError } from "../lib/httpError";
 import type { ApiServerDeps } from "../types";
 
 /** guildRoutes プラグインのオプション */
 export interface GuildRoutesOptions {
   deps: ApiServerDeps;
-  oauth: DiscordOAuthService;
-  guildCache: GuildAccessCache;
 }
 
 /**
@@ -46,40 +33,16 @@ function requireBotGuild(
 
 /**
  * ギルド/Discord リソースのルートプラグイン。
- * - GET /            : 管理可能なギルド一覧（authenticate のみ）
  * - GET /:guildId/*  : チャンネル/ロール/メンバー（authenticate + requireGuildAccess）
+ *
+ * 管理可能なギルド一覧（GET /api/guilds）は Discord 由来の情報（Bot 未参加ギルド含む）が
+ * 必要なため web BFF が担当する。saika は Bot が参加済みのギルドのリソースのみ扱う。
  */
 export const guildRoutes: FastifyPluginAsync<GuildRoutesOptions> = async (
   fastify,
   opts,
 ) => {
   const { client } = opts.deps;
-  const { oauth, guildCache } = opts;
-
-  // 管理可能なギルド一覧（ManageGuild/オーナー権限のあるギルド）
-  fastify.get(
-    "/",
-    { preHandler: fastify.authenticate },
-    async (request, reply) => {
-      const userId = request.authUser?.discordUserId;
-      if (!userId) {
-        throw ApiHttpError.unauthorized(
-          tDefault("system:web.auth_session_required"),
-        );
-      }
-      const guilds = await getUserGuilds(
-        userId,
-        request,
-        reply,
-        oauth,
-        guildCache,
-      );
-      const data = guilds
-        .filter((g) => hasManageGuild(g))
-        .map((g) => mapGuildSummary(g, client.guilds.cache.get(g.id)));
-      return { data };
-    },
-  );
 
   const guarded = {
     preHandler: [fastify.authenticate, fastify.requireGuildAccess],

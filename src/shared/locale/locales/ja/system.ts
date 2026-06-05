@@ -162,15 +162,8 @@ export const system = {
     "Authorization: Bearer <api-key> ヘッダーが必要です。",
   "web.auth_invalid_token_message": "無効なトークンです。",
   "web.auth_session_required": "ログインが必要です。",
-  "web.auth_session_expired":
-    "セッションが切れました。再ログインしてください。",
   "web.auth_no_session_cookie":
     "[Auth] セッション Cookie なし Method: {{method}} URL: {{url}}",
-  "web.oauth_denied": "[OAuth] 認可が拒否されました Error: {{error}}",
-  "web.oauth_state_mismatch": "[OAuth] state パラメータが一致しません",
-  "web.oauth_login_success":
-    "[OAuth] ログイン成功 UserId: {{userId}} Username: {{username}}",
-  "web.oauth_callback_error": "[OAuth] コールバック処理エラー:",
   "web.discord_user_fetch_error": "[OAuth] Discord ユーザー情報取得エラー:",
   "web.discord_api_error": "Discord との通信に失敗しました。",
   "web.session_refresh_failed":
@@ -179,7 +172,6 @@ export const system = {
     "[Session] 期限切れセッションを削除しました 件数: {{count}}",
   "web.session_cleanup_error": "[Session] クリーンアップエラー:",
   "web.guild_id_required": "ギルド ID が必要です。",
-  "web.guild_not_member": "このサーバーのメンバーではありません。",
   "web.guild_permission_denied": "このサーバーの管理権限がありません。",
   "web.not_found_route": "エンドポイントが見つかりません。",
   "web.not_ready": "サービスの準備ができていません。",

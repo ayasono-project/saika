@@ -3,17 +3,14 @@
 
 import {
   ChannelType,
-  type Guild as DiscordGuild,
   type Role as DiscordRole,
   type GuildBasedChannel,
   type GuildMember,
 } from "discord.js";
 import { describe, expect, it } from "vitest";
-import type { DiscordPartialGuild } from "@/api/auth/discordOAuthService";
 import {
   mapChannel,
   mapContractChannelType,
-  mapGuildSummary,
   mapMember,
   mapRole,
 } from "@/api/lib/discordMappers";
@@ -78,45 +75,5 @@ describe("mapMember", () => {
       displayName: "Nick",
     } as unknown as GuildMember;
     expect(mapMember(member)).toEqual({ id: "u1", name: "Nick" });
-  });
-});
-
-describe("mapGuildSummary", () => {
-  const partial: DiscordPartialGuild = {
-    id: "g1",
-    name: "OAuth Name",
-    icon: "hash",
-    owner: true,
-    permissions: "0",
-  };
-
-  it("Bot 参加済みなら Bot 側の値を優先し botJoined=true", () => {
-    const botGuild = {
-      name: "Bot Name",
-      iconURL: () => "https://cdn/bot.png",
-      memberCount: 42,
-    } as unknown as DiscordGuild;
-    expect(mapGuildSummary(partial, botGuild)).toEqual({
-      id: "g1",
-      name: "Bot Name",
-      icon: "https://cdn/bot.png",
-      memberCount: 42,
-      botJoined: true,
-    });
-  });
-
-  it("Bot 未参加なら OAuth 値・CDN アイコン・botJoined=false", () => {
-    expect(mapGuildSummary(partial, undefined)).toEqual({
-      id: "g1",
-      name: "OAuth Name",
-      icon: "https://cdn.discordapp.com/icons/g1/hash.png",
-      memberCount: 0,
-      botJoined: false,
-    });
-  });
-
-  it("Bot 未参加かつアイコン無しは null", () => {
-    const noIcon: DiscordPartialGuild = { ...partial, icon: null };
-    expect(mapGuildSummary(noIcon, undefined).icon).toBeNull();
   });
 });

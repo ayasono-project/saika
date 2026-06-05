@@ -136,8 +136,9 @@ export const ticketRoutes: FastifyPluginAsync<TicketRoutesOptions> = async (
     const service = getBotTicketSettingsService();
     const existing = await service.findByGuildAndCategory(guildId, categoryId);
     if (existing) {
-      await deleteTicketPanel(deps.client, existing);
+      // DB を先に削除（メッセージ削除を先にすると bot 側の掃除と競合しうるため）
       await service.delete(guildId, categoryId);
+      await deleteTicketPanel(deps.client, existing);
     }
     return { data: { id: categoryId } };
   });

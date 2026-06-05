@@ -116,8 +116,10 @@ export const reactionRoleRoutes: FastifyPluginAsync<
     const service = getBotReactionRolePanelSettingsService();
     const existing = await service.findById(id);
     if (existing && existing.guildId === guildId) {
-      await deletePanelMessage(deps.client, existing);
+      // 先に DB を消す。メッセージ削除を先にすると bot の messageDelete ハンドラが
+      // 先に DB レコードを掃除して service.delete が「対象なし」で失敗するため。
       await service.delete(id);
+      await deletePanelMessage(deps.client, existing);
     }
     return { data: { id } };
   });

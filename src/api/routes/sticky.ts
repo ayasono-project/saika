@@ -100,8 +100,9 @@ export const stickyRoutes: FastifyPluginAsync<StickyRoutesOptions> = async (
     const service = getBotStickyMessageSettingsService();
     const existing = await service.findByChannel(channelId);
     if (existing && existing.guildId === guildId) {
-      await removeStickyMessage(deps.client, existing);
+      // DB を先に削除（メッセージ削除を先にすると bot 側の掃除と競合しうるため）
       await service.delete(existing.id);
+      await removeStickyMessage(deps.client, existing);
     }
     return { data: { channelId } };
   });

@@ -173,6 +173,7 @@ export const system = {
   "web.guild_id_required": "Guild ID is required.",
   "web.channel_id_required": "Channel ID is required.",
   "web.sticky_not_found": "Sticky message not found.",
+  "web.reaction_role_not_found": "Reaction role panel not found.",
   "web.guild_permission_denied":
     "You do not have management permissions for this server.",
   "web.not_found_route": "Endpoint not found.",

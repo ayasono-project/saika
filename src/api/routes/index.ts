@@ -5,6 +5,7 @@ import type { FastifyPluginAsync } from "fastify";
 import { API_INFO } from "../constants";
 import type { ApiServerDeps } from "../types";
 import { guildRoutes } from "./guilds";
+import { reactionRoleRoutes } from "./reactionRoles";
 import { settingsRoutes } from "./settings";
 import { stickyRoutes } from "./sticky";
 
@@ -39,6 +40,12 @@ export const apiRoutes: FastifyPluginAsync<ApiRoutesOptions> = async (
 
   // メッセージ固定（sticky）のコレクション CRUD
   await fastify.register(stickyRoutes, {
+    prefix: "/guilds",
+    deps: opts.deps,
+  });
+
+  // リアクションロールパネルのコレクション CRUD
+  await fastify.register(reactionRoleRoutes, {
     prefix: "/guilds",
     deps: opts.deps,
   });

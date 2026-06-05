@@ -174,6 +174,7 @@ export const system = {
   "web.guild_id_required": "ギルド ID が必要です。",
   "web.channel_id_required": "チャンネル ID が必要です。",
   "web.sticky_not_found": "固定メッセージが見つかりません。",
+  "web.reaction_role_not_found": "リアクションロールパネルが見つかりません。",
   "web.guild_permission_denied": "このサーバーの管理権限がありません。",
   "web.not_found_route": "エンドポイントが見つかりません。",
   "web.not_ready": "サービスの準備ができていません。",

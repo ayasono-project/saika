@@ -6,8 +6,10 @@ import type { Guild as DiscordGuild } from "discord.js";
 import type { FastifyPluginAsync } from "fastify";
 import type { BotClient } from "../../bot/client";
 import { tDefault } from "../../shared/locale/localeManager";
+import { buildOverview } from "../features/overviewResource";
 import { mapChannel, mapMember, mapRole } from "../lib/discordMappers";
 import { ApiHttpError } from "../lib/httpError";
+import { getGuildId } from "../lib/request";
 import type { ApiServerDeps } from "../types";
 
 /** guildRoutes プラグインのオプション */
@@ -60,6 +62,11 @@ export const guildRoutes: FastifyPluginAsync<GuildRoutesOptions> = async (
   const guarded = {
     preHandler: [fastify.authenticate, fastify.requireGuildAccess],
   };
+
+  // ギルド概要（サマリー + 機能別ステータス）
+  fastify.get("/:guildId", guarded, async (request) => {
+    return { data: await buildOverview(opts.deps, getGuildId(request)) };
+  });
 
   // チャンネル一覧（text/voice/category のみ）
   fastify.get("/:guildId/channels", guarded, async (request) => {

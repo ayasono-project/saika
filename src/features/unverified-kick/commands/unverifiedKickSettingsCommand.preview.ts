@@ -2,7 +2,10 @@
 // unverified-kick-settings preview 実行処理（現在のキック対象・事前警告対象を一覧表示）
 
 import { type ChatInputCommandInteraction, MessageFlags } from "discord.js";
-import { getBotUnverifiedKickSettingsService } from "../../../bot/services/botCompositionRoot";
+import {
+  getBotUnverifiedKickSettingsService,
+  getBotUnverifiedKickWarnRepository,
+} from "../../../bot/services/botCompositionRoot";
 import { sendPaginatedEmbeds } from "../../../bot/shared/embedPaginator";
 import { ensureManageGuildPermission } from "../../../bot/shared/permissionGuards";
 import type { GuildTFunction } from "../../../shared/locale/helpers";
@@ -32,7 +35,16 @@ export async function handleUnverifiedKickPreview(
   const settings =
     await getBotUnverifiedKickSettingsService().getSettingsOrDefault(guildId);
   const members = [...(await guild.members.fetch()).values()];
-  const buckets = buildCandidateBuckets(guild, members, settings, new Date());
+  // 警告済み判定のため warnedAt を読み込む（read-only・書き込みはしない）
+  const warnedMap =
+    await getBotUnverifiedKickWarnRepository().getWarnedMap(guildId);
+  const buckets = buildCandidateBuckets(
+    guild,
+    members,
+    settings,
+    new Date(),
+    warnedMap,
+  );
 
   // interaction.locale に束ねた翻訳関数
   const t: GuildTFunction = (key, options) =>

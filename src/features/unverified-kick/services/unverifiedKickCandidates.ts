@@ -6,6 +6,7 @@ import {
   computeAgeDays,
   computeEffectiveJoinedAt,
   computeRemainingDays,
+  computeWarnedDaysAgo,
   type ExclusionInput,
   isExcluded,
   UNVERIFIED_KICK_STAGE,
@@ -24,6 +25,8 @@ export interface CandidateMemberInput {
   joinedAt: Date | null;
   /** 対象ロールを付与済みか */
   hasMarkerRole: boolean;
+  /** 事前警告を送った時刻（未警告なら null） */
+  warnedAt: Date | null;
 }
 
 /** 区分に必要な設定値 */
@@ -46,12 +49,14 @@ export interface CategorizedCandidate {
 
 /** 区分結果 */
 export interface CandidateBuckets {
-  /** 事前警告対象（ageDays == warnDays） */
+  /** 事前警告対象（未警告で警告ウィンドウ到達 or 警告日を飛び越え） */
   warn: CategorizedCandidate[];
-  /** キック対象（ageDays >= graceDays） */
+  /** キック対象（猶予到達かつ通知猶予を満たした警告済み） */
   kick: CategorizedCandidate[];
   /** 除外対象だが対象ロールを保持しているメンバー（保険クリーンアップで剥奪） */
   markerCleanup: string[];
+  /** 失効した警告記録を削除すべきメンバー（認証済み/再参加で起算リセット/警告無効化） */
+  clearWarn: string[];
 }
 
 /**
@@ -75,6 +80,7 @@ export function categorizeCandidates(
     warn: [],
     kick: [],
     markerCleanup: [],
+    clearWarn: [],
   };
 
   const warnDays = settings.warnDays ?? null;
@@ -89,10 +95,13 @@ export function categorizeCandidates(
       exemptRoleIds: settings.exemptRoleIds,
     };
 
-    // 除外メンバー: 対象ロール付与済みなら掃除対象に積む
+    // 除外メンバー: 対象ロール付与済みなら掃除・警告記録があれば失効として削除
     if (isExcluded(exclusion)) {
       if (member.hasMarkerRole) {
         buckets.markerCleanup.push(member.userId);
+      }
+      if (member.warnedAt) {
+        buckets.clearWarn.push(member.userId);
       }
       continue;
     }
@@ -102,13 +111,31 @@ export function categorizeCandidates(
       settings.enabledAt ?? null,
     );
     const ageDays = computeAgeDays(effective, now);
-    const stage = classifyStage(ageDays, settings.graceDays, warnDays);
+
+    // 失効した警告記録を削除: 警告無効化、または起算リセット（再参加/再有効化で
+    // ageDays が warnDays 未満に戻った）で警告済み記録が残っている場合。
+    if (member.warnedAt && (warnDays == null || ageDays < warnDays)) {
+      buckets.clearWarn.push(member.userId);
+    }
+
+    const warnedDaysAgo = computeWarnedDaysAgo(member.warnedAt, now);
+    const stage = classifyStage(
+      ageDays,
+      settings.graceDays,
+      warnDays,
+      warnedDaysAgo,
+    );
     if (stage === UNVERIFIED_KICK_STAGE.NONE) continue;
 
     const candidate: CategorizedCandidate = {
       userId: member.userId,
       ageDays,
-      remainingDays: computeRemainingDays(ageDays, settings.graceDays),
+      // 警告対象は「いま付与する通知猶予（graceDays − warnDays 日）」を残日数とする
+      // （警告日を飛び越えた late 警告でも予告日時が今日にならないようにする）。
+      remainingDays:
+        stage === UNVERIFIED_KICK_STAGE.WARN && warnDays != null
+          ? settings.graceDays - warnDays
+          : computeRemainingDays(ageDays, settings.graceDays),
       hasMarkerRole: member.hasMarkerRole,
     };
 

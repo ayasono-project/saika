@@ -165,6 +165,25 @@ export interface IUnverifiedKickSettingsRepository {
   deleteUnverifiedKickSettings(guildId: string): Promise<void>;
 }
 
+/**
+ * 未承認ユーザー自動キックの事前警告記録リポジトリ。
+ * メンバー単位の warnedAt を保持し、未警告者のサイレントキックを防ぐ。
+ */
+export interface IUnverifiedKickWarnRepository {
+  /** ギルドの全警告記録を userId → warnedAt のマップで取得する */
+  getWarnedMap(guildId: string): Promise<Map<string, Date>>;
+  /** 指定ユーザーを警告済みとして記録する（冪等・既存の warnedAt は据え置き） */
+  recordWarned(
+    guildId: string,
+    userIds: string[],
+    warnedAt: Date,
+  ): Promise<void>;
+  /** 指定ユーザーの警告記録を削除する（認証済み/退出/再参加による失効時） */
+  deleteWarned(guildId: string, userIds: string[]): Promise<void>;
+  /** ギルドの全警告記録を削除する（機能リセット/再有効化時のフレッシュスタート） */
+  deleteAllByGuild(guildId: string): Promise<void>;
+}
+
 export interface IMemberActivityRepository {
   /** 活動を記録（upsert で lastActivityAt 更新・warnStage は指定時のみ更新） */
   recordActivity(

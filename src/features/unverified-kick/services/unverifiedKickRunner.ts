@@ -10,7 +10,10 @@ import {
 } from "discord.js";
 import cron from "node-cron";
 import type { BotClient } from "../../../bot/client";
-import { getBotUnverifiedKickSettingsService } from "../../../bot/services/botCompositionRoot";
+import {
+  getBotUnverifiedKickSettingsService,
+  getBotUnverifiedKickWarnRepository,
+} from "../../../bot/services/botCompositionRoot";
 import { sendPaginatedEmbeds } from "../../../bot/shared/embedPaginator";
 import { env } from "../../../shared/config/env";
 import type { UnverifiedKickSettings } from "../../../shared/database/types";
@@ -82,6 +85,7 @@ function toCandidateInput(
   guild: Guild,
   verifiedRoleId: string | undefined,
   markerRoleId: string | undefined,
+  warnedAt: Date | null,
 ): CandidateMemberInput {
   return {
     userId: member.id,
@@ -92,6 +96,7 @@ function toCandidateInput(
     memberRoleIds: [...member.roles.cache.keys()],
     joinedAt: member.joinedAt,
     hasMarkerRole: markerRoleId ? member.roles.cache.has(markerRoleId) : false,
+    warnedAt,
   };
 }
 
@@ -101,6 +106,7 @@ function toCandidateInput(
  * @param members 取得済みのギルドメンバー一覧
  * @param settings 区分に用いる設定
  * @param now 現在時刻
+ * @param warnedMap userId → 事前警告時刻のマップ（警告済み判定に用いる）
  * @returns 区分結果
  */
 export function buildCandidateBuckets(
@@ -108,9 +114,16 @@ export function buildCandidateBuckets(
   members: GuildMember[],
   settings: UnverifiedKickSettings,
   now: Date,
+  warnedMap: Map<string, Date>,
 ): CandidateBuckets {
   const normalized = members.map((m) =>
-    toCandidateInput(m, guild, settings.verifiedRoleId, settings.markerRoleId),
+    toCandidateInput(
+      m,
+      guild,
+      settings.verifiedRoleId,
+      settings.markerRoleId,
+      warnedMap.get(m.id) ?? null,
+    ),
   );
   return categorizeCandidates(normalized, settings, now);
 }
@@ -191,7 +204,9 @@ async function sendWarnDms(
 ): Promise<void> {
   if (candidates.length === 0) return;
   const t = await getGuildTranslator(guild.id);
-  // warn 対象は全員 ageDays == warnDays のため残日数は共通
+  // 警告対象は今この瞬間に警告され、ここから通知猶予（graceDays − warnDays 日）後に
+  // キックされる。よって DM に載せる「キックまでの残日数」は全員一律でこの通知猶予になる
+  // （実際の経過日数には依存しない。警告日を飛び越えたメンバーも同じだけ猶予を得る）。
   const warnDays = settings.warnDays ?? 0;
   const body = buildDmMessage({
     t,
@@ -467,8 +482,18 @@ export async function processGuildUnverifiedKick(
     return;
   }
 
+  // 事前警告記録（warnedAt）を読み込み、警告済み判定に用いる
+  const warnRepo = getBotUnverifiedKickWarnRepository();
+  const warnedMap = await warnRepo.getWarnedMap(guild.id);
+
   const now = new Date();
-  const buckets = buildCandidateBuckets(guild, members, settings, now);
+  const buckets = buildCandidateBuckets(
+    guild,
+    members,
+    settings,
+    now,
+    warnedMap,
+  );
 
   // 1. 対象ロール掃除（除外済み・認証済みの保持者から剥奪）
   if (settings.markerRoleId && buckets.markerCleanup.length > 0) {
@@ -495,10 +520,24 @@ export async function processGuildUnverifiedKick(
         now,
       );
     }
+    // 警告済みとして記録（DM 拒否でも記録・サイレントキック防止の起点）
+    await warnRepo.recordWarned(
+      guild.id,
+      buckets.warn.map((c) => c.userId),
+      now,
+    );
   }
 
   // 3. キック実行 + ログ
   await processKicks(guild, logChannel, buckets.kick, settings);
+
+  // 4. 失効した警告記録を削除（認証済み/再参加リセット/警告無効化 + 退出メンバー）
+  const memberIds = new Set(members.map((m) => m.id));
+  const leftWarnIds = [...warnedMap.keys()].filter((id) => !memberIds.has(id));
+  const staleWarnIds = [...new Set([...buckets.clearWarn, ...leftWarnIds])];
+  if (staleWarnIds.length > 0) {
+    await warnRepo.deleteWarned(guild.id, staleWarnIds);
+  }
 }
 
 /**

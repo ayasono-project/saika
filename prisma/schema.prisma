@@ -145,6 +145,18 @@ model GuildUnverifiedKickSettings {
   @@map("guild_unverified_kick_settings")
 }
 
+// 未承認ユーザー自動キックの事前警告記録（メンバー単位・サイレントキック防止）
+// warnedAt をもとに「警告済みか」「通知猶予が経過したか」を判定し、未警告者のキックを防ぐ。
+model GuildUnverifiedKickWarn {
+  guildId  String   @map("guild_id")
+  userId   String   @map("user_id")
+  warnedAt DateTime @map("warned_at") // 事前警告を送った時刻
+
+  @@id([guildId, userId])
+  @@index([guildId])
+  @@map("guild_unverified_kick_warns")
+}
+
 // VC募集設定
 model GuildVcRecruitSettings {
   guildId        String  @id @map("guild_id")

@@ -17,6 +17,8 @@ export const help = {
     "`/guild-settings` — Guild settings\n`/afk-settings` — AFK settings\n`/vac-settings` — Auto VC creation settings\n`/vc-recruit-settings` — VC recruitment settings\n`/vc-auto-recruit-settings` — VC auto recruit settings\n`/sticky-message` — Sticky message settings\n`/member-log-settings` — Member log settings\n`/bump-reminder-settings` — Bump reminder settings\n`/ticket-settings` — Ticket system settings\n`/reaction-role-settings` — Reaction role settings\n`/inactive-kick-settings` — Inactive member auto-kick settings\n`/unverified-kick-settings` — Unverified member auto-kick settings",
   "embed.field.value.action":
     "`/afk` — Move to AFK channel\n`/vc` — Change VC name or user limit\n`/message-delete` — Bulk delete messages\n`/ticket` — Ticket operations (close, open, delete)",
+  "embed.field.name.dashboard": "🌐 Dashboard",
+  "embed.field.value.dashboard": "Manage settings in your browser: {{url}}",
 } as const;
 
 export type HelpTranslations = typeof help;

@@ -94,6 +94,23 @@ describe("buildApiServer", () => {
     expect(res.headers["access-control-allow-origin"]).toBe(origin);
   });
 
+  it("PATCH/DELETE のプリフライトを許可する（保存・削除用）", async () => {
+    const origin = env.WEB_ORIGIN.split(",")[0].trim();
+    app = await buildApiServer(makeDeps());
+    const res = await app.inject({
+      method: "OPTIONS",
+      url: "/api/guilds/123/config",
+      headers: {
+        origin,
+        "access-control-request-method": "PATCH",
+        "access-control-request-headers": "content-type",
+      },
+    });
+    const allow = String(res.headers["access-control-allow-methods"] ?? "");
+    expect(allow).toContain("PATCH");
+    expect(allow).toContain("DELETE");
+  });
+
   it("setErrorHandler が ApiHttpError を契約封筒へ変換する", async () => {
     app = await buildApiServer(makeDeps());
     app.get("/__throw_api", async () => {

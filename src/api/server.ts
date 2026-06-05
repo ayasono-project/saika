@@ -67,6 +67,9 @@ export async function buildApiServer(
   await app.register(cors, {
     origin: env.WEB_ORIGIN.split(",").map((o) => o.trim()),
     credentials: true,
+    // ダッシュボードは GET/POST に加え PATCH(更新)・DELETE(削除) を使う。
+    // 既定任せだとプリフライトで PATCH/DELETE が許可されず保存・削除が失敗するため明示する。
+    methods: ["GET", "HEAD", "POST", "PATCH", "DELETE"],
   });
 
   // グローバルレート制限

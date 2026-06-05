@@ -34,6 +34,11 @@ export type Env = {
   USER_MANUAL_URL?: string | undefined;
   INACTIVE_KICK_CRON?: string | undefined;
   UNVERIFIED_KICK_CRON?: string | undefined;
+  API_ENABLED: boolean;
+  API_HOST: string;
+  API_PORT: number;
+  WEB_ORIGIN: string;
+  JWT_SECRET?: string | undefined;
 };
 
 // 環境変数スキーマ定義（起動時バリデーション用）
@@ -72,6 +77,21 @@ export const envSchema: z.ZodType<Env> = z.object({
 
   // 未承認ユーザー自動キックの日次チェック cron 上書き（dev/検証用・未設定時は既定の 03:00）
   UNVERIFIED_KICK_CRON: z.string().optional(),
+
+  // ── web ダッシュボード API（Bot と同一プロセス内で起動する Fastify API） ──
+  // API サーバーを起動するか（テスト・Bot 単体運用で無効化可能・未設定時は有効）
+  API_ENABLED: z
+    .string()
+    .optional()
+    .transform((val) => val !== "false"),
+  // API のリッスンホスト（コンテナ内では 0.0.0.0）
+  API_HOST: z.string().default("0.0.0.0"),
+  // API のリッスンポート
+  API_PORT: z.coerce.number().int().positive().default(8080),
+  // CORS 許可オリジン（web ダッシュボードの配信元・カンマ区切りで複数可）
+  WEB_ORIGIN: z.string().default("http://localhost:5173"),
+  // セッション JWT の検証鍵（HMAC-SHA256・web BFF と共有・本番必須・dev は固定鍵にフォールバック）
+  JWT_SECRET: z.string().optional(),
 });
 
 // 実行環境変数を検証して利用可能な設定へ変換する

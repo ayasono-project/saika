@@ -161,14 +161,8 @@ export const system = {
     "Authorization: Bearer <api-key> header is required",
   "web.auth_invalid_token_message": "Invalid token",
   "web.auth_session_required": "Login is required.",
-  "web.auth_session_expired": "Session expired. Please log in again.",
   "web.auth_no_session_cookie":
     "[Auth] No session cookie Method: {{method}} URL: {{url}}",
-  "web.oauth_denied": "[OAuth] Authorization denied Error: {{error}}",
-  "web.oauth_state_mismatch": "[OAuth] State parameter mismatch",
-  "web.oauth_login_success":
-    "[OAuth] Login success UserId: {{userId}} Username: {{username}}",
-  "web.oauth_callback_error": "[OAuth] Callback processing error:",
   "web.discord_user_fetch_error": "[OAuth] Discord user fetch error:",
   "web.discord_api_error": "Failed to communicate with Discord.",
   "web.session_refresh_failed":
@@ -177,9 +171,18 @@ export const system = {
     "[Session] Cleaned up expired sessions Count: {{count}}",
   "web.session_cleanup_error": "[Session] Cleanup error:",
   "web.guild_id_required": "Guild ID is required.",
-  "web.guild_not_member": "You are not a member of this server.",
+  "web.channel_id_required": "Channel ID is required.",
+  "web.category_id_required": "Category ID is required.",
+  "web.sticky_not_found": "Sticky message not found.",
+  "web.reaction_role_not_found": "Reaction role panel not found.",
+  "web.ticket_panel_not_found": "Ticket panel not found.",
+  "web.ticket_category_exists":
+    "A ticket panel already exists for this category.",
   "web.guild_permission_denied":
     "You do not have management permissions for this server.",
+  "web.not_found_route": "Endpoint not found.",
+  "web.not_ready": "Service is not ready.",
+  "web.bot_not_in_guild": "The bot is not a member of this server.",
 
   // Discord error notification
   "discord.error_notification_title": "🚨 {{appName}} Error Notification",

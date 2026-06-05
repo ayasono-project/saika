@@ -7,6 +7,10 @@ const mocks = vi.hoisted(() => ({
   getAllEnabled: vi.fn(),
   disableInvalid: vi.fn(),
   sendPaginatedEmbeds: vi.fn(),
+  getWarnedMap: vi.fn(),
+  recordWarned: vi.fn(),
+  deleteWarned: vi.fn(),
+  deleteAllByGuild: vi.fn(),
   env: {
     TEST_MODE: false,
     UNVERIFIED_KICK_CRON: undefined as string | undefined,
@@ -18,6 +22,12 @@ vi.mock("@/bot/services/botCompositionRoot", () => ({
   getBotUnverifiedKickSettingsService: () => ({
     getAllEnabled: mocks.getAllEnabled,
     disableInvalid: mocks.disableInvalid,
+  }),
+  getBotUnverifiedKickWarnRepository: () => ({
+    getWarnedMap: mocks.getWarnedMap,
+    recordWarned: mocks.recordWarned,
+    deleteWarned: mocks.deleteWarned,
+    deleteAllByGuild: mocks.deleteAllByGuild,
   }),
 }));
 vi.mock("@/bot/shared/embedPaginator", () => ({
@@ -143,6 +153,10 @@ describe("unverified-kick/runner", () => {
     mocks.env.UNVERIFIED_KICK_CRON = undefined;
     mocks.disableInvalid.mockResolvedValue(undefined);
     mocks.sendPaginatedEmbeds.mockResolvedValue(undefined);
+    mocks.getWarnedMap.mockResolvedValue(new Map());
+    mocks.recordWarned.mockResolvedValue(undefined);
+    mocks.deleteWarned.mockResolvedValue(undefined);
+    mocks.deleteAllByGuild.mockResolvedValue(undefined);
   });
 
   it("認証ロール未設定なら自動無効化してキックしない", async () => {
@@ -212,6 +226,49 @@ describe("unverified-kick/runner", () => {
     });
     expect(member.roles.remove).toHaveBeenCalledWith(MARKER);
     expect(member.kick).not.toHaveBeenCalled();
+  });
+
+  it("warnDays 設定時、未警告の猶予超過メンバーは即キックせず警告して記録する（飛び越え救済）", async () => {
+    const member = fakeMember({ id: "u1" });
+    const guild = fakeGuild([member]);
+    await processGuildUnverifiedKick(fakeClient(guild), {
+      ...baseSettings,
+      warnDays: 5,
+    });
+    // 未警告のためキックせず DM + 通知を送り、警告済みとして記録する
+    expect(member.kick).not.toHaveBeenCalled();
+    expect(member.send).toHaveBeenCalledTimes(1);
+    expect(mocks.recordWarned).toHaveBeenCalledWith(
+      "g1",
+      ["u1"],
+      expect.any(Date),
+    );
+  });
+
+  it("warnDays 設定時、通知猶予を満たした警告済みメンバーはキックする", async () => {
+    const member = fakeMember({ id: "u1" });
+    const guild = fakeGuild([member]);
+    // 1970 に警告済み → 通知猶予を十分満たす
+    mocks.getWarnedMap.mockResolvedValueOnce(new Map([["u1", new Date(0)]]));
+    await processGuildUnverifiedKick(fakeClient(guild), {
+      ...baseSettings,
+      warnDays: 5,
+    });
+    expect(member.kick).toHaveBeenCalledTimes(1);
+    expect(mocks.recordWarned).not.toHaveBeenCalled();
+  });
+
+  it("退出メンバーの失効した警告記録を削除する", async () => {
+    const member = fakeMember({ id: "u1" });
+    const guild = fakeGuild([member]);
+    // "gone" はメンバー一覧に存在しない（退出済み）
+    mocks.getWarnedMap.mockResolvedValueOnce(new Map([["gone", new Date(0)]]));
+    await processGuildUnverifiedKick(fakeClient(guild), {
+      ...baseSettings,
+      warnDays: 5,
+    });
+    expect(mocks.deleteWarned).toHaveBeenCalledTimes(1);
+    expect(mocks.deleteWarned.mock.calls[0]?.[1]).toContain("gone");
   });
 
   it("runUnverifiedKickDailyCheck は有効ギルドを処理し例外を隔離する", async () => {

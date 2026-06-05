@@ -8,7 +8,10 @@ import {
   MessageFlags,
   PermissionFlagsBits,
 } from "discord.js";
-import { getBotUnverifiedKickSettingsService } from "../../../bot/services/botCompositionRoot";
+import {
+  getBotUnverifiedKickSettingsService,
+  getBotUnverifiedKickWarnRepository,
+} from "../../../bot/services/botCompositionRoot";
 import { ensureManageGuildPermission } from "../../../bot/shared/permissionGuards";
 import { createSuccessEmbed } from "../../../bot/utils/messageResponse";
 import type { AllParseKeys } from "../../../shared/locale/i18n";
@@ -306,6 +309,8 @@ export async function handleUnverifiedKickEnable(
   }
 
   await service.enable(guildId, new Date());
+  // 再有効化はキック起算をリセットするため、過去の警告記録もフレッシュスタートで破棄する
+  await getBotUnverifiedKickWarnRepository().deleteAllByGuild(guildId);
   await replySuccess(
     interaction,
     "unverifiedKick:user-response.enable_success",

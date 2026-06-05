@@ -20,6 +20,7 @@ function member(
     memberRoleIds: [],
     joinedAt: day(1),
     hasMarkerRole: false,
+    warnedAt: null,
     ...over,
   };
 }
@@ -32,10 +33,21 @@ const settings: CandidateSettings = {
 };
 
 describe("unverified-kick/candidates", () => {
-  it("猶予超過の未承認メンバーは kick バケットへ", () => {
-    // joinedAt=day(1), now=day(31) → 30 日経過 >= 7
+  it("猶予超過でも未警告なら warn（飛び越え救済・繰り延べ）", () => {
+    // joinedAt=day(1), now=day(31) → 30 日経過 >= 7。ただし未警告のため即キックしない
     const buckets = categorizeCandidates(
       [member({ userId: "u1" })],
+      settings,
+      NOW,
+    );
+    expect(buckets.warn.map((c) => c.userId)).toEqual(["u1"]);
+    expect(buckets.kick).toHaveLength(0);
+  });
+
+  it("猶予超過で警告済み・通知猶予を満たせば kick バケットへ", () => {
+    // age30 >= 7、warnedAt=day(20) → 警告から 11 日経過 >= 通知猶予 2
+    const buckets = categorizeCandidates(
+      [member({ userId: "u1", warnedAt: day(20) })],
       settings,
       NOW,
     );
@@ -43,7 +55,18 @@ describe("unverified-kick/candidates", () => {
     expect(buckets.warn).toHaveLength(0);
   });
 
-  it("ちょうど warnDays 経過のメンバーは warn バケットへ", () => {
+  it("猶予超過で警告済みでも通知猶予が未経過なら待機（kick も warn もしない）", () => {
+    // age30 >= 7、warnedAt=day(30) → 警告から 1 日 < 通知猶予 2
+    const buckets = categorizeCandidates(
+      [member({ userId: "u1", warnedAt: day(30) })],
+      settings,
+      NOW,
+    );
+    expect(buckets.kick).toHaveLength(0);
+    expect(buckets.warn).toHaveLength(0);
+  });
+
+  it("警告ウィンドウ内で未警告のメンバーは warn バケットへ", () => {
     // ageDays == 5 になるよう joinedAt を day(26) に
     const buckets = categorizeCandidates(
       [member({ userId: "u1", joinedAt: day(26) })],
@@ -51,6 +74,54 @@ describe("unverified-kick/candidates", () => {
       NOW,
     );
     expect(buckets.warn.map((c) => c.userId)).toEqual(["u1"]);
+    expect(buckets.kick).toHaveLength(0);
+    // warn の残日数は通知猶予（graceDays - warnDays = 2）
+    expect(buckets.warn[0]?.remainingDays).toBe(2);
+  });
+
+  it("警告ウィンドウ内で警告済みなら再警告しない（NONE）", () => {
+    // joinedAt=day(25) → age6（ウィンドウ内）、warnedAt=day(30) → 警告済み
+    const buckets = categorizeCandidates(
+      [member({ userId: "u1", joinedAt: day(25), warnedAt: day(30) })],
+      settings,
+      NOW,
+    );
+    expect(buckets.warn).toHaveLength(0);
+    expect(buckets.kick).toHaveLength(0);
+    expect(buckets.clearWarn).toHaveLength(0);
+  });
+
+  it("起算リセット（再参加等）で ageDays が warnDays 未満に戻った警告記録は clearWarn へ", () => {
+    // joinedAt=day(30) → age1 < warnDays、warnedAt=day(10) が残存 → 失効
+    const buckets = categorizeCandidates(
+      [member({ userId: "u1", joinedAt: day(30), warnedAt: day(10) })],
+      settings,
+      NOW,
+    );
+    expect(buckets.clearWarn).toEqual(["u1"]);
+    expect(buckets.warn).toHaveLength(0);
+    expect(buckets.kick).toHaveLength(0);
+  });
+
+  it("認証済みになった警告記録は clearWarn へ（markerCleanup と独立）", () => {
+    const buckets = categorizeCandidates(
+      [member({ userId: "u1", isVerified: true, warnedAt: day(20) })],
+      settings,
+      NOW,
+    );
+    expect(buckets.clearWarn).toEqual(["u1"]);
+    expect(buckets.markerCleanup).toHaveLength(0);
+  });
+
+  it("警告無効化（warnDays 未設定）後に残った警告記録は clearWarn へ", () => {
+    const noWarn: CandidateSettings = { ...settings, warnDays: undefined };
+    // joinedAt=day(28) → age3 < grace でキック対象外。警告記録のみ失効させる
+    const buckets = categorizeCandidates(
+      [member({ userId: "u1", joinedAt: day(28), warnedAt: day(20) })],
+      noWarn,
+      NOW,
+    );
+    expect(buckets.clearWarn).toEqual(["u1"]);
     expect(buckets.kick).toHaveLength(0);
   });
 

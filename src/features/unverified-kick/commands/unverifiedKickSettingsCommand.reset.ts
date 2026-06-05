@@ -8,7 +8,10 @@ import {
   type ChatInputCommandInteraction,
   MessageFlags,
 } from "discord.js";
-import { getBotUnverifiedKickSettingsService } from "../../../bot/services/botCompositionRoot";
+import {
+  getBotUnverifiedKickSettingsService,
+  getBotUnverifiedKickWarnRepository,
+} from "../../../bot/services/botCompositionRoot";
 import { ensureManageGuildPermission } from "../../../bot/shared/permissionGuards";
 import {
   createSuccessEmbed,
@@ -84,6 +87,8 @@ export async function handleUnverifiedKickReset(
   collector.on("collect", async (i) => {
     if (i.customId === UNVERIFIED_KICK_SETTINGS_COMMAND.RESET_CONFIRM_ID) {
       await getBotUnverifiedKickSettingsService().reset(guildId);
+      // 設定リセットに合わせて警告記録も破棄する
+      await getBotUnverifiedKickWarnRepository().deleteAllByGuild(guildId);
       await i.update({
         embeds: [
           createSuccessEmbed(

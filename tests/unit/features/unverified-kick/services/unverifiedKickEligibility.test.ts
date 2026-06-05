@@ -5,6 +5,7 @@ import {
   computeAgeDays,
   computeEffectiveJoinedAt,
   computeRemainingDays,
+  computeWarnedDaysAgo,
   isExcluded,
   UNVERIFIED_KICK_STAGE,
 } from "@/features/unverified-kick/services/unverifiedKickEligibility";
@@ -48,28 +49,54 @@ describe("unverified-kick/eligibility", () => {
     });
   });
 
-  describe("classifyStage（猶予 7・警告 5）", () => {
+  describe("computeWarnedDaysAgo", () => {
+    it("未警告（null）なら null", () => {
+      expect(computeWarnedDaysAgo(null, day(31))).toBeNull();
+    });
+    it("警告からの満日数を返す", () => {
+      expect(computeWarnedDaysAgo(day(5), day(8))).toBe(3);
+    });
+    it("未来時刻でも 0 を下限とする", () => {
+      expect(computeWarnedDaysAgo(day(8), day(5))).toBe(0);
+    });
+  });
+
+  describe("classifyStage（猶予 7・警告 5・通知猶予 2）", () => {
     const G = 7;
     const W = 5;
 
-    it("猶予超過 → KICK", () => {
-      expect(classifyStage(7, G, W)).toBe(UNVERIFIED_KICK_STAGE.KICK);
-      expect(classifyStage(10, G, W)).toBe(UNVERIFIED_KICK_STAGE.KICK);
+    it("警告ウィンドウ内で未警告 → WARN（ちょうど・途中いずれも）", () => {
+      expect(classifyStage(5, G, W, null)).toBe(UNVERIFIED_KICK_STAGE.WARN);
+      // 警告日を飛び越えてもウィンドウ内なら警告される（旧: イコール比較で漏れていた）
+      expect(classifyStage(6, G, W, null)).toBe(UNVERIFIED_KICK_STAGE.WARN);
     });
 
-    it("ちょうど warnDays の日 → WARN", () => {
-      expect(classifyStage(5, G, W)).toBe(UNVERIFIED_KICK_STAGE.WARN);
+    it("警告ウィンドウ内で警告済み → NONE（再警告しない）", () => {
+      expect(classifyStage(6, G, W, 1)).toBe(UNVERIFIED_KICK_STAGE.NONE);
     });
 
-    it("warnDays 前後（ちょうどでない）は NONE", () => {
-      expect(classifyStage(4, G, W)).toBe(UNVERIFIED_KICK_STAGE.NONE);
-      expect(classifyStage(6, G, W)).toBe(UNVERIFIED_KICK_STAGE.NONE);
+    it("warnDays 未満は NONE", () => {
+      expect(classifyStage(4, G, W, null)).toBe(UNVERIFIED_KICK_STAGE.NONE);
     });
 
-    it("warnDays が null なら WARN にならない", () => {
-      expect(classifyStage(5, G, null)).toBe(UNVERIFIED_KICK_STAGE.NONE);
-      // キックは warnDays に関係なく成立する
-      expect(classifyStage(7, G, null)).toBe(UNVERIFIED_KICK_STAGE.KICK);
+    it("猶予到達で未警告 → WARN（飛び越え救済・繰り延べ）", () => {
+      expect(classifyStage(7, G, W, null)).toBe(UNVERIFIED_KICK_STAGE.WARN);
+      expect(classifyStage(10, G, W, null)).toBe(UNVERIFIED_KICK_STAGE.WARN);
+    });
+
+    it("猶予到達で警告済みかつ通知猶予を満たす → KICK", () => {
+      expect(classifyStage(7, G, W, 2)).toBe(UNVERIFIED_KICK_STAGE.KICK);
+      expect(classifyStage(9, G, W, 4)).toBe(UNVERIFIED_KICK_STAGE.KICK);
+    });
+
+    it("猶予到達でも通知猶予が未経過なら待機（NONE・サイレントキック防止）", () => {
+      expect(classifyStage(7, G, W, 1)).toBe(UNVERIFIED_KICK_STAGE.NONE);
+      expect(classifyStage(8, G, W, 0)).toBe(UNVERIFIED_KICK_STAGE.NONE);
+    });
+
+    it("warnDays が null（警告無効）なら WARN にならず猶予到達で即 KICK", () => {
+      expect(classifyStage(5, G, null, null)).toBe(UNVERIFIED_KICK_STAGE.NONE);
+      expect(classifyStage(7, G, null, null)).toBe(UNVERIFIED_KICK_STAGE.KICK);
     });
   });
 

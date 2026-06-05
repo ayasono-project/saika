@@ -60,26 +60,68 @@ export function computeRemainingDays(
 }
 
 /**
- * 経過日数・猶予日数・警告日数から区分を判定する。
+ * 事前警告を送ってからの経過日数を算出する。
+ * @param warnedAt 事前警告を送った時刻（未警告なら null）
+ * @param now 現在時刻
+ * @returns 経過日数（0 以上・未警告なら null）
+ */
+export function computeWarnedDaysAgo(
+  warnedAt: Date | null,
+  now: Date,
+): number | null {
+  if (!warnedAt) return null;
+  return Math.max(0, differenceInDays(now, warnedAt));
+}
+
+/**
+ * 経過日数・猶予日数・警告日数・警告済み状態から区分を判定する。
  * 日次チェックと preview で同一定義を共有する。
+ *
+ * 「ちょうど警告日に達した 1 日だけ警告」という点判定はやめ、警告済み状態（warnedAt）を
+ * 用いて「通知猶予（graceDays − warnDays 日）を確保した警告を 1 回送ってからでないと
+ * キックしない」不変条件を満たす。これにより日次チェックが何日飛んでも、未警告者が
+ * 警告なしにキックされる（サイレントキック）ことを防ぐ。
+ *
  * @param ageDays 経過日数
  * @param graceDays 猶予日数
  * @param warnDays 事前警告を送る経過日数（null なら警告無効）
+ * @param warnedDaysAgo 事前警告からの経過日数（未警告なら null）
  * @returns 区分
  */
 export function classifyStage(
   ageDays: number,
   graceDays: number,
   warnDays: number | null,
+  warnedDaysAgo: number | null,
 ): UnverifiedKickStage {
-  // 猶予超過 → キック
+  const warned = warnedDaysAgo != null;
+
+  // 警告無効（warnDays 未設定）: 従来どおり猶予到達で即キック
+  if (warnDays == null) {
+    return ageDays >= graceDays
+      ? UNVERIFIED_KICK_STAGE.KICK
+      : UNVERIFIED_KICK_STAGE.NONE;
+  }
+
+  // 確保すべき通知猶予（warnDays < graceDays が保証されるため 1 以上）
+  const noticeDays = graceDays - warnDays;
+
+  // 猶予到達: 通知猶予を満たした警告済みのみキック
   if (ageDays >= graceDays) {
-    return UNVERIFIED_KICK_STAGE.KICK;
+    // 未警告のまま到達（警告日を飛び越え）→ いま警告して次サイクルへ繰り延べ
+    if (!warned) return UNVERIFIED_KICK_STAGE.WARN;
+    // 警告済みかつ通知猶予を満たした → キック
+    if (warnedDaysAgo >= noticeDays) return UNVERIFIED_KICK_STAGE.KICK;
+    // 警告済みだが通知猶予が未経過 → 待機（再警告しない）
+    return UNVERIFIED_KICK_STAGE.NONE;
   }
-  // ちょうど警告日（warnDays）に達した日のみ事前警告（24h ウィンドウで 1 回）
-  if (warnDays != null && ageDays === warnDays) {
-    return UNVERIFIED_KICK_STAGE.WARN;
+
+  // 警告ウィンドウ [warnDays, graceDays): 未警告なら警告、警告済みは待機
+  if (ageDays >= warnDays) {
+    return warned ? UNVERIFIED_KICK_STAGE.NONE : UNVERIFIED_KICK_STAGE.WARN;
   }
+
+  // warnDays 未満 → 対象外
   return UNVERIFIED_KICK_STAGE.NONE;
 }
 

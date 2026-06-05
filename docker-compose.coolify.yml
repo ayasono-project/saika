@@ -47,10 +47,10 @@ services:
       # 例: https://saika-dash.sonozaki.net
       DASHBOARD_URL: ${DASHBOARD_URL:-}
     ports:
-      # web ダッシュボード API。Cloudflare Tunnel が 127.0.0.1:8080 に転送する。
-      # 127.0.0.1 バインドで公開インターフェースには晒さない（tunnel 経由のみ到達）。
-      # コンテナ側ポートは API_PORT と一致させること。
-      - "127.0.0.1:8080:8080"
+      # web ダッシュボード API。Cloudflare Tunnel が 127.0.0.1:8081 に転送する。
+      # ホスト側は 8081（8080 は coolify-proxy が使用済みのため回避）、コンテナ側は
+      # API_PORT(=8080)。127.0.0.1 バインドで公開IFには晒さない（tunnel 経由のみ）。
+      - "127.0.0.1:8081:8080"
     volumes:
       # ログファイルの永続化（ホストバインドマウント）
       - /opt/saika/logs:/app/logs

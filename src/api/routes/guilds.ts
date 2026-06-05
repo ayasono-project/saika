@@ -37,12 +37,25 @@ function requireBotGuild(
  *
  * 管理可能なギルド一覧（GET /api/guilds）は Discord 由来の情報（Bot 未参加ギルド含む）が
  * 必要なため web BFF が担当する。saika は Bot が参加済みのギルドのリソースのみ扱う。
+ * その一覧の botJoined 補完用に GET /joined（参加済み管理可能ギルドID）だけ提供する。
  */
 export const guildRoutes: FastifyPluginAsync<GuildRoutesOptions> = async (
   fastify,
   opts,
 ) => {
   const { client } = opts.deps;
+
+  // Bot が参加済みの「管理可能ギルド」ID 一覧。
+  // web BFF がサーバー一覧の botJoined を補完するために照会する（guildId 非依存のため authenticate のみ）。
+  fastify.get(
+    "/joined",
+    { preHandler: fastify.authenticate },
+    async (request) => {
+      const manageable = request.authUser?.guilds ?? [];
+      const data = manageable.filter((id) => client.guilds.cache.has(id));
+      return { data };
+    },
+  );
 
   const guarded = {
     preHandler: [fastify.authenticate, fastify.requireGuildAccess],

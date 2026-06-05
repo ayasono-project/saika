@@ -124,4 +124,19 @@ describe("guildRoutes", () => {
     expect(res.statusCode).toBe(404);
     expect(res.json().error.code).toBe("NOT_FOUND");
   });
+
+  it("GET /guilds/joined は管理可能ギルドのうち Bot 参加分の ID を返す", async () => {
+    // authenticate スタブのクレームは guilds=["g1"]。Bot が g1 に参加していれば返る。
+    app = await buildApp(makeClient(new Map([["g1", fakeGuild("g1")]])));
+    const res = await app.inject({ method: "GET", url: "/guilds/joined" });
+    expect(res.statusCode).toBe(200);
+    expect(res.json().data).toEqual(["g1"]);
+  });
+
+  it("GET /guilds/joined は Bot 未参加なら空配列", async () => {
+    app = await buildApp(makeClient(new Map()));
+    const res = await app.inject({ method: "GET", url: "/guilds/joined" });
+    expect(res.statusCode).toBe(200);
+    expect(res.json().data).toEqual([]);
+  });
 });

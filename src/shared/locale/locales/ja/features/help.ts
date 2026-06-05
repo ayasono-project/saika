@@ -16,7 +16,7 @@ export const help = {
   "embed.field.value.config":
     "`/guild-settings` — ギルド全体の設定\n`/afk-settings` — AFK の設定\n`/vac-settings` — VC自動作成の設定\n`/vc-recruit-settings` — VC募集の設定\n`/vc-auto-recruit-settings` — VC自動募集の設定\n`/sticky-message` — メッセージ固定の設定\n`/member-log-settings` — メンバーログの設定\n`/bump-reminder-settings` — Bumpリマインダーの設定\n`/ticket-settings` — チケットシステムの設定\n`/reaction-role-settings` — リアクションロールの設定\n`/inactive-kick-settings` — 非アクティブ自動キックの設定\n`/unverified-kick-settings` — 未承認ユーザー自動キックの設定",
   "embed.field.value.action":
-    "`/afk` — AFK チャンネルへ移動\n`/vc` — VC名・人数制限を変更\n`/message-delete` — メッセージを一括削除\n`/ticket` — チケットの操作（クローズ・オープン・削除）",
+    "`/afk` — 自分や他メンバーを AFK チャンネルへ移動\n`/vc` — VC名・人数制限の変更／メンバーの切断・移動\n`/message-delete` — メッセージを一括削除\n`/ticket` — チケットの操作（クローズ・オープン・削除）",
   "embed.field.name.dashboard": "🌐 ダッシュボード",
   "embed.field.value.dashboard": "ブラウザから各機能を設定できます: {{url}}",
 } as const;

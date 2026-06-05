@@ -2,7 +2,7 @@
 
 > タスク管理・進捗状況・残件リスト
 
-最終更新: 2026年6月4日
+最終更新: 2026年6月5日
 
 ---
 
@@ -46,6 +46,7 @@ web フロントエンドがモック駆動（MSW 等）で完成した後、契
 - **VC自動募集の VC（チャンネル）単位指定・除外（§2 拡張）** — カテゴリ単位の allowlist（`add-category`/`remove-category`）は実装済み。さらに細かい特定VC単位の指定／除外が必要になれば検討
 - **VC自動募集の招待リンク方式（§2 拡張）** — 参加ボタンをチャンネルジャンプ URL から Discord 招待リンク（`createInvite`）に変更（外部共有が必要になった場合・`CreateInstantInvite` 権限と寿命管理が必要）
 - **予約募集(イベント募集)機能** — 他タスク完了後に実装可否判断。骨子: 予約時に VC + Discord Scheduled Event 作成 / RSVP・リマインダー・開始通知は Discord 標準任せ / VC 自動削除なし(投稿削除 or イベント終了ボタンで手動)/ 編集機能あり(日時・タイトル・説明)/ setup は既存 VC 募集と同構成 / VC 名変更は既存 `/vc rename` 流用。細部は実装決定時に詰める
+- **キック系ユーザーデータの削除対称性の整理（§1/§8 整理）** — 非アクティブキック(`MemberActivity`)・未承認キック(`GuildUnverifiedKickWarn`)のユーザーデータについて、リセット種別ごとの削除挙動が非対称。①全設定リセット `deleteAllSettings` は `MemberActivity` を消すが `GuildUnverifiedKickWarn` を消していない（トランザクション未収載）、②未承認キックの個別リセットは warn 記録を `deleteAllByGuild` で消す、③非アクティブキックの個別リセットは `MemberActivity` を残す。`enabledAt` 起算下限・warnStage ゲート・warn-before-kick により**残存しても誤キック等の害は出ない**（孤児は verify/leave で掃除）ため緊急ではないが、「全設定リセット＝完全にまっさらに戻る」建付けに揃えるなら `deleteAllSettings` に `guildUnverifiedKickWarn.deleteMany` を追加し、個別リセットの削除有無も方針統一を検討。なお**エクスポートにユーザーデータを含めないのは現仕様維持で問題なし**（再有効化時の `enabledAt` フロアで安全・個人データ/サイズ観点でも除外が妥当）と確認済み。
 - 自動翻訳機能(DeepL API 等)
 - 投票システム(グラフ化・レポート集計で Discord 標準との差別化)
 - メトリクス収集 / アラート設定(運用規模拡大時)

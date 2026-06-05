@@ -2,6 +2,8 @@
 // 機能別設定エンドポイント（/api/guilds/:guildId/<feature>）
 
 import type { FastifyPluginAsync } from "fastify";
+import { getBotGuildSettingsService } from "../../bot/services/botCompositionRoot";
+import { localeManager } from "../../shared/locale/localeManager";
 import { createAfkResource } from "../features/afkResource";
 import { createBumpResource } from "../features/bumpResource";
 import { createConfigResource } from "../features/configResource";
@@ -55,5 +57,13 @@ export const settingsRoutes: FastifyPluginAsync<SettingsRoutesOptions> = async (
   // VC自動募集が投稿中の募集一覧（読み取り専用）
   fastify.get("/:guildId/vc-auto-recruit/active", guarded, async (request) => {
     return { data: await listActiveInvites(deps.client, getGuildId(request)) };
+  });
+
+  // 全設定リセット（このサーバーの全機能設定を初期化・/guild-settings reset-all 相当）
+  fastify.post("/:guildId/reset-all", guarded, async (request) => {
+    const guildId = getGuildId(request);
+    await getBotGuildSettingsService().deleteAllSettings(guildId);
+    localeManager.invalidateLocaleCache(guildId);
+    return { data: { success: true } };
   });
 };

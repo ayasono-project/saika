@@ -4,6 +4,7 @@
 import type { FastifyPluginAsync } from "fastify";
 import { API_INFO } from "../constants";
 import type { ApiServerDeps } from "../types";
+import { botRoutes } from "./bot";
 import { guildRoutes } from "./guilds";
 import { reactionRoleRoutes } from "./reactionRoles";
 import { settingsRoutes } from "./settings";
@@ -56,6 +57,9 @@ export const apiRoutes: FastifyPluginAsync<ApiRoutesOptions> = async (
     prefix: "/guilds",
     deps: opts.deps,
   });
+
+  // Bot 情報（/api/bot・公開）
+  await fastify.register(botRoutes, { deps: opts.deps });
 
   // API メタ情報（疎通確認用）
   fastify.get("/", async () => {

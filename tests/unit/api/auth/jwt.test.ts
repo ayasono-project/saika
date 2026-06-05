@@ -6,8 +6,10 @@ import { describe, expect, it } from "vitest";
 import { DEV_JWT_SECRET_FALLBACK } from "@/api/auth/authConstants";
 import type { SessionClaims } from "@/api/auth/jwt";
 import { verifySessionToken } from "@/api/auth/jwt";
+import { env } from "@/shared/config/env";
 
-const KEY = new TextEncoder().encode(DEV_JWT_SECRET_FALLBACK);
+// 検証側（verifySessionToken）と同じ鍵で署名する（ローカル .env の JWT_SECRET に依存しない）
+const KEY = new TextEncoder().encode(env.JWT_SECRET ?? DEV_JWT_SECRET_FALLBACK);
 
 /** dev フォールバック鍵で 15 分有効のトークンを署名する（web BFF の発行を模す） */
 async function sign(claims: Record<string, unknown>): Promise<string> {

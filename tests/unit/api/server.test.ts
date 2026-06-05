@@ -8,6 +8,7 @@ import { ApiHttpError } from "@/api/lib/httpError";
 import { buildApiServer } from "@/api/server";
 import type { ApiServerDeps } from "@/api/types";
 import type { BotClient } from "@/bot/client";
+import { env } from "@/shared/config/env";
 import { localeManager } from "@/shared/locale/localeManager";
 
 /** ready 判定が通る依存のモックを生成する */
@@ -82,15 +83,15 @@ describe("buildApiServer", () => {
   });
 
   it("許可オリジンには CORS ヘッダーを付与する", async () => {
+    // ローカル .env の WEB_ORIGIN に依存しないよう、設定値の先頭オリジンを使う
+    const origin = env.WEB_ORIGIN.split(",")[0].trim();
     app = await buildApiServer(makeDeps());
     const res = await app.inject({
       method: "GET",
       url: "/health",
-      headers: { origin: "http://localhost:5173" },
+      headers: { origin },
     });
-    expect(res.headers["access-control-allow-origin"]).toBe(
-      "http://localhost:5173",
-    );
+    expect(res.headers["access-control-allow-origin"]).toBe(origin);
   });
 
   it("setErrorHandler が ApiHttpError を契約封筒へ変換する", async () => {

@@ -10,8 +10,10 @@ import {
 } from "@/api/auth/authConstants";
 import { createAuthenticate } from "@/api/auth/authenticate";
 import { ApiHttpError } from "@/api/lib/httpError";
+import { env } from "@/shared/config/env";
 
-const KEY = new TextEncoder().encode(DEV_JWT_SECRET_FALLBACK);
+// 検証側と同じ鍵で署名する（ローカル .env の JWT_SECRET に依存しない）
+const KEY = new TextEncoder().encode(env.JWT_SECRET ?? DEV_JWT_SECRET_FALLBACK);
 const reply = {} as FastifyReply;
 
 /** web BFF が発行したセッション JWT を模す */

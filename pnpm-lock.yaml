@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       '@ayasono/shared':
-        specifier: github:ayasono-project/shared#v0.2.4
-        version: https://codeload.github.com/ayasono-project/shared/tar.gz/c913f770b9b32f64cd90b653e6a194ffe4762602(winston-daily-rotate-file@5.0.0(winston@3.19.0))(winston-transport@4.9.0)(winston@3.19.0)
+        specifier: github:ayasono-project/shared#v0.2.5
+        version: https://codeload.github.com/ayasono-project/shared/tar.gz/ae6bd777f5f39cd5cff25a564e44b426f4037960(winston-daily-rotate-file@5.0.0(winston@3.19.0))(winston-transport@4.9.0)(winston@3.19.0)
       '@fastify/cookie':
         specifier: ^11.0.2
         version: 11.0.2
@@ -108,9 +108,9 @@ importers:
 
 packages:
 
-  '@ayasono/shared@https://codeload.github.com/ayasono-project/shared/tar.gz/c913f770b9b32f64cd90b653e6a194ffe4762602':
-    resolution: {gitHosted: true, tarball: https://codeload.github.com/ayasono-project/shared/tar.gz/c913f770b9b32f64cd90b653e6a194ffe4762602}
-    version: 0.2.4
+  '@ayasono/shared@https://codeload.github.com/ayasono-project/shared/tar.gz/ae6bd777f5f39cd5cff25a564e44b426f4037960':
+    resolution: {gitHosted: true, integrity: sha512-WJT+UoGAfWwokaC/6jrlWUbWgCPM/DEhRgdanzDqbyCoVwAqjF7iLAAaD6hbT9ISCzUEk3LwL4G8q13YJ35YVA==, tarball: https://codeload.github.com/ayasono-project/shared/tar.gz/ae6bd777f5f39cd5cff25a564e44b426f4037960}
+    version: 0.2.5
     engines: {node: '>=24'}
     peerDependencies:
       winston: ^3.19.0
@@ -2540,7 +2540,7 @@ packages:
 
 snapshots:
 
-  '@ayasono/shared@https://codeload.github.com/ayasono-project/shared/tar.gz/c913f770b9b32f64cd90b653e6a194ffe4762602(winston-daily-rotate-file@5.0.0(winston@3.19.0))(winston-transport@4.9.0)(winston@3.19.0)':
+  '@ayasono/shared@https://codeload.github.com/ayasono-project/shared/tar.gz/ae6bd777f5f39cd5cff25a564e44b426f4037960(winston-daily-rotate-file@5.0.0(winston@3.19.0))(winston-transport@4.9.0)(winston@3.19.0)':
     dependencies:
       winston: 3.19.0
       winston-daily-rotate-file: 5.0.0(winston@3.19.0)

@@ -8,6 +8,7 @@ import { guildRoutes } from "./guilds";
 import { reactionRoleRoutes } from "./reactionRoles";
 import { settingsRoutes } from "./settings";
 import { stickyRoutes } from "./sticky";
+import { ticketRoutes } from "./tickets";
 
 /** apiRoutes プラグインのオプション */
 export interface ApiRoutesOptions {
@@ -46,6 +47,12 @@ export const apiRoutes: FastifyPluginAsync<ApiRoutesOptions> = async (
 
   // リアクションロールパネルのコレクション CRUD
   await fastify.register(reactionRoleRoutes, {
+    prefix: "/guilds",
+    deps: opts.deps,
+  });
+
+  // チケットパネルのコレクション CRUD
+  await fastify.register(ticketRoutes, {
     prefix: "/guilds",
     deps: opts.deps,
   });

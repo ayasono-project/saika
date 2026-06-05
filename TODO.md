@@ -28,7 +28,7 @@ web フロントエンドがモック駆動（MSW 等）で完成した後、契
 - [ ] `src/api/server.ts` + `src/api/routes/` 追加（Bot と同一プロセス内で起動）
 - [ ] 認証層（`@ayasono/shared/api/middlewares/authenticate` + `requireGuildAccess`）を組み込み
 - [ ] 機能別エンドポイント（ギルド設定 / AFK / Bump / VAC / メンバーログ / VC 募集 / チケット / リアクションロール / メッセージ固定）を契約通りに実装
-- [ ] Coolify で API ポート公開（`api.saika.sonozaki.net` の Cloudflare Public Hostname 追加）
+- [ ] Coolify で API ポート公開（`saika-api.sonozaki.net` の Cloudflare Public Hostname 追加）
 - [ ] [ARCHITECTURE.md](docs/guides/ARCHITECTURE.md) 更新
 
 ### 11. Bot 一般公開準備

@@ -16,6 +16,8 @@ const HELP_I18N_KEYS = {
   FIELD_VALUE_BASIC: "help:embed.field.value.basic",
   FIELD_VALUE_CONFIG: "help:embed.field.value.config",
   FIELD_VALUE_ACTION: "help:embed.field.value.action",
+  FIELD_NAME_DASHBOARD: "help:embed.field.name.dashboard",
+  FIELD_VALUE_DASHBOARD: "help:embed.field.value.dashboard",
 } as const;
 
 /**
@@ -52,6 +54,17 @@ export async function executeHelpCommand(
         url: env.USER_MANUAL_URL,
       }),
     );
+  }
+
+  // ダッシュボード URL が設定されている時のみ案内フィールドを出す
+  // （本番でダッシュボード稼働後に DASHBOARD_URL を設定 → リンク表示）
+  if (env.DASHBOARD_URL) {
+    embed.addFields({
+      name: tInteraction(locale, HELP_I18N_KEYS.FIELD_NAME_DASHBOARD),
+      value: tInteraction(locale, HELP_I18N_KEYS.FIELD_VALUE_DASHBOARD, {
+        url: env.DASHBOARD_URL,
+      }),
+    });
   }
 
   await interaction.reply({

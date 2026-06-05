@@ -32,6 +32,7 @@ export type Env = {
   LOG_LEVEL: "error" | "warn" | "info" | "http" | "verbose" | "debug" | "silly";
   TEST_MODE: boolean;
   USER_MANUAL_URL?: string | undefined;
+  DASHBOARD_URL?: string | undefined;
   INACTIVE_KICK_CRON?: string | undefined;
   UNVERIFIED_KICK_CRON?: string | undefined;
   API_ENABLED: boolean;
@@ -71,6 +72,10 @@ export const envSchema: z.ZodType<Env> = z.object({
 
   // ユーザーマニュアルURL（/help コマンドで表示、未設定時は省略）
   USER_MANUAL_URL: z.string().url().optional(),
+
+  // web ダッシュボードURL（/help で案内、未設定時は省略）。本番でダッシュボードが
+  // 稼働してから設定する想定（死んだリンクを出さないため env 出し分け）
+  DASHBOARD_URL: z.string().url().optional(),
 
   // 非アクティブ自動キックの日次チェック cron 上書き（dev/検証用・未設定時は既定の 04:00）
   INACTIVE_KICK_CRON: z.string().optional(),

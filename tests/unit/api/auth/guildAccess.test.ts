@@ -1,131 +1,64 @@
 // tests/unit/api/auth/guildAccess.test.ts
-// ギルド権限検証 preHandler とキャッシュのユニットテスト
+// ギルドアクセス検証 preHandler のユニットテスト（JWT クレームの管理可能ギルド判定）。
 
 import type { FastifyReply, FastifyRequest } from "fastify";
-import { describe, expect, it, vi } from "vitest";
-import { REFRESH_COOKIE_NAME } from "@/api/auth/authConstants";
-import type {
-  DiscordOAuthService,
-  DiscordPartialGuild,
-} from "@/api/auth/discordOAuthService";
-import {
-  createRequireGuildAccess,
-  GuildAccessCache,
-} from "@/api/auth/guildAccess";
+import { describe, expect, it } from "vitest";
+import { createRequireGuildAccess } from "@/api/auth/guildAccess";
+import type { SessionClaims } from "@/api/auth/jwt";
 import { ApiHttpError } from "@/api/lib/httpError";
 
-const GUILD_MANAGE: DiscordPartialGuild = {
-  id: "g-manage",
-  name: "Manage",
-  icon: null,
-  owner: false,
-  permissions: String(1n << 5n), // ManageGuild
-};
-const GUILD_OWNER: DiscordPartialGuild = {
-  id: "g-owner",
-  name: "Owner",
-  icon: null,
-  owner: true,
-  permissions: "0",
-};
-const GUILD_NONE: DiscordPartialGuild = {
-  id: "g-none",
-  name: "None",
-  icon: null,
-  owner: false,
-  permissions: "0",
-};
+const reply = {} as FastifyReply;
 
-function makeReply(): FastifyReply {
+function claims(guilds: string[]): SessionClaims {
   return {
-    setCookie: vi.fn(),
-    clearCookie: vi.fn(),
-  } as unknown as FastifyReply;
+    discordUserId: "u1",
+    username: "u",
+    globalName: null,
+    avatar: null,
+    guilds,
+  };
 }
 
 function makeRequest(
   guildId: string | undefined,
-  authUser: { discordUserId: string } | undefined,
+  authUser: SessionClaims | undefined,
 ): FastifyRequest {
-  return {
-    params: { guildId },
-    cookies: { [REFRESH_COOKIE_NAME]: "RT" },
-    authUser,
-  } as unknown as FastifyRequest;
+  return { params: { guildId }, authUser } as unknown as FastifyRequest;
 }
-
-function makeOAuth(guilds: DiscordPartialGuild[]): DiscordOAuthService {
-  return {
-    refreshAccessToken: vi
-      .fn()
-      .mockResolvedValue({ access_token: "AT", refresh_token: "RT2" }),
-    fetchUserGuilds: vi.fn().mockResolvedValue(guilds),
-  } as unknown as DiscordOAuthService;
-}
-
-describe("GuildAccessCache", () => {
-  it("set した値を get で取得できる", () => {
-    const cache = new GuildAccessCache();
-    cache.set("u1", [GUILD_OWNER]);
-    expect(cache.get("u1")).toEqual([GUILD_OWNER]);
-  });
-
-  it("未登録ユーザーは null", () => {
-    expect(new GuildAccessCache().get("nope")).toBeNull();
-  });
-});
 
 describe("createRequireGuildAccess", () => {
-  const cache = new GuildAccessCache();
-
-  it("ManageGuild 権限があれば通過し request.guildId を付与する", async () => {
-    const handler = createRequireGuildAccess(makeOAuth([GUILD_MANAGE]), cache);
-    const request = makeRequest("g-manage", { discordUserId: "u1" });
-    await handler(request, makeReply());
-    expect(request.guildId).toBe("g-manage");
+  it("guildId がクレームに含まれれば通過し request.guildId を付与する", async () => {
+    const handler = createRequireGuildAccess();
+    const request = makeRequest("g1", claims(["g1", "g2"]));
+    await handler(request, reply);
+    expect(request.guildId).toBe("g1");
   });
 
-  it("オーナーなら通過する", async () => {
-    const handler = createRequireGuildAccess(makeOAuth([GUILD_OWNER]), cache);
-    const request = makeRequest("g-owner", { discordUserId: "u2" });
-    await handler(request, makeReply());
-    expect(request.guildId).toBe("g-owner");
-  });
-
-  it("権限不足は 403 FORBIDDEN", async () => {
-    const handler = createRequireGuildAccess(makeOAuth([GUILD_NONE]), cache);
+  it("guildId がクレームに無ければ 403 FORBIDDEN", async () => {
+    const handler = createRequireGuildAccess();
     await expect(
-      handler(makeRequest("g-none", { discordUserId: "u3" }), makeReply()),
-    ).rejects.toMatchObject({ code: "FORBIDDEN" });
-  });
-
-  it("非メンバーは 403 FORBIDDEN", async () => {
-    const handler = createRequireGuildAccess(makeOAuth([GUILD_OWNER]), cache);
-    await expect(
-      handler(makeRequest("other-guild", { discordUserId: "u4" }), makeReply()),
+      handler(makeRequest("g3", claims(["g1", "g2"])), reply),
     ).rejects.toMatchObject({ code: "FORBIDDEN" });
   });
 
   it("authUser が無ければ 401 UNAUTHORIZED", async () => {
-    const handler = createRequireGuildAccess(makeOAuth([]), cache);
+    const handler = createRequireGuildAccess();
     await expect(
-      handler(makeRequest("g-owner", undefined), makeReply()),
+      handler(makeRequest("g1", undefined), reply),
+    ).rejects.toMatchObject({ code: "UNAUTHORIZED" });
+  });
+
+  it("authUser が無ければ ApiHttpError を投げる", async () => {
+    const handler = createRequireGuildAccess();
+    await expect(
+      handler(makeRequest("g1", undefined), reply),
     ).rejects.toBeInstanceOf(ApiHttpError);
   });
 
   it("guildId が無ければ 400 VALIDATION_ERROR", async () => {
-    const handler = createRequireGuildAccess(makeOAuth([]), cache);
+    const handler = createRequireGuildAccess();
     await expect(
-      handler(makeRequest(undefined, { discordUserId: "u5" }), makeReply()),
+      handler(makeRequest(undefined, claims(["g1"])), reply),
     ).rejects.toMatchObject({ code: "VALIDATION_ERROR" });
-  });
-
-  it("2 回目はキャッシュから取得し Discord を再呼び出ししない", async () => {
-    const freshCache = new GuildAccessCache();
-    const oauth = makeOAuth([GUILD_OWNER]);
-    const handler = createRequireGuildAccess(oauth, freshCache);
-    await handler(makeRequest("g-owner", { discordUserId: "u6" }), makeReply());
-    await handler(makeRequest("g-owner", { discordUserId: "u6" }), makeReply());
-    expect(oauth.fetchUserGuilds).toHaveBeenCalledTimes(1);
   });
 });

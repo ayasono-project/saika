@@ -4,8 +4,6 @@
 import { ChannelType } from "discord.js";
 import Fastify, { type FastifyInstance } from "fastify";
 import { afterEach, beforeAll, describe, expect, it } from "vitest";
-import type { DiscordOAuthService } from "@/api/auth/discordOAuthService";
-import { GuildAccessCache } from "@/api/auth/guildAccess";
 import { toErrorResponse } from "@/api/lib/httpError";
 import { guildRoutes } from "@/api/routes/guilds";
 import type { ApiServerDeps } from "@/api/types";
@@ -54,10 +52,7 @@ function makeClient(guilds: Map<string, unknown>): BotClient {
   return { guilds: { cache: guilds } } as unknown as BotClient;
 }
 
-async function buildApp(
-  client: BotClient,
-  guildCache: GuildAccessCache,
-): Promise<FastifyInstance> {
+async function buildApp(client: BotClient): Promise<FastifyInstance> {
   const app = Fastify({ logger: false });
   // 認証は本ユニットの対象外のためデコレータをスタブ化する
   app.decorate("authenticate", async (request) => {
@@ -66,6 +61,7 @@ async function buildApp(
       username: "u",
       globalName: null,
       avatar: null,
+      guilds: ["g1"],
     };
   });
   app.decorate("requireGuildAccess", async (request) => {
@@ -76,12 +72,9 @@ async function buildApp(
     reply.status(mapped.status).send(mapped.body);
   });
   const deps = { client } as unknown as ApiServerDeps;
-  const oauth = {} as unknown as DiscordOAuthService;
   await app.register(guildRoutes, {
     prefix: "/guilds",
     deps,
-    oauth,
-    guildCache,
   });
   return app;
 }
@@ -97,36 +90,8 @@ describe("guildRoutes", () => {
     if (app) await app.close();
   });
 
-  it("GET /guilds は ManageGuild 権限のあるギルドのみ返す", async () => {
-    const cache = new GuildAccessCache();
-    cache.set(USER_ID, [
-      {
-        id: "g1",
-        name: "Manage",
-        icon: null,
-        owner: false,
-        permissions: String(1n << 5n),
-      },
-      { id: "g2", name: "None", icon: null, owner: false, permissions: "0" },
-    ]);
-    app = await buildApp(makeClient(new Map([["g1", fakeGuild("g1")]])), cache);
-
-    const res = await app.inject({ method: "GET", url: "/guilds" });
-    expect(res.statusCode).toBe(200);
-    const data = res.json().data;
-    expect(data).toHaveLength(1);
-    expect(data[0]).toMatchObject({
-      id: "g1",
-      botJoined: true,
-      memberCount: 5,
-    });
-  });
-
   it("GET /:guildId/channels は対象種別のみ返す（thread 除外）", async () => {
-    app = await buildApp(
-      makeClient(new Map([["g1", fakeGuild("g1")]])),
-      new GuildAccessCache(),
-    );
+    app = await buildApp(makeClient(new Map([["g1", fakeGuild("g1")]])));
     const res = await app.inject({ method: "GET", url: "/guilds/g1/channels" });
     expect(res.statusCode).toBe(200);
     const data = res.json().data;
@@ -137,10 +102,7 @@ describe("guildRoutes", () => {
   });
 
   it("GET /:guildId/roles は @everyone を除外し位置降順", async () => {
-    app = await buildApp(
-      makeClient(new Map([["g1", fakeGuild("g1")]])),
-      new GuildAccessCache(),
-    );
+    app = await buildApp(makeClient(new Map([["g1", fakeGuild("g1")]])));
     const res = await app.inject({ method: "GET", url: "/guilds/g1/roles" });
     const data = res.json().data;
     expect(data.map((r: { id: string }) => r.id)).toEqual(["r1", "r2"]);
@@ -148,16 +110,13 @@ describe("guildRoutes", () => {
   });
 
   it("GET /:guildId/members はメンバーを返す", async () => {
-    app = await buildApp(
-      makeClient(new Map([["g1", fakeGuild("g1")]])),
-      new GuildAccessCache(),
-    );
+    app = await buildApp(makeClient(new Map([["g1", fakeGuild("g1")]])));
     const res = await app.inject({ method: "GET", url: "/guilds/g1/members" });
     expect(res.json().data).toEqual([{ id: "m1", name: "Alice" }]);
   });
 
   it("Bot 未参加ギルドは 404 を返す", async () => {
-    app = await buildApp(makeClient(new Map()), new GuildAccessCache());
+    app = await buildApp(makeClient(new Map()));
     const res = await app.inject({
       method: "GET",
       url: "/guilds/ghost/channels",

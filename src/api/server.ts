@@ -10,8 +10,7 @@ import { env, NODE_ENV } from "../shared/config/env";
 import { logPrefixed, tDefault } from "../shared/locale/localeManager";
 import { logger } from "../shared/utils/logger";
 import { createAuthenticate } from "./auth/authenticate";
-import { DiscordOAuthService } from "./auth/discordOAuthService";
-import { createRequireGuildAccess, GuildAccessCache } from "./auth/guildAccess";
+import { createRequireGuildAccess } from "./auth/guildAccess";
 import { RATE_LIMIT } from "./constants";
 import { toErrorResponse } from "./lib/httpError";
 import { apiRoutes } from "./routes/index";
@@ -21,27 +20,16 @@ import type { ApiServerDeps } from "./types";
 const SERVICE_UNAVAILABLE = 503;
 const HTTP_NOT_FOUND = 404;
 
-/** env から Discord OAuth サービスを構築する */
-function createOAuthService(): DiscordOAuthService {
-  return new DiscordOAuthService({
-    clientId: env.DISCORD_APP_ID,
-    clientSecret: env.DISCORD_CLIENT_SECRET ?? "",
-    redirectUri: `${env.API_PUBLIC_URL}/api/auth/callback`,
-  });
-}
-
 /**
- * 本番環境で必須の認証関連シークレットが設定されているか検証する。
- * 未設定なら起動を中断する（不正設定での公開を防ぐ）。
+ * 本番環境で必須の JWT 署名鍵が設定されているか検証する。
+ * 未設定なら起動を中断する（dev フォールバック鍵での本番公開を防ぐ）。
+ * 署名鍵は web BFF と共有し、saika はトークン検証にのみ使用する。
  */
 function assertProductionConfig(): void {
   if (env.NODE_ENV !== NODE_ENV.PRODUCTION) return;
-  const missing: string[] = [];
-  if (!env.DISCORD_CLIENT_SECRET) missing.push("DISCORD_CLIENT_SECRET");
-  if (!env.JWT_SECRET) missing.push("JWT_SECRET");
-  if (missing.length > 0) {
+  if (!env.JWT_SECRET) {
     throw new ConfigurationError(
-      `API requires environment variables in production: ${missing.join(", ")}`,
+      "API requires environment variables in production: JWT_SECRET",
     );
   }
 }
@@ -72,7 +60,7 @@ export async function buildApiServer(
   // Cloudflare/Coolify のリバースプロキシ配下のため trustProxy を有効化。
   const app = Fastify({ logger: false, trustProxy: true });
 
-  // Cookie（認証 state / access JWT / refresh の格納に使用）
+  // Cookie（web BFF が発行したセッション JWT の読み取りに使用）
   await app.register(cookie);
 
   // CORS: web ダッシュボードの配信元のみ許可し、Cookie 送信を有効化
@@ -87,15 +75,10 @@ export async function buildApiServer(
     timeWindow: RATE_LIMIT.timeWindow,
   });
 
-  // 認証層: OAuth サービス・ギルドキャッシュを構築し、preHandler をデコレート。
+  // 認証層: JWT 検証 preHandler をデコレート。
   // デコレータは子プラグイン（apiRoutes 配下の機能ルート）から参照される。
-  const oauth = createOAuthService();
-  const guildCache = new GuildAccessCache();
-  app.decorate("authenticate", createAuthenticate(oauth));
-  app.decorate(
-    "requireGuildAccess",
-    createRequireGuildAccess(oauth, guildCache),
-  );
+  app.decorate("authenticate", createAuthenticate());
+  app.decorate("requireGuildAccess", createRequireGuildAccess());
 
   // 例外 → エラー封筒への一元変換
   app.setErrorHandler((error, _request, reply) => {
@@ -140,8 +123,8 @@ export async function buildApiServer(
     return { status: "ready" };
   });
 
-  // /api 配下の機能ルート（認証・ギルドリソースを含む）
-  await app.register(apiRoutes, { prefix: "/api", deps, oauth, guildCache });
+  // /api 配下の機能ルート（ギルドリソース・設定）
+  await app.register(apiRoutes, { prefix: "/api", deps });
 
   return app;
 }

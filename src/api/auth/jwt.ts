@@ -1,54 +1,42 @@
 // src/api/auth/jwt.ts
-// access JWT の署名・検証（jose・HMAC-SHA256・ステートレス）
+// セッション JWT の検証（jose・HMAC-SHA256・ステートレス）。
+// 署名・発行・refresh は web BFF が担当し、各 Bot API（saika）は検証のみ行う。
 
-import { jwtVerify, SignJWT } from "jose";
+import { jwtVerify } from "jose";
 import { env } from "../../shared/config/env";
-import { DEV_JWT_SECRET_FALLBACK, JWT_EXPIRY_SEC } from "./authConstants";
+import { DEV_JWT_SECRET_FALLBACK } from "./authConstants";
 
-/** access JWT のペイロード（プロフィールを内包し /me で Discord を叩かずに応答できる） */
-export interface SessionTokenPayload {
+/**
+ * セッション JWT のクレーム。
+ * web BFF がログイン時に発行し、ユーザーが管理可能（ManageGuild/オーナー）な
+ * ギルド ID 一覧を `guilds` に埋め込む。saika はこれを検証してアクセス制御に使う。
+ */
+export interface SessionClaims {
   /** Discord ユーザー ID */
   discordUserId: string;
   username: string;
   globalName: string | null;
+  /** アバターハッシュ（未設定で null） */
   avatar: string | null;
+  /** ユーザーが管理可能なギルド ID 一覧 */
+  guilds: string[];
 }
 
 /** HMAC-SHA256 */
 const JWT_ALG = "HS256";
 
-/** ミリ秒 → 秒 */
-const MS_PER_SEC = 1000;
-
-/** 署名鍵（本番は JWT_SECRET 必須・dev は固定鍵フォールバック） */
+/** 署名鍵（本番は JWT_SECRET 必須・dev は固定鍵フォールバック・web BFF と共有） */
 function secretKey(): Uint8Array {
   return new TextEncoder().encode(env.JWT_SECRET ?? DEV_JWT_SECRET_FALLBACK);
 }
 
-/** セッションペイロードを 15 分有効の access JWT に署名する */
-export async function signSessionToken(
-  payload: SessionTokenPayload,
-): Promise<string> {
-  const nowSec = Math.floor(Date.now() / MS_PER_SEC);
-  return new SignJWT({
-    discordUserId: payload.discordUserId,
-    username: payload.username,
-    globalName: payload.globalName,
-    avatar: payload.avatar,
-  })
-    .setProtectedHeader({ alg: JWT_ALG })
-    .setIssuedAt(nowSec)
-    .setExpirationTime(nowSec + JWT_EXPIRY_SEC)
-    .sign(secretKey());
-}
-
 /**
- * access JWT を検証してペイロードを返す。
+ * セッション JWT を検証してクレームを返す。
  * 署名不正・期限切れ・形式不正の場合は例外を投げる。
  */
 export async function verifySessionToken(
   token: string,
-): Promise<SessionTokenPayload> {
+): Promise<SessionClaims> {
   const { payload } = await jwtVerify(token, secretKey(), {
     algorithms: [JWT_ALG],
   });
@@ -57,5 +45,6 @@ export async function verifySessionToken(
     username: String(payload.username),
     globalName: (payload.globalName as string | null) ?? null,
     avatar: (payload.avatar as string | null) ?? null,
+    guilds: Array.isArray(payload.guilds) ? payload.guilds.map(String) : [],
   };
 }

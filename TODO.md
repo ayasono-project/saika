@@ -2,7 +2,7 @@
 
 > タスク管理・進捗状況・残件リスト
 
-最終更新: 2026年6月5日
+最終更新: 2026年6月6日
 
 ---
 
@@ -10,9 +10,9 @@
 
 | # | セクション | 概要 | 残件 |
 | --- | --- | --- | ---: |
-| 10 | Fastify API 実装 | web 完成後に契約通り実装 | 5 |
-| 11 | Bot 一般公開準備 | コマンド追加・認証申請 | 3 |
-| **合計** | | | **8** |
+| 10 | API ドキュメント追補 | ARCHITECTURE.md に API 層を追記（軽微・実装は本番稼働済み） | 1 |
+| 11 | Bot 一般公開準備 | `/about` コマンド・Discord 認証申請（help リンクは完了） | 2 |
+| **合計** | | | **3** |
 
 > web ダッシュボード・インフラ（VPS / Cloudflare / Coolify）は別リポジトリで管理。
 > 作業順序は上から順（§1 → §2 → §3 → …）。§10 以降（Fastify API / Bot 一般公開準備）は web 側の進行に依存するため番号を分けている（§10 着手前に web がモック駆動で完成していること）。
@@ -21,21 +21,17 @@
 
 ## タスク一覧
 
-### 10. Fastify API 実装
+### 10. web ダッシュボード Fastify API（本番稼働・残: ドキュメント追補のみ）
 
-web フロントエンドがモック駆動（MSW 等）で完成した後、契約通りに実装する。契約は `@ayasono/shared/api/types` で web 側と共有済み（型エラーが出ない = 契約準拠）。
+API 本体は実装・本番稼働済み（下記「完了済み」参照）。残るは設計ドキュメントの追補のみ。
 
-- [ ] `src/api/server.ts` + `src/api/routes/` 追加（Bot と同一プロセス内で起動）
-- [ ] 認証層（`@ayasono/shared/api/middlewares/authenticate` + `requireGuildAccess`）を組み込み
-- [ ] 機能別エンドポイント（ギルド設定 / AFK / Bump / VAC / メンバーログ / VC 募集 / チケット / リアクションロール / メッセージ固定）を契約通りに実装
-- [ ] Coolify で API ポート公開（`saika-api.sonozaki.net` の Cloudflare Public Hostname 追加）
-- [ ] [ARCHITECTURE.md](docs/guides/ARCHITECTURE.md) 更新
+- [ ] [ARCHITECTURE.md](docs/guides/ARCHITECTURE.md) に API 層（`src/api/`・認証は web BFF 集約で saika は JWT 検証のみ）を追記（軽微）
 
 ### 11. Bot 一般公開準備
 
 - [x] ライセンスを MIT → AGPL-3.0 に変更
+- [x] help コマンドにダッシュボード URL リンク追加（`DASHBOARD_URL` env 設定時のみ「🌐 ダッシュボード」フィールド表示・2026-06-06 本番反映）
 - [ ] `/about` コマンド（公式 URL + バージョン）
-- [ ] help コマンドにダッシュボード URL リンク追加
 - [ ] Discord Bot 認証申請（75 サーバー到達後）
 
 ---
@@ -56,6 +52,18 @@ web フロントエンドがモック駆動（MSW 等）で完成した後、契
 ## 完了済み
 
 > 詳細な作業経過は git log を参照。
+
+### web ダッシュボード Fastify API（§10・2026-06-06 完了・本番稼働）
+
+Bot と同一プロセスで起動する Fastify API を実装し、web ダッシュボード（`saika-dash.sonozaki.net`）の per-guild バックエンドとして本番稼働。認証は web BFF に集約し、saika は JWT 検証のみ（OAuth/refresh を持たない）。
+
+- [x] `src/api/server.ts` + `src/api/routes/`（Bot 同一プロセス起動・CORS〔PATCH/DELETE 許可〕・rate-limit・`/health`）
+- [x] 認証層（`authenticate`〔Cookie JWT 検証〕+ `requireGuildAccess`〔guildId ∈ jwt.guilds〕）
+- [x] 機能別エンドポイント（config/afk/vac/member-log/bump/vc-recruit/vc-auto-recruit/inactive-kick/unverified-kick/sticky/reaction-role/ticket/overview の CRUD・パネル投稿・`GET /api/bot`〔アバター+招待URL・Administrator 権限〕・`GET /api/guilds/joined`・全設定リセット `POST /api/guilds/:id/reset-all`）
+- [x] Coolify で API 公開（Docker Compose `docker-compose.coolify.yml`・`saika-api.sonozaki.net`・ホスト 8081〔8080 は coolify-proxy 占有〕）
+- [x] feature→develop 統合 #57 → 本番リリース #58/#59/#60（main）。本番 E2E 成功（web 保存→bot `view` で反映確認）
+
+> NOTE: パネル削除の P2025 競合修正（DB→メッセージ順）・CORS methods・テスト堅牢化等のホットフィックスを #59/#60 で対応。デプロイ知見は [web/docs/DEPLOYMENT.md](../web/docs/DEPLOYMENT.md)。
 
 ### メッセージ削除機能の改善（投稿者タイプフィルタ）（§3・2026-06-04 完了・本番リリース済み）
 

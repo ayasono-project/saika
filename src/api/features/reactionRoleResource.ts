@@ -36,7 +36,7 @@ function asMode(mode: string): ReactionRoleMode {
   return MODES.includes(mode) ? (mode as ReactionRoleMode) : "toggle";
 }
 
-/** ドメイン → 契約（domain は roleIds[] / 契約は単一 roleId・buttonId は文字列 id 化） */
+/** ドメイン → 契約（roleIds[] をそのまま受け渡し・buttonId は文字列 id 化） */
 export function toContractPanel(domain: GuildReactionRolePanel): ContractPanel {
   return {
     id: domain.id,
@@ -50,12 +50,12 @@ export function toContractPanel(domain: GuildReactionRolePanel): ContractPanel {
       label: b.label,
       emoji: b.emoji,
       style: asButtonStyle(b.style),
-      roleId: b.roleIds[0] ?? null,
+      roleIds: b.roleIds,
     })),
   };
 }
 
-/** 契約のボタン配列 → ドメイン（buttonId を 1..n で振り直し・roleId を roleIds[] 化） */
+/** 契約のボタン配列 → ドメイン（buttonId を 1..n で振り直し・roleIds[] をそのまま受け渡し） */
 export function toDomainButtons(
   buttons: ContractButton[],
 ): ReactionRoleButton[] {
@@ -64,7 +64,7 @@ export function toDomainButtons(
     label: b.label,
     emoji: b.emoji,
     style: b.style,
-    roleIds: b.roleId ? [b.roleId] : [],
+    roleIds: b.roleIds,
   }));
 }
 

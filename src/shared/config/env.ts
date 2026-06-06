@@ -33,6 +33,7 @@ export type Env = {
   TEST_MODE: boolean;
   USER_MANUAL_URL?: string | undefined;
   DASHBOARD_URL?: string | undefined;
+  OFFICIAL_URL?: string | undefined;
   INACTIVE_KICK_CRON?: string | undefined;
   UNVERIFIED_KICK_CRON?: string | undefined;
   API_ENABLED: boolean;
@@ -76,6 +77,10 @@ export const envSchema: z.ZodType<Env> = z.object({
   // web ダッシュボードURL（/help で案内、未設定時は省略）。本番でダッシュボードが
   // 稼働してから設定する想定（死んだリンクを出さないため env 出し分け）
   DASHBOARD_URL: z.string().url().optional(),
+
+  // ayasono プロジェクト公式サイト（LP）URL（/about で案内、未設定時は省略）。
+  // 専用 LP 公開後に設定する想定（死んだリンクを出さないため env 出し分け）
+  OFFICIAL_URL: z.string().url().optional(),
 
   // 非アクティブ自動キックの日次チェック cron 上書き（dev/検証用・未設定時は既定の 04:00）
   INACTIVE_KICK_CRON: z.string().optional(),

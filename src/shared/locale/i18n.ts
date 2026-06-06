@@ -22,6 +22,7 @@ export const DEFAULT_LOCALE: SupportedLocale = "ja";
 export const I18N_NAMESPACES = [
   "common",
   "system",
+  "about",
   "ping",
   "help",
   "afk",

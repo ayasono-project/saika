@@ -8,6 +8,8 @@
 export const EMBED_COLORS = {
   /** ヘルプコマンド（緑） */
   HELP: 0x77b255,
+  /** About コマンド（ブランドグリーン・help と同系） */
+  ABOUT: 0x77b255,
   /** メンバーログ: 参加（ビリジアン） */
   MEMBER_LOG_JOIN: 0x008969,
   /** メンバーログ: 退出（紅色） */

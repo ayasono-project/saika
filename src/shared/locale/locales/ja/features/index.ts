@@ -1,6 +1,7 @@
 // src/shared/locale/locales/ja/features/index.ts
 // 全機能翻訳のre-export
 
+export { about } from "./about";
 export { afk } from "./afk";
 export { bumpReminder } from "./bumpReminder";
 export { guildSettings } from "./guildSettings";

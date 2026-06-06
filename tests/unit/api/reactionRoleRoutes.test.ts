@@ -101,7 +101,13 @@ const PANEL = {
   description: "選んでね",
   color: "#5865F2",
   buttons: [
-    { id: "x", label: "A", emoji: "😀", style: "primary", roleId: "r1" },
+    {
+      id: "x",
+      label: "A",
+      emoji: "😀",
+      style: "primary",
+      roleIds: ["r1", "r2"],
+    },
   ],
 };
 
@@ -138,7 +144,13 @@ describe("reactionRoleRoutes", () => {
     expect(data.id).toBe("rp1");
     expect(data.channelId).toBe("c1");
     expect(data.buttons).toEqual([
-      { id: "1", label: "A", emoji: "😀", style: "primary", roleId: "r1" },
+      {
+        id: "1",
+        label: "A",
+        emoji: "😀",
+        style: "primary",
+        roleIds: ["r1", "r2"],
+      },
     ]);
   });
 

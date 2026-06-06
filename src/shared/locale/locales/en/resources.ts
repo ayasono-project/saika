@@ -3,6 +3,7 @@
 
 import { common } from "./common";
 import {
+  about,
   afk,
   bumpReminder,
   guildSettings,
@@ -25,6 +26,7 @@ import { system } from "./system";
 export const en: {
   common: typeof common;
   system: typeof system;
+  about: typeof about;
   ping: typeof ping;
   help: typeof help;
   afk: typeof afk;
@@ -44,6 +46,7 @@ export const en: {
 } = {
   common,
   system,
+  about,
   ping,
   help,
   afk,

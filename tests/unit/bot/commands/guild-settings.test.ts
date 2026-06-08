@@ -7,7 +7,7 @@ const tDefaultMock = vi.hoisted(() => vi.fn((key: string) => `default:${key}`));
 
 vi.mock("@/shared/locale/commandLocalizations", () => ({
   getCommandLocalizations: () => ({
-    ja: "desc",
+    base: "desc",
     localizations: { "en-US": "desc" },
   }),
   getChoiceLocalizations: vi

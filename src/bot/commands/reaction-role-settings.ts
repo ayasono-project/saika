@@ -54,56 +54,56 @@ export const reactionRoleSettingsCommand: Command = {
     return (
       new SlashCommandBuilder()
         .setName(REACTION_ROLE_SETTINGS_COMMAND.NAME)
-        .setDescription(cmdDesc.ja)
+        .setDescription(cmdDesc.base)
         .setDescriptionLocalizations(cmdDesc.localizations)
         .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
         /* ── setup ── */
         .addSubcommand((sub) =>
           sub
             .setName(REACTION_ROLE_SETTINGS_COMMAND.SUBCOMMAND.SETUP)
-            .setDescription(setupDesc.ja)
+            .setDescription(setupDesc.base)
             .setDescriptionLocalizations(setupDesc.localizations),
         )
         /* ── teardown ── */
         .addSubcommand((sub) =>
           sub
             .setName(REACTION_ROLE_SETTINGS_COMMAND.SUBCOMMAND.TEARDOWN)
-            .setDescription(teardownDesc.ja)
+            .setDescription(teardownDesc.base)
             .setDescriptionLocalizations(teardownDesc.localizations),
         )
         /* ── view ── */
         .addSubcommand((sub) =>
           sub
             .setName(REACTION_ROLE_SETTINGS_COMMAND.SUBCOMMAND.VIEW)
-            .setDescription(viewDesc.ja)
+            .setDescription(viewDesc.base)
             .setDescriptionLocalizations(viewDesc.localizations),
         )
         /* ── edit-panel ── */
         .addSubcommand((sub) =>
           sub
             .setName(REACTION_ROLE_SETTINGS_COMMAND.SUBCOMMAND.EDIT_PANEL)
-            .setDescription(editPanelDesc.ja)
+            .setDescription(editPanelDesc.base)
             .setDescriptionLocalizations(editPanelDesc.localizations),
         )
         /* ── add-button ── */
         .addSubcommand((sub) =>
           sub
             .setName(REACTION_ROLE_SETTINGS_COMMAND.SUBCOMMAND.ADD_BUTTON)
-            .setDescription(addButtonDesc.ja)
+            .setDescription(addButtonDesc.base)
             .setDescriptionLocalizations(addButtonDesc.localizations),
         )
         /* ── remove-button ── */
         .addSubcommand((sub) =>
           sub
             .setName(REACTION_ROLE_SETTINGS_COMMAND.SUBCOMMAND.REMOVE_BUTTON)
-            .setDescription(removeButtonDesc.ja)
+            .setDescription(removeButtonDesc.base)
             .setDescriptionLocalizations(removeButtonDesc.localizations),
         )
         /* ── edit-button ── */
         .addSubcommand((sub) =>
           sub
             .setName(REACTION_ROLE_SETTINGS_COMMAND.SUBCOMMAND.EDIT_BUTTON)
-            .setDescription(editButtonDesc.ja)
+            .setDescription(editButtonDesc.base)
             .setDescriptionLocalizations(editButtonDesc.localizations),
         )
     );

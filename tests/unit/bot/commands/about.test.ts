@@ -5,7 +5,7 @@ const handleCommandErrorMock = vi.fn();
 
 vi.mock("@/shared/locale/commandLocalizations", () => ({
   getCommandLocalizations: () => ({
-    ja: "desc",
+    base: "desc",
     localizations: { "en-US": "desc" },
   }),
 }));

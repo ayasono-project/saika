@@ -56,7 +56,7 @@ export const bumpReminderSettingsCommand: Command = {
     return (
       new SlashCommandBuilder()
         .setName(BUMP_REMINDER_SETTINGS_COMMAND.NAME)
-        .setDescription(cmdDesc.ja)
+        .setDescription(cmdDesc.base)
         .setDescriptionLocalizations(cmdDesc.localizations)
         // Discord 側の表示/実行制御として ManageGuild を要求
         .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
@@ -64,26 +64,26 @@ export const bumpReminderSettingsCommand: Command = {
           // 機能有効化
           subcommand
             .setName(BUMP_REMINDER_SETTINGS_COMMAND.SUBCOMMAND.ENABLE)
-            .setDescription(enableDesc.ja)
+            .setDescription(enableDesc.base)
             .setDescriptionLocalizations(enableDesc.localizations),
         )
         .addSubcommand((subcommand) =>
           // 機能無効化
           subcommand
             .setName(BUMP_REMINDER_SETTINGS_COMMAND.SUBCOMMAND.DISABLE)
-            .setDescription(disableDesc.ja)
+            .setDescription(disableDesc.base)
             .setDescriptionLocalizations(disableDesc.localizations),
         )
         .addSubcommand((subcommand) =>
           // メンションロール設定
           subcommand
             .setName(BUMP_REMINDER_SETTINGS_COMMAND.SUBCOMMAND.SET_MENTION)
-            .setDescription(setMentionDesc.ja)
+            .setDescription(setMentionDesc.base)
             .setDescriptionLocalizations(setMentionDesc.localizations)
             .addRoleOption((option) =>
               option
                 .setName(BUMP_REMINDER_SETTINGS_COMMAND.OPTION.ROLE)
-                .setDescription(roleDesc.ja)
+                .setDescription(roleDesc.base)
                 .setDescriptionLocalizations(roleDesc.localizations)
                 .setRequired(true),
             ),
@@ -92,7 +92,7 @@ export const bumpReminderSettingsCommand: Command = {
           // メンションロール削除
           subcommand
             .setName(BUMP_REMINDER_SETTINGS_COMMAND.SUBCOMMAND.REMOVE_MENTION)
-            .setDescription(removeMentionDesc.ja)
+            .setDescription(removeMentionDesc.base)
             .setDescriptionLocalizations(removeMentionDesc.localizations),
         )
         .addSubcommand((subcommand) =>
@@ -101,21 +101,21 @@ export const bumpReminderSettingsCommand: Command = {
             .setName(
               BUMP_REMINDER_SETTINGS_COMMAND.SUBCOMMAND.REMOVE_MENTION_USERS,
             )
-            .setDescription(removeUsersDesc.ja)
+            .setDescription(removeUsersDesc.base)
             .setDescriptionLocalizations(removeUsersDesc.localizations),
         )
         .addSubcommand((subcommand) =>
           // 設定リセット
           subcommand
             .setName(BUMP_REMINDER_SETTINGS_COMMAND.SUBCOMMAND.RESET)
-            .setDescription(resetDesc.ja)
+            .setDescription(resetDesc.base)
             .setDescriptionLocalizations(resetDesc.localizations),
         )
         .addSubcommand((subcommand) =>
           // 現在設定表示
           subcommand
             .setName(BUMP_REMINDER_SETTINGS_COMMAND.SUBCOMMAND.VIEW)
-            .setDescription(viewDesc.ja)
+            .setDescription(viewDesc.base)
             .setDescriptionLocalizations(viewDesc.localizations),
         )
     );

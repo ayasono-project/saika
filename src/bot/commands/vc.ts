@@ -62,17 +62,17 @@ export const vcCommand: Command = {
 
     return new SlashCommandBuilder()
       .setName(VC_COMMAND.NAME)
-      .setDescription(cmdDesc.ja)
+      .setDescription(cmdDesc.base)
       .setDescriptionLocalizations(cmdDesc.localizations)
       .addSubcommand((subcommand) =>
         subcommand
           .setName(VC_COMMAND.SUBCOMMAND.RENAME)
-          .setDescription(renameDesc.ja)
+          .setDescription(renameDesc.base)
           .setDescriptionLocalizations(renameDesc.localizations)
           .addStringOption((option) =>
             option
               .setName(VC_COMMAND.OPTION.NAME)
-              .setDescription(renameNameDesc.ja)
+              .setDescription(renameNameDesc.base)
               .setDescriptionLocalizations(renameNameDesc.localizations)
               .setRequired(true)
               .setMaxLength(100),
@@ -81,12 +81,12 @@ export const vcCommand: Command = {
       .addSubcommand((subcommand) =>
         subcommand
           .setName(VC_COMMAND.SUBCOMMAND.LIMIT)
-          .setDescription(limitDesc.ja)
+          .setDescription(limitDesc.base)
           .setDescriptionLocalizations(limitDesc.localizations)
           .addIntegerOption((option) =>
             option
               .setName(VC_COMMAND.OPTION.LIMIT)
-              .setDescription(limitValueDesc.ja)
+              .setDescription(limitValueDesc.base)
               .setDescriptionLocalizations(limitValueDesc.localizations)
               .setRequired(true)
               .setMinValue(VC_COMMAND.LIMIT_MIN)
@@ -96,19 +96,19 @@ export const vcCommand: Command = {
       .addSubcommand((subcommand) =>
         subcommand
           .setName(VC_COMMAND.SUBCOMMAND.DISCONNECT)
-          .setDescription(disconnectDesc.ja)
+          .setDescription(disconnectDesc.base)
           .setDescriptionLocalizations(disconnectDesc.localizations)
           .addUserOption((option) =>
             option
               .setName(VC_COMMAND.OPTION.TARGET_MEMBER)
-              .setDescription(disconnectMemberDesc.ja)
+              .setDescription(disconnectMemberDesc.base)
               .setDescriptionLocalizations(disconnectMemberDesc.localizations)
               .setRequired(false),
           )
           .addChannelOption((option) =>
             option
               .setName(VC_COMMAND.OPTION.TARGET_CHANNEL)
-              .setDescription(disconnectChannelDesc.ja)
+              .setDescription(disconnectChannelDesc.base)
               .setDescriptionLocalizations(disconnectChannelDesc.localizations)
               .addChannelTypes(ChannelType.GuildVoice)
               .setRequired(false),
@@ -116,7 +116,7 @@ export const vcCommand: Command = {
           .addStringOption((option) =>
             option
               .setName(VC_COMMAND.OPTION.REASON)
-              .setDescription(disconnectReasonDesc.ja)
+              .setDescription(disconnectReasonDesc.base)
               .setDescriptionLocalizations(disconnectReasonDesc.localizations)
               .setRequired(false),
           ),
@@ -124,12 +124,12 @@ export const vcCommand: Command = {
       .addSubcommand((subcommand) =>
         subcommand
           .setName(VC_COMMAND.SUBCOMMAND.MOVE)
-          .setDescription(moveDesc.ja)
+          .setDescription(moveDesc.base)
           .setDescriptionLocalizations(moveDesc.localizations)
           .addChannelOption((option) =>
             option
               .setName(VC_COMMAND.OPTION.TO)
-              .setDescription(moveToDesc.ja)
+              .setDescription(moveToDesc.base)
               .setDescriptionLocalizations(moveToDesc.localizations)
               .addChannelTypes(ChannelType.GuildVoice)
               .setRequired(true),
@@ -137,14 +137,14 @@ export const vcCommand: Command = {
           .addUserOption((option) =>
             option
               .setName(VC_COMMAND.OPTION.TARGET_MEMBER)
-              .setDescription(moveMemberDesc.ja)
+              .setDescription(moveMemberDesc.base)
               .setDescriptionLocalizations(moveMemberDesc.localizations)
               .setRequired(false),
           )
           .addChannelOption((option) =>
             option
               .setName(VC_COMMAND.OPTION.TARGET_CHANNEL)
-              .setDescription(moveChannelDesc.ja)
+              .setDescription(moveChannelDesc.base)
               .setDescriptionLocalizations(moveChannelDesc.localizations)
               .addChannelTypes(ChannelType.GuildVoice)
               .setRequired(false),
@@ -152,7 +152,7 @@ export const vcCommand: Command = {
           .addStringOption((option) =>
             option
               .setName(VC_COMMAND.OPTION.REASON)
-              .setDescription(moveReasonDesc.ja)
+              .setDescription(moveReasonDesc.base)
               .setDescriptionLocalizations(moveReasonDesc.localizations)
               .setRequired(false),
           ),

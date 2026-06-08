@@ -7,7 +7,7 @@ import { loadCommands } from "@/bot/utils/commandLoader";
 // コマンドファイルが依存する外部モジュールをスタブ化（実行時コストを削減）
 vi.mock("@/shared/locale/commandLocalizations", () => ({
   getCommandLocalizations: vi.fn(() => ({
-    ja: "test-description",
+    base: "test-description",
     localizations: {},
   })),
   getChoiceLocalizations: vi

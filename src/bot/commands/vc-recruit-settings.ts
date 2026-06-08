@@ -55,18 +55,18 @@ export const vcRecruitSettingsCommand: Command = {
 
     return new SlashCommandBuilder()
       .setName(VC_RECRUIT_SETTINGS_COMMAND.NAME)
-      .setDescription(cmdDesc.ja)
+      .setDescription(cmdDesc.base)
       .setDescriptionLocalizations(cmdDesc.localizations)
       .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
       .addSubcommand((subcommand) =>
         subcommand
           .setName(VC_RECRUIT_SETTINGS_COMMAND.SUBCOMMAND.SETUP)
-          .setDescription(setupDesc.ja)
+          .setDescription(setupDesc.base)
           .setDescriptionLocalizations(setupDesc.localizations)
           .addStringOption((option) =>
             option
               .setName(VC_RECRUIT_SETTINGS_COMMAND.OPTION.CATEGORY)
-              .setDescription(setupCategoryDesc.ja)
+              .setDescription(setupCategoryDesc.base)
               .setDescriptionLocalizations(setupCategoryDesc.localizations)
               .setRequired(false)
               .setAutocomplete(true),
@@ -74,7 +74,7 @@ export const vcRecruitSettingsCommand: Command = {
           .addStringOption((option) =>
             option
               .setName(VC_RECRUIT_SETTINGS_COMMAND.OPTION.THREAD_ARCHIVE)
-              .setDescription(setupThreadArchiveDesc.ja)
+              .setDescription(setupThreadArchiveDesc.base)
               .setDescriptionLocalizations(setupThreadArchiveDesc.localizations)
               .setRequired(false)
               .addChoices(
@@ -85,25 +85,25 @@ export const vcRecruitSettingsCommand: Command = {
       .addSubcommand((subcommand) =>
         subcommand
           .setName(VC_RECRUIT_SETTINGS_COMMAND.SUBCOMMAND.TEARDOWN)
-          .setDescription(teardownDesc.ja)
+          .setDescription(teardownDesc.base)
           .setDescriptionLocalizations(teardownDesc.localizations),
       )
       .addSubcommand((subcommand) =>
         subcommand
           .setName(VC_RECRUIT_SETTINGS_COMMAND.SUBCOMMAND.ADD_ROLE)
-          .setDescription(addRoleDesc.ja)
+          .setDescription(addRoleDesc.base)
           .setDescriptionLocalizations(addRoleDesc.localizations),
       )
       .addSubcommand((subcommand) =>
         subcommand
           .setName(VC_RECRUIT_SETTINGS_COMMAND.SUBCOMMAND.REMOVE_ROLE)
-          .setDescription(removeRoleDesc.ja)
+          .setDescription(removeRoleDesc.base)
           .setDescriptionLocalizations(removeRoleDesc.localizations),
       )
       .addSubcommand((subcommand) =>
         subcommand
           .setName(VC_RECRUIT_SETTINGS_COMMAND.SUBCOMMAND.VIEW)
-          .setDescription(viewDesc.ja)
+          .setDescription(viewDesc.base)
           .setDescriptionLocalizations(viewDesc.localizations),
       );
   })(),

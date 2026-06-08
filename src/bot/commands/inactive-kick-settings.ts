@@ -33,7 +33,7 @@ export const inactiveKickSettingsCommand: Command = {
 
     return new SlashCommandBuilder()
       .setName(INACTIVE_KICK_SETTINGS_COMMAND.NAME)
-      .setDescription(cmdDesc.ja)
+      .setDescription(cmdDesc.base)
       .setDescriptionLocalizations(cmdDesc.localizations)
       .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
       .addSubcommand((sub) => {
@@ -43,12 +43,12 @@ export const inactiveKickSettingsCommand: Command = {
         );
         return sub
           .setName(SUBCOMMAND.SET_CHANNEL)
-          .setDescription(d.ja)
+          .setDescription(d.base)
           .setDescriptionLocalizations(d.localizations)
           .addChannelOption((o) =>
             o
               .setName(OPTION.CHANNEL)
-              .setDescription(od.ja)
+              .setDescription(od.base)
               .setDescriptionLocalizations(od.localizations)
               .addChannelTypes(ChannelType.GuildText)
               .setRequired(true),
@@ -61,12 +61,12 @@ export const inactiveKickSettingsCommand: Command = {
         );
         return sub
           .setName(SUBCOMMAND.SET_THRESHOLD)
-          .setDescription(d.ja)
+          .setDescription(d.base)
           .setDescriptionLocalizations(d.localizations)
           .addIntegerOption((o) =>
             o
               .setName(OPTION.DAYS)
-              .setDescription(od.ja)
+              .setDescription(od.base)
               .setDescriptionLocalizations(od.localizations)
               .setMinValue(INACTIVE_KICK_THRESHOLD_MIN_DAYS)
               .setMaxValue(INACTIVE_KICK_THRESHOLD_MAX_DAYS)
@@ -77,14 +77,14 @@ export const inactiveKickSettingsCommand: Command = {
         const d = desc("inactive-kick-settings.enable.description");
         return sub
           .setName(SUBCOMMAND.ENABLE)
-          .setDescription(d.ja)
+          .setDescription(d.base)
           .setDescriptionLocalizations(d.localizations);
       })
       .addSubcommand((sub) => {
         const d = desc("inactive-kick-settings.disable.description");
         return sub
           .setName(SUBCOMMAND.DISABLE)
-          .setDescription(d.ja)
+          .setDescription(d.base)
           .setDescriptionLocalizations(d.localizations);
       })
       .addSubcommand((sub) => {
@@ -93,7 +93,7 @@ export const inactiveKickSettingsCommand: Command = {
         );
         return sub
           .setName(SUBCOMMAND.SET_WEEK_WARN_MESSAGE)
-          .setDescription(d.ja)
+          .setDescription(d.base)
           .setDescriptionLocalizations(d.localizations);
       })
       .addSubcommand((sub) => {
@@ -102,7 +102,7 @@ export const inactiveKickSettingsCommand: Command = {
         );
         return sub
           .setName(SUBCOMMAND.CLEAR_WEEK_WARN_MESSAGE)
-          .setDescription(d.ja)
+          .setDescription(d.base)
           .setDescriptionLocalizations(d.localizations);
       })
       .addSubcommand((sub) => {
@@ -111,7 +111,7 @@ export const inactiveKickSettingsCommand: Command = {
         );
         return sub
           .setName(SUBCOMMAND.SET_FINAL_WARN_MESSAGE)
-          .setDescription(d.ja)
+          .setDescription(d.base)
           .setDescriptionLocalizations(d.localizations);
       })
       .addSubcommand((sub) => {
@@ -120,21 +120,21 @@ export const inactiveKickSettingsCommand: Command = {
         );
         return sub
           .setName(SUBCOMMAND.CLEAR_FINAL_WARN_MESSAGE)
-          .setDescription(d.ja)
+          .setDescription(d.base)
           .setDescriptionLocalizations(d.localizations);
       })
       .addSubcommand((sub) => {
         const d = desc("inactive-kick-settings.set-kick-message.description");
         return sub
           .setName(SUBCOMMAND.SET_KICK_MESSAGE)
-          .setDescription(d.ja)
+          .setDescription(d.base)
           .setDescriptionLocalizations(d.localizations);
       })
       .addSubcommand((sub) => {
         const d = desc("inactive-kick-settings.clear-kick-message.description");
         return sub
           .setName(SUBCOMMAND.CLEAR_KICK_MESSAGE)
-          .setDescription(d.ja)
+          .setDescription(d.base)
           .setDescriptionLocalizations(d.localizations);
       })
       .addSubcommand((sub) => {
@@ -144,12 +144,12 @@ export const inactiveKickSettingsCommand: Command = {
         );
         return sub
           .setName(SUBCOMMAND.SET_MARKER_ROLE)
-          .setDescription(d.ja)
+          .setDescription(d.base)
           .setDescriptionLocalizations(d.localizations)
           .addRoleOption((o) =>
             o
               .setName(OPTION.ROLE)
-              .setDescription(od.ja)
+              .setDescription(od.base)
               .setDescriptionLocalizations(od.localizations)
               .setRequired(true),
           );
@@ -158,28 +158,28 @@ export const inactiveKickSettingsCommand: Command = {
         const d = desc("inactive-kick-settings.clear-marker-role.description");
         return sub
           .setName(SUBCOMMAND.CLEAR_MARKER_ROLE)
-          .setDescription(d.ja)
+          .setDescription(d.base)
           .setDescriptionLocalizations(d.localizations);
       })
       .addSubcommand((sub) => {
         const d = desc("inactive-kick-settings.preview.description");
         return sub
           .setName(SUBCOMMAND.PREVIEW)
-          .setDescription(d.ja)
+          .setDescription(d.base)
           .setDescriptionLocalizations(d.localizations);
       })
       .addSubcommand((sub) => {
         const d = desc("inactive-kick-settings.view.description");
         return sub
           .setName(SUBCOMMAND.VIEW)
-          .setDescription(d.ja)
+          .setDescription(d.base)
           .setDescriptionLocalizations(d.localizations);
       })
       .addSubcommand((sub) => {
         const d = desc("inactive-kick-settings.reset.description");
         return sub
           .setName(SUBCOMMAND.RESET)
-          .setDescription(d.ja)
+          .setDescription(d.base)
           .setDescriptionLocalizations(d.localizations);
       })
       .addSubcommandGroup((group) => {
@@ -195,23 +195,23 @@ export const inactiveKickSettingsCommand: Command = {
         const listD = desc("inactive-kick-settings.whitelist.list.description");
         return group
           .setName(GROUP.WHITELIST)
-          .setDescription(gd.ja)
+          .setDescription(gd.base)
           .setDescriptionLocalizations(gd.localizations)
           .addSubcommand((sub) =>
             sub
               .setName(WHITELIST_SUBCOMMAND.ADD)
-              .setDescription(addD.ja)
+              .setDescription(addD.base)
               .setDescriptionLocalizations(addD.localizations)
               .addRoleOption((o) =>
                 o
                   .setName(OPTION.ROLE)
-                  .setDescription(addRole.ja)
+                  .setDescription(addRole.base)
                   .setDescriptionLocalizations(addRole.localizations),
               )
               .addUserOption((o) =>
                 o
                   .setName(OPTION.USER)
-                  .setDescription(addUser.ja)
+                  .setDescription(addUser.base)
                   .setDescriptionLocalizations(addUser.localizations),
               ),
           )
@@ -219,13 +219,13 @@ export const inactiveKickSettingsCommand: Command = {
             // remove は登録済み項目をセレクトメニューで複数選択するためオプションなし
             sub
               .setName(WHITELIST_SUBCOMMAND.REMOVE)
-              .setDescription(rmD.ja)
+              .setDescription(rmD.base)
               .setDescriptionLocalizations(rmD.localizations),
           )
           .addSubcommand((sub) =>
             sub
               .setName(WHITELIST_SUBCOMMAND.LIST)
-              .setDescription(listD.ja)
+              .setDescription(listD.base)
               .setDescriptionLocalizations(listD.localizations),
           );
       });

@@ -40,18 +40,18 @@ export const vacSettingsCommand: Command = {
 
     return new SlashCommandBuilder()
       .setName(VAC_SETTINGS_COMMAND.NAME)
-      .setDescription(cmdDesc.ja)
+      .setDescription(cmdDesc.base)
       .setDescriptionLocalizations(cmdDesc.localizations)
       .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
       .addSubcommand((subcommand) =>
         subcommand
           .setName(VAC_SETTINGS_COMMAND.SUBCOMMAND.CREATE_TRIGGER)
-          .setDescription(createDesc.ja)
+          .setDescription(createDesc.base)
           .setDescriptionLocalizations(createDesc.localizations)
           .addStringOption((option) =>
             option
               .setName(VAC_SETTINGS_COMMAND.OPTION.CATEGORY)
-              .setDescription(createCategoryDesc.ja)
+              .setDescription(createCategoryDesc.base)
               .setDescriptionLocalizations(createCategoryDesc.localizations)
               .setRequired(false)
               .setAutocomplete(true),
@@ -60,13 +60,13 @@ export const vacSettingsCommand: Command = {
       .addSubcommand((subcommand) =>
         subcommand
           .setName(VAC_SETTINGS_COMMAND.SUBCOMMAND.REMOVE_TRIGGER)
-          .setDescription(removeDesc.ja)
+          .setDescription(removeDesc.base)
           .setDescriptionLocalizations(removeDesc.localizations),
       )
       .addSubcommand((subcommand) =>
         subcommand
           .setName(VAC_SETTINGS_COMMAND.SUBCOMMAND.VIEW)
-          .setDescription(viewDesc.ja)
+          .setDescription(viewDesc.base)
           .setDescriptionLocalizations(viewDesc.localizations),
       );
   })(),

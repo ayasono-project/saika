@@ -29,7 +29,7 @@ export const pingCommand: Command = {
     );
     return new SlashCommandBuilder()
       .setName(PING_COMMAND.NAME)
-      .setDescription(desc.ja)
+      .setDescription(desc.base)
       .setDescriptionLocalizations(desc.localizations);
   })(),
 

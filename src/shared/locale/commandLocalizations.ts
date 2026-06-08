@@ -15,10 +15,11 @@ export function getCommandLocalizations<NS extends keyof typeof resources.ja>(
   namespace: NS,
   key: keyof (typeof resources.ja)[NS],
 ): {
-  ja: string;
+  base: string;
   localizations: CommandLocalizationMap;
 } {
-  // 既定表示は日本語、その他は Discord の locale map で供給
+  // 既定表示は英語（ディスカバリー審査フィルタが読むベース）。
+  // 日本語クライアントには localizations.ja で上書き表示する。
   const jaValue = (resources.ja[namespace] as Record<string, string>)[
     key as string
   ];
@@ -26,11 +27,8 @@ export function getCommandLocalizations<NS extends keyof typeof resources.ja>(
     key as string
   ];
   return {
-    ja: jaValue,
-    localizations: {
-      "en-US": enValue,
-      "en-GB": enValue,
-    },
+    base: enValue,
+    localizations: { ja: jaValue },
   };
 }
 
@@ -56,11 +54,8 @@ export function getChoiceLocalizations<NS extends keyof typeof resources.ja>(
     key as string
   ];
   return {
-    name: jaValue,
-    name_localizations: {
-      "en-US": enValue,
-      "en-GB": enValue,
-    },
+    name: enValue,
+    name_localizations: { ja: jaValue },
     value,
   };
 }
@@ -89,11 +84,11 @@ export function withLocalization<NS extends keyof typeof resources.ja>(
   ) => T;
 } {
   // キーに対応する説明文をまとめて取得して再利用
-  const { ja, localizations } = getCommandLocalizations(namespace, key);
+  const { base, localizations } = getCommandLocalizations(namespace, key);
   return {
-    // Discord クライアント既定表示向け（ja）
-    description: ja,
-    // クライアントロケール別の説明文マップ
+    // Discord クライアント既定表示向け（英語ベース）
+    description: base,
+    // クライアントロケール別の説明文マップ（ja）
     descriptionLocalizations: localizations,
     /**
      * SlashCommandBuilderなどに適用
@@ -108,7 +103,7 @@ export function withLocalization<NS extends keyof typeof resources.ja>(
     ): T => {
       // builder への適用順を固定し、戻り値チェーンを維持
       return builder
-        .setDescription(ja)
+        .setDescription(base)
         .setDescriptionLocalizations(localizations);
     },
   };

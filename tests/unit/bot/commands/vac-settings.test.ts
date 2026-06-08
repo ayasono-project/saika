@@ -37,7 +37,7 @@ vi.mock("@/bot/errors/interactionErrorHandler", () => ({
 // i18n を固定化して期待値を安定させる
 vi.mock("@/shared/locale/commandLocalizations", () => ({
   getCommandLocalizations: () => ({
-    ja: "desc",
+    base: "desc",
     localizations: { "en-US": "desc" },
   }),
 }));

@@ -76,26 +76,26 @@ export const stickyMessageCommand: Command = {
     return (
       new SlashCommandBuilder()
         .setName(STICKY_MESSAGE_COMMAND.NAME)
-        .setDescription(cmdDesc.ja)
+        .setDescription(cmdDesc.base)
         .setDescriptionLocalizations(cmdDesc.localizations)
         .setDefaultMemberPermissions(PermissionFlagsBits.ManageChannels)
         /* ── set ── */
         .addSubcommand((sub) =>
           sub
             .setName(STICKY_MESSAGE_COMMAND.SUBCOMMAND.SET)
-            .setDescription(setDesc.ja)
+            .setDescription(setDesc.base)
             .setDescriptionLocalizations(setDesc.localizations)
             .addChannelOption((opt) =>
               opt
                 .setName(STICKY_MESSAGE_COMMAND.OPTION.CHANNEL)
-                .setDescription(setChannelDesc.ja)
+                .setDescription(setChannelDesc.base)
                 .setDescriptionLocalizations(setChannelDesc.localizations)
                 .setRequired(false),
             )
             .addStringOption((opt) =>
               opt
                 .setName(STICKY_MESSAGE_COMMAND.OPTION.STYLE)
-                .setDescription(setStyleDesc.ja)
+                .setDescription(setStyleDesc.base)
                 .setDescriptionLocalizations(setStyleDesc.localizations)
                 .addChoices(styleChoiceText, styleChoiceEmbed)
                 .setRequired(false),
@@ -105,33 +105,33 @@ export const stickyMessageCommand: Command = {
         .addSubcommand((sub) =>
           sub
             .setName(STICKY_MESSAGE_COMMAND.SUBCOMMAND.REMOVE)
-            .setDescription(removeDesc.ja)
+            .setDescription(removeDesc.base)
             .setDescriptionLocalizations(removeDesc.localizations),
         )
         /* ── view ── */
         .addSubcommand((sub) =>
           sub
             .setName(STICKY_MESSAGE_COMMAND.SUBCOMMAND.VIEW)
-            .setDescription(viewDesc.ja)
+            .setDescription(viewDesc.base)
             .setDescriptionLocalizations(viewDesc.localizations),
         )
         /* ── update ── */
         .addSubcommand((sub) =>
           sub
             .setName(STICKY_MESSAGE_COMMAND.SUBCOMMAND.UPDATE)
-            .setDescription(updateDesc.ja)
+            .setDescription(updateDesc.base)
             .setDescriptionLocalizations(updateDesc.localizations)
             .addChannelOption((opt) =>
               opt
                 .setName(STICKY_MESSAGE_COMMAND.OPTION.CHANNEL)
-                .setDescription(updateChannelDesc.ja)
+                .setDescription(updateChannelDesc.base)
                 .setDescriptionLocalizations(updateChannelDesc.localizations)
                 .setRequired(false),
             )
             .addStringOption((opt) =>
               opt
                 .setName(STICKY_MESSAGE_COMMAND.OPTION.STYLE)
-                .setDescription(updateStyleDesc.ja)
+                .setDescription(updateStyleDesc.base)
                 .setDescriptionLocalizations(updateStyleDesc.localizations)
                 .addChoices(styleChoiceText, styleChoiceEmbed)
                 .setRequired(false),

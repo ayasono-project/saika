@@ -37,7 +37,7 @@ export const unverifiedKickSettingsCommand: Command = {
 
     return new SlashCommandBuilder()
       .setName(UNVERIFIED_KICK_SETTINGS_COMMAND.NAME)
-      .setDescription(cmdDesc.ja)
+      .setDescription(cmdDesc.base)
       .setDescriptionLocalizations(cmdDesc.localizations)
       .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
       .addSubcommand((sub) => {
@@ -49,12 +49,12 @@ export const unverifiedKickSettingsCommand: Command = {
         );
         return sub
           .setName(SUBCOMMAND.SET_VERIFIED_ROLE)
-          .setDescription(d.ja)
+          .setDescription(d.base)
           .setDescriptionLocalizations(d.localizations)
           .addRoleOption((o) =>
             o
               .setName(OPTION.ROLE)
-              .setDescription(od.ja)
+              .setDescription(od.base)
               .setDescriptionLocalizations(od.localizations)
               .setRequired(true),
           );
@@ -66,12 +66,12 @@ export const unverifiedKickSettingsCommand: Command = {
         );
         return sub
           .setName(SUBCOMMAND.SET_GRACE_DAYS)
-          .setDescription(d.ja)
+          .setDescription(d.base)
           .setDescriptionLocalizations(d.localizations)
           .addIntegerOption((o) =>
             o
               .setName(OPTION.DAYS)
-              .setDescription(od.ja)
+              .setDescription(od.base)
               .setDescriptionLocalizations(od.localizations)
               .setMinValue(UNVERIFIED_KICK_GRACE_MIN_DAYS)
               .setMaxValue(UNVERIFIED_KICK_GRACE_MAX_DAYS)
@@ -85,12 +85,12 @@ export const unverifiedKickSettingsCommand: Command = {
         );
         return sub
           .setName(SUBCOMMAND.SET_WARN_DAYS)
-          .setDescription(d.ja)
+          .setDescription(d.base)
           .setDescriptionLocalizations(d.localizations)
           .addIntegerOption((o) =>
             o
               .setName(OPTION.DAYS)
-              .setDescription(od.ja)
+              .setDescription(od.base)
               .setDescriptionLocalizations(od.localizations)
               .setMinValue(UNVERIFIED_KICK_WARN_MIN_DAYS)
               .setMaxValue(WARN_DAYS_MAX)
@@ -101,7 +101,7 @@ export const unverifiedKickSettingsCommand: Command = {
         const d = desc("unverified-kick-settings.clear-warn-days.description");
         return sub
           .setName(SUBCOMMAND.CLEAR_WARN_DAYS)
-          .setDescription(d.ja)
+          .setDescription(d.base)
           .setDescriptionLocalizations(d.localizations);
       })
       .addSubcommand((sub) => {
@@ -113,12 +113,12 @@ export const unverifiedKickSettingsCommand: Command = {
         );
         return sub
           .setName(SUBCOMMAND.SET_NOTIFY_CHANNEL)
-          .setDescription(d.ja)
+          .setDescription(d.base)
           .setDescriptionLocalizations(d.localizations)
           .addChannelOption((o) =>
             o
               .setName(OPTION.CHANNEL)
-              .setDescription(od.ja)
+              .setDescription(od.base)
               .setDescriptionLocalizations(od.localizations)
               .addChannelTypes(ChannelType.GuildText)
               .setRequired(true),
@@ -130,7 +130,7 @@ export const unverifiedKickSettingsCommand: Command = {
         );
         return sub
           .setName(SUBCOMMAND.CLEAR_NOTIFY_CHANNEL)
-          .setDescription(d.ja)
+          .setDescription(d.base)
           .setDescriptionLocalizations(d.localizations);
       })
       .addSubcommand((sub) => {
@@ -140,12 +140,12 @@ export const unverifiedKickSettingsCommand: Command = {
         );
         return sub
           .setName(SUBCOMMAND.SET_LOG_CHANNEL)
-          .setDescription(d.ja)
+          .setDescription(d.base)
           .setDescriptionLocalizations(d.localizations)
           .addChannelOption((o) =>
             o
               .setName(OPTION.CHANNEL)
-              .setDescription(od.ja)
+              .setDescription(od.base)
               .setDescriptionLocalizations(od.localizations)
               .addChannelTypes(ChannelType.GuildText)
               .setRequired(true),
@@ -157,7 +157,7 @@ export const unverifiedKickSettingsCommand: Command = {
         );
         return sub
           .setName(SUBCOMMAND.CLEAR_LOG_CHANNEL)
-          .setDescription(d.ja)
+          .setDescription(d.base)
           .setDescriptionLocalizations(d.localizations);
       })
       .addSubcommand((sub) => {
@@ -167,12 +167,12 @@ export const unverifiedKickSettingsCommand: Command = {
         );
         return sub
           .setName(SUBCOMMAND.SET_MARKER_ROLE)
-          .setDescription(d.ja)
+          .setDescription(d.base)
           .setDescriptionLocalizations(d.localizations)
           .addRoleOption((o) =>
             o
               .setName(OPTION.ROLE)
-              .setDescription(od.ja)
+              .setDescription(od.base)
               .setDescriptionLocalizations(od.localizations)
               .setRequired(true),
           );
@@ -183,21 +183,21 @@ export const unverifiedKickSettingsCommand: Command = {
         );
         return sub
           .setName(SUBCOMMAND.CLEAR_MARKER_ROLE)
-          .setDescription(d.ja)
+          .setDescription(d.base)
           .setDescriptionLocalizations(d.localizations);
       })
       .addSubcommand((sub) => {
         const d = desc("unverified-kick-settings.set-dm-message.description");
         return sub
           .setName(SUBCOMMAND.SET_DM_MESSAGE)
-          .setDescription(d.ja)
+          .setDescription(d.base)
           .setDescriptionLocalizations(d.localizations);
       })
       .addSubcommand((sub) => {
         const d = desc("unverified-kick-settings.clear-dm-message.description");
         return sub
           .setName(SUBCOMMAND.CLEAR_DM_MESSAGE)
-          .setDescription(d.ja)
+          .setDescription(d.base)
           .setDescriptionLocalizations(d.localizations);
       })
       .addSubcommand((sub) => {
@@ -206,7 +206,7 @@ export const unverifiedKickSettingsCommand: Command = {
         );
         return sub
           .setName(SUBCOMMAND.SET_NOTIFY_MESSAGE)
-          .setDescription(d.ja)
+          .setDescription(d.base)
           .setDescriptionLocalizations(d.localizations);
       })
       .addSubcommand((sub) => {
@@ -215,42 +215,42 @@ export const unverifiedKickSettingsCommand: Command = {
         );
         return sub
           .setName(SUBCOMMAND.CLEAR_NOTIFY_MESSAGE)
-          .setDescription(d.ja)
+          .setDescription(d.base)
           .setDescriptionLocalizations(d.localizations);
       })
       .addSubcommand((sub) => {
         const d = desc("unverified-kick-settings.enable.description");
         return sub
           .setName(SUBCOMMAND.ENABLE)
-          .setDescription(d.ja)
+          .setDescription(d.base)
           .setDescriptionLocalizations(d.localizations);
       })
       .addSubcommand((sub) => {
         const d = desc("unverified-kick-settings.disable.description");
         return sub
           .setName(SUBCOMMAND.DISABLE)
-          .setDescription(d.ja)
+          .setDescription(d.base)
           .setDescriptionLocalizations(d.localizations);
       })
       .addSubcommand((sub) => {
         const d = desc("unverified-kick-settings.preview.description");
         return sub
           .setName(SUBCOMMAND.PREVIEW)
-          .setDescription(d.ja)
+          .setDescription(d.base)
           .setDescriptionLocalizations(d.localizations);
       })
       .addSubcommand((sub) => {
         const d = desc("unverified-kick-settings.view.description");
         return sub
           .setName(SUBCOMMAND.VIEW)
-          .setDescription(d.ja)
+          .setDescription(d.base)
           .setDescriptionLocalizations(d.localizations);
       })
       .addSubcommand((sub) => {
         const d = desc("unverified-kick-settings.reset.description");
         return sub
           .setName(SUBCOMMAND.RESET)
-          .setDescription(d.ja)
+          .setDescription(d.base)
           .setDescriptionLocalizations(d.localizations);
       })
       .addSubcommandGroup((group) => {
@@ -263,17 +263,17 @@ export const unverifiedKickSettingsCommand: Command = {
         const listD = desc("unverified-kick-settings.exempt.list.description");
         return group
           .setName(GROUP.EXEMPT)
-          .setDescription(gd.ja)
+          .setDescription(gd.base)
           .setDescriptionLocalizations(gd.localizations)
           .addSubcommand((sub) =>
             sub
               .setName(EXEMPT_SUBCOMMAND.ADD)
-              .setDescription(addD.ja)
+              .setDescription(addD.base)
               .setDescriptionLocalizations(addD.localizations)
               .addRoleOption((o) =>
                 o
                   .setName(OPTION.ROLE)
-                  .setDescription(addRole.ja)
+                  .setDescription(addRole.base)
                   .setDescriptionLocalizations(addRole.localizations)
                   .setRequired(true),
               ),
@@ -282,13 +282,13 @@ export const unverifiedKickSettingsCommand: Command = {
             // remove は登録済み項目をセレクトメニューで複数選択するためオプションなし
             sub
               .setName(EXEMPT_SUBCOMMAND.REMOVE)
-              .setDescription(rmD.ja)
+              .setDescription(rmD.base)
               .setDescriptionLocalizations(rmD.localizations),
           )
           .addSubcommand((sub) =>
             sub
               .setName(EXEMPT_SUBCOMMAND.LIST)
-              .setDescription(listD.ja)
+              .setDescription(listD.base)
               .setDescriptionLocalizations(listD.localizations),
           );
       });

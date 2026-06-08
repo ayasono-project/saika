@@ -34,27 +34,27 @@ export const ticketCommand: Command = {
     return (
       new SlashCommandBuilder()
         .setName(TICKET_COMMAND.NAME)
-        .setDescription(cmdDesc.ja)
+        .setDescription(cmdDesc.base)
         .setDescriptionLocalizations(cmdDesc.localizations)
         /* ── close ── */
         .addSubcommand((sub) =>
           sub
             .setName(TICKET_COMMAND.SUBCOMMAND.CLOSE)
-            .setDescription(closeDesc.ja)
+            .setDescription(closeDesc.base)
             .setDescriptionLocalizations(closeDesc.localizations),
         )
         /* ── open ── */
         .addSubcommand((sub) =>
           sub
             .setName(TICKET_COMMAND.SUBCOMMAND.OPEN)
-            .setDescription(openDesc.ja)
+            .setDescription(openDesc.base)
             .setDescriptionLocalizations(openDesc.localizations),
         )
         /* ── delete ── */
         .addSubcommand((sub) =>
           sub
             .setName(TICKET_COMMAND.SUBCOMMAND.DELETE)
-            .setDescription(deleteDesc.ja)
+            .setDescription(deleteDesc.base)
             .setDescriptionLocalizations(deleteDesc.localizations),
         )
     );

@@ -47,19 +47,19 @@ export const afkCommand: Command = {
 
     return new SlashCommandBuilder()
       .setName(AFK_COMMAND.NAME)
-      .setDescription(cmdDesc.ja)
+      .setDescription(cmdDesc.base)
       .setDescriptionLocalizations(cmdDesc.localizations)
       .addUserOption((option) =>
         option
           .setName(AFK_COMMAND.OPTION.TARGET_MEMBER)
-          .setDescription(targetMemberDesc.ja)
+          .setDescription(targetMemberDesc.base)
           .setDescriptionLocalizations(targetMemberDesc.localizations)
           .setRequired(false),
       )
       .addChannelOption((option) =>
         option
           .setName(AFK_COMMAND.OPTION.TARGET_CHANNEL)
-          .setDescription(targetChannelDesc.ja)
+          .setDescription(targetChannelDesc.base)
           .setDescriptionLocalizations(targetChannelDesc.localizations)
           .addChannelTypes(ChannelType.GuildVoice)
           .setRequired(false),

@@ -52,7 +52,7 @@ export const afkSettingsCommand: Command = {
     return (
       new SlashCommandBuilder()
         .setName(AFK_SETTINGS_COMMAND.NAME)
-        .setDescription(cmdDesc.ja)
+        .setDescription(cmdDesc.base)
         .setDescriptionLocalizations(cmdDesc.localizations)
         // Discord 側の表示/実行制御として ManageGuild を要求
         .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
@@ -60,12 +60,12 @@ export const afkSettingsCommand: Command = {
           // AFK チャンネル設定
           subcommand
             .setName(AFK_SETTINGS_COMMAND.SUBCOMMAND.SET_CHANNEL)
-            .setDescription(setChannelDesc.ja)
+            .setDescription(setChannelDesc.base)
             .setDescriptionLocalizations(setChannelDesc.localizations)
             .addChannelOption((option) =>
               option
                 .setName(AFK_SETTINGS_COMMAND.OPTION.CHANNEL)
-                .setDescription(channelDesc.ja)
+                .setDescription(channelDesc.base)
                 .setDescriptionLocalizations(channelDesc.localizations)
                 .addChannelTypes(ChannelType.GuildVoice)
                 .setRequired(true),
@@ -75,14 +75,14 @@ export const afkSettingsCommand: Command = {
           // AFK チャンネル設定解除
           subcommand
             .setName(AFK_SETTINGS_COMMAND.SUBCOMMAND.CLEAR_CHANNEL)
-            .setDescription(clearChannelDesc.ja)
+            .setDescription(clearChannelDesc.base)
             .setDescriptionLocalizations(clearChannelDesc.localizations),
         )
         .addSubcommand((subcommand) =>
           // 現在設定の表示
           subcommand
             .setName(AFK_SETTINGS_COMMAND.SUBCOMMAND.VIEW)
-            .setDescription(viewDesc.ja)
+            .setDescription(viewDesc.base)
             .setDescriptionLocalizations(viewDesc.localizations),
         )
     );

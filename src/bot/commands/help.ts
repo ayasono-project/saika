@@ -29,7 +29,7 @@ export const helpCommand: Command = {
     );
     return new SlashCommandBuilder()
       .setName(HELP_COMMAND.NAME)
-      .setDescription(desc.ja)
+      .setDescription(desc.base)
       .setDescriptionLocalizations(desc.localizations);
   })(),
 

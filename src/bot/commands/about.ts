@@ -29,7 +29,7 @@ export const aboutCommand: Command = {
     );
     return new SlashCommandBuilder()
       .setName(ABOUT_COMMAND.NAME)
-      .setDescription(desc.ja)
+      .setDescription(desc.base)
       .setDescriptionLocalizations(desc.localizations);
   })(),
 

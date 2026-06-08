@@ -76,7 +76,7 @@ export const vcAutoRecruitSettingsCommand: Command = {
     return (
       new SlashCommandBuilder()
         .setName(VC_AUTO_RECRUIT_SETTINGS_COMMAND.NAME)
-        .setDescription(cmdDesc.ja)
+        .setDescription(cmdDesc.base)
         .setDescriptionLocalizations(cmdDesc.localizations)
         // Discord 側の表示/実行制御として ManageGuild を要求
         .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
@@ -84,12 +84,12 @@ export const vcAutoRecruitSettingsCommand: Command = {
           // 投稿先チャンネル設定
           subcommand
             .setName(VC_AUTO_RECRUIT_SETTINGS_COMMAND.SUBCOMMAND.SET_CHANNEL)
-            .setDescription(setChannelDesc.ja)
+            .setDescription(setChannelDesc.base)
             .setDescriptionLocalizations(setChannelDesc.localizations)
             .addChannelOption((option) =>
               option
                 .setName(VC_AUTO_RECRUIT_SETTINGS_COMMAND.OPTION.CHANNEL)
-                .setDescription(setChannelChannelDesc.ja)
+                .setDescription(setChannelChannelDesc.base)
                 .setDescriptionLocalizations(
                   setChannelChannelDesc.localizations,
                 )
@@ -101,40 +101,40 @@ export const vcAutoRecruitSettingsCommand: Command = {
           // 機能有効化
           subcommand
             .setName(VC_AUTO_RECRUIT_SETTINGS_COMMAND.SUBCOMMAND.ENABLE)
-            .setDescription(enableDesc.ja)
+            .setDescription(enableDesc.base)
             .setDescriptionLocalizations(enableDesc.localizations),
         )
         .addSubcommand((subcommand) =>
           // 機能無効化
           subcommand
             .setName(VC_AUTO_RECRUIT_SETTINGS_COMMAND.SUBCOMMAND.DISABLE)
-            .setDescription(disableDesc.ja)
+            .setDescription(disableDesc.base)
             .setDescriptionLocalizations(disableDesc.localizations),
         )
         .addSubcommand((subcommand) =>
           // カスタム招待メッセージ設定（モーダル起動）
           subcommand
             .setName(VC_AUTO_RECRUIT_SETTINGS_COMMAND.SUBCOMMAND.SET_MESSAGE)
-            .setDescription(setMessageDesc.ja)
+            .setDescription(setMessageDesc.base)
             .setDescriptionLocalizations(setMessageDesc.localizations),
         )
         .addSubcommand((subcommand) =>
           // カスタム招待メッセージ削除
           subcommand
             .setName(VC_AUTO_RECRUIT_SETTINGS_COMMAND.SUBCOMMAND.CLEAR_MESSAGE)
-            .setDescription(clearMessageDesc.ja)
+            .setDescription(clearMessageDesc.base)
             .setDescriptionLocalizations(clearMessageDesc.localizations),
         )
         .addSubcommand((subcommand) =>
           // Embed 有効/無効切り替え
           subcommand
             .setName(VC_AUTO_RECRUIT_SETTINGS_COMMAND.SUBCOMMAND.SET_EMBED)
-            .setDescription(setEmbedDesc.ja)
+            .setDescription(setEmbedDesc.base)
             .setDescriptionLocalizations(setEmbedDesc.localizations)
             .addBooleanOption((option) =>
               option
                 .setName(VC_AUTO_RECRUIT_SETTINGS_COMMAND.OPTION.ENABLED)
-                .setDescription(setEmbedEnabledDesc.ja)
+                .setDescription(setEmbedEnabledDesc.base)
                 .setDescriptionLocalizations(setEmbedEnabledDesc.localizations)
                 .setRequired(true),
             ),
@@ -143,7 +143,7 @@ export const vcAutoRecruitSettingsCommand: Command = {
           // 募集対象カテゴリ追加（未登録カテゴリをメニューから複数選択）
           subcommand
             .setName(VC_AUTO_RECRUIT_SETTINGS_COMMAND.SUBCOMMAND.ADD_CATEGORY)
-            .setDescription(addCategoryDesc.ja)
+            .setDescription(addCategoryDesc.base)
             .setDescriptionLocalizations(addCategoryDesc.localizations),
         )
         .addSubcommand((subcommand) =>
@@ -152,21 +152,21 @@ export const vcAutoRecruitSettingsCommand: Command = {
             .setName(
               VC_AUTO_RECRUIT_SETTINGS_COMMAND.SUBCOMMAND.REMOVE_CATEGORY,
             )
-            .setDescription(removeCategoryDesc.ja)
+            .setDescription(removeCategoryDesc.base)
             .setDescriptionLocalizations(removeCategoryDesc.localizations),
         )
         .addSubcommand((subcommand) =>
           // 設定表示
           subcommand
             .setName(VC_AUTO_RECRUIT_SETTINGS_COMMAND.SUBCOMMAND.VIEW)
-            .setDescription(viewDesc.ja)
+            .setDescription(viewDesc.base)
             .setDescriptionLocalizations(viewDesc.localizations),
         )
         .addSubcommand((subcommand) =>
           // 設定リセット
           subcommand
             .setName(VC_AUTO_RECRUIT_SETTINGS_COMMAND.SUBCOMMAND.RESET)
-            .setDescription(resetDesc.ja)
+            .setDescription(resetDesc.base)
             .setDescriptionLocalizations(resetDesc.localizations),
         )
     );

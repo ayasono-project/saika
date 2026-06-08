@@ -8,7 +8,7 @@ import { interactionCreateEvent } from "@/bot/events/interactionCreate";
 // コマンド・イベント結合検証のため、翻訳とEmbed生成のみ固定化する
 vi.mock("@/shared/locale/commandLocalizations", () => ({
   getCommandLocalizations: () => ({
-    ja: "ping description",
+    base: "ping description",
     localizations: { "en-US": "ping description" },
   }),
 }));

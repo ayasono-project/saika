@@ -99,19 +99,19 @@ export const ticketSettingsCommand: Command = {
     return (
       new SlashCommandBuilder()
         .setName(TICKET_SETTINGS_COMMAND.NAME)
-        .setDescription(cmdDesc.ja)
+        .setDescription(cmdDesc.base)
         .setDescriptionLocalizations(cmdDesc.localizations)
         .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
         /* ── setup ── */
         .addSubcommand((sub) =>
           sub
             .setName(TICKET_SETTINGS_COMMAND.SUBCOMMAND.SETUP)
-            .setDescription(setupDesc.ja)
+            .setDescription(setupDesc.base)
             .setDescriptionLocalizations(setupDesc.localizations)
             .addChannelOption((opt) =>
               opt
                 .setName(TICKET_SETTINGS_COMMAND.OPTION.CATEGORY)
-                .setDescription(setupCategoryDesc.ja)
+                .setDescription(setupCategoryDesc.base)
                 .setDescriptionLocalizations(setupCategoryDesc.localizations)
                 .addChannelTypes(ChannelType.GuildCategory)
                 .setRequired(true),
@@ -121,26 +121,26 @@ export const ticketSettingsCommand: Command = {
         .addSubcommand((sub) =>
           sub
             .setName(TICKET_SETTINGS_COMMAND.SUBCOMMAND.TEARDOWN)
-            .setDescription(teardownDesc.ja)
+            .setDescription(teardownDesc.base)
             .setDescriptionLocalizations(teardownDesc.localizations),
         )
         /* ── view ── */
         .addSubcommand((sub) =>
           sub
             .setName(TICKET_SETTINGS_COMMAND.SUBCOMMAND.VIEW)
-            .setDescription(viewDesc.ja)
+            .setDescription(viewDesc.base)
             .setDescriptionLocalizations(viewDesc.localizations),
         )
         /* ── edit-panel ── */
         .addSubcommand((sub) =>
           sub
             .setName(TICKET_SETTINGS_COMMAND.SUBCOMMAND.EDIT_PANEL)
-            .setDescription(editPanelDesc.ja)
+            .setDescription(editPanelDesc.base)
             .setDescriptionLocalizations(editPanelDesc.localizations)
             .addChannelOption((opt) =>
               opt
                 .setName(TICKET_SETTINGS_COMMAND.OPTION.CATEGORY)
-                .setDescription(editPanelCategoryDesc.ja)
+                .setDescription(editPanelCategoryDesc.base)
                 .setDescriptionLocalizations(
                   editPanelCategoryDesc.localizations,
                 )
@@ -152,12 +152,12 @@ export const ticketSettingsCommand: Command = {
         .addSubcommand((sub) =>
           sub
             .setName(TICKET_SETTINGS_COMMAND.SUBCOMMAND.SET_ROLES)
-            .setDescription(setRolesDesc.ja)
+            .setDescription(setRolesDesc.base)
             .setDescriptionLocalizations(setRolesDesc.localizations)
             .addChannelOption((opt) =>
               opt
                 .setName(TICKET_SETTINGS_COMMAND.OPTION.CATEGORY)
-                .setDescription(setRolesCategoryDesc.ja)
+                .setDescription(setRolesCategoryDesc.base)
                 .setDescriptionLocalizations(setRolesCategoryDesc.localizations)
                 .addChannelTypes(ChannelType.GuildCategory)
                 .setRequired(true),
@@ -167,12 +167,12 @@ export const ticketSettingsCommand: Command = {
         .addSubcommand((sub) =>
           sub
             .setName(TICKET_SETTINGS_COMMAND.SUBCOMMAND.ADD_ROLES)
-            .setDescription(addRolesDesc.ja)
+            .setDescription(addRolesDesc.base)
             .setDescriptionLocalizations(addRolesDesc.localizations)
             .addChannelOption((opt) =>
               opt
                 .setName(TICKET_SETTINGS_COMMAND.OPTION.CATEGORY)
-                .setDescription(addRolesCategoryDesc.ja)
+                .setDescription(addRolesCategoryDesc.base)
                 .setDescriptionLocalizations(addRolesCategoryDesc.localizations)
                 .addChannelTypes(ChannelType.GuildCategory)
                 .setRequired(true),
@@ -182,12 +182,12 @@ export const ticketSettingsCommand: Command = {
         .addSubcommand((sub) =>
           sub
             .setName(TICKET_SETTINGS_COMMAND.SUBCOMMAND.REMOVE_ROLES)
-            .setDescription(removeRolesDesc.ja)
+            .setDescription(removeRolesDesc.base)
             .setDescriptionLocalizations(removeRolesDesc.localizations)
             .addChannelOption((opt) =>
               opt
                 .setName(TICKET_SETTINGS_COMMAND.OPTION.CATEGORY)
-                .setDescription(removeRolesCategoryDesc.ja)
+                .setDescription(removeRolesCategoryDesc.base)
                 .setDescriptionLocalizations(
                   removeRolesCategoryDesc.localizations,
                 )
@@ -199,12 +199,12 @@ export const ticketSettingsCommand: Command = {
         .addSubcommand((sub) =>
           sub
             .setName(TICKET_SETTINGS_COMMAND.SUBCOMMAND.SET_AUTO_DELETE)
-            .setDescription(setAutoDeleteDesc.ja)
+            .setDescription(setAutoDeleteDesc.base)
             .setDescriptionLocalizations(setAutoDeleteDesc.localizations)
             .addChannelOption((opt) =>
               opt
                 .setName(TICKET_SETTINGS_COMMAND.OPTION.CATEGORY)
-                .setDescription(setAutoDeleteCategoryDesc.ja)
+                .setDescription(setAutoDeleteCategoryDesc.base)
                 .setDescriptionLocalizations(
                   setAutoDeleteCategoryDesc.localizations,
                 )
@@ -214,7 +214,7 @@ export const ticketSettingsCommand: Command = {
             .addIntegerOption((opt) =>
               opt
                 .setName(TICKET_SETTINGS_COMMAND.OPTION.DAYS)
-                .setDescription(setAutoDeleteDaysDesc.ja)
+                .setDescription(setAutoDeleteDaysDesc.base)
                 .setDescriptionLocalizations(
                   setAutoDeleteDaysDesc.localizations,
                 )
@@ -226,12 +226,12 @@ export const ticketSettingsCommand: Command = {
         .addSubcommand((sub) =>
           sub
             .setName(TICKET_SETTINGS_COMMAND.SUBCOMMAND.SET_MAX_TICKETS)
-            .setDescription(setMaxTicketsDesc.ja)
+            .setDescription(setMaxTicketsDesc.base)
             .setDescriptionLocalizations(setMaxTicketsDesc.localizations)
             .addChannelOption((opt) =>
               opt
                 .setName(TICKET_SETTINGS_COMMAND.OPTION.CATEGORY)
-                .setDescription(setMaxTicketsCategoryDesc.ja)
+                .setDescription(setMaxTicketsCategoryDesc.base)
                 .setDescriptionLocalizations(
                   setMaxTicketsCategoryDesc.localizations,
                 )
@@ -241,7 +241,7 @@ export const ticketSettingsCommand: Command = {
             .addIntegerOption((opt) =>
               opt
                 .setName(TICKET_SETTINGS_COMMAND.OPTION.COUNT)
-                .setDescription(setMaxTicketsCountDesc.ja)
+                .setDescription(setMaxTicketsCountDesc.base)
                 .setDescriptionLocalizations(
                   setMaxTicketsCountDesc.localizations,
                 )

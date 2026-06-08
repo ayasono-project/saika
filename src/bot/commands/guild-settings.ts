@@ -100,7 +100,7 @@ export const guildSettingsCommand: Command = {
     return (
       new SlashCommandBuilder()
         .setName(GUILD_SETTINGS_COMMAND.NAME)
-        .setDescription(cmdDesc.ja)
+        .setDescription(cmdDesc.base)
         .setDescriptionLocalizations(cmdDesc.localizations)
         // Discord 側の表示/実行制御として ManageGuild を要求
         .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
@@ -108,12 +108,12 @@ export const guildSettingsCommand: Command = {
           // 言語設定
           sub
             .setName(GUILD_SETTINGS_COMMAND.SUBCOMMAND.SET_LOCALE)
-            .setDescription(setLocaleDesc.ja)
+            .setDescription(setLocaleDesc.base)
             .setDescriptionLocalizations(setLocaleDesc.localizations)
             .addStringOption((opt) =>
               opt
                 .setName(GUILD_SETTINGS_COMMAND.OPTION.LOCALE)
-                .setDescription(localeOptDesc.ja)
+                .setDescription(localeOptDesc.base)
                 .setDescriptionLocalizations(localeOptDesc.localizations)
                 .setRequired(true)
                 .addChoices(localeChoiceJa, localeChoiceEn),
@@ -123,12 +123,12 @@ export const guildSettingsCommand: Command = {
           // エラー通知チャンネル設定
           sub
             .setName(GUILD_SETTINGS_COMMAND.SUBCOMMAND.SET_ERROR_CHANNEL)
-            .setDescription(setErrorChannelDesc.ja)
+            .setDescription(setErrorChannelDesc.base)
             .setDescriptionLocalizations(setErrorChannelDesc.localizations)
             .addChannelOption((opt) =>
               opt
                 .setName(GUILD_SETTINGS_COMMAND.OPTION.CHANNEL)
-                .setDescription(channelOptDesc.ja)
+                .setDescription(channelOptDesc.base)
                 .setDescriptionLocalizations(channelOptDesc.localizations)
                 .addChannelTypes(ChannelType.GuildText)
                 .setRequired(true),
@@ -138,40 +138,40 @@ export const guildSettingsCommand: Command = {
           // 設定表示
           sub
             .setName(GUILD_SETTINGS_COMMAND.SUBCOMMAND.VIEW)
-            .setDescription(viewDesc.ja)
+            .setDescription(viewDesc.base)
             .setDescriptionLocalizations(viewDesc.localizations),
         )
         .addSubcommand((sub) =>
           // ギルド設定リセット
           sub
             .setName(GUILD_SETTINGS_COMMAND.SUBCOMMAND.RESET)
-            .setDescription(resetDesc.ja)
+            .setDescription(resetDesc.base)
             .setDescriptionLocalizations(resetDesc.localizations),
         )
         .addSubcommand((sub) =>
           // 全設定リセット
           sub
             .setName(GUILD_SETTINGS_COMMAND.SUBCOMMAND.RESET_ALL)
-            .setDescription(resetAllDesc.ja)
+            .setDescription(resetAllDesc.base)
             .setDescriptionLocalizations(resetAllDesc.localizations),
         )
         .addSubcommand((sub) =>
           // エクスポート
           sub
             .setName(GUILD_SETTINGS_COMMAND.SUBCOMMAND.EXPORT)
-            .setDescription(exportDesc.ja)
+            .setDescription(exportDesc.base)
             .setDescriptionLocalizations(exportDesc.localizations),
         )
         .addSubcommand((sub) =>
           // インポート
           sub
             .setName(GUILD_SETTINGS_COMMAND.SUBCOMMAND.IMPORT)
-            .setDescription(importDesc.ja)
+            .setDescription(importDesc.base)
             .setDescriptionLocalizations(importDesc.localizations)
             .addAttachmentOption((opt) =>
               opt
                 .setName(GUILD_SETTINGS_COMMAND.OPTION.FILE)
-                .setDescription(fileOptDesc.ja)
+                .setDescription(fileOptDesc.base)
                 .setDescriptionLocalizations(fileOptDesc.localizations)
                 .setRequired(true),
             ),

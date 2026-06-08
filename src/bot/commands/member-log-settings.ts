@@ -68,7 +68,7 @@ export const memberLogSettingsCommand: Command = {
     return (
       new SlashCommandBuilder()
         .setName(MEMBER_LOG_SETTINGS_COMMAND.NAME)
-        .setDescription(cmdDesc.ja)
+        .setDescription(cmdDesc.base)
         .setDescriptionLocalizations(cmdDesc.localizations)
         // Discord 側の表示/実行制御として ManageGuild を要求
         .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
@@ -76,12 +76,12 @@ export const memberLogSettingsCommand: Command = {
           // 通知チャンネル設定
           subcommand
             .setName(MEMBER_LOG_SETTINGS_COMMAND.SUBCOMMAND.SET_CHANNEL)
-            .setDescription(setChannelDesc.ja)
+            .setDescription(setChannelDesc.base)
             .setDescriptionLocalizations(setChannelDesc.localizations)
             .addChannelOption((option) =>
               option
                 .setName(MEMBER_LOG_SETTINGS_COMMAND.OPTION.CHANNEL)
-                .setDescription(setChannelChannelDesc.ja)
+                .setDescription(setChannelChannelDesc.base)
                 .setDescriptionLocalizations(
                   setChannelChannelDesc.localizations,
                 )
@@ -93,56 +93,56 @@ export const memberLogSettingsCommand: Command = {
           // 機能有効化
           subcommand
             .setName(MEMBER_LOG_SETTINGS_COMMAND.SUBCOMMAND.ENABLE)
-            .setDescription(enableDesc.ja)
+            .setDescription(enableDesc.base)
             .setDescriptionLocalizations(enableDesc.localizations),
         )
         .addSubcommand((subcommand) =>
           // 機能無効化
           subcommand
             .setName(MEMBER_LOG_SETTINGS_COMMAND.SUBCOMMAND.DISABLE)
-            .setDescription(disableDesc.ja)
+            .setDescription(disableDesc.base)
             .setDescriptionLocalizations(disableDesc.localizations),
         )
         .addSubcommand((subcommand) =>
           // カスタム参加メッセージ設定（モーダル起動）
           subcommand
             .setName(MEMBER_LOG_SETTINGS_COMMAND.SUBCOMMAND.SET_JOIN_MESSAGE)
-            .setDescription(setJoinMessageDesc.ja)
+            .setDescription(setJoinMessageDesc.base)
             .setDescriptionLocalizations(setJoinMessageDesc.localizations),
         )
         .addSubcommand((subcommand) =>
           // カスタム退出メッセージ設定（モーダル起動）
           subcommand
             .setName(MEMBER_LOG_SETTINGS_COMMAND.SUBCOMMAND.SET_LEAVE_MESSAGE)
-            .setDescription(setLeaveMessageDesc.ja)
+            .setDescription(setLeaveMessageDesc.base)
             .setDescriptionLocalizations(setLeaveMessageDesc.localizations),
         )
         .addSubcommand((subcommand) =>
           // カスタム参加メッセージ削除
           subcommand
             .setName(MEMBER_LOG_SETTINGS_COMMAND.SUBCOMMAND.CLEAR_JOIN_MESSAGE)
-            .setDescription(clearJoinMessageDesc.ja)
+            .setDescription(clearJoinMessageDesc.base)
             .setDescriptionLocalizations(clearJoinMessageDesc.localizations),
         )
         .addSubcommand((subcommand) =>
           // カスタム退出メッセージ削除
           subcommand
             .setName(MEMBER_LOG_SETTINGS_COMMAND.SUBCOMMAND.CLEAR_LEAVE_MESSAGE)
-            .setDescription(clearLeaveMessageDesc.ja)
+            .setDescription(clearLeaveMessageDesc.base)
             .setDescriptionLocalizations(clearLeaveMessageDesc.localizations),
         )
         .addSubcommand((subcommand) =>
           // 設定リセット
           subcommand
             .setName(MEMBER_LOG_SETTINGS_COMMAND.SUBCOMMAND.RESET)
-            .setDescription(resetDesc.ja)
+            .setDescription(resetDesc.base)
             .setDescriptionLocalizations(resetDesc.localizations),
         )
         .addSubcommand((subcommand) =>
           // 設定表示
           subcommand
             .setName(MEMBER_LOG_SETTINGS_COMMAND.SUBCOMMAND.VIEW)
-            .setDescription(viewDesc.ja)
+            .setDescription(viewDesc.base)
             .setDescriptionLocalizations(viewDesc.localizations),
         )
     );

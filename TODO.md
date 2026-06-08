@@ -2,7 +2,7 @@
 
 > タスク管理・進捗状況・残件リスト
 
-最終更新: 2026年6月7日
+最終更新: 2026年6月9日
 
 ---
 
@@ -10,8 +10,8 @@
 
 | # | セクション | 概要 | 残件 |
 | --- | --- | --- | ---: |
-| 11 | Bot 一般公開準備 | `/about` 充実（LP 公開時）・Discord 認証申請（75 サーバー到達後） | 2 |
-| **合計** | | | **2** |
+| 11 | Bot 一般公開準備 | `/about` 充実（LP 公開時）・Discord 認証申請（75 サーバー到達後）・ディスカバリー審査の ja 抑止戻し | 3 |
+| **合計** | | | **3** |
 
 > web ダッシュボード・インフラ（VPS / Cloudflare / Coolify）は別リポジトリで管理。
 > 残るは §11 Bot 一般公開準備のみ（前段 §1〜§3・Fastify API §10 は完了済みへ移動済み）。§11 の Discord 認証申請は 75 サーバー到達後に着手する条件待ち。
@@ -27,6 +27,7 @@
 - [x] `/about` コマンド（バージョン〔package.json 単一情報源・実行時 cwd から取得〕＋公式 URL〔ayasono LP 用 env `OFFICIAL_URL` 出し分け・未設定時は省略〕・ephemeral・2026-06-07 実装完了）
 - [ ] `/about` の充実（**LP 公開時に実施**）— ayasono プロジェクト LP 実装時に、公式サイト（`OFFICIAL_URL` env に値設定・出し分けは実装済み）に加え各種リンクを追加: ダッシュボード（`DASHBOARD_URL`）/ GitHub ソース（AGPL 公開リポ）/ ユーザーマニュアル（`USER_MANUAL_URL`）。運用ステータス（導入サーバー数・稼働時間）等は必要に応じ検討。LP 完成まで現状維持
 - [ ] Discord Bot 認証申請（75 サーバー到達後）
+- [ ] ディスカバリー審査対応の ja 抑止戻し — コマンドローカライズは英語ベース化済み（`base`=英語 / `localizations`=ja・全コマンド一括）。審査が `/message-delete` の日本語説明文を有害判定するため、審査時のみ [message-delete.ts](src/bot/commands/message-delete.ts) の `FIXME(discovery-review)` **6 箇所**を `.setDescriptionLocalizations({})` に切替 → デプロイ（global コマンド再登録・反映最大 1h）→ ディスカバリー有効化。**通過確認後は必ず FIXME を元へ戻して再デプロイ**（日本語復活・一度有効化された discovery は無効化されない）。再スキャンで他コマンドが弾かれたら同手順を該当コマンドへ拡大
 
 ---
 

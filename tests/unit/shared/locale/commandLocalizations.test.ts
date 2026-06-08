@@ -6,13 +6,12 @@ import {
 import { resources } from "@/shared/locale/locales/resources";
 
 describe("shared/locale/commandLocalizations", () => {
-  it("日本語のデフォルトと英語のローカライゼーションマップを返すこと", () => {
+  it("英語をデフォルト(base)、日本語をローカライゼーションマップに返すこと", () => {
     const localizations = getCommandLocalizations("ping", "ping.description");
 
-    expect(localizations.ja).toBe(resources.ja.ping["ping.description"]);
+    expect(localizations.base).toBe(resources.en.ping["ping.description"]);
     expect(localizations.localizations).toEqual({
-      "en-US": resources.en.ping["ping.description"],
-      "en-GB": resources.en.ping["ping.description"],
+      ja: resources.ja.ping["ping.description"],
     });
   });
 
@@ -36,19 +35,17 @@ describe("shared/locale/commandLocalizations", () => {
     const localized = withLocalization("afk", "afk.description");
     const result = localized.apply(builder);
 
-    expect(localized.description).toBe(resources.ja.afk["afk.description"]);
+    expect(localized.description).toBe(resources.en.afk["afk.description"]);
     expect(localized.descriptionLocalizations).toEqual({
-      "en-US": resources.en.afk["afk.description"],
-      "en-GB": resources.en.afk["afk.description"],
+      ja: resources.ja.afk["afk.description"],
     });
     expect(result).toBe(builder);
     expect(calls).toEqual([
-      { method: "setDescription", value: resources.ja.afk["afk.description"] },
+      { method: "setDescription", value: resources.en.afk["afk.description"] },
       {
         method: "setDescriptionLocalizations",
         value: {
-          "en-US": resources.en.afk["afk.description"],
-          "en-GB": resources.en.afk["afk.description"],
+          ja: resources.ja.afk["afk.description"],
         },
       },
     ]);

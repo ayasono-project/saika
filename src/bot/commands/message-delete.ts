@@ -49,17 +49,17 @@ export const messageDeleteCommand: Command = {
       new SlashCommandBuilder()
         .setName(MSG_DEL_COMMAND.NAME)
         .setDescription(desc.base)
-        .setDescriptionLocalizations(desc.localizations)
-        // FIXME(discovery-review): 審査中のみ↑をコメントアウトし↓を有効化（ja 抑止／通過後に戻す）
-        // .setDescriptionLocalizations({})
+        // FIXME(discovery-review): 審査用に ja 抑止中。通過後は {} をやめ下の localizations 行を有効化して日本語復活
+        // .setDescriptionLocalizations(desc.localizations)
+        .setDescriptionLocalizations({})
         .setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages)
         .addIntegerOption((opt) =>
           opt
             .setName(MSG_DEL_COMMAND.OPTION.COUNT)
             .setDescription(countDesc.base)
-            .setDescriptionLocalizations(countDesc.localizations)
-            // FIXME(discovery-review): 審査中のみ↑をコメントアウトし↓を有効化（ja 抑止／通過後に戻す）
-            // .setDescriptionLocalizations({})
+            // FIXME(discovery-review): 審査用に ja 抑止中。通過後は {} をやめ下の localizations 行を有効化して日本語復活
+            // .setDescriptionLocalizations(countDesc.localizations)
+            .setDescriptionLocalizations({})
             .setRequired(false)
             .setMinValue(1)
             .setMaxValue(1000),
@@ -68,18 +68,18 @@ export const messageDeleteCommand: Command = {
           opt
             .setName(MSG_DEL_COMMAND.OPTION.KEYWORD)
             .setDescription(keywordDesc.base)
-            .setDescriptionLocalizations(keywordDesc.localizations)
-            // FIXME(discovery-review): 審査中のみ↑をコメントアウトし↓を有効化（ja 抑止／通過後に戻す）
-            // .setDescriptionLocalizations({})
+            // FIXME(discovery-review): 審査用に ja 抑止中。通過後は {} をやめ下の localizations 行を有効化して日本語復活
+            // .setDescriptionLocalizations(keywordDesc.localizations)
+            .setDescriptionLocalizations({})
             .setRequired(false),
         )
         .addIntegerOption((opt) =>
           opt
             .setName(MSG_DEL_COMMAND.OPTION.DAYS)
             .setDescription(daysDesc.base)
-            .setDescriptionLocalizations(daysDesc.localizations)
-            // FIXME(discovery-review): 審査中のみ↑をコメントアウトし↓を有効化（ja 抑止／通過後に戻す）
-            // .setDescriptionLocalizations({})
+            // FIXME(discovery-review): 審査用に ja 抑止中。通過後は {} をやめ下の localizations 行を有効化して日本語復活
+            // .setDescriptionLocalizations(daysDesc.localizations)
+            .setDescriptionLocalizations({})
             .setRequired(false)
             .setMinValue(1)
             .setMaxValue(366),
@@ -88,18 +88,18 @@ export const messageDeleteCommand: Command = {
           opt
             .setName(MSG_DEL_COMMAND.OPTION.AFTER)
             .setDescription(afterDesc.base)
-            .setDescriptionLocalizations(afterDesc.localizations)
-            // FIXME(discovery-review): 審査中のみ↑をコメントアウトし↓を有効化（ja 抑止／通過後に戻す）
-            // .setDescriptionLocalizations({})
+            // FIXME(discovery-review): 審査用に ja 抑止中。通過後は {} をやめ下の localizations 行を有効化して日本語復活
+            // .setDescriptionLocalizations(afterDesc.localizations)
+            .setDescriptionLocalizations({})
             .setRequired(false),
         )
         .addStringOption((opt) =>
           opt
             .setName(MSG_DEL_COMMAND.OPTION.BEFORE)
             .setDescription(beforeDesc.base)
-            .setDescriptionLocalizations(beforeDesc.localizations)
-            // FIXME(discovery-review): 審査中のみ↑をコメントアウトし↓を有効化（ja 抑止／通過後に戻す）
-            // .setDescriptionLocalizations({})
+            // FIXME(discovery-review): 審査用に ja 抑止中。通過後は {} をやめ下の localizations 行を有効化して日本語復活
+            // .setDescriptionLocalizations(beforeDesc.localizations)
+            .setDescriptionLocalizations({})
             .setRequired(false),
         )
     );

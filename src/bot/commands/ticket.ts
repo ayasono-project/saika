@@ -3,12 +3,13 @@
 
 import {
   type ChatInputCommandInteraction,
-  SlashCommandBuilder,
+  InteractionContextType,
 } from "discord.js";
 import { TICKET_COMMAND } from "../../features/ticket/commands/ticketCommand.constants";
 import { executeTicketCommand } from "../../features/ticket/commands/ticketCommand.execute";
 import { getCommandLocalizations } from "../../shared/locale/commandLocalizations";
 import { handleCommandError } from "../errors/interactionErrorHandler";
+import { createSlashCommand } from "../shared/createSlashCommand";
 import type { Command } from "../types/discord";
 
 /**
@@ -32,10 +33,11 @@ export const ticketCommand: Command = {
     );
 
     return (
-      new SlashCommandBuilder()
+      createSlashCommand()
         .setName(TICKET_COMMAND.NAME)
         .setDescription(cmdDesc.base)
         .setDescriptionLocalizations(cmdDesc.localizations)
+        .setContexts(InteractionContextType.Guild)
         /* ── close ── */
         .addSubcommand((sub) =>
           sub

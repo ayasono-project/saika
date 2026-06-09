@@ -4,11 +4,12 @@
 import {
   ChannelType,
   ChatInputCommandInteraction,
-  SlashCommandBuilder,
+  InteractionContextType,
 } from "discord.js";
 import { executeAfkCommand } from "../../features/afk/commands/afkCommand.execute";
 import { getCommandLocalizations } from "../../shared/locale/commandLocalizations";
 import { handleCommandError } from "../errors/interactionErrorHandler";
+import { createSlashCommand } from "../shared/createSlashCommand";
 import type { Command } from "../types/discord";
 
 // AFK コマンド本体で利用するコマンド名・オプション名定数
@@ -45,10 +46,11 @@ export const afkCommand: Command = {
       AFK_I18N_KEYS.TARGET_CHANNEL_OPTION_DESCRIPTION,
     );
 
-    return new SlashCommandBuilder()
+    return createSlashCommand()
       .setName(AFK_COMMAND.NAME)
       .setDescription(cmdDesc.base)
       .setDescriptionLocalizations(cmdDesc.localizations)
+      .setContexts(InteractionContextType.Guild)
       .addUserOption((option) =>
         option
           .setName(AFK_COMMAND.OPTION.TARGET_MEMBER)

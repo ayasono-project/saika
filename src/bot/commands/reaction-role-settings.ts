@@ -3,13 +3,14 @@
 
 import {
   type ChatInputCommandInteraction,
+  InteractionContextType,
   PermissionFlagsBits,
-  SlashCommandBuilder,
 } from "discord.js";
 import { REACTION_ROLE_SETTINGS_COMMAND } from "../../features/reaction-role/commands/reactionRoleCommand.constants";
 import { executeReactionRoleSettingsCommand } from "../../features/reaction-role/commands/reactionRoleSettingsCommand.execute";
 import { getCommandLocalizations } from "../../shared/locale/commandLocalizations";
 import { handleCommandError } from "../errors/interactionErrorHandler";
+import { createSlashCommand } from "../shared/createSlashCommand";
 import type { Command } from "../types/discord";
 
 /**
@@ -52,10 +53,11 @@ export const reactionRoleSettingsCommand: Command = {
     );
 
     return (
-      new SlashCommandBuilder()
+      createSlashCommand()
         .setName(REACTION_ROLE_SETTINGS_COMMAND.NAME)
         .setDescription(cmdDesc.base)
         .setDescriptionLocalizations(cmdDesc.localizations)
+        .setContexts(InteractionContextType.Guild)
         .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
         /* ── setup ── */
         .addSubcommand((sub) =>

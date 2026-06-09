@@ -1,11 +1,12 @@
 // src/bot/commands/bump-reminder-settings.ts
 // Bumpリマインダー機能の設定コマンド定義
 
-import { PermissionFlagsBits, SlashCommandBuilder } from "discord.js";
+import { InteractionContextType, PermissionFlagsBits } from "discord.js";
 import { BUMP_REMINDER_SETTINGS_COMMAND } from "../../features/bump-reminder/commands/bumpReminderSettingsCommand.constants";
 import { executeBumpReminderSettingsCommand } from "../../features/bump-reminder/commands/bumpReminderSettingsCommand.execute";
 import { getCommandLocalizations } from "../../shared/locale/commandLocalizations";
 import { handleCommandError } from "../errors/interactionErrorHandler";
+import { createSlashCommand } from "../shared/createSlashCommand";
 import type { Command } from "../types/discord";
 
 /**
@@ -54,10 +55,11 @@ export const bumpReminderSettingsCommand: Command = {
 
     // コマンド定義は commands 層に残し、業務処理は features 側へ委譲する
     return (
-      new SlashCommandBuilder()
+      createSlashCommand()
         .setName(BUMP_REMINDER_SETTINGS_COMMAND.NAME)
         .setDescription(cmdDesc.base)
         .setDescriptionLocalizations(cmdDesc.localizations)
+        .setContexts(InteractionContextType.Guild)
         // Discord 側の表示/実行制御として ManageGuild を要求
         .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
         .addSubcommand((subcommand) =>

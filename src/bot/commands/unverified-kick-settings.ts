@@ -3,8 +3,8 @@
 
 import {
   ChannelType,
+  InteractionContextType,
   PermissionFlagsBits,
-  SlashCommandBuilder,
 } from "discord.js";
 import { UNVERIFIED_KICK_SETTINGS_COMMAND } from "../../features/unverified-kick/commands/unverifiedKickSettingsCommand.constants";
 import { executeUnverifiedKickSettingsCommand } from "../../features/unverified-kick/commands/unverifiedKickSettingsCommand.execute";
@@ -16,6 +16,7 @@ import {
 import { getCommandLocalizations } from "../../shared/locale/commandLocalizations";
 import type { UnverifiedKickTranslations } from "../../shared/locale/locales/ja/features/unverifiedKick";
 import { handleCommandError } from "../errors/interactionErrorHandler";
+import { createSlashCommand } from "../shared/createSlashCommand";
 import type { Command } from "../types/discord";
 
 const { SUBCOMMAND, GROUP, EXEMPT_SUBCOMMAND, OPTION } =
@@ -35,10 +36,11 @@ export const unverifiedKickSettingsCommand: Command = {
 
     const cmdDesc = desc("unverified-kick-settings.description");
 
-    return new SlashCommandBuilder()
+    return createSlashCommand()
       .setName(UNVERIFIED_KICK_SETTINGS_COMMAND.NAME)
       .setDescription(cmdDesc.base)
       .setDescriptionLocalizations(cmdDesc.localizations)
+      .setContexts(InteractionContextType.Guild)
       .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
       .addSubcommand((sub) => {
         const d = desc(

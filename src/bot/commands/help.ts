@@ -1,10 +1,14 @@
 // src/bot/commands/help.ts
 // Helpコマンド - コマンド一覧を表示
 
-import { ChatInputCommandInteraction, SlashCommandBuilder } from "discord.js";
+import {
+  ChatInputCommandInteraction,
+  InteractionContextType,
+} from "discord.js";
 import { executeHelpCommand } from "../../features/help/commands/helpCommand.execute";
 import { getCommandLocalizations } from "../../shared/locale/commandLocalizations";
 import { handleCommandError } from "../errors/interactionErrorHandler";
+import { createSlashCommand } from "../shared/createSlashCommand";
 import type { Command } from "../types/discord";
 
 // Help コマンドで使用するコマンド名定数
@@ -27,10 +31,11 @@ export const helpCommand: Command = {
       "help",
       HELP_I18N_KEYS.COMMAND_DESCRIPTION,
     );
-    return new SlashCommandBuilder()
+    return createSlashCommand()
       .setName(HELP_COMMAND.NAME)
       .setDescription(desc.base)
-      .setDescriptionLocalizations(desc.localizations);
+      .setDescriptionLocalizations(desc.localizations)
+      .setContexts(InteractionContextType.Guild, InteractionContextType.BotDM);
   })(),
 
   async execute(interaction: ChatInputCommandInteraction) {

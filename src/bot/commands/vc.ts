@@ -4,12 +4,13 @@
 import {
   ChannelType,
   type ChatInputCommandInteraction,
-  SlashCommandBuilder,
+  InteractionContextType,
 } from "discord.js";
 import { VC_COMMAND } from "../../features/vc-command/commands/vcCommand.constants";
 import { executeVcCommand } from "../../features/vc-command/commands/vcCommand.execute";
 import { getCommandLocalizations } from "../../shared/locale/commandLocalizations";
 import { handleCommandError } from "../errors/interactionErrorHandler";
+import { createSlashCommand } from "../shared/createSlashCommand";
 import type { Command } from "../types/discord";
 
 /**
@@ -60,10 +61,11 @@ export const vcCommand: Command = {
       "vc.move.reason.description",
     );
 
-    return new SlashCommandBuilder()
+    return createSlashCommand()
       .setName(VC_COMMAND.NAME)
       .setDescription(cmdDesc.base)
       .setDescriptionLocalizations(cmdDesc.localizations)
+      .setContexts(InteractionContextType.Guild)
       .addSubcommand((subcommand) =>
         subcommand
           .setName(VC_COMMAND.SUBCOMMAND.RENAME)

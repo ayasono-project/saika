@@ -4,14 +4,15 @@
 import {
   type AutocompleteInteraction,
   type ChatInputCommandInteraction,
+  InteractionContextType,
   PermissionFlagsBits,
-  SlashCommandBuilder,
 } from "discord.js";
 import { autocompleteVcRecruitSettingsCommand } from "../../features/vc-recruit/commands/vcRecruitSettingsCommand.autocomplete";
 import { VC_RECRUIT_SETTINGS_COMMAND } from "../../features/vc-recruit/commands/vcRecruitSettingsCommand.constants";
 import { executeVcRecruitSettingsCommand } from "../../features/vc-recruit/commands/vcRecruitSettingsCommand.execute";
 import { getCommandLocalizations } from "../../shared/locale/commandLocalizations";
 import { handleCommandError } from "../errors/interactionErrorHandler";
+import { createSlashCommand } from "../shared/createSlashCommand";
 import type { Command } from "../types/discord";
 
 /**
@@ -53,10 +54,11 @@ export const vcRecruitSettingsCommand: Command = {
       "vc-recruit-settings.view.description",
     );
 
-    return new SlashCommandBuilder()
+    return createSlashCommand()
       .setName(VC_RECRUIT_SETTINGS_COMMAND.NAME)
       .setDescription(cmdDesc.base)
       .setDescriptionLocalizations(cmdDesc.localizations)
+      .setContexts(InteractionContextType.Guild)
       .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
       .addSubcommand((subcommand) =>
         subcommand

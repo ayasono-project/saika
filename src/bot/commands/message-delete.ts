@@ -1,11 +1,12 @@
 // src/bot/commands/message-delete.ts
 // /message-delete コマンド定義
 
-import { PermissionFlagsBits, SlashCommandBuilder } from "discord.js";
+import { InteractionContextType, PermissionFlagsBits } from "discord.js";
 import { executeMessageDeleteCommand } from "../../features/message-delete/commands/messageDeleteCommand.execute";
 import { MSG_DEL_COMMAND } from "../../features/message-delete/constants/messageDeleteConstants";
 import { getCommandLocalizations } from "../../shared/locale/commandLocalizations";
 import { handleCommandError } from "../errors/interactionErrorHandler";
+import { createSlashCommand } from "../shared/createSlashCommand";
 import type { Command } from "../types/discord";
 
 /**
@@ -40,10 +41,11 @@ export const messageDeleteCommand: Command = {
     );
 
     // user / channel は条件設定ステップの SelectMenu で選択するためスラッシュコマンドオプションから除外
-    return new SlashCommandBuilder()
+    return createSlashCommand()
       .setName(MSG_DEL_COMMAND.NAME)
       .setDescription(desc.base)
       .setDescriptionLocalizations(desc.localizations)
+      .setContexts(InteractionContextType.Guild)
       .setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages)
       .addIntegerOption((opt) =>
         opt

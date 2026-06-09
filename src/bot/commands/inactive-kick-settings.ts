@@ -3,8 +3,8 @@
 
 import {
   ChannelType,
+  InteractionContextType,
   PermissionFlagsBits,
-  SlashCommandBuilder,
 } from "discord.js";
 import { INACTIVE_KICK_SETTINGS_COMMAND } from "../../features/inactive-kick/commands/inactiveKickSettingsCommand.constants";
 import { executeInactiveKickSettingsCommand } from "../../features/inactive-kick/commands/inactiveKickSettingsCommand.execute";
@@ -15,6 +15,7 @@ import {
 import { getCommandLocalizations } from "../../shared/locale/commandLocalizations";
 import type { InactiveKickTranslations } from "../../shared/locale/locales/ja/features/inactiveKick";
 import { handleCommandError } from "../errors/interactionErrorHandler";
+import { createSlashCommand } from "../shared/createSlashCommand";
 import type { Command } from "../types/discord";
 
 const { SUBCOMMAND, GROUP, WHITELIST_SUBCOMMAND, OPTION } =
@@ -31,10 +32,11 @@ export const inactiveKickSettingsCommand: Command = {
 
     const cmdDesc = desc("inactive-kick-settings.description");
 
-    return new SlashCommandBuilder()
+    return createSlashCommand()
       .setName(INACTIVE_KICK_SETTINGS_COMMAND.NAME)
       .setDescription(cmdDesc.base)
       .setDescriptionLocalizations(cmdDesc.localizations)
+      .setContexts(InteractionContextType.Guild)
       .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
       .addSubcommand((sub) => {
         const d = desc("inactive-kick-settings.set-channel.description");

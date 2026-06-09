@@ -3,8 +3,8 @@
 
 import {
   type ChatInputCommandInteraction,
+  InteractionContextType,
   PermissionFlagsBits,
-  SlashCommandBuilder,
 } from "discord.js";
 import { STICKY_MESSAGE_COMMAND } from "../../features/sticky-message/commands/stickyMessageCommand.constants";
 import { executeStickyMessageCommand } from "../../features/sticky-message/commands/stickyMessageCommand.execute";
@@ -13,6 +13,7 @@ import {
   getCommandLocalizations,
 } from "../../shared/locale/commandLocalizations";
 import { handleCommandError } from "../errors/interactionErrorHandler";
+import { createSlashCommand } from "../shared/createSlashCommand";
 import type { Command } from "../types/discord";
 
 /**
@@ -74,10 +75,11 @@ export const stickyMessageCommand: Command = {
     );
 
     return (
-      new SlashCommandBuilder()
+      createSlashCommand()
         .setName(STICKY_MESSAGE_COMMAND.NAME)
         .setDescription(cmdDesc.base)
         .setDescriptionLocalizations(cmdDesc.localizations)
+        .setContexts(InteractionContextType.Guild)
         .setDefaultMemberPermissions(PermissionFlagsBits.ManageChannels)
         /* ── set ── */
         .addSubcommand((sub) =>

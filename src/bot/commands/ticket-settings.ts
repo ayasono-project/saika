@@ -4,13 +4,14 @@
 import {
   ChannelType,
   type ChatInputCommandInteraction,
+  InteractionContextType,
   PermissionFlagsBits,
-  SlashCommandBuilder,
 } from "discord.js";
 import { TICKET_SETTINGS_COMMAND } from "../../features/ticket/commands/ticketCommand.constants";
 import { executeTicketSettingsCommand } from "../../features/ticket/commands/ticketSettingsCommand.execute";
 import { getCommandLocalizations } from "../../shared/locale/commandLocalizations";
 import { handleCommandError } from "../errors/interactionErrorHandler";
+import { createSlashCommand } from "../shared/createSlashCommand";
 import type { Command } from "../types/discord";
 
 /**
@@ -97,10 +98,11 @@ export const ticketSettingsCommand: Command = {
     );
 
     return (
-      new SlashCommandBuilder()
+      createSlashCommand()
         .setName(TICKET_SETTINGS_COMMAND.NAME)
         .setDescription(cmdDesc.base)
         .setDescriptionLocalizations(cmdDesc.localizations)
+        .setContexts(InteractionContextType.Guild)
         .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
         /* ── setup ── */
         .addSubcommand((sub) =>

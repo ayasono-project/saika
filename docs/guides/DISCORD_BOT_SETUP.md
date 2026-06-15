@@ -81,6 +81,7 @@
 | メンバーを移動 | Move Members | vac / vc-command / afk |
 | メンバーをキック | Kick Members | unverified-kick / inactive-kick |
 | 公開スレッドの作成 | Create Public Threads | vc-recruit（自動スレッド） |
+| スレッドの管理 | Manage Threads | vc-recruit（募集スレッド削除） |
 | スレッドでメッセージを送信 | Send Messages in Threads | vc-recruit（募集スレッドの overwrite 付与） |
 | サーバー管理 | Manage Server | member-log（招待元トラッキング） |
 

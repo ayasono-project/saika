@@ -20,7 +20,7 @@ export interface BotRoutesOptions {
  * - ticket / vac / vc-recruit / vc-auto-recruit / vc-command（チャンネル作成・編集・overwrite）: ManageChannels
  * - vac / vc-command / afk（メンバー移動）: MoveMembers
  * - unverified-kick / inactive-kick: KickMembers
- * - vc-recruit（自動スレッド作成 / 募集スレッドへの @everyone 送信 overwrite 付与）: CreatePublicThreads / SendMessagesInThreads
+ * - vc-recruit（自動スレッド作成 / 募集スレッド削除 / 募集スレッドへの @everyone 送信 overwrite 付与）: CreatePublicThreads / ManageThreads / SendMessagesInThreads
  * - member-log（招待元トラッキング = guild.invites.fetch）: ManageGuild
  *
  * 注: @everyone/@here や「メンション不可ロール」への通知を実際に飛ばす MentionEveryone は
@@ -37,6 +37,7 @@ const INVITE_PERMISSIONS: PermissionsString[] = [
   "MoveMembers",
   "KickMembers",
   "CreatePublicThreads",
+  "ManageThreads",
   "SendMessagesInThreads",
   "ManageGuild",
 ];

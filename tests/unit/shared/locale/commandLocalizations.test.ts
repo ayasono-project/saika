@@ -5,15 +5,14 @@ import {
 } from "@/shared/locale/commandLocalizations";
 import { resources } from "@/shared/locale/locales/resources";
 
-// ディスカバリー審査の都合で、コマンド登録メタデータは英語のみ（localizations は空）。
-// 審査通過後に日本語ローカライズを復活させる際は、本テストの期待値も { ja } に戻す。
-
 describe("shared/locale/commandLocalizations", () => {
-  it("英語を base に返し、ローカライズマップは空であること", () => {
+  it("英語をデフォルト(base)、日本語をローカライゼーションマップに返すこと", () => {
     const localizations = getCommandLocalizations("ping", "ping.description");
 
     expect(localizations.base).toBe(resources.en.ping["ping.description"]);
-    expect(localizations.localizations).toEqual({});
+    expect(localizations.localizations).toEqual({
+      ja: resources.ja.ping["ping.description"],
+    });
   });
 
   it("ヘルパーオブジェクトを生成してビルダーチェーンにローカライゼーションを適用すること", () => {
@@ -37,13 +36,17 @@ describe("shared/locale/commandLocalizations", () => {
     const result = localized.apply(builder);
 
     expect(localized.description).toBe(resources.en.afk["afk.description"]);
-    expect(localized.descriptionLocalizations).toEqual({});
+    expect(localized.descriptionLocalizations).toEqual({
+      ja: resources.ja.afk["afk.description"],
+    });
     expect(result).toBe(builder);
     expect(calls).toEqual([
       { method: "setDescription", value: resources.en.afk["afk.description"] },
       {
         method: "setDescriptionLocalizations",
-        value: {},
+        value: {
+          ja: resources.ja.afk["afk.description"],
+        },
       },
     ]);
   });

@@ -126,4 +126,6 @@ export const reactionRole = {
   "log.panel_channel_deleted":
     "panel channel deleted GuildId: {{guildId}} ChannelId: {{channelId}}",
   "log.panel_cleanup_failed": "panel cleanup failed GuildId: {{guildId}}",
+  "log.panel_message_delete_failed":
+    "failed to delete panel message (possible orphan) GuildId: {{guildId}} PanelId: {{panelId}} ChannelId: {{channelId}} MessageId: {{messageId}}",
 } as const;

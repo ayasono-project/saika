@@ -73,7 +73,7 @@ describe("bot/features/reaction-role/handlers/reactionRoleMessageDeleteHandler",
     const message = { id: "panel-msg-1", guildId: "guild-1" };
     await handleReactionRoleMessageDelete(message as never);
 
-    expect(mockConfigService.delete).toHaveBeenCalledWith("panel-1");
+    expect(mockConfigService.delete).toHaveBeenCalledWith("panel-1", "guild-1");
     expect(logger.info).toHaveBeenCalled();
   });
 

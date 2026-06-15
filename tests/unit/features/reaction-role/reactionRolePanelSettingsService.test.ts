@@ -76,7 +76,7 @@ describe("shared/features/reaction-role/reactionRolePanelSettingsService", () =>
 
     await service.delete("panel-1");
 
-    expect(repository.delete).toHaveBeenCalledWith("panel-1");
+    expect(repository.delete).toHaveBeenCalledWith("panel-1", "");
   });
 
   it("deleteAllByGuild がリポジトリへ委譲されること", async () => {

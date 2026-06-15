@@ -130,4 +130,6 @@ export const reactionRole = {
   "log.panel_channel_deleted":
     "パネルチャンネル削除検知 GuildId: {{guildId}} ChannelId: {{channelId}}",
   "log.panel_cleanup_failed": "パネルクリーンアップに失敗 GuildId: {{guildId}}",
+  "log.panel_message_delete_failed":
+    "パネルメッセージ削除に失敗（孤児化の可能性） GuildId: {{guildId}} PanelId: {{panelId}} ChannelId: {{channelId}} MessageId: {{messageId}}",
 } as const;

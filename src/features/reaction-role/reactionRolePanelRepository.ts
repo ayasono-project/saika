@@ -104,14 +104,17 @@ export class ReactionRolePanelRepository
     ) as unknown as Promise<GuildReactionRolePanel>;
   }
 
-  async delete(id: string): Promise<void> {
+  async delete(id: string, guildId = ""): Promise<void> {
+    // deleteMany は 0 件マッチでも例外を投げないため冪等。
+    // 複数経路（API / messageDelete / channelDelete）が同一パネルを
+    // 削除しうる設計のため、レース負けを正常終了として扱う。
     await executeWithDatabaseError(
       () =>
-        this.prisma.guildReactionRolePanel.delete({
+        this.prisma.guildReactionRolePanel.deleteMany({
           where: { id },
         }),
       tDefault("reactionRole:log.database_panel_delete_failed", {
-        guildId: "",
+        guildId,
         panelId: id,
       }),
     );

@@ -10,15 +10,25 @@
 
 | # | セクション | 概要 | 残件 |
 | --- | --- | --- | ---: |
+| 1 | VC自動募集 チャンネル単位再設計 ＋ VACオーナー個人設定 | カテゴリ→VCチャンネル allowlist 化・動的VCの on/off（3状態）＋個別募集文＋既定VC名/人数を `VacOwnerPreference` で一括・`/myvc`・移行方針確定 | 4 |
 | 11 | Bot 一般公開準備 | `/about` 充実（LP 公開時）・Discord 認証申請（75 サーバー到達後）・ディスカバリー審査の ja 抑止戻し | 3 |
-| **合計** | | | **3** |
+| **合計** | | | **7** |
 
-> web ダッシュボード・インフラ（VPS / Cloudflare / Coolify）は別リポジトリで管理。
-> 残るは §11 Bot 一般公開準備のみ（前段 §1〜§3・Fastify API §10 は完了済みへ移動済み）。§11 の Discord 認証申請は 75 サーバー到達後に着手する条件待ち。
+> web ダッシュボード・インフラ（VPS / Cloudflare / Coolify）は別リポジトリで管理。番号は優先度順（#1 から実装見込み順・#11 は低優先度）。
+> 次に実装見込みは §1。VC自動募集の再設計と VACオーナー個人設定（募集制御＋既定VC名/人数）は **同じ `/myvc` コマンド・同じ `VacOwnerPreference` を共有するため一括実装・一括リリース**（コマンド変更アナウンスを1回に集約・二段階移行も回避）。着手前に既存 `enabledCategoryIds` の移行方針を確定する。§11 Bot 一般公開準備は低優先度（Discord 認証申請は 75 サーバー到達後に着手する条件待ち）。
 
 ---
 
 ## タスク一覧
+
+### 1. VC自動募集 チャンネル単位再設計 ＋ VACオーナー個人設定（募集制御・既定VC）
+
+現状はカテゴリ単位 allowlist（`enabledCategoryIds`・ルート直下 sentinel `"TOP"`）で、**同一カテゴリ内の一部VCだけON/OFFできない**のが構造的弱点。静的VCは **VCチャンネルID単位の allowlist** へ再設計し、VAC動的VC（設定時点で存在しない）は **管理者既定＋オーナー個別制御** の per-user モデルで別系統に扱う。設計はユーザーと合意済み・実装未着手。詳細議論で確定した方針を以下に集約。
+
+- [ ] 設計メモ／仕様（[VC_AUTO_RECRUIT_SPEC.md](docs/specs/VC_AUTO_RECRUIT_SPEC.md) 更新）確定 ＋ 関連ガイド（ARCHITECTURE / IMPLEMENTATION_GUIDELINES / DBスキーマ規約）準拠確認。**既存 `enabledCategoryIds` の移行方針 A（無停止でカテゴリ→現存子VCへ展開）/ B（リセット再設定）を決定**（本番稼働中につき A 推奨・未決）
+- [ ] 静的VC: カテゴリ→**VCチャンネルID allowlist** 再設計（個別トグル・「カテゴリ選択で現存子VCを個別エントリ一括登録」補助導線・`"TOP"` sentinel 廃止・判定を `channel.parentId` 参照から VC 個別へ）
+- [ ] VAC動的VC: per-user `VacOwnerPreference`（`guildId×userId`）新設 ＋ 管理者既定フラグ（`vac-settings`・`ManageGuild`）＋ オーナー個別 **on/off（3状態 未設定/ON/OFF）** ＋ **個別募集文**。フォールバック: on/off=ユーザー設定→管理者既定 / 募集文=オーナー個別→ギルド募集文→デフォルト。個別募集文は `allowedMentions` で一括メンション無効化（踏み台防止）。コマンド `/vc-recruit`→`/myvc` 再編・募集投稿に「`/myvc` でオフにできる」静的案内文。**オーナーパネル/ボタンは作らない**（§7 VCパネル廃止と整合）。旧アイデア（ユーザー個別 opt-out／VC単位指定・除外）を包含
+- [ ] VACオーナー既定VC（同コマンド・同モデルでまとめて実装）: `VacOwnerPreference` に **VC名テンプレート・人数制限**も持たせ `handleVacCreate` で適用（フォールバック: 名前=オーナー既定→ギルド既定名→グローバル既定 / 人数=オーナー既定→`VAC_EVENT.DEFAULT_LIMIT`）。`/myvc` の設定サブコマンドに統合（毎回 Discord 標準UIで再設定しなくて済む persistence）
 
 ### 11. Bot 一般公開準備
 
@@ -34,11 +44,9 @@
 ## 機能拡張アイデア
 
 - **Web API 認証の堅牢化（§10 拡張・設定ミス耐性）** — 現状の認証防御は多層で機能しており**実害なし**。設定ミス時の事故耐性を上げる多層化として2点を検討: ①[jwt.ts](src/api/auth/jwt.ts) の `secretKey()` のフォールバック挙動を fail-closed 化（本番相当環境で署名鍵が未設定なら起動アサーション任せにせず `secretKey()` 自体で throw）。②[jwt.ts](src/api/auth/jwt.ts) の `jwtVerify` でトークン寿命を強制（`maxTokenAge` / `exp` 必須化）し、検証側でも有効期限を担保する。詳細な背景・脅威モデルは公開 TODO に書かず別途管理。
-- **VC自動募集のユーザー個別 opt-out（§2 拡張）** — 1人で通話/作業するユーザーが「最初の1人」として毎回告知されるのを避ける用。推奨方針=`GuildVcAutoRecruitSettings` 内に `optedOutUserIds: String[]`（jsonb）を追加し本人トグルコマンドで管理（発火条件に「参加者が `optedOutUserIds` に含まれない」を追加）。v1 見送り理由は [VC_AUTO_RECRUIT_SPEC.md](docs/specs/VC_AUTO_RECRUIT_SPEC.md) 「今後の拡張」節を参照
-- **VC自動募集の VC（チャンネル）単位指定・除外（§2 拡張）** — カテゴリ単位の allowlist（`add-category`/`remove-category`）は実装済み。さらに細かい特定VC単位の指定／除外が必要になれば検討
-- **VC自動募集の招待リンク方式（§2 拡張）** — 参加ボタンをチャンネルジャンプ URL から Discord 招待リンク（`createInvite`）に変更（外部共有が必要になった場合・`CreateInstantInvite` 権限と寿命管理が必要）
 - **予約募集(イベント募集)機能** — 他タスク完了後に実装可否判断。骨子: 予約時に VC + Discord Scheduled Event 作成 / RSVP・リマインダー・開始通知は Discord 標準任せ / VC 自動削除なし(投稿削除 or イベント終了ボタンで手動)/ 編集機能あり(日時・タイトル・説明)/ setup は既存 VC 募集と同構成 / VC 名変更は既存 `/vc rename` 流用。細部は実装決定時に詰める
-- **キック系ユーザーデータの削除対称性の整理（§1/§8 整理）** — 非アクティブキック(`MemberActivity`)・未承認キック(`GuildUnverifiedKickWarn`)のユーザーデータについて、リセット種別ごとの削除挙動が非対称。①全設定リセット `deleteAllSettings` は `MemberActivity` を消すが `GuildUnverifiedKickWarn` を消していない（トランザクション未収載）、②未承認キックの個別リセットは warn 記録を `deleteAllByGuild` で消す、③非アクティブキックの個別リセットは `MemberActivity` を残す。`enabledAt` 起算下限・warnStage ゲート・warn-before-kick により**残存しても誤キック等の害は出ない**（孤児は verify/leave で掃除）ため緊急ではないが、「全設定リセット＝完全にまっさらに戻る」建付けに揃えるなら `deleteAllSettings` に `guildUnverifiedKickWarn.deleteMany` を追加し、個別リセットの削除有無も方針統一を検討。なお**エクスポートにユーザーデータを含めないのは現仕様維持で問題なし**（再有効化時の `enabledAt` フロアで安全・個人データ/サイズ観点でも除外が妥当）と確認済み。
+- **キック系ユーザーデータの削除対称性の整理（非アクティブキック／未承認キック整理）** — 非アクティブキック(`MemberActivity`)・未承認キック(`GuildUnverifiedKickWarn`)のユーザーデータについて、リセット種別ごとの削除挙動が非対称。①全設定リセット `deleteAllSettings` は `MemberActivity` を消すが `GuildUnverifiedKickWarn` を消していない（トランザクション未収載）、②未承認キックの個別リセットは warn 記録を `deleteAllByGuild` で消す、③非アクティブキックの個別リセットは `MemberActivity` を残す。`enabledAt` 起算下限・warnStage ゲート・warn-before-kick により**残存しても誤キック等の害は出ない**（孤児は verify/leave で掃除）ため緊急ではないが、「全設定リセット＝完全にまっさらに戻る」建付けに揃えるなら `deleteAllSettings` に `guildUnverifiedKickWarn.deleteMany` を追加し、個別リセットの削除有無も方針統一を検討。なお**エクスポートにユーザーデータを含めないのは現仕様維持で問題なし**（再有効化時の `enabledAt` フロアで安全・個人データ/サイズ観点でも除外が妥当）と確認済み。
+- **ユーザー embed 作成機能** — ユーザーが embed を作って bot 名義で投稿できる機能（Carl-bot 類似）。**詳細は後日決定**。方向性メモ: 需要あり（お知らせ/ルール/ロールパネル説明）。**管理権限必須にはしない**方針で、①作成・プレビューは誰でも自由（ephemeral/DM）②投稿は「投稿先チャンネルでのそのユーザーの送信権限」で判定（bot=ユーザーの代理・本来できる範囲を超えさせない）③`@everyone`/role メンションは Mention Everyone 権限保持時のみ許可（`allowedMentions` で抑止）④作成者 attribution + 所有権（編集/削除は作成者＋管理者）⑤運営がロール許可をカスタム可能。Web ダッシュボードも OAuth ユーザーのギルド権限で同じ②判定が可能だが、管理設定エリアとは別の一般導線が必要。コマンド版/Web 版どちらから着手するか・所有権の DB モデル等は実装決定時に詰める
 - 自動翻訳機能(DeepL API 等)
 - 投票システム(グラフ化・レポート集計で Discord 標準との差別化)
 - メトリクス収集 / アラート設定(運用規模拡大時)

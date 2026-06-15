@@ -2,7 +2,7 @@
 
 > Architecture Guide - コード設計・モジュール構成・設計パターンの解説
 
-最終更新: 2026年6月7日
+最終更新: 2026年6月16日
 
 ---
 
@@ -143,7 +143,9 @@ intents: [
 
 ### Bot パーミッション
 
-Bot の招待時は **Administrator** 権限を推奨します。多くの機能がチャンネル作成・権限オーバーライド・メッセージ管理など幅広いパーミッションを必要とするため、個別設定では機能ごとに不足が発生しやすくなります。
+Bot の招待時は **Administrator は要求せず、最小権限セット**を付与します。招待リンクの権限は [`INVITE_PERMISSIONS`](../../src/api/routes/bot.ts) で定義し、各機能の実 API 呼び出しに必要な個別権限のみを列挙します（ViewChannel / SendMessages / EmbedLinks / ReadMessageHistory / ManageMessages / ManageChannels / ManageRoles / MoveMembers / KickMembers / CreatePublicThreads / SendMessagesInThreads / ManageGuild）。`MentionEveryone` は最小権限維持のため含めない（@everyone/@here 等の通知は飛ばないがメッセージ投稿自体は成功する）。
+
+> チャンネル作成時の overwrite には昇格権限ビット（ManageChannels / ManageRoles）を含めない。Administrator を持たない Bot が overwrite で昇格ビットを付与しようとすると `403 Missing Permissions` になるため、これらはギルド全体の権限で保持する。
 
 ### イベントハンドラ
 

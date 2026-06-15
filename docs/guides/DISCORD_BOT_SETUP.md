@@ -2,7 +2,7 @@
 
 > Discord Developer Portal でアプリを作成し、サーバーへ招待するまでの手順
 
-最終更新: 2026年5月29日
+最終更新: 2026年6月16日
 
 ---
 
@@ -67,13 +67,26 @@
 | `bot` | Bot としてサーバーに参加 |
 | `applications.commands` | スラッシュコマンドを登録 |
 
-3. **BOT PERMISSIONS** で **Administrator（管理者）** を選択:
+3. **BOT PERMISSIONS** で以下の個別権限を選択（**Administrator は付与しない**）:
 
-| 権限 | Developer Portal 表記 |
-| -- | -- |
-| 管理者 | Administrator |
+| 権限 | Developer Portal 表記 | 主な用途 |
+| -- | -- | -- |
+| チャンネルを見る | View Channels | 共通（コマンド応答） |
+| メッセージを送信 | Send Messages | 共通（コマンド応答） |
+| 埋め込みリンク | Embed Links | 共通（embed 送信） |
+| メッセージ履歴を読む | Read Message History | 共通 |
+| メッセージの管理 | Manage Messages | message-delete / sticky / vc-recruit |
+| チャンネルの管理 | Manage Channels | ticket / vac / vc-recruit / vc-auto-recruit / vc-command |
+| ロールの管理 | Manage Roles | ticket / reaction-role / kick 系マーカーロール |
+| メンバーを移動 | Move Members | vac / vc-command / afk |
+| メンバーをキック | Kick Members | unverified-kick / inactive-kick |
+| 公開スレッドの作成 | Create Public Threads | vc-recruit（自動スレッド） |
+| スレッドでメッセージを送信 | Send Messages in Threads | vc-recruit（募集スレッドの overwrite 付与） |
+| サーバー管理 | Manage Server | member-log（招待元トラッキング） |
 
-> **管理者権限を推奨する理由**: Bot はチャンネル作成・メッセージ送信・メンバー移動・ロール管理など多数の権限を必要とします。管理者権限を付与することで、個別の権限設定なしにすべての機能が安定して動作します。
+> **最小権限の方針**: 彩加は Administrator を要求しない。上記は各機能が実際に呼び出す Discord API に必要な個別権限のみ。チャンネル単位の上書き（overwrite）で Bot の権限を制限すると一部機能が動かなくなる点に注意。
+>
+> なお `@everyone`／`@here` や「メンション不可ロール」への**通知を実際に飛ばす**には `MentionEveryone` が別途必要だが、最小権限維持のため既定では含めていない（メッセージ投稿自体は成功し、当該メンションが通知を飛ばさないだけ。VC自動募集等で @everyone 通知を使いたい場合は手動で付与する）。
 
 ### 4-2. 招待 URL の生成とサーバー追加
 

@@ -23,7 +23,7 @@ export async function handleReactionRoleMessageDelete(
     const matchedPanel = panels.find((panel) => panel.messageId === message.id);
     if (!matchedPanel) return;
 
-    await settingsService.delete(matchedPanel.id);
+    await settingsService.delete(matchedPanel.id, matchedPanel.guildId);
 
     logger.info(
       logPrefixed(

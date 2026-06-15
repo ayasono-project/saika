@@ -73,7 +73,7 @@ describe("bot/features/reaction-role/handlers/reactionRoleChannelDeleteHandler",
     const channel = { id: "ch-1", guildId: "guild-1" };
     await handleReactionRoleChannelDelete(channel as never);
 
-    expect(mockConfigService.delete).toHaveBeenCalledWith("panel-1");
+    expect(mockConfigService.delete).toHaveBeenCalledWith("panel-1", "guild-1");
     expect(logger.info).toHaveBeenCalled();
   });
 
@@ -104,8 +104,8 @@ describe("bot/features/reaction-role/handlers/reactionRoleChannelDeleteHandler",
     await handleReactionRoleChannelDelete(channel as never);
 
     expect(mockConfigService.delete).toHaveBeenCalledTimes(2);
-    expect(mockConfigService.delete).toHaveBeenCalledWith("panel-1");
-    expect(mockConfigService.delete).toHaveBeenCalledWith("panel-2");
+    expect(mockConfigService.delete).toHaveBeenCalledWith("panel-1", "guild-1");
+    expect(mockConfigService.delete).toHaveBeenCalledWith("panel-2", "guild-1");
     expect(logger.info).toHaveBeenCalled();
   });
 

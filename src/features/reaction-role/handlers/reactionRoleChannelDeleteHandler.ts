@@ -27,7 +27,7 @@ export async function handleReactionRoleChannelDelete(
     if (matchedPanels.length === 0) return;
 
     for (const panel of matchedPanels) {
-      await settingsService.delete(panel.id);
+      await settingsService.delete(panel.id, guildId);
     }
 
     logger.info(

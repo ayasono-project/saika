@@ -18,15 +18,17 @@ export function getCommandLocalizations<NS extends keyof typeof resources.ja>(
   base: string;
   localizations: CommandLocalizationMap;
 } {
-  // ディスカバリー審査の都合で、コマンド登録メタデータは英語のみとする
-  // （日本語をサポートロケールとして登録しない）。実行時応答（tInteraction / tGuild）は
-  // 別経路のため日本語のまま。審査通過後に日本語ローカライズを復活させる。
+  // 既定表示は英語（ディスカバリー審査フィルタが読むベース）。
+  // 日本語クライアントには localizations.ja で上書き表示する。
+  const jaValue = (resources.ja[namespace] as Record<string, string>)[
+    key as string
+  ];
   const enValue = (resources.en[namespace] as Record<string, string>)[
     key as string
   ];
   return {
     base: enValue,
-    localizations: {},
+    localizations: { ja: jaValue },
   };
 }
 
@@ -45,12 +47,15 @@ export function getChoiceLocalizations<NS extends keyof typeof resources.ja>(
   name_localizations: CommandLocalizationMap;
   value: string;
 } {
+  const jaValue = (resources.ja[namespace] as Record<string, string>)[
+    key as string
+  ];
   const enValue = (resources.en[namespace] as Record<string, string>)[
     key as string
   ];
   return {
     name: enValue,
-    name_localizations: {},
+    name_localizations: { ja: jaValue },
     value,
   };
 }

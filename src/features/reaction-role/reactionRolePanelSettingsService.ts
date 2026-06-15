@@ -71,9 +71,10 @@ export class ReactionRolePanelSettingsService {
   /**
    * パネルを削除する
    * @param id パネルID
+   * @param guildId ギルドID（DBエラー通知のコンテキスト用・省略可）
    */
-  async delete(id: string): Promise<void> {
-    return this.repository.delete(id);
+  async delete(id: string, guildId = ""): Promise<void> {
+    return this.repository.delete(id, guildId);
   }
 
   /**

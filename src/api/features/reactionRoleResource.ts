@@ -12,6 +12,8 @@ import type {
   GuildReactionRolePanel,
   ReactionRoleButton,
 } from "../../shared/database/types/reactionRoleTypes";
+import { logPrefixed } from "../../shared/locale/localeManager";
+import { logger } from "../../shared/utils/logger";
 
 // 注: discord.js を多用する reactionRolePanelBuilder は API の静的 import グラフに載せず、
 // 実際に投稿する瞬間にのみ動的 import する（登録時/評価時の discord.js 依存を避ける）。
@@ -89,18 +91,71 @@ export async function postPanelMessage(
   return sent.id;
 }
 
-/** パネルメッセージを削除する（best-effort） */
+/**
+ * パネルメッセージを削除する（best-effort）。
+ * DB 行削除後にメッセージ削除が失敗すると「行なし・メッセージ残存」の孤児になるため、
+ * 孤児リスク時は二経路で可視化する:
+ *   - 運営者向け: logger.error（Discord 運営通知 webhook は level:error のみ捕捉）
+ *   - ギルド管理者向け: 設定済みエラーチャンネルへ Warning 通知（手動削除/権限確認を促す）
+ */
 export async function deletePanelMessage(
   client: BotClient,
   panel: GuildReactionRolePanel,
 ): Promise<void> {
   if (!panel.messageId) return;
+
   const channel = await client.channels
     .fetch(panel.channelId)
     .catch(() => null);
-  if (!channel?.isTextBased()) return;
-  await channel.messages
-    .fetch(panel.messageId)
-    .then((msg) => msg.delete())
-    .catch(() => null);
+
+  const notifyOrphan = async (err?: unknown): Promise<void> => {
+    // 運営者向け（error ログのみ webhook へ届く）
+    logger.error(
+      logPrefixed(
+        "system:log_prefix.reaction_role",
+        "reactionRole:log.panel_message_delete_failed",
+        {
+          guildId: panel.guildId,
+          panelId: panel.id,
+          channelId: panel.channelId,
+          messageId: panel.messageId,
+        },
+      ),
+      err,
+    );
+
+    // ギルド管理者向け（設定済みエラーチャンネルへ警告通知）。
+    // discord.js を静的 import グラフに載せないため動的 import する。
+    const guild =
+      (channel && "guild" in channel ? channel.guild : null) ??
+      client.guilds.cache.get(panel.guildId) ??
+      null;
+    if (!guild) return;
+    const { notifyWarnChannel } = await import(
+      "../../bot/shared/errorChannelNotifier"
+    );
+    await notifyWarnChannel(
+      guild,
+      `<#${panel.channelId}> ChannelId: ${panel.channelId} MessageId: ${panel.messageId}`,
+      {
+        feature: "リアクションロール",
+        action: "パネルメッセージの自動削除に失敗（手動削除/権限確認が必要）",
+      },
+    );
+  };
+
+  // チャンネル取得不可/非テキスト = メッセージが残存しうる → 孤児リスク
+  if (!channel?.isTextBased()) {
+    await notifyOrphan();
+    return;
+  }
+
+  try {
+    const msg = await channel.messages.fetch(panel.messageId);
+    await msg.delete();
+  } catch (err) {
+    // 10008 = Unknown Message: 既に消えている = 望ましい終状態なので無視
+    if ((err as { code?: number })?.code === 10008) return;
+    await notifyOrphan(err);
+  }
 }

@@ -99,11 +99,15 @@ export async function createTicketChannel(
             {
               id: guild.client.user.id,
               type: OverwriteType.Member as const,
+              // Bot 自身への overwrite はチャンネル運用に必要な非昇格ビットのみ。
+              // ManageChannels / ManageRoles はギルド全体で既に保持しているため
+              // overwrite に含めない（Administrator なし Bot が overwrite で昇格ビットを
+              // 付与しようとすると 403 Missing Permissions になるため）。
               allow: [
                 PermissionFlagsBits.ViewChannel,
                 PermissionFlagsBits.SendMessages,
-                PermissionFlagsBits.ManageChannels,
-                PermissionFlagsBits.ManageRoles,
+                PermissionFlagsBits.ReadMessageHistory,
+                PermissionFlagsBits.EmbedLinks,
               ] as const,
             },
           ]

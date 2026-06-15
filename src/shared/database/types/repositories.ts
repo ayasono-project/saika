@@ -246,7 +246,7 @@ export interface IReactionRolePanelRepository {
     id: string,
     data: Partial<GuildReactionRolePanel>,
   ): Promise<GuildReactionRolePanel>;
-  delete(id: string): Promise<void>;
+  delete(id: string, guildId?: string): Promise<void>;
   deleteAllByGuild(guildId: string): Promise<number>;
 }
 

@@ -1,6 +1,6 @@
 // tests/unit/bot/handlers/clientReadyHandler.test.ts
 
-import { ActivityType, PresenceUpdateStatus } from "discord.js";
+import { ActivityType, Events, PresenceUpdateStatus } from "discord.js";
 import { handleClientReady } from "@/bot/handlers/clientReadyHandler";
 
 const tDefaultMock = vi.fn((key: string, params?: Record<string, unknown>) => {
@@ -110,9 +110,11 @@ describe("bot/handlers/clientReadyHandler", () => {
 
   it("起動ログ・プレゼンス設定・各スタートアップタスクが正しく実行されることを確認", async () => {
     const setPresenceMock = vi.fn();
+    const onMock = vi.fn();
     const fakeGuilds = [{ id: "g1" }, { id: "g2" }, { id: "g3" }];
     const client = {
       user: { tag: "bot#0001", setPresence: setPresenceMock },
+      on: onMock,
       guilds: {
         cache: {
           size: 3,
@@ -135,6 +137,25 @@ describe("bot/handlers/clientReadyHandler", () => {
       ],
       status: PresenceUpdateStatus.Online,
     });
+    // 再接続時のプレゼンス再適用リスナーが登録される
+    expect(onMock).toHaveBeenCalledWith(
+      Events.ShardReady,
+      expect.any(Function),
+    );
+    expect(onMock).toHaveBeenCalledWith(
+      Events.ShardResume,
+      expect.any(Function),
+    );
+    // 登録されたリスナーを発火するとプレゼンスが再適用される
+    setPresenceMock.mockClear();
+    const shardReadyListener = onMock.mock.calls.find(
+      (c) => c[0] === Events.ShardReady,
+    )?.[1] as () => void;
+    shardReadyListener();
+    expect(setPresenceMock).toHaveBeenCalledWith({
+      activities: [{ name: "presence:3", type: ActivityType.Playing }],
+      status: PresenceUpdateStatus.Online,
+    });
     expect(initGuildInviteCacheMock).toHaveBeenCalledTimes(3);
     expect(restoreBumpRemindersOnStartupMock).toHaveBeenCalledWith(client);
     expect(cleanupVacOnStartupMock).toHaveBeenCalledWith(client);
@@ -155,6 +176,7 @@ describe("bot/handlers/clientReadyHandler", () => {
     );
     const client = {
       user: { tag: "bot#0001", setPresence: vi.fn() },
+      on: vi.fn(),
       guilds: {
         cache: {
           size: 1,

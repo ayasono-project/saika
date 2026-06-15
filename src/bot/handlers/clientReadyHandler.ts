@@ -1,7 +1,7 @@
 // src/bot/handlers/clientReadyHandler.ts
 // clientReady 時のBot共通ハンドラー
 
-import { ActivityType, PresenceUpdateStatus } from "discord.js";
+import { ActivityType, Events, PresenceUpdateStatus } from "discord.js";
 import { restoreBumpRemindersOnStartup } from "../../features/bump-reminder/handlers/bumpReminderStartup";
 import {
   INACTIVE_KICK_JOB_ID,
@@ -24,6 +24,26 @@ import { jobScheduler } from "../../shared/scheduler/jobScheduler";
 import { logger } from "../../shared/utils/logger";
 import type { BotClient } from "../client";
 import { getBotTicketRepository } from "../services/botCompositionRoot";
+
+/**
+ * 現在の稼働サーバー数を反映した「プレイ中」プレゼンスを適用する。
+ * 初回 ready だけでなく再接続（shardReady / shardResume）後にも呼び、
+ * 再 IDENTIFY でアクティビティが失われたまま復元されない問題を防ぐ。
+ */
+function applyBotPresence(client: BotClient): void {
+  const serverCount = client.guilds.cache.size;
+  client.user?.setPresence({
+    activities: [
+      {
+        name: tDefault("system:bot.presence_activity", {
+          count: serverCount,
+        }),
+        type: ActivityType.Playing,
+      },
+    ],
+    status: PresenceUpdateStatus.Online,
+  });
+}
 
 /**
  * clientReady 発火時の初期化後処理をまとめて実行する関数
@@ -53,19 +73,12 @@ export async function handleClientReady(client: BotClient): Promise<void> {
     );
 
     // 稼働中サーバー数をプレゼンス文言へ反映
-    // プレゼンス文言生成で再利用するため一度だけ取得
-    const serverCount = client.guilds.cache.size;
-    client.user?.setPresence({
-      activities: [
-        {
-          name: tDefault("system:bot.presence_activity", {
-            count: serverCount,
-          }),
-          type: ActivityType.Playing,
-        },
-      ],
-      status: PresenceUpdateStatus.Online,
-    });
+    applyBotPresence(client);
+    // 再接続（新規セッションの再 IDENTIFY）/ 再開後はアクティビティが
+    // クリアされ once:clientReady では復元されないため、その都度再適用する。
+    // clientReady は once なので本リスナー登録も一度だけ行われる。
+    client.on(Events.ShardReady, () => applyBotPresence(client));
+    client.on(Events.ShardResume, () => applyBotPresence(client));
 
     // 全サーバーの招待リンクをキャッシュ（メンバーログの招待追跡に使用）
     await Promise.all(

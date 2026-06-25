@@ -2,7 +2,7 @@
 
 > タスク管理・進捗状況・残件リスト
 
-最終更新: 2026年6月10日
+最終更新: 2026年6月26日
 
 ---
 
@@ -11,11 +11,13 @@
 | # | セクション | 概要 | 残件 |
 | --- | --- | --- | ---: |
 | 1 | VC自動募集 チャンネル単位再設計 ＋ VACオーナー個人設定 | カテゴリ→VCチャンネル allowlist 化・動的VCの on/off（3状態）＋個別募集文＋既定VC名/人数を `VacOwnerPreference` で一括・`/myvc`・移行方針確定 | 4 |
+| 2 | 通知送信リファクタリング + 実行時刻設定化 | inactive-kick / unverified-kick の通知ページネーション廃止・{markerRole} 廃止＋個別メンション化・予定日別 embed・整合性チェック・mentionEnabled・{daysLeft} 廃止・共通送信ユーティリティ・実行時刻設定化 | 6 |
+| 3 | ドキュメント整理（spec 廃止・guides 集約） | `docs/specs/` 全廃止・重要情報の guides への移行・README/TODO の spec 参照除去 | 5 |
 | 11 | Bot 一般公開準備 | `/about` 充実（LP 公開時）・Discord 認証申請（75 サーバー到達後）・ディスカバリー審査の ja 抑止戻し | 3 |
-| **合計** | | | **7** |
+| **合計** | | | **18** |
 
 > web ダッシュボード・インフラ（VPS / Cloudflare / Coolify）は別リポジトリで管理。番号は優先度順（#1 から実装見込み順・#11 は低優先度）。
-> 次に実装見込みは §1。VC自動募集の再設計と VACオーナー個人設定（募集制御＋既定VC名/人数）は **同じ `/myvc` コマンド・同じ `VacOwnerPreference` を共有するため一括実装・一括リリース**（コマンド変更アナウンスを1回に集約・二段階移行も回避）。着手前に既存 `enabledCategoryIds` の移行方針を確定する。§11 Bot 一般公開準備は低優先度（Discord 認証申請は 75 サーバー到達後に着手する条件待ち）。
+> 次に実装見込みは §1。VC自動募集の再設計と VACオーナー個人設定（募集制御＋既定VC名/人数）は **同じ `/myvc` コマンド・同じ `VacOwnerPreference` を共有するため一括実装・一括リリース**（コマンド変更アナウンスを1回に集約・二段階移行も回避）。着手前に既存 `enabledCategoryIds` の移行方針を確定する。§2 は §1 と独立して着手可能。§3 ドキュメント整理は §1・§2 と独立して着手可能（低優先度）。§11 Bot 一般公開準備は低優先度（Discord 認証申請は 75 サーバー到達後に着手する条件待ち）。
 
 ---
 
@@ -29,6 +31,29 @@
 - [ ] 静的VC: カテゴリ→**VCチャンネルID allowlist** 再設計（個別トグル・「カテゴリ選択で現存子VCを個別エントリ一括登録」補助導線・`"TOP"` sentinel 廃止・判定を `channel.parentId` 参照から VC 個別へ）
 - [ ] VAC動的VC: per-user `VacOwnerPreference`（`guildId×userId`）新設 ＋ 管理者既定フラグ（`vac-settings`・`ManageGuild`）＋ オーナー個別 **on/off（3状態 未設定/ON/OFF）** ＋ **個別募集文**。フォールバック: on/off=ユーザー設定→管理者既定 / 募集文=オーナー個別→ギルド募集文→デフォルト。個別募集文は `allowedMentions` で一括メンション無効化（踏み台防止）。コマンド `/vc-recruit`→`/myvc` 再編・募集投稿に「`/myvc` でオフにできる」静的案内文。**オーナーパネル/ボタンは作らない**（§7 VCパネル廃止と整合）。旧アイデア（ユーザー個別 opt-out／VC単位指定・除外）を包含
 - [ ] VACオーナー既定VC（同コマンド・同モデルでまとめて実装）: `VacOwnerPreference` に **VC名テンプレート・人数制限**も持たせ `handleVacCreate` で適用（フォールバック: 名前=オーナー既定→ギルド既定名→グローバル既定 / 人数=オーナー既定→`VAC_EVENT.DEFAULT_LIMIT`）。`/myvc` の設定サブコマンドに統合（毎回 Discord 標準UIで再設定しなくて済む persistence）
+
+### 2. 通知送信リファクタリング + 実行時刻設定化
+
+設計書: [docs/specs/KICK_NOTIFICATION_REFACTOR_SPEC.md](docs/specs/KICK_NOTIFICATION_REFACTOR_SPEC.md)
+
+inactive-kick / unverified-kick の通知周りの構造的バグ（コレクター失効による「インタラクションに失敗しました」）の修正・{markerRole} 廃止＋個別メンション化・予定日別 embed 構造・markerRole 整合性チェック・mentionEnabled 設定・{daysLeft} 廃止と、実行時刻のギルド設定化。実装は Step 1〜6 の順で行う（詳細は設計書のチェックリスト参照）。**着手前に `runHour` のデフォルト値を決定すること**（Step 1 のスキーマ `@default` に影響）。
+
+- [ ] **Step 1**: `prisma/schema.prisma` に `timezone` / `runHour` / `lastRunDate` / `mentionEnabled` を追加・マイグレーション（`GuildInactiveKickSettings` / `GuildUnverifiedKickSettings`）
+- [ ] **Step 2**: 設定コマンド追加（`set-timezone` / `set-run-hour` / `mention enable` / `mention disable`・セレクトメニュー・バリデーション・`view` 更新・ja/en ロケール）
+- [ ] **Step 3**: スケジューラのスイープ化（固定 cron → 毎時スイープ + `runHour` フィルタ + `lastRunDate` 同日ガード）
+- [ ] **Step 4**: 共通送信ユーティリティ新規作成（content 全部 → embed 詰め込み方式・フッター通し番号）＋ 整合性チェックフェーズ追加（`applyGraceClear` → 整合性チェック → `assignMarkerRoles`）＋ 両 runner の `sendPaginatedEmbeds` 差し替え
+- [ ] **Step 5**: notifier 改修（動的フィールド分割・kick/warn 表示形式 [B]・予定日別 embed [C-1]・予定日時表示 [C-2〜4]・`{daysLeft}` 廃止 [D-1]・廃止案内 [I]）
+- [ ] **Step 6**: ダッシュボード対応（Bot 側完了後・別 PR。API エンドポイントに `timezone`/`runHour`/`mentionEnabled` 追加 + Web UI）
+
+### 3. ドキュメント整理（spec 廃止・guides 集約）
+
+`docs/specs/` の全ファイルを廃止し、維持すべき設計意図・非自明な境界条件・決定経緯を guides（ARCHITECTURE.md / IMPLEMENTATION_GUIDELINES.md 等）に集約する。README / TODO の spec 参照も除去し、ドキュメント体系をコード＋guides に一本化する。
+
+- [ ] 各 spec を精査し、guides に移す価値のある情報（設計根拠・非自明な境界条件・決定経緯）を特定する（全18ファイル）
+- [ ] 特定した情報を適切なガイドに追記（ARCHITECTURE.md / IMPLEMENTATION_GUIDELINES.md 等）
+- [ ] `docs/specs/` ディレクトリを全削除（`_TEMPLATE.md` 含む全ファイル＋ディレクトリ本体）
+- [ ] README.md 更新: 機能表の `spec` 列を削除・「仕様書」セクションを `USER_MANUAL.md` リンクのみに整理（または削除）
+- [ ] TODO.md 更新: タスク説明・完了済みセクション内の spec パス参照を全除去
 
 ### 11. Bot 一般公開準備
 

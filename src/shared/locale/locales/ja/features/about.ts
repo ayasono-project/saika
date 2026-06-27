@@ -7,7 +7,8 @@ export const about = {
 
   // ── Embed ──────────────────────────────────────
   "embed.title": "🌸 彩加 =Saika= について",
-  "embed.description": "Discord サーバー管理 Bot「彩加 =Saika=」",
+  "embed.description":
+    "出来ないこと以外は何でも出来る！コミュニティに彩りを加えるサーバー管理 Bot「彩加 =Saika=」",
   "embed.field.name.version": "バージョン",
   "embed.field.name.official": "🔗 公式サイト",
   "embed.field.value.official": "{{url}}",

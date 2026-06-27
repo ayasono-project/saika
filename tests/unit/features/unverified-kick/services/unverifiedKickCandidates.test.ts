@@ -103,14 +103,13 @@ describe("unverified-kick/candidates", () => {
     expect(buckets.kick).toHaveLength(0);
   });
 
-  it("認証済みになった警告記録は clearWarn へ（markerCleanup と独立）", () => {
+  it("認証済みになった警告記録は clearWarn へ", () => {
     const buckets = categorizeCandidates(
       [member({ userId: "u1", isVerified: true, warnedAt: day(20) })],
       settings,
       NOW,
     );
     expect(buckets.clearWarn).toEqual(["u1"]);
-    expect(buckets.markerCleanup).toHaveLength(0);
   });
 
   it("警告無効化（warnDays 未設定）後に残った警告記録は clearWarn へ", () => {
@@ -125,7 +124,7 @@ describe("unverified-kick/candidates", () => {
     expect(buckets.kick).toHaveLength(0);
   });
 
-  it("除外メンバー（認証済み）は対象外、対象ロール保持なら markerCleanup へ", () => {
+  it("除外メンバー（認証済み）はキック・警告対象外", () => {
     const buckets = categorizeCandidates(
       [member({ userId: "u1", isVerified: true, hasMarkerRole: true })],
       settings,
@@ -133,16 +132,6 @@ describe("unverified-kick/candidates", () => {
     );
     expect(buckets.kick).toHaveLength(0);
     expect(buckets.warn).toHaveLength(0);
-    expect(buckets.markerCleanup).toEqual(["u1"]);
-  });
-
-  it("除外メンバーで対象ロール未保持なら markerCleanup に積まない", () => {
-    const buckets = categorizeCandidates(
-      [member({ userId: "u1", isVerified: true, hasMarkerRole: false })],
-      settings,
-      NOW,
-    );
-    expect(buckets.markerCleanup).toHaveLength(0);
   });
 
   it("enabledAt 起算下限: 有効化前から猶予超過でも有効化直後はキックされない", () => {
@@ -172,6 +161,6 @@ describe("unverified-kick/candidates", () => {
       NOW,
     );
     expect(buckets.kick).toHaveLength(0);
-    expect(buckets.markerCleanup).toHaveLength(0);
+    expect(buckets.warn).toHaveLength(0);
   });
 });

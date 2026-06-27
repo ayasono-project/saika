@@ -28,6 +28,7 @@ function createFakeRepository(): IUnverifiedKickSettingsRepository & {
     async deleteUnverifiedKickSettings(guildId) {
       store.delete(guildId);
     },
+    async updateLastRunDate(_guildId: string, _date: string) {},
   };
 }
 

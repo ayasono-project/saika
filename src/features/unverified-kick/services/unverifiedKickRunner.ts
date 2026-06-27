@@ -1,5 +1,5 @@
 // src/features/unverified-kick/services/unverifiedKickRunner.ts
-// 未承認ユーザー自動キックの日次チェック本体（候補抽出 → 事前警告〔DM + 通知〕→ キック実行）
+// 未承認ユーザー自動キックの時間単位スイープ（候補抽出 → 事前警告〔DM + 通知〕→ キック実行）
 
 import {
   ChannelType,
@@ -14,7 +14,7 @@ import {
   getBotUnverifiedKickSettingsService,
   getBotUnverifiedKickWarnRepository,
 } from "../../../bot/services/botCompositionRoot";
-import { sendPaginatedEmbeds } from "../../../bot/shared/embedPaginator";
+import { sendNotification } from "../../../bot/shared/notificationSender";
 import { env } from "../../../shared/config/env";
 import type { UnverifiedKickSettings } from "../../../shared/database/types";
 import { getGuildTranslator } from "../../../shared/locale/helpers";
@@ -35,31 +35,27 @@ import {
   buildDmMessage,
   buildKickNotification,
   buildWarnNotification,
+  type KickedMember,
 } from "./unverifiedKickNotifier";
+import {
+  buildObsoleteUnverifiedKickNotice,
+  detectObsoleteUnverifiedKickPlaceholders,
+} from "./unverifiedKickObsoletePlaceholders";
 
 /** 日次チェックジョブの固定 ID */
 export const UNVERIFIED_KICK_JOB_ID = "unverified-kick:daily-check";
-/** 日次チェックの cron 式（毎日 03:00） */
-export const UNVERIFIED_KICK_JOB_SCHEDULE = "0 3 * * *";
-/** 日次チェックのタイムゾーン */
-export const UNVERIFIED_KICK_JOB_TIMEZONE = "Asia/Tokyo";
-
-/** キック予告チャンネルのページネーター有効時間（1 時間） */
-const NOTIFICATION_COLLECTOR_MS = 60 * 60 * 1000;
-/** ページネーター customId プレフィックス */
-const WARN_PAGINATOR_PREFIX = "unverified-kick:notify-warn";
-const KICK_PAGINATOR_PREFIX = "unverified-kick:notify-kick";
+/** スイープの cron 式（毎時 0 分）。per-guild の timezone/runHour でフィルタリングする */
+export const UNVERIFIED_KICK_JOB_SCHEDULE = "0 * * * *";
 
 const LOG_PREFIX = "system:log_prefix.unverified_kick";
 
 /**
- * 日次チェックの cron 式を解決する。
+ * スイープの cron 式を解決する。
  * `UNVERIFIED_KICK_CRON`（dev/検証用の上書き）が有効な cron 式なら優先し、
- * 未設定・不正なら既定（毎日 03:00）を用いる。
- * @returns 使用する cron 式
+ * 未設定・不正なら毎時スイープを使う。
  */
 export function resolveUnverifiedKickSchedule(): string {
-  const override = env.UNVERIFIED_KICK_CRON;
+  const override = env.UNVERIFIED_KICK_CRON_OVERRIDE;
   if (!override) return UNVERIFIED_KICK_JOB_SCHEDULE;
   if (cron.validate(override)) {
     logger.warn(
@@ -75,6 +71,21 @@ export function resolveUnverifiedKickSchedule(): string {
     }),
   );
   return UNVERIFIED_KICK_JOB_SCHEDULE;
+}
+
+/** `date` をそのタイムゾーンで表したときの時（0〜23）を返す */
+function getHourInTimezone(date: Date, timezone: string): number {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: timezone,
+    hour: "2-digit",
+    hour12: false,
+  }).formatToParts(date);
+  return parseInt(parts.find((p) => p.type === "hour")?.value ?? "0", 10) % 24;
+}
+
+/** `date` をそのタイムゾーンで表したときの日付文字列（"YYYY-MM-DD"）を返す */
+function getLocalDateString(date: Date, timezone: string): string {
+  return new Intl.DateTimeFormat("en-CA", { timeZone: timezone }).format(date);
 }
 
 /**
@@ -102,12 +113,6 @@ function toCandidateInput(
 
 /**
  * ギルドメンバーから候補区分を算出する（日次チェックと preview で共有）。
- * @param guild 対象ギルド
- * @param members 取得済みのギルドメンバー一覧
- * @param settings 区分に用いる設定
- * @param now 現在時刻
- * @param warnedMap userId → 事前警告時刻のマップ（警告済み判定に用いる）
- * @returns 区分結果
  */
 export function buildCandidateBuckets(
   guild: Guild,
@@ -129,67 +134,62 @@ export function buildCandidateBuckets(
 }
 
 /**
- * 対象ロール掃除（除外対象だが対象ロールを保持しているメンバーから剥奪）を行う。
+ * 対象ロールの整合性を全メンバー単位で保証する（inactive-kick の applyMarkerRoleConsistency と同方式）。
+ * - warn・kick バケットのメンバーはロールを付与する（未付与なら追加）
+ * - それ以外でロールを保持しているメンバーは剥奪する（認証済み/再参加リセット等を一括修正）
  */
-async function applyMarkerCleanup(
+async function applyMarkerRoleConsistency(
   guild: Guild,
-  userIds: string[],
-  markerRoleId: string,
-): Promise<void> {
-  for (const userId of userIds) {
-    try {
-      const member = await guild.members.fetch(userId).catch(() => null);
-      await member?.roles
-        .remove(markerRoleId)
-        .catch((err) => logMarkerRemoveFailed(guild.id, userId, err));
-    } catch (err) {
-      logMarkerRemoveFailed(guild.id, userId, err);
-    }
-  }
-}
-
-function logMarkerRemoveFailed(
-  guildId: string,
-  userId: string,
-  err: unknown,
-): void {
-  logger.warn(
-    logPrefixed(LOG_PREFIX, "unverifiedKick:log.marker_role_remove_failed", {
-      guildId,
-      userId,
-    }),
-    err,
-  );
-}
-
-/**
- * 警告対象へ対象ロールを付与する（未付与のもののみ・通知投稿の直前に呼ぶ）。
- */
-async function assignMarkerRoles(
-  guild: Guild,
-  warnCandidates: CategorizedCandidate[],
+  members: GuildMember[],
+  buckets: CandidateBuckets,
   markerRoleId: string,
 ): Promise<void> {
   const t = await getGuildTranslator(guild.id);
-  for (const candidate of warnCandidates) {
-    if (candidate.hasMarkerRole) continue;
-    try {
-      const member = await guild.members
-        .fetch(candidate.userId)
-        .catch(() => null);
-      await member?.roles.add(
-        markerRoleId,
-        t("unverifiedKick:audit_reason.marker_assigned"),
-      );
-    } catch (err) {
-      logger.warn(
-        logPrefixed(
-          LOG_PREFIX,
-          "unverifiedKick:log.marker_role_assign_failed",
-          { guildId: guild.id, userId: candidate.userId },
-        ),
-        err,
-      );
+  const shouldHave = new Set([
+    ...buckets.warn.map((c) => c.userId),
+    ...buckets.kick.map((c) => c.userId),
+  ]);
+
+  for (const member of members) {
+    if (member.user.bot) continue;
+    const has = member.roles.cache.has(markerRoleId);
+    const needs = shouldHave.has(member.id);
+
+    if (has && !needs) {
+      await member.roles
+        .remove(
+          markerRoleId,
+          t("unverifiedKick:audit_reason.marker_removed_verified"),
+        )
+        .catch((err) =>
+          logger.warn(
+            logPrefixed(
+              LOG_PREFIX,
+              "unverifiedKick:log.marker_role_remove_failed",
+              {
+                guildId: guild.id,
+                userId: member.id,
+              },
+            ),
+            err,
+          ),
+        );
+    } else if (!has && needs) {
+      await member.roles
+        .add(markerRoleId, t("unverifiedKick:audit_reason.marker_assigned"))
+        .catch((err) =>
+          logger.warn(
+            logPrefixed(
+              LOG_PREFIX,
+              "unverifiedKick:log.marker_role_assign_failed",
+              {
+                guildId: guild.id,
+                userId: member.id,
+              },
+            ),
+            err,
+          ),
+        );
     }
   }
 }
@@ -204,9 +204,6 @@ async function sendWarnDms(
 ): Promise<void> {
   if (candidates.length === 0) return;
   const t = await getGuildTranslator(guild.id);
-  // 警告対象は今この瞬間に警告され、ここから通知猶予（graceDays − warnDays 日）後に
-  // キックされる。よって DM に載せる「キックまでの残日数」は全員一律でこの通知猶予になる
-  // （実際の経過日数には依存しない。警告日を飛び越えたメンバーも同じだけ猶予を得る）。
   const warnDays = settings.warnDays ?? 0;
   const body = buildDmMessage({
     t,
@@ -221,13 +218,12 @@ async function sendWarnDms(
     const member = await guild.members
       .fetch(candidate.userId)
       .catch(() => null);
-    // DM 拒否・送信失敗は握りつぶす（仕様）
     await member?.send({ content: body }).catch(() => {});
   }
 }
 
 /**
- * キック予告（通知チャンネル）を送信する。対象ロール設定時は本文でメンションする。
+ * キック予告（通知チャンネル）を送信する。
  */
 async function sendWarnNotification(
   guild: Guild,
@@ -244,20 +240,15 @@ async function sendWarnNotification(
     serverName: guild.name,
     graceDays: settings.graceDays,
     warnDays: settings.warnDays ?? 0,
+    timezone: settings.timezone,
+    runHour: settings.runHour,
+    mentionEnabled: settings.mentionEnabled,
     customMessage: settings.notifyTemplate,
-    markerRoleId: settings.markerRoleId,
   });
 
-  await sendPaginatedEmbeds({
-    send: (payload) => channel.send(payload),
-    pages: embeds,
-    prefix: WARN_PAGINATOR_PREFIX,
-    timeMs: NOTIFICATION_COLLECTOR_MS,
-    ...(content ? { content } : {}),
-    // 本文に対象ロールメンションを含むときのみピングを許可
-    ...(settings.markerRoleId
-      ? { allowedMentionRoleIds: [settings.markerRoleId] }
-      : {}),
+  await sendNotification((payload) => channel.send(payload), {
+    content,
+    embeds,
   }).catch((err) => {
     logger.error(
       logPrefixed(LOG_PREFIX, "unverifiedKick:log.notification_failed", {
@@ -267,6 +258,35 @@ async function sendWarnNotification(
       err,
     );
   });
+}
+
+/**
+ * 廃止プレースホルダーが検出されたときに案内 Embed をチャンネルへ送信する。
+ * logChannel を優先し、なければ notifyChannel へ送る。
+ */
+async function sendObsoleteUnverifiedKickNotice(
+  guild: Guild,
+  logChannel: SendableChannels | null,
+  notifyChannel: SendableChannels | null,
+  settings: { notifyTemplate?: string | null; dmTemplate?: string | null },
+): Promise<void> {
+  const detected = detectObsoleteUnverifiedKickPlaceholders(settings);
+  if (!detected.hasMarkerRole) return;
+  const channel = logChannel ?? notifyChannel;
+  if (!channel) return;
+  const t = await getGuildTranslator(guild.id);
+  const notice = buildObsoleteUnverifiedKickNotice(t, detected);
+  if (notice) {
+    await channel.send({ embeds: [notice] }).catch((err) => {
+      logger.error(
+        logPrefixed(LOG_PREFIX, "unverifiedKick:log.notification_failed", {
+          guildId: guild.id,
+          stage: "obsolete_notice",
+        }),
+        err,
+      );
+    });
+  }
 }
 
 /**
@@ -280,14 +300,19 @@ async function processKicks(
 ): Promise<void> {
   if (candidates.length === 0) return;
 
-  const testMode = env.TEST_MODE === true;
+  const testMode = env.UNVERIFIED_KICK_DRY_RUN;
   const t = await getGuildTranslator(guild.id);
-  // ユーザーメンション `<@id>` は退出後もグローバルに解決されるため userId を控える
-  const kickedUserIds: string[] = [];
+  const kicked: KickedMember[] = [];
 
   for (const candidate of candidates) {
     if (testMode) {
-      kickedUserIds.push(candidate.userId);
+      const member = await guild.members
+        .fetch(candidate.userId)
+        .catch(() => null);
+      kicked.push({
+        userId: candidate.userId,
+        displayName: member?.displayName ?? candidate.userId,
+      });
       continue;
     }
 
@@ -296,7 +321,6 @@ async function processKicks(
       .catch(() => null);
     if (!member) continue;
 
-    // Bot より上位ロール・オーナー等でキック不能ならスキップ
     if (!member.kickable) {
       logger.warn(
         logPrefixed(LOG_PREFIX, "unverifiedKick:log.kick_skipped_unkickable", {
@@ -311,7 +335,7 @@ async function processKicks(
       await member.kick(
         t("unverifiedKick:audit_reason.kick", { days: settings.graceDays }),
       );
-      kickedUserIds.push(candidate.userId);
+      kicked.push({ userId: member.id, displayName: member.displayName });
       logger.info(
         logPrefixed(LOG_PREFIX, "unverifiedKick:log.kicked", {
           guildId: guild.id,
@@ -329,18 +353,15 @@ async function processKicks(
     }
   }
 
-  if (kickedUserIds.length === 0 || !logChannel) return;
+  if (kicked.length === 0 || !logChannel) return;
 
-  const { embeds } = buildKickNotification(kickedUserIds, {
+  const { embeds } = buildKickNotification(kicked, {
     t,
     verifiedRoleId: settings.verifiedRoleId,
     testMode,
   });
-  await sendPaginatedEmbeds({
-    send: (payload) => logChannel.send(payload),
-    pages: embeds,
-    prefix: KICK_PAGINATOR_PREFIX,
-    timeMs: NOTIFICATION_COLLECTOR_MS,
+  await sendNotification((payload) => logChannel.send(payload), {
+    embeds,
   }).catch((err) => {
     logger.error(
       logPrefixed(LOG_PREFIX, "unverifiedKick:log.notification_failed", {
@@ -354,7 +375,6 @@ async function processKicks(
 
 /**
  * テキストチャンネルを解決し、Bot が Embed を送信できるかを検証する。
- * @returns 送信可能なチャンネル（不正・権限不足なら null）
  */
 async function resolveSendableChannel(
   guild: Guild,
@@ -402,9 +422,35 @@ async function disableAndNotify(
 }
 
 /**
- * 1 ギルドの日次チェックを処理する。
- * @param client Bot クライアント
- * @param settings 有効なギルドの設定
+ * `UNVERIFIED_KICK_MOCK_MEMBERS` 用のモックバケットを生成する。
+ * graceDays / warnDays を基準に警告・キックを count 件に分配する。
+ */
+function buildMockUnverifiedKickBuckets(
+  count: number,
+  settings: UnverifiedKickSettings,
+): CandidateBuckets {
+  const { graceDays, warnDays } = settings;
+  const effectiveWarnDays = warnDays ?? 0;
+
+  return {
+    warn: Array.from({ length: count }, (_, i) => ({
+      userId: `mock-uv-warn-${i}`,
+      ageDays: graceDays - effectiveWarnDays + 1,
+      remainingDays: Math.max(0, effectiveWarnDays - 1),
+      hasMarkerRole: false,
+    })),
+    kick: Array.from({ length: count }, (_, i) => ({
+      userId: `mock-uv-kick-${i}`,
+      ageDays: graceDays + 1,
+      remainingDays: 0,
+      hasMarkerRole: true,
+    })),
+    clearWarn: [],
+  };
+}
+
+/**
+ * 1 ギルドのスイープ処理を行う。
  */
 export async function processGuildUnverifiedKick(
   client: BotClient,
@@ -468,6 +514,31 @@ export async function processGuildUnverifiedKick(
   );
   const logChannel = await resolveSendableChannel(guild, settings.logChannelId);
 
+  const now = new Date();
+
+  // UNVERIFIED_KICK_MOCK_MEMBERS が設定されていればモックデータで通知のみ実行（DB/Guild fetch を省略）
+  const mockCount = env.UNVERIFIED_KICK_MOCK_MEMBERS;
+  if (mockCount != null && mockCount > 0) {
+    const mockBuckets = buildMockUnverifiedKickBuckets(mockCount, settings);
+    if (mockBuckets.warn.length > 0 && notifyChannel) {
+      await sendWarnNotification(
+        guild,
+        notifyChannel,
+        mockBuckets.warn,
+        settings,
+        now,
+      );
+    }
+    if (mockBuckets.warn.length > 0) {
+      await sendObsoleteUnverifiedKickNotice(guild, logChannel, notifyChannel, {
+        notifyTemplate: settings.notifyTemplate,
+        dmTemplate: settings.dmTemplate,
+      });
+    }
+    await processKicks(guild, logChannel, mockBuckets.kick, settings);
+    return;
+  }
+
   // メンバー取得
   let members: GuildMember[];
   try {
@@ -482,11 +553,9 @@ export async function processGuildUnverifiedKick(
     return;
   }
 
-  // 事前警告記録（warnedAt）を読み込み、警告済み判定に用いる
   const warnRepo = getBotUnverifiedKickWarnRepository();
   const warnedMap = await warnRepo.getWarnedMap(guild.id);
 
-  const now = new Date();
   const buckets = buildCandidateBuckets(
     guild,
     members,
@@ -495,21 +564,18 @@ export async function processGuildUnverifiedKick(
     warnedMap,
   );
 
-  // 1. 対象ロール掃除（除外済み・認証済みの保持者から剥奪）
-  if (settings.markerRoleId && buckets.markerCleanup.length > 0) {
-    await applyMarkerCleanup(
+  // 1. 対象ロール整合性確保（全メンバー走査・付与/剥奪を一括補正）
+  if (settings.markerRoleId) {
+    await applyMarkerRoleConsistency(
       guild,
-      buckets.markerCleanup,
+      members,
+      buckets,
       settings.markerRoleId,
     );
   }
 
   // 2. 事前警告（DM + 通知チャンネル）。warnDays 未設定なら warn バケットは空
   if (buckets.warn.length > 0) {
-    // 通知投稿の直前に対象ロールを付与（メンション解決のため）
-    if (settings.markerRoleId) {
-      await assignMarkerRoles(guild, buckets.warn, settings.markerRoleId);
-    }
     await sendWarnDms(guild, buckets.warn, settings);
     if (notifyChannel) {
       await sendWarnNotification(
@@ -526,6 +592,10 @@ export async function processGuildUnverifiedKick(
       buckets.warn.map((c) => c.userId),
       now,
     );
+    await sendObsoleteUnverifiedKickNotice(guild, logChannel, notifyChannel, {
+      notifyTemplate: settings.notifyTemplate,
+      dmTemplate: settings.dmTemplate,
+    });
   }
 
   // 3. キック実行 + ログ
@@ -541,8 +611,8 @@ export async function processGuildUnverifiedKick(
 }
 
 /**
- * 全ギルドの日次チェックを実行する（per-guild エラー隔離）。
- * @param client Bot クライアント
+ * 全ギルドのスイープを実行する。
+ * per-guild の timezone/runHour フィルタと lastRunDate ガードを適用する。
  */
 export async function runUnverifiedKickDailyCheck(
   client: BotClient,
@@ -553,11 +623,23 @@ export async function runUnverifiedKickDailyCheck(
 
   const settingsList =
     await getBotUnverifiedKickSettingsService().getAllEnabled();
+  const now = new Date();
 
+  const skipGuards = env.UNVERIFIED_KICK_SKIP_GUARDS;
   let processed = 0;
   for (const settings of settingsList) {
+    const timezone = settings.timezone;
+    const currentHour = getHourInTimezone(now, timezone);
+    if (!skipGuards && currentHour !== settings.runHour) continue;
+
+    const todayStr = getLocalDateString(now, timezone);
+    if (!skipGuards && settings.lastRunDate === todayStr) continue;
+
     try {
       await processGuildUnverifiedKick(client, settings);
+      await getBotUnverifiedKickSettingsService()
+        .updateLastRunDate(settings.guildId, todayStr)
+        .catch(() => {});
       processed += 1;
     } catch (err) {
       logger.error(

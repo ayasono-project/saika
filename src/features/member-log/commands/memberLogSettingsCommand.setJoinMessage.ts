@@ -19,6 +19,7 @@ import { ensureMemberLogManageGuildPermission } from "./memberLogSettingsCommand
  */
 export async function handleMemberLogSettingsSetJoinMessage(
   interaction: ChatInputCommandInteraction,
+  currentValue?: string,
 ): Promise<void> {
   // 実行時にも管理権限を確認
   await ensureMemberLogManageGuildPermission(interaction);
@@ -49,6 +50,8 @@ export async function handleMemberLogSettingsSetJoinMessage(
     .setStyle(TextInputStyle.Paragraph)
     .setRequired(true)
     .setMaxLength(500);
+
+  if (currentValue) messageInput.setValue(currentValue);
 
   modal.addComponents(
     new ActionRowBuilder<TextInputBuilder>().addComponents(messageInput),

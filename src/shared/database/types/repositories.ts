@@ -149,6 +149,8 @@ export interface IInactiveKickSettingsRepository {
   ): Promise<void>;
   /** 有効な全ギルドの設定を取得（日次チェック用） */
   getAllEnabled(): Promise<Array<InactiveKickSettings & { guildId: string }>>;
+  /** 最終実行日を更新する（スイープ重複防止） */
+  updateLastRunDate(guildId: string, date: string): Promise<void>;
   deleteInactiveKickSettings(guildId: string): Promise<void>;
 }
 
@@ -162,6 +164,8 @@ export interface IUnverifiedKickSettingsRepository {
   ): Promise<void>;
   /** 有効な全ギルドの設定を取得（日次チェック用） */
   getAllEnabled(): Promise<Array<UnverifiedKickSettings & { guildId: string }>>;
+  /** 最終実行日を更新する（スイープ重複防止） */
+  updateLastRunDate(guildId: string, date: string): Promise<void>;
   deleteUnverifiedKickSettings(guildId: string): Promise<void>;
 }
 

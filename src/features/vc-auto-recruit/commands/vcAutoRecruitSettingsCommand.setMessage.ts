@@ -20,6 +20,7 @@ import { ensureVcAutoRecruitManageGuildPermission } from "./vcAutoRecruitSetting
  */
 export async function handleVcAutoRecruitSettingsSetMessage(
   interaction: ChatInputCommandInteraction,
+  currentValue?: string,
 ): Promise<void> {
   // 実行時にも管理権限を確認
   await ensureVcAutoRecruitManageGuildPermission(interaction);
@@ -50,6 +51,8 @@ export async function handleVcAutoRecruitSettingsSetMessage(
     .setStyle(TextInputStyle.Paragraph)
     .setRequired(true)
     .setMaxLength(VC_AUTO_RECRUIT_MESSAGE_MAX_LENGTH);
+
+  if (currentValue) messageInput.setValue(currentValue);
 
   modal.addComponents(
     new ActionRowBuilder<TextInputBuilder>().addComponents(messageInput),

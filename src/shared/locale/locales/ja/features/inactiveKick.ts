@@ -40,6 +40,15 @@ export const inactiveKick = {
   "inactive-kick-settings.whitelist.remove.description":
     "除外リストから項目を選んで削除（複数選択可）",
   "inactive-kick-settings.whitelist.list.description": "除外リストを表示",
+  "inactive-kick-settings.set-timezone.description":
+    "通知・キック実行のタイムゾーンを設定",
+  "inactive-kick-settings.set-run-hour.description":
+    "通知・キック実行の時刻（時）を設定",
+  "inactive-kick-settings.mention.description": "個別メンション通知を管理",
+  "inactive-kick-settings.mention.enable.description":
+    "個別メンション通知を有効化",
+  "inactive-kick-settings.mention.disable.description":
+    "個別メンション通知を無効化",
   "inactive-kick-settings.preview.description":
     "現在のキック対象・通知対象の一覧を表示",
   "inactive-kick-settings.view.description": "現在の設定を表示",
@@ -88,6 +97,12 @@ export const inactiveKick = {
   "user-response.whitelist_empty": "除外リストは空です。",
   "user-response.whitelist_remove_count":
     "{{count}} 件を除外リストから削除しました。",
+  "user-response.set_timezone_success":
+    "タイムゾーンを {{timezone}} に設定しました。",
+  "user-response.set_run_hour_success":
+    "実行時刻を {{hour}} 時に設定しました。",
+  "user-response.mention_enabled": "個別メンション通知を有効化しました。",
+  "user-response.mention_disabled": "個別メンション通知を無効化しました。",
   "user-response.reset_success": "設定をリセットしました。",
   "user-response.reset_cancelled": "リセットをキャンセルしました。",
   "user-response.channel_deleted_notice":
@@ -103,6 +118,9 @@ export const inactiveKick = {
   "embed.field.name.final_warn_message": "最終警告メッセージ",
   "embed.field.name.kick_message": "キック通知メッセージ",
   "embed.field.name.whitelist": "除外リスト",
+  "embed.field.name.timezone": "タイムゾーン",
+  "embed.field.name.run_hour": "実行時刻",
+  "embed.field.name.mention_enabled": "個別メンション通知",
   "embed.field.value.threshold_days": "{{count}} 日",
   "embed.field.value.whitelist_counts":
     "ロール {{roles}} 件 / ユーザー {{users}} 件",
@@ -135,17 +153,28 @@ export const inactiveKick = {
   // ── 段階通知 Embed（事前通知: 1 週間前 / 最終警告）─────
   "embed.title.warn": "⏰ 非アクティブメンバーの自動キック予告",
   "embed.field.name.target_members": "対象メンバー",
-  "embed.field.name.kick_schedule": "キック予定日",
+  "embed.field.name.kick_schedule": "キック予定日時",
   "default.week_warn_message":
-    "サーバー「{serverName}」で長期間活動のないメンバーが {count} 名います。このままだとあと {daysLeft} 日ほどで自動的にキックされます。引き続き参加される場合は、メッセージの投稿やリアクションなどで活動してください。",
+    "サーバー「{serverName}」で長期間活動のないメンバーが {count} 名います。このままだと自動的にキックされます。キック予定日時は通知内に表示されます。引き続き参加される場合は、メッセージの投稿やリアクションなどで活動してください。",
   "default.final_warn_message":
-    "【最終警告】サーバー「{serverName}」で活動のないメンバー {count} 名は、あと {daysLeft} 日でキックされます。退出を避けるには、今のうちにメッセージの投稿やリアクションで活動してください。",
+    "【最終警告】サーバー「{serverName}」で活動のないメンバー {count} 名がキック対象です。退出を避けるには、今のうちにメッセージの投稿やリアクションで活動してください。キック予定日時は通知内に表示されます。",
 
   // ── キック通知 Embed（当日）─────
   "embed.title.kick": "👋 非アクティブメンバーを自動キックしました",
   "embed.field.name.kicked_members": "キックしたメンバー",
   "embed.field.name.test_mode": "テストモード",
   "embed.field.value.test_mode": "（テストモード: 実際にはキックしていません）",
+
+  // ── 廃止プレースホルダー案内 Embed ─────
+  "embed.title.obsolete_notice": "カスタムメッセージの設定変更のお知らせ",
+  "embed.description.obsolete_notice":
+    "設定中のカスタムメッセージに廃止されたプレースホルダーが含まれています。以下の変更内容をご確認のうえ、カスタムメッセージを更新してください。",
+  "embed.field.name.obsolete_marker_role": "{markerRole} の廃止",
+  "embed.field.value.obsolete_marker_role":
+    "ロールへの一括メンションを廃止し、対象メンバーへの個別メンションに変更しました。\nメンション通知の ON/OFF はコマンドまたはダッシュボードから設定できます。\n・コマンド: /inactive-kick-settings mention enable / disable\n・ダッシュボード: 機能設定 > メンション通知",
+  "embed.field.name.obsolete_days_left": "{daysLeft} の廃止",
+  "embed.field.value.obsolete_days_left":
+    "残日数プレースホルダーを廃止しました。\nキック予定日時はユーザーごとに通知 embed に表示されます。",
 
   // ── UIラベル（セレクト / モーダル）─────
   "ui.select.whitelist_remove_placeholder":
@@ -155,11 +184,13 @@ export const inactiveKick = {
   "ui.modal.set_final_warn_message_title": "最終警告メッセージを設定",
   "ui.modal.set_final_warn_message_label": "最終警告メッセージ",
   "ui.modal.set_warn_message_placeholder":
-    "{count}, {daysLeft}, {thresholdDays}, {serverName}, {markerRole} を使用可（最大500文字）",
+    "{count}, {thresholdDays}, {serverName} を使用可（最大500文字）",
   "ui.modal.set_kick_message_title": "キック通知メッセージを設定",
   "ui.modal.set_kick_message_label": "キック通知メッセージ",
   "ui.modal.set_kick_message_placeholder":
     "{count}, {thresholdDays}, {serverName} を使用可（最大500文字）",
+  "ui.select.set_timezone_placeholder": "タイムゾーンを選択",
+  "ui.select.set_run_hour_placeholder": "実行時刻を選択",
 
   // ── ログ ─────────────────────────────────────
   "log.activity_record_failed":

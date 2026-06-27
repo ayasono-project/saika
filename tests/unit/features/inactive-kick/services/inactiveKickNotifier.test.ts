@@ -5,7 +5,6 @@ import {
   buildKickNotification,
   buildWarnNotification,
   formatInactiveKickMessage,
-  NOTIFICATION_PAGE_SIZE,
 } from "@/features/inactive-kick/services/inactiveKickNotifier";
 import type { GuildTFunction } from "@/shared/locale/helpers";
 
@@ -14,9 +13,6 @@ const t = ((key: string) => key) as unknown as GuildTFunction;
 
 // キック予定日算出の基準時刻（固定）
 const NOW = new Date(2026, 0, 10, 12, 0, 0);
-/** 現在から days 日後の Discord 日付タイムスタンプ */
-const expectedKickTimestamp = (days: number) =>
-  `<t:${Math.floor((NOW.getTime() + days * 24 * 60 * 60 * 1000) / 1000)}:D>`;
 
 function candidate(
   over: Partial<CategorizedCandidate> & { userId: string },
@@ -32,14 +28,25 @@ function candidate(
   };
 }
 
+const baseCtx = {
+  t,
+  serverName: "彩園",
+  thresholdDays: 30,
+  now: NOW,
+  defaultMessageKey: "inactiveKick:default.week_warn_message" as const,
+  timezone: "Asia/Tokyo",
+  runHour: 4,
+  mentionEnabled: false,
+};
+
 describe("inactive-kick/notifier", () => {
   describe("formatInactiveKickMessage", () => {
     it("単一波括弧プレースホルダーを置換する", () => {
       const result = formatInactiveKickMessage(
-        "{serverName} で {count} 名が {daysLeft} 日後",
-        { serverName: "彩園", count: 3, daysLeft: 2 },
+        "{serverName} で {count} 名が対象",
+        { serverName: "彩園", count: 3 },
       );
-      expect(result).toBe("彩園 で 3 名が 2 日後");
+      expect(result).toBe("彩園 で 3 名が対象");
     });
 
     it("未知のプレースホルダーはそのまま残す", () => {
@@ -50,140 +57,116 @@ describe("inactive-kick/notifier", () => {
   });
 
   describe("buildWarnNotification", () => {
-    it("カスタム文を本文(content)に出し、count と最小 daysLeft を差し込む", () => {
+    it("カスタム文を本文(content)に出し、count と thresholdDays を差し込む", () => {
       const candidates = [
         candidate({ userId: "u1", daysLeft: 3 }),
         candidate({ userId: "u2", daysLeft: 1 }),
       ];
       const { content, embeds } = buildWarnNotification(candidates, {
-        t,
-        serverName: "彩園",
-        thresholdDays: 30,
-        now: NOW,
-        customMessage: "{count}名・あと{daysLeft}日",
-        defaultMessageKey: "inactiveKick:default.week_warn_message",
+        ...baseCtx,
+        customMessage: "{count}名・しきい値{thresholdDays}日",
       });
-      expect(embeds).toHaveLength(1);
-      // カスタム文は本文へ（embed description には入れない）。最小 daysLeft（1）が代表値
-      expect(content).toBe("2名・あと1日");
-      expect(embeds[0].data.description).toBeUndefined();
+      // daysLeft が異なる 2 グループ → 2 Embed
+      expect(embeds).toHaveLength(2);
+      expect(content).toBe("2名・しきい値30日");
+      expect(embeds[0]?.data.description).toBeUndefined();
     });
 
-    it("{markerRole} は本文に含めたときだけメンションへ置換される", () => {
-      const withMarker = buildWarnNotification([candidate({ userId: "u1" })], {
-        t,
-        serverName: "s",
-        thresholdDays: 30,
-        now: NOW,
-        customMessage: "{markerRole} 警告",
-        defaultMessageKey: "inactiveKick:default.week_warn_message",
-        markerRoleId: "role-1",
+    it("mentionEnabled:true なら全対象メンションを本文末尾に追加する", () => {
+      const { content } = buildWarnNotification([candidate({ userId: "u1" })], {
+        ...baseCtx,
+        mentionEnabled: true,
+        customMessage: "警告",
       });
-      expect(withMarker.content).toBe("<@&role-1> 警告");
-
-      // 本文に {markerRole} を含めなければメンションは入らない
-      const withoutMarker = buildWarnNotification(
-        [candidate({ userId: "u1" })],
-        {
-          t,
-          serverName: "s",
-          thresholdDays: 30,
-          now: NOW,
-          customMessage: "警告のみ",
-          defaultMessageKey: "inactiveKick:default.week_warn_message",
-          markerRoleId: "role-1",
-        },
-      );
-      expect(withoutMarker.content).toBe("警告のみ");
+      expect(content).toBe("警告\n<@u1>");
     });
 
-    it("対象メンバーを列挙し、キック予定日を推定日付タイムスタンプで出す", () => {
+    it("対象メンバーフィールドとキック予定日タイムスタンプを Embed に出す", () => {
       const { embeds } = buildWarnNotification(
         [candidate({ userId: "u1", daysLeft: 2 })],
         {
-          t,
-          serverName: "s",
-          thresholdDays: 30,
-          now: NOW,
+          ...baseCtx,
           customMessage: "msg",
-          defaultMessageKey: "inactiveKick:default.week_warn_message",
         },
       );
-      expect(embeds[0].data.fields?.[0].value).toBe("<@u1>");
-      // 最小 daysLeft（2）後の Discord 日付タイムスタンプ
-      expect(embeds[0].data.fields?.[1].value).toBe(expectedKickTimestamp(2));
+      const fields = embeds[0]?.data.fields ?? [];
+      // schedule フィールドと member フィールドが存在する
+      expect(fields.length).toBeGreaterThanOrEqual(2);
+      const memberField = fields.find((f) => f.value.includes("<@u1>"));
+      expect(memberField).toBeDefined();
+      const scheduleField = fields.find((f) => f.value.startsWith("<t:"));
+      expect(scheduleField?.value).toMatch(/^<t:\d+:f>$/);
     });
 
     it("カスタム未設定なら defaultMessageKey のデフォルト文を本文に使う", () => {
       const { content } = buildWarnNotification([candidate({ userId: "u1" })], {
-        t,
-        serverName: "s",
-        thresholdDays: 30,
-        now: NOW,
-        defaultMessageKey: "inactiveKick:default.final_warn_message",
+        ...baseCtx,
       });
       // t はキー文字列をそのまま返すため、指定したデフォルトキーが使われたと分かる
-      expect(content).toBe("inactiveKick:default.final_warn_message");
+      expect(content).toBe("inactiveKick:default.week_warn_message");
     });
 
-    it("ページサイズを超えると Embed が複数ページに分割される", () => {
-      const many = Array.from({ length: NOTIFICATION_PAGE_SIZE + 1 }, (_, i) =>
-        candidate({ userId: `u${i}` }),
+    it("同一 daysLeft のグループは 1 Embed にまとまる", () => {
+      const many = Array.from({ length: 5 }, (_, i) =>
+        candidate({ userId: `u${i}`, daysLeft: 3 }),
       );
       const { embeds } = buildWarnNotification(many, {
-        t,
-        serverName: "s",
-        thresholdDays: 30,
-        now: NOW,
+        ...baseCtx,
         customMessage: "msg",
-        defaultMessageKey: "inactiveKick:default.week_warn_message",
       });
-      expect(embeds).toHaveLength(2);
+      expect(embeds).toHaveLength(1);
     });
   });
 
   describe("buildKickNotification", () => {
-    it("カスタム文を本文に出し、控えた表示名を Embed に列挙する", () => {
-      const { content, embeds } = buildKickNotification(["Alice", "Bob"], {
-        t,
-        serverName: "s",
-        thresholdDays: 30,
-        customMessage: "{count}名キック",
-        testMode: false,
-      });
-      expect(content).toBe("2名キック");
-      expect(embeds[0].data.description).toBeUndefined();
-      expect(embeds[0].data.fields?.[0].value).toBe("Alice\nBob");
+    it("表示名と userId を 'displayName (`userId`)' 形式で Embed に列挙する", () => {
+      const { embeds } = buildKickNotification(
+        [
+          { displayName: "Alice", userId: "u1" },
+          { displayName: "Bob", userId: "u2" },
+        ],
+        { t, serverName: "s", thresholdDays: 30, testMode: false },
+      );
+      expect(embeds[0]?.data.fields?.[0]?.value).toBe(
+        "Alice (`u1`), Bob (`u2`)",
+      );
     });
 
-    it("カスタム未設定なら本文を出さない（content は undefined・Embed のみ）", () => {
-      const { content, embeds } = buildKickNotification(["A"], {
-        t,
-        serverName: "s",
-        thresholdDays: 30,
-        testMode: false,
-      });
+    it("カスタム文があれば本文に出す", () => {
+      const { content } = buildKickNotification(
+        [{ displayName: "A", userId: "u1" }],
+        {
+          t,
+          serverName: "s",
+          thresholdDays: 30,
+          customMessage: "{count}名キック",
+          testMode: false,
+        },
+      );
+      expect(content).toBe("1名キック");
+    });
+
+    it("カスタム未設定なら content は undefined", () => {
+      const { content } = buildKickNotification(
+        [{ displayName: "A", userId: "u1" }],
+        { t, serverName: "s", thresholdDays: 30, testMode: false },
+      );
       expect(content).toBeUndefined();
-      expect(embeds[0].data.fields?.[0].value).toBe("A");
     });
 
     it("テストモードでは注記フィールドを追加する", () => {
-      const normal = buildKickNotification(["A"], {
+      const normal = buildKickNotification(
+        [{ displayName: "A", userId: "u1" }],
+        { t, serverName: "s", thresholdDays: 30, testMode: false },
+      );
+      const test = buildKickNotification([{ displayName: "A", userId: "u1" }], {
         t,
         serverName: "s",
         thresholdDays: 30,
-        customMessage: "msg",
-        testMode: false,
-      });
-      const test = buildKickNotification(["A"], {
-        t,
-        serverName: "s",
-        thresholdDays: 30,
-        customMessage: "msg",
         testMode: true,
       });
-      expect(normal.embeds[0].data.fields).toHaveLength(1);
-      expect(test.embeds[0].data.fields).toHaveLength(2);
+      expect(normal.embeds[0]?.data.fields).toHaveLength(1);
+      expect(test.embeds[0]?.data.fields).toHaveLength(2);
     });
   });
 });

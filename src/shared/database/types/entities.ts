@@ -60,7 +60,7 @@ export interface InactiveKickSettings {
   channelId?: string;
   // 非アクティブ判定日数（しきい値）
   thresholdDays: number;
-  // カスタム事前通知メッセージ: 1週間前（{count}/{daysLeft}/{thresholdDays}/{serverName}/{markerRole} 置換可）
+  // カスタム事前通知メッセージ: 1週間前（{count}/{thresholdDays}/{serverName} 置換可）
   weekWarnMessage?: string;
   // カスタム事前通知メッセージ: 最終警告（3日前・同上の変数）
   finalWarnMessage?: string;
@@ -72,6 +72,14 @@ export interface InactiveKickSettings {
   whitelistRoleIds: string[];
   // 除外ユーザーID一覧（ホワイトリスト）
   whitelistUserIds: string[];
+  // IANA タイムゾーン名（例: "Asia/Tokyo"）
+  timezone: string;
+  // 実行時刻（0〜23）
+  runHour: number;
+  // 同日2回実行ガード（"YYYY-MM-DD" 形式・未実行時 undefined）
+  lastRunDate?: string;
+  // 個別ユーザーメンション通知の有無
+  mentionEnabled: boolean;
 }
 
 export interface UnverifiedKickSettings {
@@ -93,10 +101,18 @@ export interface UnverifiedKickSettings {
   markerRoleId?: string;
   // カスタム警告DM本文（{serverName}/{graceDays}/{warnDays}/{remainingDays} 置換可）
   dmTemplate?: string;
-  // カスタムキック予告本文（通知チャンネル・{count}/{serverName}/{graceDays}/{warnDays}/{remainingDays}/{markerRole} 置換可）
+  // カスタムキック予告本文（通知チャンネル・{count}/{serverName}/{graceDays}/{warnDays}/{remainingDays} 置換可）
   notifyTemplate?: string;
   // 除外ロールID一覧
   exemptRoleIds: string[];
+  // IANA タイムゾーン名（例: "Asia/Tokyo"）
+  timezone: string;
+  // 実行時刻（0〜23）
+  runHour: number;
+  // 同日2回実行ガード（"YYYY-MM-DD" 形式・未実行時 undefined）
+  lastRunDate?: string;
+  // 個別ユーザーメンション通知の有無
+  mentionEnabled: boolean;
 }
 
 export interface VcAutoRecruitSettings {

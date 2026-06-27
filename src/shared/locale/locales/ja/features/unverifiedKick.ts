@@ -56,6 +56,15 @@ export const unverifiedKick = {
   "unverified-kick-settings.exempt.remove.description":
     "除外ロールから項目を選んで削除（複数選択可）",
   "unverified-kick-settings.exempt.list.description": "除外ロールを表示",
+  "unverified-kick-settings.set-timezone.description":
+    "通知・キック実行のタイムゾーンを設定",
+  "unverified-kick-settings.set-run-hour.description":
+    "通知・キック実行の時刻（時）を設定",
+  "unverified-kick-settings.mention.description": "個別メンション通知を管理",
+  "unverified-kick-settings.mention.enable.description":
+    "個別メンション通知を有効化",
+  "unverified-kick-settings.mention.disable.description":
+    "個別メンション通知を無効化",
 
   // ── ユーザーレスポンス ────────────────────────
   "user-response.set_verified_role_success":
@@ -115,6 +124,12 @@ export const unverifiedKick = {
     "認証ロールが見つからない（削除済み）ため、自動キックを無効化しました。",
   "user-response.disabled_no_kick_permission":
     "Bot に「メンバーをキック」権限がないため、自動キックを無効化しました。",
+  "user-response.set_timezone_success":
+    "タイムゾーンを {{timezone}} に設定しました。",
+  "user-response.set_run_hour_success":
+    "実行時刻を {{hour}} 時に設定しました。",
+  "user-response.mention_enabled": "個別メンション通知を有効化しました。",
+  "user-response.mention_disabled": "個別メンション通知を無効化しました。",
 
   // ── 設定表示 / リセット Embed ─────
   "embed.title.view": "未承認ユーザー自動キック設定",
@@ -128,6 +143,9 @@ export const unverifiedKick = {
   "embed.field.name.dm_message": "警告 DM メッセージ",
   "embed.field.name.notify_message": "キック予告メッセージ",
   "embed.field.name.exempt_roles": "除外ロール",
+  "embed.field.name.timezone": "タイムゾーン",
+  "embed.field.name.run_hour": "実行時刻",
+  "embed.field.name.mention_enabled": "個別メンション通知",
   "embed.field.name.test_mode_status": "テストモード（全体）",
   "embed.field.value.grace_days": "{{count}} 日",
   "embed.field.value.warn_days": "参加から {{count}} 日経過時点",
@@ -157,7 +175,7 @@ export const unverifiedKick = {
   // ── キック予告 Embed（通知チャンネル）─────
   "embed.title.warn": "⏰ 未承認メンバーの自動キック予告",
   "embed.field.name.target_members": "対象メンバー",
-  "embed.field.name.kick_schedule": "キック予定日",
+  "embed.field.name.kick_schedule": "キック予定日時",
 
   // ── キックサマリー Embed（ログチャンネル）─────
   "embed.title.kick": "👢 未承認メンバーを自動キックしました",
@@ -166,6 +184,14 @@ export const unverifiedKick = {
   "embed.field.name.kicked_members": "キックしたメンバー",
   "embed.field.name.test_mode": "テストモード",
   "embed.field.value.test_mode": "（テストモード: 実際にはキックしていません）",
+
+  // ── 廃止プレースホルダー案内 Embed ─────
+  "embed.title.obsolete_notice": "カスタムメッセージの設定変更のお知らせ",
+  "embed.description.obsolete_notice":
+    "設定中のカスタムメッセージに廃止されたプレースホルダーが含まれています。以下の変更内容をご確認のうえ、カスタムメッセージを更新してください。",
+  "embed.field.name.obsolete_marker_role": "{markerRole} の廃止",
+  "embed.field.value.obsolete_marker_role":
+    "ロールへの一括メンションを廃止し、対象メンバーへの個別メンションに変更しました。\nメンション通知の ON/OFF はコマンドまたはダッシュボードから設定できます。\n・コマンド: /unverified-kick-settings mention enable / disable\n・ダッシュボード: 機能設定 > メンション通知",
 
   // ── 自動無効化 Embed ─────
   "embed.title.disabled": "⚠️ 未承認ユーザー自動キックを無効化しました",
@@ -176,7 +202,7 @@ export const unverifiedKick = {
 
   // ── キック予告デフォルト文（通知チャンネル・単一波括弧）─────
   "default.notify_message":
-    "{markerRole} 参加から {warnDays} 日が経過し、まだ認証が完了していないメンバーが {count} 名います。あと約 {remainingDays} 日で自動的に退出処理されます。お早めに認証を完了してください。",
+    "参加から {warnDays} 日が経過し、まだ認証が完了していないメンバーが {count} 名います。あと約 {remainingDays} 日で自動的に退出処理されます。お早めに認証を完了してください。",
 
   // ── UIラベル（セレクト / モーダル）─────
   "ui.select.exempt_remove_placeholder":
@@ -188,7 +214,9 @@ export const unverifiedKick = {
   "ui.modal.set_notify_title": "キック予告メッセージを設定",
   "ui.modal.set_notify_label": "キック予告メッセージ",
   "ui.modal.set_notify_placeholder":
-    "{count}, {serverName}, {graceDays}, {warnDays}, {remainingDays}, {markerRole} を使用可（最大500文字）",
+    "{count}, {serverName}, {graceDays}, {warnDays}, {remainingDays} を使用可（最大500文字）",
+  "ui.select.set_timezone_placeholder": "タイムゾーンを選択",
+  "ui.select.set_run_hour_placeholder": "実行時刻を選択",
 
   // ── ログ ─────────────────────────────────────
   "log.config_updated": "設定更新 GuildId: {{guildId}} 操作: {{action}}",

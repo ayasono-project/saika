@@ -33,6 +33,10 @@ export class InactiveKickSettingsRepository
     markerRoleId: string | null;
     whitelistRoleIds: unknown;
     whitelistUserIds: unknown;
+    timezone: string;
+    runHour: number;
+    lastRunDate: string | null;
+    mentionEnabled: boolean;
   }): InactiveKickSettings {
     return {
       enabled: record.enabled,
@@ -45,6 +49,10 @@ export class InactiveKickSettingsRepository
       markerRoleId: record.markerRoleId ?? undefined,
       whitelistRoleIds: record.whitelistRoleIds as string[],
       whitelistUserIds: record.whitelistUserIds as string[],
+      timezone: record.timezone,
+      runHour: record.runHour,
+      lastRunDate: record.lastRunDate ?? undefined,
+      mentionEnabled: record.mentionEnabled,
     };
   }
 
@@ -73,11 +81,22 @@ export class InactiveKickSettingsRepository
       markerRoleId: settings.markerRoleId ?? null,
       whitelistRoleIds: settings.whitelistRoleIds,
       whitelistUserIds: settings.whitelistUserIds,
+      timezone: settings.timezone,
+      runHour: settings.runHour,
+      lastRunDate: settings.lastRunDate ?? null,
+      mentionEnabled: settings.mentionEnabled,
     };
     await this.prisma.guildInactiveKickSettings.upsert({
       where: { guildId },
       create: { guildId, ...data },
       update: data,
+    });
+  }
+
+  async updateLastRunDate(guildId: string, date: string): Promise<void> {
+    await this.prisma.guildInactiveKickSettings.updateMany({
+      where: { guildId },
+      data: { lastRunDate: date },
     });
   }
 

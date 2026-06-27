@@ -5,15 +5,18 @@ import { ChannelType, PermissionFlagsBits } from "discord.js";
 // vi.mock はホイストされるため、参照する値は vi.hoisted で定義する
 const mocks = vi.hoisted(() => ({
   getAllEnabled: vi.fn(),
+  updateLastRunDate: vi.fn(),
   disableInvalid: vi.fn(),
-  sendPaginatedEmbeds: vi.fn(),
+  sendNotification: vi.fn(),
   getWarnedMap: vi.fn(),
   recordWarned: vi.fn(),
   deleteWarned: vi.fn(),
   deleteAllByGuild: vi.fn(),
   env: {
-    TEST_MODE: false,
-    UNVERIFIED_KICK_CRON: undefined as string | undefined,
+    UNVERIFIED_KICK_DRY_RUN: false,
+    UNVERIFIED_KICK_CRON_OVERRIDE: undefined as string | undefined,
+    UNVERIFIED_KICK_SKIP_GUARDS: false,
+    UNVERIFIED_KICK_MOCK_MEMBERS: undefined as number | undefined,
   },
   logger: { info: vi.fn(), debug: vi.fn(), warn: vi.fn(), error: vi.fn() },
 }));
@@ -21,6 +24,7 @@ const mocks = vi.hoisted(() => ({
 vi.mock("@/bot/services/botCompositionRoot", () => ({
   getBotUnverifiedKickSettingsService: () => ({
     getAllEnabled: mocks.getAllEnabled,
+    updateLastRunDate: mocks.updateLastRunDate,
     disableInvalid: mocks.disableInvalid,
   }),
   getBotUnverifiedKickWarnRepository: () => ({
@@ -30,9 +34,8 @@ vi.mock("@/bot/services/botCompositionRoot", () => ({
     deleteAllByGuild: mocks.deleteAllByGuild,
   }),
 }));
-vi.mock("@/bot/shared/embedPaginator", () => ({
-  sendPaginatedEmbeds: (...args: unknown[]) =>
-    mocks.sendPaginatedEmbeds(...args),
+vi.mock("@/bot/shared/notificationSender", () => ({
+  sendNotification: (...args: unknown[]) => mocks.sendNotification(...args),
 }));
 vi.mock("@/shared/config/env", () => ({ env: mocks.env }));
 vi.mock("@/shared/locale/helpers", () => ({
@@ -144,15 +147,21 @@ const baseSettings = {
   dmTemplate: undefined as string | undefined,
   notifyTemplate: undefined as string | undefined,
   exemptRoleIds: [] as string[],
+  timezone: "Asia/Tokyo",
+  runHour: 3,
+  mentionEnabled: true,
 };
 
 describe("unverified-kick/runner", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mocks.env.TEST_MODE = false;
-    mocks.env.UNVERIFIED_KICK_CRON = undefined;
+    mocks.env.UNVERIFIED_KICK_DRY_RUN = false;
+    mocks.env.UNVERIFIED_KICK_CRON_OVERRIDE = undefined;
+    mocks.env.UNVERIFIED_KICK_SKIP_GUARDS = false;
+    mocks.env.UNVERIFIED_KICK_MOCK_MEMBERS = undefined;
     mocks.disableInvalid.mockResolvedValue(undefined);
-    mocks.sendPaginatedEmbeds.mockResolvedValue(undefined);
+    mocks.updateLastRunDate.mockResolvedValue(undefined);
+    mocks.sendNotification.mockResolvedValue({ firstMessageSent: true });
     mocks.getWarnedMap.mockResolvedValue(new Map());
     mocks.recordWarned.mockResolvedValue(undefined);
     mocks.deleteWarned.mockResolvedValue(undefined);
@@ -190,7 +199,7 @@ describe("unverified-kick/runner", () => {
     await processGuildUnverifiedKick(fakeClient(guild), baseSettings);
     expect(member.kick).toHaveBeenCalledTimes(1);
     // ログチャンネルへキックサマリー
-    expect(mocks.sendPaginatedEmbeds).toHaveBeenCalledTimes(1);
+    expect(mocks.sendNotification).toHaveBeenCalledTimes(1);
   });
 
   it("認証済みメンバーはキックしない", async () => {
@@ -200,13 +209,13 @@ describe("unverified-kick/runner", () => {
     expect(member.kick).not.toHaveBeenCalled();
   });
 
-  it("TEST_MODE ではキックせずログのみ送る", async () => {
-    mocks.env.TEST_MODE = true;
+  it("UNVERIFIED_KICK_DRY_RUN ではキックせずログのみ送る", async () => {
+    mocks.env.UNVERIFIED_KICK_DRY_RUN = true;
     const member = fakeMember({ id: "u1" });
     const guild = fakeGuild([member]);
     await processGuildUnverifiedKick(fakeClient(guild), baseSettings);
     expect(member.kick).not.toHaveBeenCalled();
-    expect(mocks.sendPaginatedEmbeds).toHaveBeenCalledTimes(1);
+    expect(mocks.sendNotification).toHaveBeenCalledTimes(1);
   });
 
   it("キック不能メンバーはスキップする", async () => {
@@ -217,6 +226,27 @@ describe("unverified-kick/runner", () => {
     expect(mocks.logger.warn).toHaveBeenCalled();
   });
 
+  it("再参加後に ageDays < warnDays となった対象ロール保持メンバーから対象ロールを剥奪する", async () => {
+    // joinedAt を現在時刻に近い値にして ageDays < warnDays(5) にする（再参加シナリオ）
+    const member = fakeMember({ id: "u1", roles: [MARKER] });
+    member.joinedAt = new Date(); // ageDays ≒ 0 < warnDays=5
+    const guild = fakeGuild([member]);
+    // DB に再参加前の警告記録が残存している
+    mocks.getWarnedMap.mockResolvedValueOnce(new Map([["u1", new Date(0)]]));
+
+    await processGuildUnverifiedKick(fakeClient(guild), {
+      ...baseSettings,
+      markerRoleId: MARKER,
+      warnDays: 5,
+    });
+
+    expect(member.roles.remove).toHaveBeenCalledWith(
+      MARKER,
+      "unverifiedKick:audit_reason.marker_removed_verified",
+    );
+    expect(member.kick).not.toHaveBeenCalled();
+  });
+
   it("対象ロール保持の認証済みメンバーから対象ロールを剥奪する（保険クリーンアップ）", async () => {
     const member = fakeMember({ id: "u1", roles: [VERIFIED, MARKER] });
     const guild = fakeGuild([member]);
@@ -224,7 +254,10 @@ describe("unverified-kick/runner", () => {
       ...baseSettings,
       markerRoleId: MARKER,
     });
-    expect(member.roles.remove).toHaveBeenCalledWith(MARKER);
+    expect(member.roles.remove).toHaveBeenCalledWith(
+      MARKER,
+      "unverifiedKick:audit_reason.marker_removed_verified",
+    );
     expect(member.kick).not.toHaveBeenCalled();
   });
 
@@ -279,22 +312,91 @@ describe("unverified-kick/runner", () => {
   });
 
   describe("resolveUnverifiedKickSchedule", () => {
-    it("未設定なら既定（毎日03:00）を返す", () => {
-      mocks.env.UNVERIFIED_KICK_CRON = undefined;
+    it("未設定なら既定（毎時）を返す", () => {
+      mocks.env.UNVERIFIED_KICK_CRON_OVERRIDE = undefined;
       expect(resolveUnverifiedKickSchedule()).toBe(
         UNVERIFIED_KICK_JOB_SCHEDULE,
       );
     });
     it("有効な cron 上書きがあればそれを返す", () => {
-      mocks.env.UNVERIFIED_KICK_CRON = "*/5 * * * *";
+      mocks.env.UNVERIFIED_KICK_CRON_OVERRIDE = "*/5 * * * *";
       expect(resolveUnverifiedKickSchedule()).toBe("*/5 * * * *");
     });
     it("不正な cron 上書きなら既定にフォールバックする", () => {
-      mocks.env.UNVERIFIED_KICK_CRON = "not-a-cron";
+      mocks.env.UNVERIFIED_KICK_CRON_OVERRIDE = "not-a-cron";
       expect(resolveUnverifiedKickSchedule()).toBe(
         UNVERIFIED_KICK_JOB_SCHEDULE,
       );
       expect(mocks.logger.warn).toHaveBeenCalled();
+    });
+  });
+
+  // 廃止プレースホルダー案内が警告ステージのみで送信されるかを検証
+  // sendNotification は mocks を経由するため channel.send を直接呼ぶのは sendObsoleteUnverifiedKickNotice のみ
+  describe("廃止プレースホルダー案内（warn ステージ限定）", () => {
+    it("warn 候補ありかつ notifyTemplate に廃止プレースホルダーがあれば警告後に channel.send が呼ばれる", async () => {
+      const member = fakeMember({ id: "u1" });
+      const guild = fakeGuild([member]);
+      const channel = (await guild.channels.fetch()) as {
+        send: ReturnType<typeof vi.fn>;
+      };
+
+      await processGuildUnverifiedKick(fakeClient(guild), {
+        ...baseSettings,
+        warnDays: 5,
+        notifyTemplate: "{markerRole} の方へ警告します",
+      });
+
+      expect(channel.send).toHaveBeenCalled();
+    });
+
+    it("warn 候補ありでも notifyTemplate に廃止プレースホルダーがなければ案内 Embed の channel.send は呼ばれない", async () => {
+      const member = fakeMember({ id: "u1" });
+      const guild = fakeGuild([member]);
+      const channel = (await guild.channels.fetch()) as {
+        send: ReturnType<typeof vi.fn>;
+      };
+
+      await processGuildUnverifiedKick(fakeClient(guild), {
+        ...baseSettings,
+        warnDays: 5,
+        notifyTemplate: "{serverName} で {count} 名が警告対象",
+      });
+
+      expect(channel.send).not.toHaveBeenCalled();
+    });
+
+    it("warn 候補ありかつ dmTemplate に廃止プレースホルダーがあっても channel.send が呼ばれる", async () => {
+      const member = fakeMember({ id: "u1" });
+      const guild = fakeGuild([member]);
+      const channel = (await guild.channels.fetch()) as {
+        send: ReturnType<typeof vi.fn>;
+      };
+
+      await processGuildUnverifiedKick(fakeClient(guild), {
+        ...baseSettings,
+        warnDays: 5,
+        dmTemplate: "対象: {markerRole}",
+      });
+
+      expect(channel.send).toHaveBeenCalled();
+    });
+
+    it("kick のみ（warn 候補なし）+ notifyTemplate に廃止プレースホルダーがあっても案内 Embed は送信されない", async () => {
+      const member = fakeMember({ id: "u1" });
+      const guild = fakeGuild([member]);
+      const channel = (await guild.channels.fetch()) as {
+        send: ReturnType<typeof vi.fn>;
+      };
+
+      // warnDays なし → warn バケット空、kick バケットへ直行
+      await processGuildUnverifiedKick(fakeClient(guild), {
+        ...baseSettings,
+        warnDays: undefined,
+        notifyTemplate: "{markerRole}",
+      });
+
+      expect(channel.send).not.toHaveBeenCalled();
     });
   });
 });

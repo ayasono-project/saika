@@ -13,16 +13,17 @@ describe("bot/commands/unverified-kick-settings (definition)", () => {
     );
   });
 
-  it("19 個のサブコマンドと exempt サブコマンドグループを持つ", () => {
+  it("21 個のサブコマンドと exempt・mention サブコマンドグループを持つ", () => {
     const subcommands = (json.options ?? []).filter(
       (o) => o.type === ApplicationCommandOptionType.Subcommand,
     );
     const groups = (json.options ?? []).filter(
       (o) => o.type === ApplicationCommandOptionType.SubcommandGroup,
     );
-    expect(subcommands).toHaveLength(19);
-    expect(groups).toHaveLength(1);
-    expect(groups[0]?.name).toBe("exempt");
+    expect(subcommands).toHaveLength(21);
+    expect(groups).toHaveLength(2);
+    expect(groups.map((g) => g.name)).toContain("exempt");
+    expect(groups.map((g) => g.name)).toContain("mention");
   });
 
   it("DM / キック予告メッセージの設定・削除サブコマンドを持つ", () => {

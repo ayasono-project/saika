@@ -53,8 +53,6 @@ export interface CandidateBuckets {
   warn: CategorizedCandidate[];
   /** キック対象（猶予到達かつ通知猶予を満たした警告済み） */
   kick: CategorizedCandidate[];
-  /** 除外対象だが対象ロールを保持しているメンバー（保険クリーンアップで剥奪） */
-  markerCleanup: string[];
   /** 失効した警告記録を削除すべきメンバー（認証済み/再参加で起算リセット/警告無効化） */
   clearWarn: string[];
 }
@@ -63,7 +61,6 @@ export interface CandidateBuckets {
  * メンバー集合を事前警告・キック・対象ロール掃除の区分へ分類する。
  *
  * - 除外メンバー（Bot/Admin/オーナー/認証済み/除外ロール）はキック・警告の対象外。
- *   ただし対象ロールを保持しているものは `markerCleanup` に積む（貼りっぱなし防止の保険）。
  * - それ以外は実効参加時刻から経過日数を求め、区分を判定する。
  *
  * @param members 正規化済みメンバー一覧
@@ -79,7 +76,6 @@ export function categorizeCandidates(
   const buckets: CandidateBuckets = {
     warn: [],
     kick: [],
-    markerCleanup: [],
     clearWarn: [],
   };
 
@@ -95,11 +91,8 @@ export function categorizeCandidates(
       exemptRoleIds: settings.exemptRoleIds,
     };
 
-    // 除外メンバー: 対象ロール付与済みなら掃除・警告記録があれば失効として削除
+    // 除外メンバー: 警告記録があれば失効として削除（対象ロール剥奪は runner の全掃式整合で対応）
     if (isExcluded(exclusion)) {
-      if (member.hasMarkerRole) {
-        buckets.markerCleanup.push(member.userId);
-      }
       if (member.warnedAt) {
         buckets.clearWarn.push(member.userId);
       }
@@ -114,6 +107,7 @@ export function categorizeCandidates(
 
     // 失効した警告記録を削除: 警告無効化、または起算リセット（再参加/再有効化で
     // ageDays が warnDays 未満に戻った）で警告済み記録が残っている場合。
+    // 対象ロール剥奪は runner の全掃式整合（applyMarkerRoleConsistency）が担う。
     if (member.warnedAt && (warnDays == null || ageDays < warnDays)) {
       buckets.clearWarn.push(member.userId);
     }

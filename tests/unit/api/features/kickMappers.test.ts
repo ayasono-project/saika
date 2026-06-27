@@ -95,6 +95,9 @@ describe("inactive-kick マッパー", () => {
         thresholdDays: 30,
         whitelistRoleIds: [],
         whitelistUserIds: [],
+        timezone: "Asia/Tokyo",
+        runHour: 4,
+        mentionEnabled: true,
       }),
     ).toEqual({
       enabled: false,
@@ -106,6 +109,7 @@ describe("inactive-kick マッパー", () => {
       kickMessage: "",
       whitelistRoleIds: [],
       whitelistUserIds: [],
+      mentionEnabled: true,
     });
   });
 
@@ -115,6 +119,9 @@ describe("inactive-kick マッパー", () => {
       thresholdDays: 30,
       whitelistRoleIds: [],
       whitelistUserIds: [],
+      timezone: "Asia/Tokyo",
+      runHour: 4,
+      mentionEnabled: true,
     };
     const next = applyInactiveKickPatch(cur, { enabled: true }, NOW);
     expect(next.enabled).toBe(true);
@@ -129,6 +136,9 @@ describe("inactive-kick マッパー", () => {
       thresholdDays: 30,
       whitelistRoleIds: [],
       whitelistUserIds: [],
+      timezone: "Asia/Tokyo",
+      runHour: 4,
+      mentionEnabled: true,
     };
     const next = applyInactiveKickPatch(cur, { enabled: false }, NOW);
     expect(next.enabled).toBe(false);
@@ -142,6 +152,9 @@ describe("inactive-kick マッパー", () => {
       weekWarnMessage: "w",
       whitelistRoleIds: ["r1"],
       whitelistUserIds: [],
+      timezone: "Asia/Tokyo",
+      runHour: 4,
+      mentionEnabled: true,
     };
     const next = applyInactiveKickPatch(
       cur,
@@ -160,6 +173,9 @@ describe("unverified-kick マッパー", () => {
         enabled: false,
         graceDays: 7,
         exemptRoleIds: [],
+        timezone: "Asia/Tokyo",
+        runHour: 3,
+        mentionEnabled: true,
       }),
     ).toMatchObject({ warnDays: 0, verifiedRoleId: null, dmTemplate: "" });
   });
@@ -170,6 +186,9 @@ describe("unverified-kick マッパー", () => {
       graceDays: 7,
       warnDays: 3,
       exemptRoleIds: [],
+      timezone: "Asia/Tokyo",
+      runHour: 3,
+      mentionEnabled: true,
     };
     expect(
       applyUnverifiedKickPatch(cur, { warnDays: 0 }, NOW).warnDays,
@@ -180,7 +199,14 @@ describe("unverified-kick マッパー", () => {
   });
 
   it("有効化時は enabledAt を now にする", () => {
-    const cur = { enabled: false, graceDays: 7, exemptRoleIds: [] };
+    const cur = {
+      enabled: false,
+      graceDays: 7,
+      exemptRoleIds: [],
+      timezone: "Asia/Tokyo",
+      runHour: 3,
+      mentionEnabled: true,
+    };
     expect(
       applyUnverifiedKickPatch(cur, { enabled: true }, NOW).enabledAt,
     ).toBe(NOW);

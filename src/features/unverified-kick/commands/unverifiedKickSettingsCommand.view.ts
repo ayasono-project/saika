@@ -142,11 +142,29 @@ export async function handleUnverifiedKickView(
         inline: true,
       },
       {
+        name: tInteraction(locale, "unverifiedKick:embed.field.name.timezone"),
+        value: settings.timezone,
+        inline: true,
+      },
+      {
+        name: tInteraction(locale, "unverifiedKick:embed.field.name.run_hour"),
+        value: `${String(settings.runHour).padStart(2, "0")}:00`,
+        inline: true,
+      },
+      {
+        name: tInteraction(
+          locale,
+          "unverifiedKick:embed.field.name.mention_enabled",
+        ),
+        value: settings.mentionEnabled ? enabled : disabled,
+        inline: true,
+      },
+      {
         name: tInteraction(
           locale,
           "unverifiedKick:embed.field.name.test_mode_status",
         ),
-        value: env.TEST_MODE ? enabled : disabled,
+        value: env.UNVERIFIED_KICK_DRY_RUN ? enabled : disabled,
         inline: true,
       },
     ],

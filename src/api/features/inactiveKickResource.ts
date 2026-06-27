@@ -22,6 +22,7 @@ export function toContractInactiveKick(
     kickMessage: domain.kickMessage ?? "",
     whitelistRoleIds: domain.whitelistRoleIds,
     whitelistUserIds: domain.whitelistUserIds,
+    mentionEnabled: domain.mentionEnabled,
   };
 }
 
@@ -66,6 +67,10 @@ export function applyInactiveKickPatch(
         : patch.kickMessage || undefined,
     whitelistRoleIds: patch.whitelistRoleIds ?? current.whitelistRoleIds,
     whitelistUserIds: patch.whitelistUserIds ?? current.whitelistUserIds,
+    timezone: current.timezone,
+    runHour: current.runHour,
+    lastRunDate: current.lastRunDate,
+    mentionEnabled: patch.mentionEnabled ?? current.mentionEnabled,
   };
 }
 

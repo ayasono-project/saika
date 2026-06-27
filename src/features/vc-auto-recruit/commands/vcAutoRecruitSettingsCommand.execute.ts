@@ -4,6 +4,7 @@
 import { ValidationError } from "@ayasono/shared/core";
 import { type ChatInputCommandInteraction } from "discord.js";
 import { handleCommandError } from "../../../bot/errors/interactionErrorHandler";
+import { getBotVcAutoRecruitSettingsService } from "../../../bot/services/botCompositionRoot";
 import { COMMON_I18N_KEYS } from "../../../bot/shared/i18nKeys";
 import { ensureManageGuildPermission } from "../../../bot/shared/permissionGuards";
 import { handleVcAutoRecruitSettingsAddCategory } from "./vcAutoRecruitSettingsCommand.addCategory";
@@ -53,9 +54,17 @@ export async function executeVcAutoRecruitSettingsCommand(
         await handleVcAutoRecruitSettingsDisable(interaction, guildId);
         break;
 
-      case VC_AUTO_RECRUIT_SETTINGS_COMMAND.SUBCOMMAND.SET_MESSAGE:
-        await handleVcAutoRecruitSettingsSetMessage(interaction);
+      case VC_AUTO_RECRUIT_SETTINGS_COMMAND.SUBCOMMAND.SET_MESSAGE: {
+        const s =
+          await getBotVcAutoRecruitSettingsService().getVcAutoRecruitSettingsOrDefault(
+            guildId,
+          );
+        await handleVcAutoRecruitSettingsSetMessage(
+          interaction,
+          s.message ?? undefined,
+        );
         break;
+      }
 
       case VC_AUTO_RECRUIT_SETTINGS_COMMAND.SUBCOMMAND.CLEAR_MESSAGE:
         await handleVcAutoRecruitSettingsClearMessage(interaction, guildId);

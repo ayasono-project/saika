@@ -113,6 +113,15 @@ vi.mock("@/bot/shared/permissionGuards", () => ({
   ensureManageGuildPermission: vi.fn(),
 }));
 
+vi.mock("@/bot/services/botCompositionRoot", () => ({
+  getBotMemberLogSettingsService: () => ({
+    getMemberLogSettingsOrDefault: vi.fn().mockResolvedValue({
+      joinMessage: null,
+      leaveMessage: null,
+    }),
+  }),
+}));
+
 // ---- ヘルパー ----
 
 /** テスト用 interaction モックを生成する */
@@ -204,7 +213,7 @@ describe("bot/features/member-log/commands/memberLogSettingsCommand.execute", ()
 
       await executeMemberLogSettingsCommand(interaction as never);
 
-      expect(setJoinMessageMock).toHaveBeenCalledWith(interaction);
+      expect(setJoinMessageMock).toHaveBeenCalledWith(interaction, undefined);
     });
 
     it("set-leave-message サブコマンドが handleMemberLogSettingsSetLeaveMessage へ委譲されることを確認", async () => {
@@ -214,7 +223,7 @@ describe("bot/features/member-log/commands/memberLogSettingsCommand.execute", ()
 
       await executeMemberLogSettingsCommand(interaction as never);
 
-      expect(setLeaveMessageMock).toHaveBeenCalledWith(interaction);
+      expect(setLeaveMessageMock).toHaveBeenCalledWith(interaction, undefined);
     });
 
     it("view サブコマンドが handleMemberLogSettingsView へ委譲されることを確認", async () => {

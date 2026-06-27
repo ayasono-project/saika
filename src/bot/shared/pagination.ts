@@ -5,6 +5,8 @@ import {
   ActionRowBuilder,
   ButtonBuilder,
   ButtonStyle,
+  type EmbedBuilder,
+  type Message,
   type MessageComponentInteraction,
   ModalBuilder,
   TextInputBuilder,
@@ -170,4 +172,105 @@ export function resolvePageFromAction(
     case "last":
       return Math.max(0, totalPages - 1);
   }
+}
+
+/** `sendPaginatedEmbeds` の送信オプション */
+export interface SendPaginatedEmbedsOptions {
+  /** 最初のメッセージを送信する関数（戻り値の Message にコレクターを張る） */
+  send: (payload: {
+    content?: string;
+    embeds: EmbedBuilder[];
+    components: ActionRowBuilder<ButtonBuilder>[];
+    allowedMentions?: { roles?: string[] };
+  }) => Promise<Message>;
+  pages: EmbedBuilder[];
+  prefix: string;
+  /** コレクターの有効時間（ms） */
+  timeMs: number;
+  /** 操作を許可するユーザー ID（preview 用。未指定なら誰でも操作可） */
+  filterUserId?: string;
+  /** 1 ページ目に付与するメッセージ本文（対象ロールメンション等） */
+  content?: string;
+  /** 本文メンションのピング許可対象ロール */
+  allowedMentionRoleIds?: string[];
+  /** 初期描画に使用するロケール（コレクター内では interaction.locale で上書き）。省略時は "ja" */
+  locale?: string;
+}
+
+/**
+ * 事前レンダリング済みの Embed ページ群を送信し、複数ページならコレクターでページ送りを可能にする。
+ * ジャンプモーダル付きの共通ページネーションボタン（`buildPaginationRow`）を使用する。
+ */
+export async function sendPaginatedEmbeds(
+  options: SendPaginatedEmbedsOptions,
+): Promise<Message> {
+  const { send, pages, prefix, timeMs } = options;
+  const locale = options.locale ?? "ja";
+  const totalPages = pages.length;
+  let currentPage = 0;
+
+  const components =
+    totalPages > 1 ? [buildPaginationRow(prefix, 0, totalPages, locale)] : [];
+
+  const message = await send({
+    content: options.content,
+    embeds: [pages[0]],
+    components,
+    ...(options.allowedMentionRoleIds
+      ? { allowedMentions: { roles: options.allowedMentionRoleIds } }
+      : {}),
+  });
+
+  if (totalPages <= 1) return message;
+
+  const collector = message.createMessageComponentCollector({ time: timeMs });
+
+  /* istanbul ignore next -- Discord.js collector callback */
+  collector.on("collect", async (interaction: MessageComponentInteraction) => {
+    if (options.filterUserId && interaction.user.id !== options.filterUserId) {
+      return;
+    }
+    const action = parsePaginationAction(interaction.customId, prefix);
+    if (!action) return;
+
+    if (action === "jump") {
+      const input = await showPaginationJumpModal(
+        interaction,
+        prefix,
+        totalPages,
+        interaction.locale,
+      );
+      if (!input) return;
+      const parsed = parseInt(input, 10);
+      if (Number.isNaN(parsed) || parsed < 1 || parsed > totalPages) return;
+      currentPage = parsed - 1;
+      // showPaginationJumpModal 内で submit.deferUpdate() が完了しているため editReply で更新する
+      await interaction.editReply({
+        embeds: [pages[currentPage]],
+        components: [
+          buildPaginationRow(
+            prefix,
+            currentPage,
+            totalPages,
+            interaction.locale,
+          ),
+        ],
+      });
+    } else {
+      currentPage = resolvePageFromAction(action, currentPage, totalPages);
+      await interaction.update({
+        embeds: [pages[currentPage]],
+        components: [
+          buildPaginationRow(
+            prefix,
+            currentPage,
+            totalPages,
+            interaction.locale,
+          ),
+        ],
+      });
+    }
+  });
+
+  return message;
 }

@@ -28,6 +28,7 @@ function createFakeRepository(): IInactiveKickSettingsRepository & {
     async deleteInactiveKickSettings(guildId) {
       store.delete(guildId);
     },
+    async updateLastRunDate(_guildId: string, _date: string) {},
   };
 }
 

@@ -13,16 +13,17 @@ describe("bot/commands/inactive-kick-settings (definition)", () => {
     );
   });
 
-  it("15 個のサブコマンドと whitelist サブコマンドグループを持つ", () => {
+  it("17 個のサブコマンドと whitelist・mention サブコマンドグループを持つ", () => {
     const subcommands = (json.options ?? []).filter(
       (o) => o.type === ApplicationCommandOptionType.Subcommand,
     );
     const groups = (json.options ?? []).filter(
       (o) => o.type === ApplicationCommandOptionType.SubcommandGroup,
     );
-    expect(subcommands).toHaveLength(15);
-    expect(groups).toHaveLength(1);
-    expect(groups[0]?.name).toBe("whitelist");
+    expect(subcommands).toHaveLength(17);
+    expect(groups).toHaveLength(2);
+    expect(groups.map((g) => g.name)).toContain("whitelist");
+    expect(groups.map((g) => g.name)).toContain("mention");
   });
 
   it("週/最終の事前メッセージ設定サブコマンドを持つ", () => {

@@ -69,9 +69,8 @@ async function clearMarkerRoleIfPresent(
  * メンバーの活動を記録する（throttle 付き）。
  *
  * - 直近 1 時間以内に書き込み済みなら何もしない（throttle）
- * - `lastActivityAt` を現在時刻へ更新する
- * - 警告済み（`warnStage > 0`）だった場合は `warnStage` を 0 にリセットし、対象ロールを剥奪する
- *   （警告済みメンバーは定義上 1 時間以内の活動が無いため、復帰の初回活動は必ず throttle されずリセットが走る）
+ * - `lastActivityAt` を現在時刻へ更新し、`warnStage` を 0 にリセットする
+ * - 付与済みの対象ロールがあれば剥奪する（ロール未付与なら何もしない）
  *
  * @param guild 対象ギルド
  * @param userId 対象ユーザーID
@@ -89,20 +88,15 @@ export async function recordMemberActivity(
 
   const activityRepo = getBotMemberActivityRepository();
   try {
-    // warnStage の前進状態は剥奪要否の判定にも使うため、書き込み前に取得する
     const existing = await activityRepo.getActivity(guild.id, userId);
-    const wasWarned = (existing?.warnStage ?? 0) > 0;
-
-    // 警告済みだった場合のみ warnStage を 0 へリセット（それ以外は lastActivityAt のみ更新）
+    const hadWarning = (existing?.warnStage ?? 0) > 0;
     await activityRepo.recordActivity(
       guild.id,
       userId,
       new Date(),
-      wasWarned ? 0 : undefined,
+      hadWarning ? 0 : undefined,
     );
-
-    // 警告済みだった場合は付与済みの対象ロールを剥奪する
-    if (wasWarned) {
+    if (hadWarning) {
       await clearMarkerRoleIfPresent(guild, userId, resolveMember);
     }
   } catch (err) {

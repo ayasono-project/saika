@@ -25,6 +25,7 @@ async function showMessageModal(
   titleKey: AllParseKeys,
   labelKey: AllParseKeys,
   placeholderKey: AllParseKeys,
+  currentValue?: string,
 ): Promise<void> {
   await ensureInactiveKickManageGuildPermission(interaction);
 
@@ -39,6 +40,8 @@ async function showMessageModal(
     .setStyle(TextInputStyle.Paragraph)
     .setRequired(true)
     .setMaxLength(INACTIVE_KICK_MESSAGE_MAX_LENGTH);
+
+  if (currentValue) input.setValue(currentValue);
 
   modal.addComponents(
     new ActionRowBuilder<TextInputBuilder>().addComponents(input),
@@ -61,6 +64,7 @@ async function replyCleared(
 /** 事前通知メッセージ（1週間前）設定モーダルを表示する。 */
 export async function handleInactiveKickSetWeekWarnMessage(
   interaction: ChatInputCommandInteraction,
+  currentValue?: string,
 ): Promise<void> {
   await showMessageModal(
     interaction,
@@ -69,12 +73,14 @@ export async function handleInactiveKickSetWeekWarnMessage(
     "inactiveKick:ui.modal.set_week_warn_message_title",
     "inactiveKick:ui.modal.set_week_warn_message_label",
     "inactiveKick:ui.modal.set_warn_message_placeholder",
+    currentValue,
   );
 }
 
 /** 事前通知メッセージ（最終警告）設定モーダルを表示する。 */
 export async function handleInactiveKickSetFinalWarnMessage(
   interaction: ChatInputCommandInteraction,
+  currentValue?: string,
 ): Promise<void> {
   await showMessageModal(
     interaction,
@@ -83,12 +89,14 @@ export async function handleInactiveKickSetFinalWarnMessage(
     "inactiveKick:ui.modal.set_final_warn_message_title",
     "inactiveKick:ui.modal.set_final_warn_message_label",
     "inactiveKick:ui.modal.set_warn_message_placeholder",
+    currentValue,
   );
 }
 
 /** キック通知メッセージ設定モーダルを表示する。 */
 export async function handleInactiveKickSetKickMessage(
   interaction: ChatInputCommandInteraction,
+  currentValue?: string,
 ): Promise<void> {
   await showMessageModal(
     interaction,
@@ -97,6 +105,7 @@ export async function handleInactiveKickSetKickMessage(
     "inactiveKick:ui.modal.set_kick_message_title",
     "inactiveKick:ui.modal.set_kick_message_label",
     "inactiveKick:ui.modal.set_kick_message_placeholder",
+    currentValue,
   );
 }
 

@@ -25,6 +25,7 @@ async function showMessageModal(
   titleKey: AllParseKeys,
   labelKey: AllParseKeys,
   placeholderKey: AllParseKeys,
+  currentValue?: string,
 ): Promise<void> {
   await ensureManageGuildPermission(interaction);
 
@@ -39,6 +40,8 @@ async function showMessageModal(
     .setStyle(TextInputStyle.Paragraph)
     .setRequired(true)
     .setMaxLength(UNVERIFIED_KICK_DM_MAX_LENGTH);
+
+  if (currentValue) input.setValue(currentValue);
 
   modal.addComponents(
     new ActionRowBuilder<TextInputBuilder>().addComponents(input),
@@ -63,6 +66,7 @@ async function replyCleared(
  */
 export async function handleUnverifiedKickSetDmMessage(
   interaction: ChatInputCommandInteraction,
+  currentValue?: string,
 ): Promise<void> {
   await showMessageModal(
     interaction,
@@ -71,6 +75,7 @@ export async function handleUnverifiedKickSetDmMessage(
     "unverifiedKick:ui.modal.set_dm_title",
     "unverifiedKick:ui.modal.set_dm_label",
     "unverifiedKick:ui.modal.set_dm_placeholder",
+    currentValue,
   );
 }
 
@@ -94,6 +99,7 @@ export async function handleUnverifiedKickClearDmMessage(
  */
 export async function handleUnverifiedKickSetNotifyMessage(
   interaction: ChatInputCommandInteraction,
+  currentValue?: string,
 ): Promise<void> {
   await showMessageModal(
     interaction,
@@ -102,6 +108,7 @@ export async function handleUnverifiedKickSetNotifyMessage(
     "unverifiedKick:ui.modal.set_notify_title",
     "unverifiedKick:ui.modal.set_notify_label",
     "unverifiedKick:ui.modal.set_notify_placeholder",
+    currentValue,
   );
 }
 

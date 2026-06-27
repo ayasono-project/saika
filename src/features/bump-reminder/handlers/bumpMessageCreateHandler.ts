@@ -27,7 +27,7 @@ export async function handleBumpMessageCreate(message: Message): Promise<void> {
   // 非本番かつテストモードでは手動テストコマンドを許可
   if (
     env.NODE_ENV !== NODE_ENV.PRODUCTION &&
-    env.TEST_MODE &&
+    env.BUMP_REMINDER_TEST_MODE &&
     !message.author.bot
   ) {
     if (message.content.toLowerCase() === `test ${BUMP_COMMANDS.DISBOARD}`) {

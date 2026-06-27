@@ -19,7 +19,7 @@ import { handleCommandError } from "../errors/interactionErrorHandler";
 import { createSlashCommand } from "../shared/createSlashCommand";
 import type { Command } from "../types/discord";
 
-const { SUBCOMMAND, GROUP, EXEMPT_SUBCOMMAND, OPTION } =
+const { SUBCOMMAND, GROUP, EXEMPT_SUBCOMMAND, MENTION_SUBCOMMAND, OPTION } =
   UNVERIFIED_KICK_SETTINGS_COMMAND;
 
 /** 警告日数オプションの最大値（猶予の最大 - 1） */
@@ -254,6 +254,45 @@ export const unverifiedKickSettingsCommand: Command = {
           .setName(SUBCOMMAND.RESET)
           .setDescription(d.base)
           .setDescriptionLocalizations(d.localizations);
+      })
+      .addSubcommand((sub) => {
+        const d = desc("unverified-kick-settings.set-timezone.description");
+        return sub
+          .setName(SUBCOMMAND.SET_TIMEZONE)
+          .setDescription(d.base)
+          .setDescriptionLocalizations(d.localizations);
+      })
+      .addSubcommand((sub) => {
+        const d = desc("unverified-kick-settings.set-run-hour.description");
+        return sub
+          .setName(SUBCOMMAND.SET_RUN_HOUR)
+          .setDescription(d.base)
+          .setDescriptionLocalizations(d.localizations);
+      })
+      .addSubcommandGroup((group) => {
+        const gd = desc("unverified-kick-settings.mention.description");
+        const enableD = desc(
+          "unverified-kick-settings.mention.enable.description",
+        );
+        const disableD = desc(
+          "unverified-kick-settings.mention.disable.description",
+        );
+        return group
+          .setName(GROUP.MENTION)
+          .setDescription(gd.base)
+          .setDescriptionLocalizations(gd.localizations)
+          .addSubcommand((sub) =>
+            sub
+              .setName(MENTION_SUBCOMMAND.ENABLE)
+              .setDescription(enableD.base)
+              .setDescriptionLocalizations(enableD.localizations),
+          )
+          .addSubcommand((sub) =>
+            sub
+              .setName(MENTION_SUBCOMMAND.DISABLE)
+              .setDescription(disableD.base)
+              .setDescriptionLocalizations(disableD.localizations),
+          );
       })
       .addSubcommandGroup((group) => {
         const gd = desc("unverified-kick-settings.exempt.description");

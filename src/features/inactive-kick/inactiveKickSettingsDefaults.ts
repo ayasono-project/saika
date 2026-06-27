@@ -19,6 +19,9 @@ export const DEFAULT_INACTIVE_KICK_SETTINGS: InactiveKickSettings = {
   thresholdDays: DEFAULT_INACTIVE_KICK_THRESHOLD_DAYS,
   whitelistRoleIds: [],
   whitelistUserIds: [],
+  timezone: "Asia/Tokyo",
+  runHour: 4,
+  mentionEnabled: true,
 };
 
 /**

@@ -163,6 +163,37 @@ export class InactiveKickSettingsService {
   }
 
   /**
+   * IANA タイムゾーンを設定する
+   */
+  async setTimezone(guildId: string, timezone: string): Promise<void> {
+    await this.updatePartial(guildId, { timezone });
+  }
+
+  /**
+   * 実行時刻（0〜23）を設定する
+   */
+  async setRunHour(guildId: string, runHour: number): Promise<void> {
+    await this.updatePartial(guildId, { runHour });
+  }
+
+  /**
+   * 個別ユーザーメンション通知の有無を設定する
+   */
+  async setMentionEnabled(
+    guildId: string,
+    mentionEnabled: boolean,
+  ): Promise<void> {
+    await this.updatePartial(guildId, { mentionEnabled });
+  }
+
+  /**
+   * 最終実行日を更新する（スイープ重複防止）
+   */
+  async updateLastRunDate(guildId: string, date: string): Promise<void> {
+    await this.repository.updateLastRunDate(guildId, date);
+  }
+
+  /**
    * ホワイトリストにロールを追加する（冪等）
    */
   async addWhitelistRole(guildId: string, roleId: string): Promise<boolean> {

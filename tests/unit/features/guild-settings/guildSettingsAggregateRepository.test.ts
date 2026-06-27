@@ -683,6 +683,9 @@ describe("shared/database/repositories/guildSettingsAggregateRepository", () => 
           thresholdDays: 30,
           whitelistRoleIds: ["r-1"],
           whitelistUserIds: ["u-1"],
+          timezone: "Asia/Tokyo",
+          runHour: 4,
+          mentionEnabled: true,
         },
       };
 
@@ -704,6 +707,9 @@ describe("shared/database/repositories/guildSettingsAggregateRepository", () => 
           thresholdDays: 30,
           whitelistRoleIds: [],
           whitelistUserIds: [],
+          timezone: "Asia/Tokyo",
+          runHour: 4,
+          mentionEnabled: true,
         },
       };
 
@@ -721,6 +727,9 @@ describe("shared/database/repositories/guildSettingsAggregateRepository", () => 
           enabledAt: "2026-02-02T00:00:00.000Z" as unknown as Date,
           graceDays: 7,
           exemptRoleIds: ["r-2"],
+          timezone: "Asia/Tokyo",
+          runHour: 3,
+          mentionEnabled: true,
         },
       };
 

@@ -359,6 +359,9 @@ export class GuildSettingsAggregateRepository
           markerRoleId: data.inactiveKick.markerRoleId ?? null,
           whitelistRoleIds: data.inactiveKick.whitelistRoleIds,
           whitelistUserIds: data.inactiveKick.whitelistUserIds,
+          timezone: data.inactiveKick.timezone,
+          runHour: data.inactiveKick.runHour,
+          mentionEnabled: data.inactiveKick.mentionEnabled,
         };
         await tx.guildInactiveKickSettings.upsert({
           where: { guildId },
@@ -383,6 +386,9 @@ export class GuildSettingsAggregateRepository
           dmTemplate: data.unverifiedKick.dmTemplate ?? null,
           notifyTemplate: data.unverifiedKick.notifyTemplate ?? null,
           exemptRoleIds: data.unverifiedKick.exemptRoleIds,
+          timezone: data.unverifiedKick.timezone,
+          runHour: data.unverifiedKick.runHour,
+          mentionEnabled: data.unverifiedKick.mentionEnabled,
         };
         await tx.guildUnverifiedKickSettings.upsert({
           where: { guildId },

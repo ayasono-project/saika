@@ -18,7 +18,7 @@ import { handleCommandError } from "../errors/interactionErrorHandler";
 import { createSlashCommand } from "../shared/createSlashCommand";
 import type { Command } from "../types/discord";
 
-const { SUBCOMMAND, GROUP, WHITELIST_SUBCOMMAND, OPTION } =
+const { SUBCOMMAND, GROUP, WHITELIST_SUBCOMMAND, MENTION_SUBCOMMAND, OPTION } =
   INACTIVE_KICK_SETTINGS_COMMAND;
 
 /**
@@ -183,6 +183,45 @@ export const inactiveKickSettingsCommand: Command = {
           .setName(SUBCOMMAND.RESET)
           .setDescription(d.base)
           .setDescriptionLocalizations(d.localizations);
+      })
+      .addSubcommand((sub) => {
+        const d = desc("inactive-kick-settings.set-timezone.description");
+        return sub
+          .setName(SUBCOMMAND.SET_TIMEZONE)
+          .setDescription(d.base)
+          .setDescriptionLocalizations(d.localizations);
+      })
+      .addSubcommand((sub) => {
+        const d = desc("inactive-kick-settings.set-run-hour.description");
+        return sub
+          .setName(SUBCOMMAND.SET_RUN_HOUR)
+          .setDescription(d.base)
+          .setDescriptionLocalizations(d.localizations);
+      })
+      .addSubcommandGroup((group) => {
+        const gd = desc("inactive-kick-settings.mention.description");
+        const enableD = desc(
+          "inactive-kick-settings.mention.enable.description",
+        );
+        const disableD = desc(
+          "inactive-kick-settings.mention.disable.description",
+        );
+        return group
+          .setName(GROUP.MENTION)
+          .setDescription(gd.base)
+          .setDescriptionLocalizations(gd.localizations)
+          .addSubcommand((sub) =>
+            sub
+              .setName(MENTION_SUBCOMMAND.ENABLE)
+              .setDescription(enableD.base)
+              .setDescriptionLocalizations(enableD.localizations),
+          )
+          .addSubcommand((sub) =>
+            sub
+              .setName(MENTION_SUBCOMMAND.DISABLE)
+              .setDescription(disableD.base)
+              .setDescriptionLocalizations(disableD.localizations),
+          );
       })
       .addSubcommandGroup((group) => {
         const gd = desc("inactive-kick-settings.whitelist.description");

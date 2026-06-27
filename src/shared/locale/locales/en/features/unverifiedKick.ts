@@ -57,6 +57,16 @@ export const unverifiedKick = {
   "unverified-kick-settings.exempt.remove.description":
     "Select exempt roles to remove (multi-select)",
   "unverified-kick-settings.exempt.list.description": "List exempt roles",
+  "unverified-kick-settings.set-timezone.description":
+    "Set the timezone for notifications and kicks",
+  "unverified-kick-settings.set-run-hour.description":
+    "Set the hour at which to run notifications and kicks",
+  "unverified-kick-settings.mention.description":
+    "Manage individual mention notifications",
+  "unverified-kick-settings.mention.enable.description":
+    "Enable individual mention notifications",
+  "unverified-kick-settings.mention.disable.description":
+    "Disable individual mention notifications",
 
   // ── User responses ────────────────────────
   "user-response.set_verified_role_success":
@@ -110,6 +120,11 @@ export const unverifiedKick = {
     "Disabled auto-kick because the verified role is missing (deleted).",
   "user-response.disabled_no_kick_permission":
     "Disabled auto-kick because the bot lacks the Kick Members permission.",
+  "user-response.set_timezone_success": "Set the timezone to {{timezone}}.",
+  "user-response.set_run_hour_success": "Set the run hour to {{hour}}:00.",
+  "user-response.mention_enabled": "Enabled individual mention notifications.",
+  "user-response.mention_disabled":
+    "Disabled individual mention notifications.",
 
   // ── Settings view / reset embeds ─────
   "embed.title.view": "Unverified Auto-Kick Settings",
@@ -123,6 +138,9 @@ export const unverifiedKick = {
   "embed.field.name.dm_message": "Warning DM Message",
   "embed.field.name.notify_message": "Kick-Notice Message",
   "embed.field.name.exempt_roles": "Exempt Roles",
+  "embed.field.name.timezone": "Timezone",
+  "embed.field.name.run_hour": "Run hour",
+  "embed.field.name.mention_enabled": "Individual mentions",
   "embed.field.name.test_mode_status": "Test Mode (global)",
   "embed.field.value.grace_days": "{{count}} days",
   "embed.field.value.warn_days": "{{count}} days after join",
@@ -153,7 +171,7 @@ export const unverifiedKick = {
   // ── Kick notice embed (notify channel) ─────
   "embed.title.warn": "⏰ Upcoming auto-kick of unverified members",
   "embed.field.name.target_members": "Target Members",
-  "embed.field.name.kick_schedule": "Scheduled Kick Date",
+  "embed.field.name.kick_schedule": "Scheduled Kick Date and Time",
 
   // ── Kick summary embed (log channel) ─────
   "embed.title.kick": "👢 Auto-kicked unverified members",
@@ -161,6 +179,14 @@ export const unverifiedKick = {
   "embed.field.name.kicked_members": "Kicked members",
   "embed.field.name.test_mode": "Test Mode",
   "embed.field.value.test_mode": "(Test mode: no one was actually kicked)",
+
+  // ── Deprecated placeholder notice embed ─────
+  "embed.title.obsolete_notice": "Custom message settings update",
+  "embed.description.obsolete_notice":
+    "Your custom messages contain deprecated placeholders. Please review the changes below and update your custom messages.",
+  "embed.field.name.obsolete_marker_role": "{markerRole} deprecated",
+  "embed.field.value.obsolete_marker_role":
+    "Bulk role mentions have been replaced with individual member mentions.\nYou can toggle mention notifications via commands or the dashboard.\n・Command: /unverified-kick-settings mention enable / disable\n・Dashboard: Feature settings > Mention notifications",
 
   // ── Auto-disable embed ─────
   "embed.title.disabled": "⚠️ Disabled unverified auto-kick",
@@ -171,7 +197,7 @@ export const unverifiedKick = {
 
   // ── Kick-notice default text (notify channel, single braces) ─────
   "default.notify_message":
-    "{markerRole} {count} member(s) joined {warnDays} days ago and have not verified yet. They will be automatically removed in about {remainingDays} day(s). Please complete verification soon.",
+    "{count} member(s) joined {warnDays} days ago and have not verified yet. They will be automatically removed in about {remainingDays} day(s). Please complete verification soon.",
 
   // ── UI labels (select / modal) ─────
   "ui.select.exempt_remove_placeholder":
@@ -183,7 +209,9 @@ export const unverifiedKick = {
   "ui.modal.set_notify_title": "Set Kick-Notice Message",
   "ui.modal.set_notify_label": "Kick-Notice Message",
   "ui.modal.set_notify_placeholder":
-    "Available: {count}, {serverName}, {graceDays}, {warnDays}, {remainingDays}, {markerRole} (max 500 chars)",
+    "Available: {count}, {serverName}, {graceDays}, {warnDays}, {remainingDays} (max 500 chars)",
+  "ui.select.set_timezone_placeholder": "Select a timezone",
+  "ui.select.set_run_hour_placeholder": "Select a run hour",
 
   // ── Logs ─────────────────────────────────────
   "log.config_updated":

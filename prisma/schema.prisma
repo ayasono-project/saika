@@ -110,6 +110,10 @@ model GuildInactiveKickSettings {
   markerRoleId     String?   @map("marker_role_id") // 警告対象へ自動付与する対象ロール ID
   whitelistRoleIds Json      @default("[]") @map("whitelist_role_ids") // jsonb: string[]
   whitelistUserIds Json      @default("[]") @map("whitelist_user_ids") // jsonb: string[]
+  timezone         String    @default("Asia/Tokyo") // IANA タイムゾーン名
+  runHour          Int       @default(4) @map("run_hour") // 実行時刻（0〜23）
+  lastRunDate      String?   @map("last_run_date") // 同日2回実行ガード（"YYYY-MM-DD"）
+  mentionEnabled   Boolean   @default(true) @map("mention_enabled") // 個別ユーザーメンション通知
 
   @@map("guild_inactive_kick_settings")
 }
@@ -141,6 +145,10 @@ model GuildUnverifiedKickSettings {
   dmTemplate      String?   @map("dm_template") // カスタム警告 DM 本文
   notifyTemplate  String?   @map("notify_template") // カスタムキック予告本文（通知チャンネル）
   exemptRoleIds   Json      @default("[]") @map("exempt_role_ids") // jsonb: string[]
+  timezone        String    @default("Asia/Tokyo") // IANA タイムゾーン名
+  runHour         Int       @default(3) @map("run_hour") // 実行時刻（0〜23）
+  lastRunDate     String?   @map("last_run_date") // 同日2回実行ガード（"YYYY-MM-DD"）
+  mentionEnabled  Boolean   @default(true) @map("mention_enabled") // 個別ユーザーメンション通知
 
   @@map("guild_unverified_kick_settings")
 }

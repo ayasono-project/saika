@@ -29,6 +29,17 @@ function candidate(
   };
 }
 
+const baseCtx = {
+  t,
+  now: NOW,
+  serverName: "彩園",
+  graceDays: 7,
+  warnDays: 5,
+  timezone: "Asia/Tokyo",
+  runHour: 3,
+  mentionEnabled: false,
+};
+
 describe("unverified-kick/notifier", () => {
   describe("formatUnverifiedKickMessage", () => {
     it("単一波括弧プレースホルダーを置換する", () => {
@@ -70,34 +81,34 @@ describe("unverified-kick/notifier", () => {
   });
 
   describe("buildWarnNotification", () => {
-    const baseCtx = {
-      t,
-      now: NOW,
-      serverName: "彩園",
-      graceDays: 7,
-      warnDays: 5,
-    };
-
-    it("カスタム文の {markerRole} を本文でメンションに展開する", () => {
+    it("カスタム文を本文に出し count などを差し込む", () => {
       const { content, embeds } = buildWarnNotification(
         [candidate({ userId: "u1" })],
         {
           ...baseCtx,
-          customMessage: "{markerRole} 対象 {count} 名",
-          markerRoleId: "role-x",
+          customMessage: "{count}名 猶予{graceDays}日",
         },
       );
-      expect(content).toBe("<@&role-x> 対象 1 名");
+      expect(content).toBe("1名 猶予7日");
       expect(embeds).toHaveLength(1);
     });
 
-    it("対象ロール未設定なら {markerRole} は空に展開される", () => {
+    it("mentionEnabled:true なら全対象のメンションを本文に含める", () => {
       const { content } = buildWarnNotification([candidate({ userId: "u1" })], {
         ...baseCtx,
-        customMessage: "{markerRole}対象 {count} 名",
+        mentionEnabled: true,
+        customMessage: "警告",
       });
-      // 先頭の空 markerRole は trim される
-      expect(content).toBe("対象 1 名");
+      expect(content).toBe("警告\n<@u1>");
+    });
+
+    it("mentionEnabled:false ならメンションを本文に含めない", () => {
+      const { content } = buildWarnNotification([candidate({ userId: "u1" })], {
+        ...baseCtx,
+        mentionEnabled: false,
+        customMessage: "警告",
+      });
+      expect(content).toBe("警告");
     });
 
     it("カスタム未設定ならデフォルト文（キー文字列）を本文にする", () => {
@@ -106,22 +117,51 @@ describe("unverified-kick/notifier", () => {
       });
       expect(content).toBe("unverifiedKick:default.notify_message");
     });
+
+    it("Embed にキック予定日タイムスタンプと対象メンバーフィールドを含む", () => {
+      const { embeds } = buildWarnNotification([candidate({ userId: "u1" })], {
+        ...baseCtx,
+        customMessage: "msg",
+      });
+      const fields = embeds[0]?.data.fields ?? [];
+      const scheduleField = fields.find((f) => f.value.startsWith("<t:"));
+      expect(scheduleField?.value).toMatch(/^<t:\d+:f>$/);
+      const memberField = fields.find((f) => f.value.includes("<@u1>"));
+      expect(memberField).toBeDefined();
+    });
   });
 
   describe("buildKickNotification", () => {
-    it("メンバーは @ メンション・認証ロールは description でメンション・テストモード表記を付ける", () => {
-      const { embeds } = buildKickNotification(["111", "222"], {
-        t,
-        verifiedRoleId: "role-x",
-        testMode: true,
-      });
+    it("表示名と userId を 'displayName (`userId`)' 形式で Embed に列挙する", () => {
+      const { embeds } = buildKickNotification(
+        [
+          { userId: "111", displayName: "Alice" },
+          { userId: "222", displayName: "Bob" },
+        ],
+        {
+          t,
+          verifiedRoleId: "role-x",
+          testMode: false,
+        },
+      );
       expect(embeds).toHaveLength(1);
       const json = embeds[0]?.toJSON();
-      // 認証ロールはフィールド名ではなく description にメンションを出す
+      // 認証ロールはフィールド名ではなく description にメンションを出す（先頭 embed のみ）
       expect(json?.description).toBe("unverifiedKick:embed.description.kick");
-      // メンバー一覧 + テストモードの 2 フィールド
-      expect(json?.fields).toHaveLength(2);
-      expect(json?.fields?.[0]?.value).toBe("<@111>\n<@222>");
+      expect(json?.fields?.[0]?.value).toBe("Alice (`111`), Bob (`222`)");
+    });
+
+    it("テストモードでは注記フィールドを追加する", () => {
+      const normal = buildKickNotification(
+        [{ userId: "1", displayName: "A" }],
+        { t, testMode: false },
+      );
+      const test = buildKickNotification([{ userId: "1", displayName: "A" }], {
+        t,
+        testMode: true,
+      });
+      expect(normal.embeds[0]?.data.fields).toHaveLength(1);
+      expect(test.embeds[0]?.data.fields).toHaveLength(2);
     });
   });
 

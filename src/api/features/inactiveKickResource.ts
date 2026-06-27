@@ -66,6 +66,10 @@ export function applyInactiveKickPatch(
         : patch.kickMessage || undefined,
     whitelistRoleIds: patch.whitelistRoleIds ?? current.whitelistRoleIds,
     whitelistUserIds: patch.whitelistUserIds ?? current.whitelistUserIds,
+    timezone: current.timezone,
+    runHour: current.runHour,
+    lastRunDate: current.lastRunDate,
+    mentionEnabled: current.mentionEnabled,
   };
 }
 

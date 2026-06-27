@@ -90,7 +90,7 @@ const MS_PER_MINUTE = 60 * 1000;
  */
 export function getReminderDelayMinutes(): number {
   // テスト時は短縮し、通常運用では本番待機時間を返す
-  return env.TEST_MODE ? 1 : 120;
+  return env.BUMP_REMINDER_TEST_MODE ? 1 : 120;
 }
 
 /**

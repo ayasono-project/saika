@@ -1,6 +1,6 @@
 // Bumpリマインダー定数の整合性と検知ロジックの純粋関数を検証
 describe("shared/features/bump-reminder/constants", () => {
-  // TEST_MODE の切り替えを確実に反映させるため、モジュールを都度再読込する
+  // BUMP_REMINDER_TEST_MODE の切り替えを確実に反映させるため、モジュールを都度再読込する
   async function loadModule(testMode: boolean) {
     vi.resetModules();
     vi.doMock("@/shared/config/env", () => ({
@@ -12,7 +12,7 @@ describe("shared/features/bump-reminder/constants", () => {
       env: {
         NODE_ENV: "test",
         LOG_LEVEL: "info",
-        TEST_MODE: testMode,
+        BUMP_REMINDER_TEST_MODE: testMode,
       },
     }));
 

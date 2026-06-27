@@ -10,8 +10,15 @@ import type {
   CategorizedCandidate,
 } from "./inactiveKickCandidates";
 
-/** 1 ページあたりの対象メンバー件数（1 フィールド 1024 文字制約に十分収まる件数） */
-export const NOTIFICATION_PAGE_SIZE = 25;
+/** Embed フィールド 1 件あたりの最大文字数 */
+const MAX_FIELD_VALUE_LENGTH = 1024;
+/** Embed 1 件あたりの最大フィールド数 */
+const MAX_FIELDS_PER_EMBED = 25;
+/** Embed 1 件あたりの最大合計文字数（おおよそ） */
+const MAX_EMBED_CHARS = 6000;
+
+/** preview 1 ページあたりの行数 */
+const PREVIEW_LINES_PER_PAGE = 20;
 
 /**
  * 単一波括弧 `{name}` プレースホルダーを実値へ置換する。
@@ -38,6 +45,90 @@ function chunk<T>(items: T[], size: number): T[][] {
   return pages;
 }
 
+/**
+ * ユーザー ID 一覧をスペース区切りメンションにしてフィールド配列へ分割する。
+ * 各フィールドが 1024 文字を超えないように動的に区切る。
+ */
+function splitMentionFields(
+  fieldName: string,
+  userIds: string[],
+): { name: string; value: string }[] {
+  const fields: { name: string; value: string }[] = [];
+  let current = "";
+
+  for (const userId of userIds) {
+    const mention = `<@${userId}>`;
+    const candidate = current.length > 0 ? `${current} ${mention}` : mention;
+
+    if (candidate.length > MAX_FIELD_VALUE_LENGTH) {
+      if (current.length > 0) {
+        fields.push({ name: fieldName, value: current });
+        current = mention;
+      } else {
+        // 単一メンションが 1024 文字を超えることはないが、念のため切り詰め
+        fields.push({
+          name: fieldName,
+          value: mention.slice(0, MAX_FIELD_VALUE_LENGTH),
+        });
+        current = "";
+      }
+    } else {
+      current = candidate;
+    }
+  }
+  if (current.length > 0) fields.push({ name: fieldName, value: current });
+  return fields;
+}
+
+/**
+ * キック予定 Unix タイムスタンプを算出する。
+ * `now + daysLeft 日後` の日付を `timezone` で取得し、その日の `runHour`:00 を UTC Unix 秒で返す。
+ */
+function computeKickUnix(
+  now: Date,
+  daysLeft: number,
+  runHour: number,
+  timezone: string,
+): number {
+  const futureDateMs = now.getTime() + daysLeft * 86400 * 1000;
+  const futureDateStr = new Intl.DateTimeFormat("en-CA", {
+    timeZone: timezone,
+  }).format(new Date(futureDateMs));
+
+  const [y, m, d] = futureDateStr.split("-").map(Number) as [
+    number,
+    number,
+    number,
+  ];
+  const candidateUtcMs = Date.UTC(y, m - 1, d, runHour, 0, 0);
+
+  // TZ オフセット推定: candidateUtcMs をそのタイムゾーンで表示したときの時刻を UTC として解釈し差を取る
+  const tzParts = new Intl.DateTimeFormat("en-US", {
+    timeZone: timezone,
+    year: "numeric",
+    month: "numeric",
+    day: "numeric",
+    hour: "numeric",
+    minute: "numeric",
+    second: "numeric",
+    hour12: false,
+  }).formatToParts(new Date(candidateUtcMs));
+
+  const get = (type: string) =>
+    parseInt(tzParts.find((p) => p.type === type)?.value ?? "0", 10);
+  const tzAsUtcMs = Date.UTC(
+    get("year"),
+    get("month") - 1,
+    get("day"),
+    get("hour") % 24,
+    get("minute"),
+    get("second"),
+  );
+  const offsetMs = candidateUtcMs - tzAsUtcMs;
+
+  return Math.floor((Date.UTC(y, m - 1, d, runHour, 0, 0) + offsetMs) / 1000);
+}
+
 /** 通知の構築結果（本文 + 固定 Embed ページ） */
 export interface NotificationContent {
   /** メッセージ本文（カスタム文。member-log 流儀で本文可変・embed 固定）。未指定なら本文なし */
@@ -53,20 +144,25 @@ export interface WarnNotificationContext {
   thresholdDays: number;
   /** 現在時刻（キック予定日の算出に使用） */
   now: Date;
+  /** ギルドのタイムゾーン（IANA。キック予定日時の算出に使用） */
+  timezone: string;
+  /** ギルドの実行時刻（キック予定日時の算出に使用） */
+  runHour: number;
+  /** 個別メンション通知を有効にするか */
+  mentionEnabled: boolean;
   /** カスタム事前通知メッセージ（未設定時は defaultMessageKey のデフォルト文を使う） */
   customMessage?: string;
   /** カスタム未設定時に使うデフォルト文の翻訳キー（段階別） */
   defaultMessageKey: Parameters<GuildTFunction>[0];
-  /** 対象ロール ID（`{markerRole}` 置換用・未設定時 undefined） */
-  markerRoleId?: string;
 }
 
 /**
  * 段階通知（1 週間前 / 最終警告）の本文 + 固定 Embed を構築する。
  *
- * カスタム文は**メッセージ本文**に出す（embed 固定の方針）。`{markerRole}` を本文に
- * 含めた場合のみロールメンションが入る（自動メンションはしない）。Embed は対象メンバー一覧と
- * キック予定のみの固定構成で、件数超過時は複数ページに分割する。
+ * - キック予定日時グループ（daysLeft 別）ごとに Embed を作成し昇順に並べる
+ * - 最初の Embed にのみタイトルを設定する
+ * - 対象メンバーフィールドはスペース区切りメンションを 1024 文字で動的分割する
+ * - `mentionEnabled` が true なら全対象ユーザーの個別メンションを本文に出す
  * @param candidates 対象メンバー（同一段階）
  * @param ctx 構築コンテキスト
  * @returns 本文 + Embed ページ
@@ -76,48 +172,141 @@ export function buildWarnNotification(
   ctx: WarnNotificationContext,
 ): NotificationContent {
   const total = candidates.length;
-  // 最も差し迫った（残日数最小）を代表値として用いる
-  const minDaysLeft = candidates.reduce(
-    (min, c) => Math.min(min, c.daysLeft),
-    Number.POSITIVE_INFINITY,
-  );
-  // `{markerRole}` は本文に含まれた場合のみ実メンションになる（未設定なら空文字）
-  const markerMention = ctx.markerRoleId ? `<@&${ctx.markerRoleId}>` : "";
 
   const template = ctx.customMessage ?? ctx.t(ctx.defaultMessageKey);
   const content = formatInactiveKickMessage(template, {
     count: total,
-    daysLeft: minDaysLeft,
     thresholdDays: ctx.thresholdDays,
     serverName: ctx.serverName,
-    markerRole: markerMention,
   });
 
-  // キック予定日（推定）= 現在から最短残日数後。Discord タイムスタンプで各自のロケール日付として表示する
-  // （実行は日次チェック時のため時刻までは保証せず、日付粒度で示す）
-  const predictedKickUnix = Math.floor(
-    (ctx.now.getTime() + minDaysLeft * 24 * 60 * 60 * 1000) / 1000,
-  );
-  const scheduleValue = `<t:${predictedKickUnix}:D>`;
+  // mentionEnabled が true なら全対象の個別メンションを本文末尾に付ける（本文から分離）
+  const mentionText =
+    ctx.mentionEnabled && candidates.length > 0
+      ? candidates.map((c) => `<@${c.userId}>`).join(" ")
+      : undefined;
 
-  const embeds = chunk(candidates, NOTIFICATION_PAGE_SIZE).map((page) =>
-    new EmbedBuilder()
-      .setColor(EMBED_COLORS.INACTIVE_KICK_WARN)
-      .setTitle(ctx.t("inactiveKick:embed.title.warn"))
-      .addFields(
-        {
-          name: ctx.t("inactiveKick:embed.field.name.target_members"),
-          value: page.map((c) => `<@${c.userId}>`).join("\n"),
-        },
-        {
-          name: ctx.t("inactiveKick:embed.field.name.kick_schedule"),
-          value: scheduleValue,
-        },
-      )
-      .setTimestamp(),
-  );
+  // daysLeft 昇順でグループ化
+  const sorted = [...candidates].sort((a, b) => a.daysLeft - b.daysLeft);
+  const groupMap = new Map<number, CategorizedCandidate[]>();
+  for (const c of sorted) {
+    const arr = groupMap.get(c.daysLeft) ?? [];
+    arr.push(c);
+    groupMap.set(c.daysLeft, arr);
+  }
 
-  return { content, embeds };
+  const embeds: EmbedBuilder[] = [];
+  let isFirst = true;
+
+  for (const [daysLeft, group] of groupMap) {
+    const kickUnix = computeKickUnix(
+      ctx.now,
+      daysLeft,
+      ctx.runHour,
+      ctx.timezone,
+    );
+    const scheduleValue = `<t:${kickUnix}:f>`;
+    const memberFieldName = ctx.t(
+      "inactiveKick:embed.field.name.target_members",
+    );
+    const scheduleFieldName = ctx.t(
+      "inactiveKick:embed.field.name.kick_schedule",
+    );
+    const memberFields = splitMentionFields(
+      memberFieldName,
+      group.map((c) => c.userId),
+    );
+
+    // フィールド数・文字数で Embed を分割する
+    let currentEmbed: EmbedBuilder | null = null;
+    let currentFieldCount = 0;
+    let currentCharCount = 0;
+
+    const flushEmbed = () => {
+      if (currentEmbed) {
+        embeds.push(currentEmbed);
+        currentEmbed = null;
+        currentFieldCount = 0;
+        currentCharCount = 0;
+        isFirst = false;
+      }
+    };
+
+    const openEmbed = (): EmbedBuilder => {
+      const embed = new EmbedBuilder()
+        .setColor(EMBED_COLORS.INACTIVE_KICK_WARN)
+        .setTimestamp();
+      if (isFirst) {
+        embed.setTitle(ctx.t("inactiveKick:embed.title.warn"));
+      }
+      embed.addFields({ name: scheduleFieldName, value: scheduleValue });
+      currentFieldCount = 1;
+      currentCharCount =
+        scheduleFieldName.length +
+        scheduleValue.length +
+        (isFirst ? ctx.t("inactiveKick:embed.title.warn").length : 0);
+      currentEmbed = embed;
+      return embed;
+    };
+
+    for (const field of memberFields) {
+      const embed = currentEmbed ?? openEmbed();
+      const fieldChars = field.name.length + field.value.length;
+      if (
+        currentFieldCount >= MAX_FIELDS_PER_EMBED ||
+        currentCharCount + fieldChars > MAX_EMBED_CHARS
+      ) {
+        flushEmbed();
+        openEmbed().addFields(field);
+      } else {
+        embed.addFields(field);
+      }
+      currentFieldCount++;
+      currentCharCount += fieldChars;
+    }
+    flushEmbed();
+  }
+
+  // mentionEnabled の個別メンションテキストは sendNotification の content として渡す
+  // カスタム/デフォルト本文と分けて別メッセージで送る形にする
+  const allContent =
+    [content, mentionText].filter(Boolean).join("\n") || undefined;
+
+  return { content: allContent, embeds };
+}
+
+/**
+ * キックしたメンバーの一覧を `displayName (userId)` 形式でフィールド配列へ動的分割する。
+ * 各フィールド値が 1024 文字を超えないようにコンマ区切りで詰める。
+ */
+function splitKickedMemberFields(
+  fieldName: string,
+  kicked: { displayName: string; userId: string }[],
+): { name: string; value: string }[] {
+  const fields: { name: string; value: string }[] = [];
+  let current = "";
+
+  for (const { displayName, userId } of kicked) {
+    const entry = `${displayName} (\`${userId}\`)`;
+    const candidate = current.length > 0 ? `${current}, ${entry}` : entry;
+
+    if (candidate.length > MAX_FIELD_VALUE_LENGTH) {
+      if (current.length > 0) {
+        fields.push({ name: fieldName, value: current });
+        current = entry;
+      } else {
+        fields.push({
+          name: fieldName,
+          value: entry.slice(0, MAX_FIELD_VALUE_LENGTH),
+        });
+        current = "";
+      }
+    } else {
+      current = candidate;
+    }
+  }
+  if (current.length > 0) fields.push({ name: fieldName, value: current });
+  return fields;
 }
 
 /** キック通知 構築のコンテキスト */
@@ -133,19 +322,16 @@ export interface KickNotificationContext {
 
 /**
  * キック通知（当日）の本文 + 固定 Embed を構築する。
- * 事前通知と異なりデフォルト文は持たず、**カスタム文が設定されたときだけ**本文を出す
- * （未設定なら本文なし＝Embed のみ）。Embed はキックしたメンバー一覧（固定）。
- * メンバーは退出後にメンションが解決されないため、キック前に控えた表示名を用いる。
+ * メンバーは退出後にメンションが解決されないため、キック前に控えた表示名をカンマ区切りで表示する。
  * @param kickedNames キックしたメンバーの表示名一覧（キック前に控えたもの）
  * @param ctx 構築コンテキスト
  * @returns 本文（未設定時 undefined） + Embed ページ
  */
 export function buildKickNotification(
-  kickedNames: string[],
+  kicked: { displayName: string; userId: string }[],
   ctx: KickNotificationContext,
 ): NotificationContent {
-  const total = kickedNames.length;
-  // カスタム文が無ければ本文なし（Embed のみ）
+  const total = kicked.length;
   const content = ctx.customMessage
     ? formatInactiveKickMessage(ctx.customMessage, {
         count: total,
@@ -154,37 +340,77 @@ export function buildKickNotification(
       })
     : undefined;
 
-  const embeds = chunk(kickedNames, NOTIFICATION_PAGE_SIZE).map((page) => {
-    const embed = new EmbedBuilder()
-      .setColor(EMBED_COLORS.INACTIVE_KICK_KICK)
-      .setTitle(ctx.t("inactiveKick:embed.title.kick"))
-      .addFields({
-        name: ctx.t("inactiveKick:embed.field.name.kicked_members"),
-        value: page.join("\n"),
-      })
-      .setTimestamp();
+  const fieldName = ctx.t("inactiveKick:embed.field.name.kicked_members");
+  const memberFields = splitKickedMemberFields(fieldName, kicked);
 
-    if (ctx.testMode) {
-      embed.addFields({
-        name: ctx.t("inactiveKick:embed.field.name.test_mode"),
-        value: ctx.t("inactiveKick:embed.field.value.test_mode"),
+  const testModeFieldName = ctx.testMode
+    ? ctx.t("inactiveKick:embed.field.name.test_mode")
+    : null;
+  const testModeFieldValue = ctx.testMode
+    ? ctx.t("inactiveKick:embed.field.value.test_mode")
+    : null;
+  const testModeChars =
+    testModeFieldName && testModeFieldValue
+      ? testModeFieldName.length + testModeFieldValue.length
+      : 0;
+  const maxFieldsPerEmbed = ctx.testMode
+    ? MAX_FIELDS_PER_EMBED - 1
+    : MAX_FIELDS_PER_EMBED;
+
+  const embeds: EmbedBuilder[] = [];
+  let isFirst = true;
+  let currentEmbed: EmbedBuilder | null = null;
+  let currentFieldCount = 0;
+  let currentCharCount = 0;
+
+  const flushEmbed = () => {
+    if (currentEmbed === null) return;
+    if (testModeFieldName && testModeFieldValue) {
+      currentEmbed.addFields({
+        name: testModeFieldName,
+        value: testModeFieldValue,
       });
     }
+    embeds.push(currentEmbed);
+    currentEmbed = null;
+    currentFieldCount = 0;
+    currentCharCount = 0;
+    isFirst = false;
+  };
+
+  const openEmbed = (): EmbedBuilder => {
+    const titleText = ctx.t("inactiveKick:embed.title.kick");
+    const embed = new EmbedBuilder()
+      .setColor(EMBED_COLORS.INACTIVE_KICK_KICK)
+      .setTimestamp();
+    if (isFirst) embed.setTitle(titleText);
+    currentFieldCount = 0;
+    currentCharCount = (isFirst ? titleText.length : 0) + testModeChars;
+    currentEmbed = embed;
     return embed;
-  });
+  };
+
+  for (const field of memberFields) {
+    const fieldChars = field.name.length + field.value.length;
+    if (
+      currentEmbed === null ||
+      currentFieldCount >= maxFieldsPerEmbed ||
+      currentCharCount + fieldChars > MAX_EMBED_CHARS
+    ) {
+      flushEmbed();
+      currentEmbed = openEmbed();
+    }
+    currentEmbed.addFields(field);
+    currentFieldCount++;
+    currentCharCount += fieldChars;
+  }
+  flushEmbed();
 
   return { content, embeds };
 }
 
-/** preview 1 ページあたりの行数 */
-const PREVIEW_LINES_PER_PAGE = 20;
-
 /**
  * preview（現在のキック対象・通知対象の一覧）の Embed ページ配列を構築する。
- * 段階別にメンバーと非アクティブ日数を表示する。対象 0 件なら「対象なし」を返す。
- * @param buckets 区分結果
- * @param t 翻訳関数（interaction.locale ベース）
- * @returns Embed ページ配列（1 件以上）
  */
 export function buildPreviewEmbedPages(
   buckets: CandidateBuckets,
@@ -203,7 +429,6 @@ export function buildPreviewEmbedPages(
     ];
   }
 
-  // 段階見出し + 各メンバー行を 1 本のリストに連結する
   const sections: Array<{
     labelKey: Parameters<GuildTFunction>[0];
     items: CategorizedCandidate[];

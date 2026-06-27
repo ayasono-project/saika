@@ -5,7 +5,6 @@ import { ActivityType, Events, PresenceUpdateStatus } from "discord.js";
 import { restoreBumpRemindersOnStartup } from "../../features/bump-reminder/handlers/bumpReminderStartup";
 import {
   INACTIVE_KICK_JOB_ID,
-  INACTIVE_KICK_JOB_TIMEZONE,
   resolveInactiveKickSchedule,
   runInactiveKickDailyCheck,
 } from "../../features/inactive-kick/services/inactiveKickRunner";
@@ -15,7 +14,6 @@ import {
   resolveUnverifiedKickSchedule,
   runUnverifiedKickDailyCheck,
   UNVERIFIED_KICK_JOB_ID,
-  UNVERIFIED_KICK_JOB_TIMEZONE,
 } from "../../features/unverified-kick/services/unverifiedKickRunner";
 import { cleanupVacOnStartup } from "../../features/vac/handlers/vacStartupCleanup";
 import { cleanupVcAutoRecruitOnStartup } from "../../features/vc-auto-recruit/handlers/vcAutoRecruitStartupCleanup";
@@ -94,22 +92,20 @@ export async function handleClientReady(client: BotClient): Promise<void> {
     // クローズ済みチケットの自動削除タイマーを復元
     await restoreAutoDeleteTimers(client, getBotTicketRepository());
 
-    // 非アクティブ自動キックの日次チェックを登録（既定 04:00 JST・多重実行防止）
+    // 非アクティブ自動キックのスイープを登録（毎時・per-guild timezone/runHour で絞り込み）
     // INACTIVE_KICK_CRON が設定されていれば検証用にスケジュールを上書きする
     jobScheduler.addJob({
       id: INACTIVE_KICK_JOB_ID,
       schedule: resolveInactiveKickSchedule(),
-      timezone: INACTIVE_KICK_JOB_TIMEZONE,
       noOverlap: true,
       task: () => runInactiveKickDailyCheck(client),
     });
 
-    // 未承認ユーザー自動キックの日次チェックを登録（既定 03:00 JST・多重実行防止）
+    // 未承認ユーザー自動キックのスイープを登録（毎時・per-guild timezone/runHour で絞り込み）
     // UNVERIFIED_KICK_CRON が設定されていれば検証用にスケジュールを上書きする
     jobScheduler.addJob({
       id: UNVERIFIED_KICK_JOB_ID,
       schedule: resolveUnverifiedKickSchedule(),
-      timezone: UNVERIFIED_KICK_JOB_TIMEZONE,
       noOverlap: true,
       task: () => runUnverifiedKickDailyCheck(client),
     });

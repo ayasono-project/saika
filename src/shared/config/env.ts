@@ -30,12 +30,29 @@ export type Env = {
   LOCALE: string;
   DATABASE_URL: string;
   LOG_LEVEL: "error" | "warn" | "info" | "http" | "verbose" | "debug" | "silly";
-  TEST_MODE: boolean;
   USER_MANUAL_URL?: string | undefined;
   DASHBOARD_URL?: string | undefined;
   OFFICIAL_URL?: string | undefined;
-  INACTIVE_KICK_CRON?: string | undefined;
-  UNVERIFIED_KICK_CRON?: string | undefined;
+  // ── 非アクティブ自動キック ──
+  INACTIVE_KICK_CRON_OVERRIDE?: string | undefined;
+  /** true のときキック実行をスキップ（通知のみ送信） */
+  INACTIVE_KICK_DRY_RUN: boolean;
+  /** true のとき per-guild の runHour / lastRunDate ガードを無視してスイープを即時実行 */
+  INACTIVE_KICK_SKIP_GUARDS: boolean;
+  /** 0 より大きい値のとき、DB/Guild からのメンバー取得を省略して指定数のモックデータで通知を確認する */
+  INACTIVE_KICK_MOCK_MEMBERS?: number | undefined;
+  // ── 未承認ユーザー自動キック ──
+  UNVERIFIED_KICK_CRON_OVERRIDE?: string | undefined;
+  /** true のときキック実行をスキップ（通知のみ送信） */
+  UNVERIFIED_KICK_DRY_RUN: boolean;
+  /** true のとき per-guild の runHour / lastRunDate ガードを無視してスイープを即時実行 */
+  UNVERIFIED_KICK_SKIP_GUARDS: boolean;
+  /** 0 より大きい値のとき、DB/Guild からのメンバー取得を省略して指定数のモックデータで通知を確認する */
+  UNVERIFIED_KICK_MOCK_MEMBERS?: number | undefined;
+  // ── バンプリマインダー ──
+  /** true のときタイマーを 120 分→1 分に短縮し、手動テストコマンドを有効化する */
+  BUMP_REMINDER_TEST_MODE: boolean;
+  // ── web ダッシュボード API ──
   API_ENABLED: boolean;
   API_HOST: string;
   API_PORT: number;
@@ -65,12 +82,6 @@ export const envSchema: z.ZodType<Env> = z.object({
     .enum(["error", "warn", "info", "http", "verbose", "debug", "silly"])
     .default("info"),
 
-  // テストモード（機能のテスト用動作を有効化）
-  TEST_MODE: z
-    .string()
-    .optional()
-    .transform((val) => val === "true"),
-
   // ユーザーマニュアルURL（/help コマンドで表示、未設定時は省略）
   USER_MANUAL_URL: z.string().url().optional(),
 
@@ -82,11 +93,48 @@ export const envSchema: z.ZodType<Env> = z.object({
   // 専用 LP 公開後に設定する想定（死んだリンクを出さないため env 出し分け）
   OFFICIAL_URL: z.string().url().optional(),
 
-  // 非アクティブ自動キックの日次チェック cron 上書き（dev/検証用・未設定時は既定の 04:00）
-  INACTIVE_KICK_CRON: z.string().optional(),
+  // ── 非アクティブ自動キック ──
+  // cron 上書き（dev/検証用・未設定時は既定の毎時 0 分）
+  INACTIVE_KICK_CRON_OVERRIDE: z.string().optional(),
+  // キック実行スキップ（通知のみ）
+  INACTIVE_KICK_DRY_RUN: z
+    .string()
+    .optional()
+    .transform((val) => val === "true"),
+  // per-guild の runHour / lastRunDate ガードを無視して即時実行
+  INACTIVE_KICK_SKIP_GUARDS: z
+    .string()
+    .optional()
+    .transform((val) => val === "true"),
+  // 指定数のモックメンバーで通知 embed を確認する（0 または未設定で無効）
+  INACTIVE_KICK_MOCK_MEMBERS: z.coerce.number().int().nonnegative().optional(),
 
-  // 未承認ユーザー自動キックの日次チェック cron 上書き（dev/検証用・未設定時は既定の 03:00）
-  UNVERIFIED_KICK_CRON: z.string().optional(),
+  // ── 未承認ユーザー自動キック ──
+  // cron 上書き（dev/検証用・未設定時は既定の毎時 0 分）
+  UNVERIFIED_KICK_CRON_OVERRIDE: z.string().optional(),
+  // キック実行スキップ（通知のみ）
+  UNVERIFIED_KICK_DRY_RUN: z
+    .string()
+    .optional()
+    .transform((val) => val === "true"),
+  // per-guild の runHour / lastRunDate ガードを無視して即時実行
+  UNVERIFIED_KICK_SKIP_GUARDS: z
+    .string()
+    .optional()
+    .transform((val) => val === "true"),
+  // 指定数のモックメンバーで通知 embed を確認する（0 または未設定で無効）
+  UNVERIFIED_KICK_MOCK_MEMBERS: z.coerce
+    .number()
+    .int()
+    .nonnegative()
+    .optional(),
+
+  // ── バンプリマインダー ──
+  // タイマー短縮（120 分→1 分）+ 手動テストコマンド有効化
+  BUMP_REMINDER_TEST_MODE: z
+    .string()
+    .optional()
+    .transform((val) => val === "true"),
 
   // ── web ダッシュボード API（Bot と同一プロセス内で起動する Fastify API） ──
   // API サーバーを起動するか（テスト・Bot 単体運用で無効化可能・未設定時は有効）

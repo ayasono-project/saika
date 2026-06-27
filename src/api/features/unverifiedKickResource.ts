@@ -77,6 +77,10 @@ export function applyUnverifiedKickPatch(
         ? current.notifyTemplate
         : patch.notifyTemplate || undefined,
     exemptRoleIds: patch.exemptRoleIds ?? current.exemptRoleIds,
+    timezone: current.timezone,
+    runHour: current.runHour,
+    lastRunDate: current.lastRunDate,
+    mentionEnabled: current.mentionEnabled,
   };
 }
 

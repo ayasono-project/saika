@@ -6,14 +6,14 @@ import {
   getBotUnverifiedKickSettingsService,
   getBotUnverifiedKickWarnRepository,
 } from "../../../bot/services/botCompositionRoot";
-import { sendPaginatedEmbeds } from "../../../bot/shared/embedPaginator";
+import { sendPaginatedEmbeds } from "../../../bot/shared/pagination";
 import { ensureManageGuildPermission } from "../../../bot/shared/permissionGuards";
 import type { GuildTFunction } from "../../../shared/locale/helpers";
 import { tInteraction } from "../../../shared/locale/localeManager";
 import { buildPreviewEmbedPages } from "../services/unverifiedKickNotifier";
 import { buildCandidateBuckets } from "../services/unverifiedKickRunner";
 import {
-  UNVERIFIED_KICK_EPHEMERAL_COLLECTOR_MS,
+  UNVERIFIED_KICK_PREVIEW_MS,
   UNVERIFIED_KICK_SETTINGS_COMMAND,
 } from "./unverifiedKickSettingsCommand.constants";
 
@@ -56,7 +56,8 @@ export async function handleUnverifiedKickPreview(
     send: (payload) => interaction.editReply(payload),
     pages,
     prefix: UNVERIFIED_KICK_SETTINGS_COMMAND.PREVIEW_PAGINATOR_PREFIX,
-    timeMs: UNVERIFIED_KICK_EPHEMERAL_COLLECTOR_MS,
+    timeMs: UNVERIFIED_KICK_PREVIEW_MS,
     filterUserId: interaction.user.id,
+    locale: interaction.locale,
   });
 }

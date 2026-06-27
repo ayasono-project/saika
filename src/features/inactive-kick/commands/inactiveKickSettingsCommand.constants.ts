@@ -22,15 +22,22 @@ export const INACTIVE_KICK_SETTINGS_COMMAND = {
     PREVIEW: "preview",
     VIEW: "view",
     RESET: "reset",
+    SET_TIMEZONE: "set-timezone",
+    SET_RUN_HOUR: "set-run-hour",
   },
-  /** whitelist サブコマンドグループ */
+  /** サブコマンドグループ */
   GROUP: {
     WHITELIST: "whitelist",
+    MENTION: "mention",
   },
   WHITELIST_SUBCOMMAND: {
     ADD: "add",
     REMOVE: "remove",
     LIST: "list",
+  },
+  MENTION_SUBCOMMAND: {
+    ENABLE: "enable",
+    DISABLE: "disable",
   },
   OPTION: {
     CHANNEL: "channel",
@@ -58,7 +65,14 @@ export const INACTIVE_KICK_SETTINGS_COMMAND = {
   /** reset 確認ダイアログ */
   RESET_CONFIRM_ID: "inactive-kick-settings:reset-confirm",
   RESET_CANCEL_ID: "inactive-kick-settings:reset-cancel",
+  /** set-timezone インラインコレクターのセレクトメニュー customId */
+  SET_TIMEZONE_SELECT_ID: "inactive-kick-settings:set-timezone-select",
+  /** set-run-hour インラインコレクターのセレクトメニュー customId */
+  SET_RUN_HOUR_SELECT_ID: "inactive-kick-settings:set-run-hour-select",
 } as const;
 
-/** preview / reset 確認のインメモリコレクター待機時間（ms） */
+/** reset 確認ダイアログのインメモリコレクター待機時間（ms） */
 export const INACTIVE_KICK_EPHEMERAL_COLLECTOR_MS = 60_000;
+
+/** preview ページネーターのコレクター待機時間（ms） */
+export const INACTIVE_KICK_PREVIEW_MS = 300_000;

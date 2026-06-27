@@ -21,6 +21,9 @@ export const DEFAULT_UNVERIFIED_KICK_SETTINGS: UnverifiedKickSettings = {
   enabled: false,
   graceDays: DEFAULT_UNVERIFIED_KICK_GRACE_DAYS,
   exemptRoleIds: [],
+  timezone: "Asia/Tokyo",
+  runHour: 3,
+  mentionEnabled: true,
 };
 
 /**

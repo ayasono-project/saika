@@ -8,7 +8,7 @@ vi.mock("@/shared/config/env", () => ({
   NODE_ENV: { PRODUCTION: "production" },
   env: {
     NODE_ENV: "test",
-    TEST_MODE: true,
+    BUMP_REMINDER_TEST_MODE: true,
   },
 }));
 

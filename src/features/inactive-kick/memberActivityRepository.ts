@@ -44,9 +44,10 @@ export class MemberActivityRepository implements IMemberActivityRepository {
     userId: string,
     warnStage: number,
   ): Promise<void> {
-    await this.prisma.memberActivity.updateMany({
-      where: { guildId, userId },
-      data: { warnStage },
+    await this.prisma.memberActivity.upsert({
+      where: { guildId_userId: { guildId, userId } },
+      create: { guildId, userId, warnStage, lastActivityAt: new Date(0) },
+      update: { warnStage },
     });
   }
 

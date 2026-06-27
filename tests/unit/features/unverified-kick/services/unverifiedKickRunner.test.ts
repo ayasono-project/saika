@@ -5,15 +5,18 @@ import { ChannelType, PermissionFlagsBits } from "discord.js";
 // vi.mock はホイストされるため、参照する値は vi.hoisted で定義する
 const mocks = vi.hoisted(() => ({
   getAllEnabled: vi.fn(),
+  updateLastRunDate: vi.fn(),
   disableInvalid: vi.fn(),
-  sendPaginatedEmbeds: vi.fn(),
+  sendNotification: vi.fn(),
   getWarnedMap: vi.fn(),
   recordWarned: vi.fn(),
   deleteWarned: vi.fn(),
   deleteAllByGuild: vi.fn(),
   env: {
-    TEST_MODE: false,
-    UNVERIFIED_KICK_CRON: undefined as string | undefined,
+    UNVERIFIED_KICK_DRY_RUN: false,
+    UNVERIFIED_KICK_CRON_OVERRIDE: undefined as string | undefined,
+    UNVERIFIED_KICK_SKIP_GUARDS: false,
+    UNVERIFIED_KICK_MOCK_MEMBERS: undefined as number | undefined,
   },
   logger: { info: vi.fn(), debug: vi.fn(), warn: vi.fn(), error: vi.fn() },
 }));
@@ -21,6 +24,7 @@ const mocks = vi.hoisted(() => ({
 vi.mock("@/bot/services/botCompositionRoot", () => ({
   getBotUnverifiedKickSettingsService: () => ({
     getAllEnabled: mocks.getAllEnabled,
+    updateLastRunDate: mocks.updateLastRunDate,
     disableInvalid: mocks.disableInvalid,
   }),
   getBotUnverifiedKickWarnRepository: () => ({
@@ -30,9 +34,8 @@ vi.mock("@/bot/services/botCompositionRoot", () => ({
     deleteAllByGuild: mocks.deleteAllByGuild,
   }),
 }));
-vi.mock("@/bot/shared/embedPaginator", () => ({
-  sendPaginatedEmbeds: (...args: unknown[]) =>
-    mocks.sendPaginatedEmbeds(...args),
+vi.mock("@/bot/shared/notificationSender", () => ({
+  sendNotification: (...args: unknown[]) => mocks.sendNotification(...args),
 }));
 vi.mock("@/shared/config/env", () => ({ env: mocks.env }));
 vi.mock("@/shared/locale/helpers", () => ({
@@ -144,15 +147,21 @@ const baseSettings = {
   dmTemplate: undefined as string | undefined,
   notifyTemplate: undefined as string | undefined,
   exemptRoleIds: [] as string[],
+  timezone: "Asia/Tokyo",
+  runHour: 3,
+  mentionEnabled: true,
 };
 
 describe("unverified-kick/runner", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mocks.env.TEST_MODE = false;
-    mocks.env.UNVERIFIED_KICK_CRON = undefined;
+    mocks.env.UNVERIFIED_KICK_DRY_RUN = false;
+    mocks.env.UNVERIFIED_KICK_CRON_OVERRIDE = undefined;
+    mocks.env.UNVERIFIED_KICK_SKIP_GUARDS = false;
+    mocks.env.UNVERIFIED_KICK_MOCK_MEMBERS = undefined;
     mocks.disableInvalid.mockResolvedValue(undefined);
-    mocks.sendPaginatedEmbeds.mockResolvedValue(undefined);
+    mocks.updateLastRunDate.mockResolvedValue(undefined);
+    mocks.sendNotification.mockResolvedValue({ firstMessageSent: true });
     mocks.getWarnedMap.mockResolvedValue(new Map());
     mocks.recordWarned.mockResolvedValue(undefined);
     mocks.deleteWarned.mockResolvedValue(undefined);
@@ -190,7 +199,7 @@ describe("unverified-kick/runner", () => {
     await processGuildUnverifiedKick(fakeClient(guild), baseSettings);
     expect(member.kick).toHaveBeenCalledTimes(1);
     // ログチャンネルへキックサマリー
-    expect(mocks.sendPaginatedEmbeds).toHaveBeenCalledTimes(1);
+    expect(mocks.sendNotification).toHaveBeenCalledTimes(1);
   });
 
   it("認証済みメンバーはキックしない", async () => {
@@ -200,13 +209,13 @@ describe("unverified-kick/runner", () => {
     expect(member.kick).not.toHaveBeenCalled();
   });
 
-  it("TEST_MODE ではキックせずログのみ送る", async () => {
-    mocks.env.TEST_MODE = true;
+  it("UNVERIFIED_KICK_DRY_RUN ではキックせずログのみ送る", async () => {
+    mocks.env.UNVERIFIED_KICK_DRY_RUN = true;
     const member = fakeMember({ id: "u1" });
     const guild = fakeGuild([member]);
     await processGuildUnverifiedKick(fakeClient(guild), baseSettings);
     expect(member.kick).not.toHaveBeenCalled();
-    expect(mocks.sendPaginatedEmbeds).toHaveBeenCalledTimes(1);
+    expect(mocks.sendNotification).toHaveBeenCalledTimes(1);
   });
 
   it("キック不能メンバーはスキップする", async () => {
@@ -279,18 +288,18 @@ describe("unverified-kick/runner", () => {
   });
 
   describe("resolveUnverifiedKickSchedule", () => {
-    it("未設定なら既定（毎日03:00）を返す", () => {
-      mocks.env.UNVERIFIED_KICK_CRON = undefined;
+    it("未設定なら既定（毎時）を返す", () => {
+      mocks.env.UNVERIFIED_KICK_CRON_OVERRIDE = undefined;
       expect(resolveUnverifiedKickSchedule()).toBe(
         UNVERIFIED_KICK_JOB_SCHEDULE,
       );
     });
     it("有効な cron 上書きがあればそれを返す", () => {
-      mocks.env.UNVERIFIED_KICK_CRON = "*/5 * * * *";
+      mocks.env.UNVERIFIED_KICK_CRON_OVERRIDE = "*/5 * * * *";
       expect(resolveUnverifiedKickSchedule()).toBe("*/5 * * * *");
     });
     it("不正な cron 上書きなら既定にフォールバックする", () => {
-      mocks.env.UNVERIFIED_KICK_CRON = "not-a-cron";
+      mocks.env.UNVERIFIED_KICK_CRON_OVERRIDE = "not-a-cron";
       expect(resolveUnverifiedKickSchedule()).toBe(
         UNVERIFIED_KICK_JOB_SCHEDULE,
       );

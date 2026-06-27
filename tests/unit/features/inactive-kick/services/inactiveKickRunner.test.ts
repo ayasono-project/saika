@@ -5,14 +5,17 @@ import { ChannelType } from "discord.js";
 // vi.mock はホイストされるため、参照する値は vi.hoisted で定義する
 const mocks = vi.hoisted(() => ({
   getAllEnabled: vi.fn(),
+  updateLastRunDate: vi.fn(),
   disableInvalid: vi.fn(),
   findByGuild: vi.fn(),
   setWarnStage: vi.fn(),
   deleteActivity: vi.fn(),
-  sendPaginatedEmbeds: vi.fn(),
+  sendNotification: vi.fn(),
   env: {
-    TEST_MODE: false,
-    INACTIVE_KICK_CRON: undefined as string | undefined,
+    INACTIVE_KICK_DRY_RUN: false,
+    INACTIVE_KICK_CRON_OVERRIDE: undefined as string | undefined,
+    INACTIVE_KICK_SKIP_GUARDS: false,
+    INACTIVE_KICK_MOCK_MEMBERS: undefined as number | undefined,
   },
   logger: { info: vi.fn(), debug: vi.fn(), warn: vi.fn(), error: vi.fn() },
 }));
@@ -20,6 +23,7 @@ const mocks = vi.hoisted(() => ({
 vi.mock("@/bot/services/botCompositionRoot", () => ({
   getBotInactiveKickSettingsService: () => ({
     getAllEnabled: mocks.getAllEnabled,
+    updateLastRunDate: mocks.updateLastRunDate,
     disableInvalid: mocks.disableInvalid,
   }),
   getBotMemberActivityRepository: () => ({
@@ -28,9 +32,8 @@ vi.mock("@/bot/services/botCompositionRoot", () => ({
     deleteActivity: mocks.deleteActivity,
   }),
 }));
-vi.mock("@/bot/shared/embedPaginator", () => ({
-  sendPaginatedEmbeds: (...args: unknown[]) =>
-    mocks.sendPaginatedEmbeds(...args),
+vi.mock("@/bot/shared/notificationSender", () => ({
+  sendNotification: (...args: unknown[]) => mocks.sendNotification(...args),
 }));
 vi.mock("@/shared/config/env", () => ({ env: mocks.env }));
 vi.mock("@/shared/locale/helpers", () => ({
@@ -114,17 +117,23 @@ const baseSettings = {
   markerRoleId: undefined,
   whitelistRoleIds: [] as string[],
   whitelistUserIds: [] as string[],
+  timezone: "Asia/Tokyo",
+  runHour: 4,
+  mentionEnabled: true,
 };
 
 describe("inactive-kick/runner", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mocks.env.TEST_MODE = false;
-    mocks.env.INACTIVE_KICK_CRON = undefined;
+    mocks.env.INACTIVE_KICK_DRY_RUN = false;
+    mocks.env.INACTIVE_KICK_CRON_OVERRIDE = undefined;
+    mocks.env.INACTIVE_KICK_SKIP_GUARDS = false;
+    mocks.env.INACTIVE_KICK_MOCK_MEMBERS = undefined;
     mocks.disableInvalid.mockResolvedValue(undefined);
+    mocks.updateLastRunDate.mockResolvedValue(undefined);
     mocks.setWarnStage.mockResolvedValue(undefined);
     mocks.deleteActivity.mockResolvedValue(undefined);
-    mocks.sendPaginatedEmbeds.mockResolvedValue(undefined);
+    mocks.sendNotification.mockResolvedValue({ firstMessageSent: true });
     mocks.findByGuild.mockResolvedValue([]);
   });
 
@@ -135,7 +144,7 @@ describe("inactive-kick/runner", () => {
       channelId: undefined,
     });
     expect(mocks.disableInvalid).toHaveBeenCalledWith("g1");
-    expect(mocks.sendPaginatedEmbeds).not.toHaveBeenCalled();
+    expect(mocks.sendNotification).not.toHaveBeenCalled();
   });
 
   it("しきい値が範囲外なら自動無効化する", async () => {
@@ -159,7 +168,7 @@ describe("inactive-kick/runner", () => {
     // キックされない
     expect(member.kick).not.toHaveBeenCalled();
     // 最終警告通知が送信され warnStage=2 に前進
-    expect(mocks.sendPaginatedEmbeds).toHaveBeenCalledTimes(1);
+    expect(mocks.sendNotification).toHaveBeenCalledTimes(1);
     expect(mocks.setWarnStage).toHaveBeenCalledWith("g1", "u1", 2);
   });
 
@@ -175,11 +184,11 @@ describe("inactive-kick/runner", () => {
     expect(member.kick).toHaveBeenCalledTimes(1);
     expect(mocks.deleteActivity).toHaveBeenCalledWith("g1", "u1");
     // キック通知が送信される
-    expect(mocks.sendPaginatedEmbeds).toHaveBeenCalledTimes(1);
+    expect(mocks.sendNotification).toHaveBeenCalledTimes(1);
   });
 
-  it("TEST_MODE ではキックせず通知のみ送る", async () => {
-    mocks.env.TEST_MODE = true;
+  it("INACTIVE_KICK_DRY_RUN ではキックせず通知のみ送る", async () => {
+    mocks.env.INACTIVE_KICK_DRY_RUN = true;
     const member = fakeMember({ id: "u1" });
     const guild = fakeGuild([member]);
     mocks.findByGuild.mockResolvedValue([
@@ -190,11 +199,11 @@ describe("inactive-kick/runner", () => {
 
     expect(member.kick).not.toHaveBeenCalled();
     expect(mocks.deleteActivity).not.toHaveBeenCalled();
-    expect(mocks.sendPaginatedEmbeds).toHaveBeenCalledTimes(1);
+    expect(mocks.sendNotification).toHaveBeenCalledTimes(1);
   });
 
   it("通知送信失敗時は warnStage を前進させない（H1）", async () => {
-    mocks.sendPaginatedEmbeds.mockRejectedValueOnce(new Error("send failed"));
+    mocks.sendNotification.mockRejectedValueOnce(new Error("send failed"));
     const member = fakeMember({ id: "u1" });
     const guild = fakeGuild([member]);
     mocks.findByGuild.mockResolvedValue([
@@ -245,18 +254,18 @@ describe("inactive-kick/runner", () => {
   });
 
   describe("resolveInactiveKickSchedule", () => {
-    it("未設定なら既定（毎日04:00）を返す", () => {
-      mocks.env.INACTIVE_KICK_CRON = undefined;
+    it("未設定なら既定（毎時）を返す", () => {
+      mocks.env.INACTIVE_KICK_CRON_OVERRIDE = undefined;
       expect(resolveInactiveKickSchedule()).toBe(INACTIVE_KICK_JOB_SCHEDULE);
     });
 
     it("有効な cron 上書きがあればそれを返す", () => {
-      mocks.env.INACTIVE_KICK_CRON = "*/5 * * * *";
+      mocks.env.INACTIVE_KICK_CRON_OVERRIDE = "*/5 * * * *";
       expect(resolveInactiveKickSchedule()).toBe("*/5 * * * *");
     });
 
     it("不正な cron 上書きなら既定にフォールバックする", () => {
-      mocks.env.INACTIVE_KICK_CRON = "not-a-cron";
+      mocks.env.INACTIVE_KICK_CRON_OVERRIDE = "not-a-cron";
       expect(resolveInactiveKickSchedule()).toBe(INACTIVE_KICK_JOB_SCHEDULE);
       expect(mocks.logger.warn).toHaveBeenCalled();
     });

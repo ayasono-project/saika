@@ -3,13 +3,13 @@
 
 import { type ChatInputCommandInteraction, MessageFlags } from "discord.js";
 import { getBotInactiveKickSettingsService } from "../../../bot/services/botCompositionRoot";
-import { sendPaginatedEmbeds } from "../../../bot/shared/embedPaginator";
+import { sendPaginatedEmbeds } from "../../../bot/shared/pagination";
 import type { GuildTFunction } from "../../../shared/locale/helpers";
 import { tInteraction } from "../../../shared/locale/localeManager";
 import { buildPreviewEmbedPages } from "../services/inactiveKickNotifier";
 import { buildCandidateBuckets } from "../services/inactiveKickRunner";
 import {
-  INACTIVE_KICK_EPHEMERAL_COLLECTOR_MS,
+  INACTIVE_KICK_PREVIEW_MS,
   INACTIVE_KICK_SETTINGS_COMMAND,
 } from "./inactiveKickSettingsCommand.constants";
 import { ensureInactiveKickManageGuildPermission } from "./inactiveKickSettingsCommand.guard";
@@ -49,7 +49,8 @@ export async function handleInactiveKickPreview(
     send: (payload) => interaction.editReply(payload),
     pages,
     prefix: INACTIVE_KICK_SETTINGS_COMMAND.PREVIEW_PAGINATOR_PREFIX,
-    timeMs: INACTIVE_KICK_EPHEMERAL_COLLECTOR_MS,
+    timeMs: INACTIVE_KICK_PREVIEW_MS,
     filterUserId: interaction.user.id,
+    locale: interaction.locale,
   });
 }

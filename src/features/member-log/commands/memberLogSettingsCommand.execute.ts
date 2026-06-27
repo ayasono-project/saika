@@ -4,6 +4,7 @@
 import { ValidationError } from "@ayasono/shared/core";
 import { type ChatInputCommandInteraction } from "discord.js";
 import { handleCommandError } from "../../../bot/errors/interactionErrorHandler";
+import { getBotMemberLogSettingsService } from "../../../bot/services/botCompositionRoot";
 import { COMMON_I18N_KEYS } from "../../../bot/shared/i18nKeys";
 import { ensureManageGuildPermission } from "../../../bot/shared/permissionGuards";
 import { handleMemberLogSettingsClearJoinMessage } from "./memberLogSettingsCommand.clearJoinMessage";
@@ -52,13 +53,29 @@ export async function executeMemberLogSettingsCommand(
         await handleMemberLogSettingsDisable(interaction, guildId);
         break;
 
-      case MEMBER_LOG_SETTINGS_COMMAND.SUBCOMMAND.SET_JOIN_MESSAGE:
-        await handleMemberLogSettingsSetJoinMessage(interaction);
+      case MEMBER_LOG_SETTINGS_COMMAND.SUBCOMMAND.SET_JOIN_MESSAGE: {
+        const s =
+          await getBotMemberLogSettingsService().getMemberLogSettingsOrDefault(
+            guildId,
+          );
+        await handleMemberLogSettingsSetJoinMessage(
+          interaction,
+          s.joinMessage ?? undefined,
+        );
         break;
+      }
 
-      case MEMBER_LOG_SETTINGS_COMMAND.SUBCOMMAND.SET_LEAVE_MESSAGE:
-        await handleMemberLogSettingsSetLeaveMessage(interaction);
+      case MEMBER_LOG_SETTINGS_COMMAND.SUBCOMMAND.SET_LEAVE_MESSAGE: {
+        const s =
+          await getBotMemberLogSettingsService().getMemberLogSettingsOrDefault(
+            guildId,
+          );
+        await handleMemberLogSettingsSetLeaveMessage(
+          interaction,
+          s.leaveMessage ?? undefined,
+        );
         break;
+      }
 
       case MEMBER_LOG_SETTINGS_COMMAND.SUBCOMMAND.CLEAR_JOIN_MESSAGE:
         await handleMemberLogSettingsClearJoinMessage(interaction, guildId);

@@ -306,4 +306,73 @@ describe("unverified-kick/runner", () => {
       expect(mocks.logger.warn).toHaveBeenCalled();
     });
   });
+
+  // 廃止プレースホルダー案内が警告ステージのみで送信されるかを検証
+  // sendNotification は mocks を経由するため channel.send を直接呼ぶのは sendObsoleteUnverifiedKickNotice のみ
+  describe("廃止プレースホルダー案内（warn ステージ限定）", () => {
+    it("warn 候補ありかつ notifyTemplate に廃止プレースホルダーがあれば警告後に channel.send が呼ばれる", async () => {
+      const member = fakeMember({ id: "u1" });
+      const guild = fakeGuild([member]);
+      const channel = (await guild.channels.fetch()) as {
+        send: ReturnType<typeof vi.fn>;
+      };
+
+      await processGuildUnverifiedKick(fakeClient(guild), {
+        ...baseSettings,
+        warnDays: 5,
+        notifyTemplate: "{markerRole} の方へ警告します",
+      });
+
+      expect(channel.send).toHaveBeenCalled();
+    });
+
+    it("warn 候補ありでも notifyTemplate に廃止プレースホルダーがなければ案内 Embed の channel.send は呼ばれない", async () => {
+      const member = fakeMember({ id: "u1" });
+      const guild = fakeGuild([member]);
+      const channel = (await guild.channels.fetch()) as {
+        send: ReturnType<typeof vi.fn>;
+      };
+
+      await processGuildUnverifiedKick(fakeClient(guild), {
+        ...baseSettings,
+        warnDays: 5,
+        notifyTemplate: "{serverName} で {count} 名が警告対象",
+      });
+
+      expect(channel.send).not.toHaveBeenCalled();
+    });
+
+    it("warn 候補ありかつ dmTemplate に廃止プレースホルダーがあっても channel.send が呼ばれる", async () => {
+      const member = fakeMember({ id: "u1" });
+      const guild = fakeGuild([member]);
+      const channel = (await guild.channels.fetch()) as {
+        send: ReturnType<typeof vi.fn>;
+      };
+
+      await processGuildUnverifiedKick(fakeClient(guild), {
+        ...baseSettings,
+        warnDays: 5,
+        dmTemplate: "対象: {markerRole}",
+      });
+
+      expect(channel.send).toHaveBeenCalled();
+    });
+
+    it("kick のみ（warn 候補なし）+ notifyTemplate に廃止プレースホルダーがあっても案内 Embed は送信されない", async () => {
+      const member = fakeMember({ id: "u1" });
+      const guild = fakeGuild([member]);
+      const channel = (await guild.channels.fetch()) as {
+        send: ReturnType<typeof vi.fn>;
+      };
+
+      // warnDays なし → warn バケット空、kick バケットへ直行
+      await processGuildUnverifiedKick(fakeClient(guild), {
+        ...baseSettings,
+        warnDays: undefined,
+        notifyTemplate: "{markerRole}",
+      });
+
+      expect(channel.send).not.toHaveBeenCalled();
+    });
+  });
 });

@@ -87,7 +87,10 @@ function fakeMember(opts: FakeMemberOpts) {
 
 function fakeGuild(members: ReturnType<typeof fakeMember>[]) {
   const map = new Map(members.map((m) => [m.id, m]));
-  const channel = { type: ChannelType.GuildText, send: vi.fn() };
+  const channel = {
+    type: ChannelType.GuildText,
+    send: vi.fn().mockResolvedValue(undefined),
+  };
   return {
     id: "g1",
     name: "Guild",
@@ -268,6 +271,115 @@ describe("inactive-kick/runner", () => {
       mocks.env.INACTIVE_KICK_CRON_OVERRIDE = "not-a-cron";
       expect(resolveInactiveKickSchedule()).toBe(INACTIVE_KICK_JOB_SCHEDULE);
       expect(mocks.logger.warn).toHaveBeenCalled();
+    });
+  });
+
+  // 廃止プレースホルダー案内がステージごとに適切なタイミングで送信されるかを検証
+  // （OLD = 1970 / warnStage:0 → finalWarn バケット、warnStage:2 → kick バケット）
+  // sendNotification は mocks を経由するため channel.send を直接呼ぶのは sendObsoleteInactiveKickNotice のみ
+  describe("廃止プレースホルダー案内（ステージ別）", () => {
+    it("finalWarn 候補ありかつ finalWarnMessage に廃止プレースホルダーがあれば最終警告後に channel.send が呼ばれる", async () => {
+      const member = fakeMember({ id: "u1" });
+      const guild = fakeGuild([member]);
+      const channel = (await guild.channels.fetch()) as {
+        send: ReturnType<typeof vi.fn>;
+      };
+      mocks.findByGuild.mockResolvedValue([
+        { userId: "u1", lastActivityAt: OLD, warnStage: 0 },
+      ]);
+
+      await processGuildInactiveKick(fakeClient(guild), {
+        ...baseSettings,
+        finalWarnMessage: "あと {daysLeft} 日でキックされます",
+      });
+
+      expect(channel.send).toHaveBeenCalled();
+    });
+
+    it("finalWarn 候補ありでも finalWarnMessage に廃止プレースホルダーがなければ案内 Embed の channel.send は呼ばれない", async () => {
+      const member = fakeMember({ id: "u1" });
+      const guild = fakeGuild([member]);
+      const channel = (await guild.channels.fetch()) as {
+        send: ReturnType<typeof vi.fn>;
+      };
+      mocks.findByGuild.mockResolvedValue([
+        { userId: "u1", lastActivityAt: OLD, warnStage: 0 },
+      ]);
+
+      await processGuildInactiveKick(fakeClient(guild), {
+        ...baseSettings,
+        finalWarnMessage: "{serverName} から最終警告",
+      });
+
+      expect(channel.send).not.toHaveBeenCalled();
+    });
+
+    it("kick 候補ありかつ kickMessage に廃止プレースホルダーがあればキック後に channel.send が呼ばれる", async () => {
+      const member = fakeMember({ id: "u1" });
+      const guild = fakeGuild([member]);
+      const channel = (await guild.channels.fetch()) as {
+        send: ReturnType<typeof vi.fn>;
+      };
+      mocks.findByGuild.mockResolvedValue([
+        { userId: "u1", lastActivityAt: OLD, warnStage: 2 },
+      ]);
+
+      await processGuildInactiveKick(fakeClient(guild), {
+        ...baseSettings,
+        kickMessage: "{markerRole} の方がキックされました",
+      });
+
+      expect(channel.send).toHaveBeenCalled();
+    });
+
+    it("kick 候補ありでも kickMessage に廃止プレースホルダーがなければ案内 Embed の channel.send は呼ばれない", async () => {
+      const member = fakeMember({ id: "u1" });
+      const guild = fakeGuild([member]);
+      const channel = (await guild.channels.fetch()) as {
+        send: ReturnType<typeof vi.fn>;
+      };
+      mocks.findByGuild.mockResolvedValue([
+        { userId: "u1", lastActivityAt: OLD, warnStage: 2 },
+      ]);
+
+      await processGuildInactiveKick(fakeClient(guild), {
+        ...baseSettings,
+        kickMessage: "{serverName} からキックされました",
+      });
+
+      expect(channel.send).not.toHaveBeenCalled();
+    });
+
+    it("候補がなければ廃止プレースホルダーがあっても案内 Embed は送信されない", async () => {
+      const guild = fakeGuild([]);
+      const channel = (await guild.channels.fetch()) as {
+        send: ReturnType<typeof vi.fn>;
+      };
+      mocks.findByGuild.mockResolvedValue([]);
+
+      await processGuildInactiveKick(fakeClient(guild), {
+        ...baseSettings,
+        weekWarnMessage: "{daysLeft}",
+        finalWarnMessage: "{daysLeft}",
+        kickMessage: "{markerRole}",
+      });
+
+      expect(channel.send).not.toHaveBeenCalled();
+    });
+
+    it("INACTIVE_KICK_MOCK_MEMBERS 設定時、weekWarnMessage に廃止プレースホルダーがあれば channel.send が呼ばれる", async () => {
+      mocks.env.INACTIVE_KICK_MOCK_MEMBERS = 1;
+      const guild = fakeGuild([]);
+      const channel = (await guild.channels.fetch()) as {
+        send: ReturnType<typeof vi.fn>;
+      };
+
+      await processGuildInactiveKick(fakeClient(guild), {
+        ...baseSettings,
+        weekWarnMessage: "あと {daysLeft} 日",
+      });
+
+      expect(channel.send).toHaveBeenCalled();
     });
   });
 });

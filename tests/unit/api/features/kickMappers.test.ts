@@ -110,6 +110,8 @@ describe("inactive-kick マッパー", () => {
       whitelistRoleIds: [],
       whitelistUserIds: [],
       mentionEnabled: true,
+      timezone: "Asia/Tokyo",
+      runHour: 4,
     });
   });
 

@@ -24,6 +24,8 @@ export function toContractUnverifiedKick(
     notifyTemplate: domain.notifyTemplate ?? "",
     exemptRoleIds: domain.exemptRoleIds,
     mentionEnabled: domain.mentionEnabled,
+    timezone: domain.timezone,
+    runHour: domain.runHour,
   };
 }
 
@@ -78,8 +80,8 @@ export function applyUnverifiedKickPatch(
         ? current.notifyTemplate
         : patch.notifyTemplate || undefined,
     exemptRoleIds: patch.exemptRoleIds ?? current.exemptRoleIds,
-    timezone: current.timezone,
-    runHour: current.runHour,
+    timezone: patch.timezone ?? current.timezone,
+    runHour: patch.runHour ?? current.runHour,
     lastRunDate: current.lastRunDate,
     mentionEnabled: patch.mentionEnabled ?? current.mentionEnabled,
   };

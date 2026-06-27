@@ -1,6 +1,6 @@
 {
   "name": "saika",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "Discordサーバー管理Bot「彩加 =Saika=」",
   "main": "dist/main.js",
   "type": "module",
@@ -45,7 +45,7 @@
     ]
   },
   "dependencies": {
-    "@ayasono/shared": "github:ayasono-project/shared#v0.3.1",
+    "@ayasono/shared": "github:ayasono-project/shared#v0.3.2",
     "@fastify/cookie": "^11.0.2",
     "@fastify/cors": "^11.2.0",
     "@fastify/rate-limit": "^10.3.0",

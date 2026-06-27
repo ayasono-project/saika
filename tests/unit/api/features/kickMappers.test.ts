@@ -109,6 +109,7 @@ describe("inactive-kick マッパー", () => {
       kickMessage: "",
       whitelistRoleIds: [],
       whitelistUserIds: [],
+      mentionEnabled: true,
     });
   });
 

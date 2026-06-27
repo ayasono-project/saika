@@ -2,7 +2,7 @@
 
 > タスク管理・進捗状況・残件リスト
 
-最終更新: 2026年6月27日
+最終更新: 2026年6月28日
 
 ---
 
@@ -12,8 +12,8 @@
 | --- | --- | --- | ---: |
 | 1 | VC自動募集 チャンネル単位再設計 ＋ VACオーナー個人設定 | カテゴリ→VCチャンネル allowlist 化・動的VCの on/off（3状態）＋個別募集文＋既定VC名/人数を `VacOwnerPreference` で一括・`/myvc`・移行方針確定 | 4 |
 | 3 | ドキュメント整理（spec 廃止・guides 集約） | `docs/specs/` 全廃止・重要情報の guides への移行・README/TODO の spec 参照除去 | 5 |
-| 11 | Bot 一般公開準備 | `/about` 充実（LP 公開時）・Discord 認証申請（75 サーバー到達後）・ディスカバリー審査の ja 抑止戻し | 3 |
-| **合計** | | | **12** |
+| 11 | Bot 一般公開準備 | `/about` 充実（LP 公開時）・Discord 認証申請（75 サーバー到達後） | 2 |
+| **合計** | | | **11** |
 
 > web ダッシュボード・インフラ（VPS / Cloudflare / Coolify）は別リポジトリで管理。番号は優先度順（#1 から実装見込み順・#11 は低優先度）。
 > 次に実装見込みは §1。VC自動募集の再設計と VACオーナー個人設定（募集制御＋既定VC名/人数）は **同じ `/myvc` コマンド・同じ `VacOwnerPreference` を共有するため一括実装・一括リリース**（コマンド変更アナウンスを1回に集約・二段階移行も回避）。着手前に既存 `enabledCategoryIds` の移行方針を確定する。§3 ドキュメント整理は §1 と独立して着手可能（低優先度）。§11 Bot 一般公開準備は低優先度（Discord 認証申請は 75 サーバー到達後に着手する条件待ち）。
@@ -48,7 +48,7 @@
 - [x] `/about` コマンド（バージョン〔package.json 単一情報源・実行時 cwd から取得〕＋公式 URL〔ayasono LP 用 env `OFFICIAL_URL` 出し分け・未設定時は省略〕・ephemeral・2026-06-07 実装完了）
 - [ ] `/about` の充実（**LP 公開時に実施**）— ayasono プロジェクト LP 実装時に、公式サイト（`OFFICIAL_URL` env に値設定・出し分けは実装済み）に加え各種リンクを追加: ダッシュボード（`DASHBOARD_URL`）/ GitHub ソース（AGPL 公開リポ）/ ユーザーマニュアル（`USER_MANUAL_URL`）。運用ステータス（導入サーバー数・稼働時間）等は必要に応じ検討。LP 完成まで現状維持
 - [ ] Discord Bot 認証申請（75 サーバー到達後）
-- [ ] ディスカバリー審査通過後の日本語ローカライズ復活 — Discord サポート指摘「日本語がサポートロケールに残る」対応として、コマンド登録メタデータを**全コマンド英語のみ**にした（[commandLocalizations.ts](src/shared/locale/commandLocalizations.ts) の `localizations`/`name_localizations` を `{}`）。実行時応答（`tInteraction`/`tGuild`）は日本語のまま。**ディスカバリー有効化が通ったら**、ヘルパーを `base`=英語 / `localizations`={ ja } に戻す前向きコミットを作成し main リリース（日本語コマンド説明が復活）。ポータルの「言語」も Japanese を外している場合は同時に戻す
+- [x] ディスカバリー審査通過後の日本語ローカライズ復活（2026-06-28 確認済み）— commit `b32eb95` で `localizations`={ ja } 復元・Developer Portal に Japanese 再追加・日本語コマンド説明が正常動作確認済み
 
 ---
 
@@ -68,9 +68,9 @@
 
 > 詳細な作業経過は git log を参照。
 
-### 通知送信リファクタリング + 実行時刻設定化 Bot 側 Steps 0〜5（§2・2026-06-27 完了）
+### 通知送信リファクタリング + 実行時刻設定化 Steps 0〜6（§2・2026-06-28 完了）
 
-（§2・2026-06-27 完了）設計書: [docs/specs/KICK_NOTIFICATION_REFACTOR_SPEC.md](docs/specs/KICK_NOTIFICATION_REFACTOR_SPEC.md)
+（§2・2026-06-28 完了）設計書: [docs/specs/KICK_NOTIFICATION_REFACTOR_SPEC.md](docs/specs/KICK_NOTIFICATION_REFACTOR_SPEC.md)
 
 inactive-kick / unverified-kick の通知ページネーション廃止・{markerRole} 廃止＋mentionEnabled による個別メンション化・予定日別 embed（`daysLeft` グループ）・`<t:unix:f>` タイムスタンプ・`computeKickUnix()`（runHour:00 基準）・{daysLeft} プレースホルダー廃止・`sendNotification` 共通送信ユーティリティ・毎時スイープ（`"0 * * * *"`）＋ per-guild `timezone`/`runHour` フィルタ・`lastRunDate` 同日ガード・`KickedMember` 型（displayName 取得）。`setWarnStage` upsert 化・`sendPaginatedEmbeds` の `pagination.ts` 統合・preview の PREVIEW_COLLECTOR_MS=300_000 化も含む。
 
@@ -80,9 +80,9 @@ inactive-kick / unverified-kick の通知ページネーション廃止・{marke
 - [x] Step 3: 毎時スイープ化・per-guild `timezone`/`runHour` フィルタ・`lastRunDate` 同日ガード・`timezone:` を `addJob` から除去
 - [x] Step 4: `notificationSender.ts` 新規作成・両 runner の `sendPaginatedEmbeds` を `sendNotification` へ差し替え・`warnStage` 前進条件を最初のメッセージ成功のみ必須に変更
 - [x] Step 5: `splitMentionFields` 動的分割・warn/kick 表示形式変更・予定日別 embed・`computeKickUnix`・`{daysLeft}` 廃止・`mentionEnabled` 制御・`KickedMember` 型
+- [x] Step 6: API エンドポイントに `timezone`/`runHour`/`mentionEnabled` 追加（shared v0.3.2）・Web UI（両機能の設定カードにメンション通知・タイムゾーン・実行時刻を追加）・廃止プレースホルダー警告 UI（MessageTemplateEditor）
 
-> **残: Step 6**（ダッシュボード対応・別 PR・低優先度）: API エンドポイントに `timezone`/`runHour`/`mentionEnabled` 追加 + Web UI。Bot 側完了後に別途実施。
-> **未デプロイ**: develop への push・release PR（develop→main）は未実施。コミット前にユーザーへサマリー提示済み。
+> **未デプロイ**: saika develop → main release PR・web main push はユーザーの GO 待ち。
 
 ### web ダッシュボード Fastify API（§10・2026-06-06 完了・本番稼働）
 

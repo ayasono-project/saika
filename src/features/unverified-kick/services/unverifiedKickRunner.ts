@@ -134,67 +134,62 @@ export function buildCandidateBuckets(
 }
 
 /**
- * 対象ロール掃除（除外対象だが対象ロールを保持しているメンバーから剥奪）を行う。
+ * 対象ロールの整合性を全メンバー単位で保証する（inactive-kick の applyMarkerRoleConsistency と同方式）。
+ * - warn・kick バケットのメンバーはロールを付与する（未付与なら追加）
+ * - それ以外でロールを保持しているメンバーは剥奪する（認証済み/再参加リセット等を一括修正）
  */
-async function applyMarkerCleanup(
+async function applyMarkerRoleConsistency(
   guild: Guild,
-  userIds: string[],
-  markerRoleId: string,
-): Promise<void> {
-  for (const userId of userIds) {
-    try {
-      const member = await guild.members.fetch(userId).catch(() => null);
-      await member?.roles
-        .remove(markerRoleId)
-        .catch((err) => logMarkerRemoveFailed(guild.id, userId, err));
-    } catch (err) {
-      logMarkerRemoveFailed(guild.id, userId, err);
-    }
-  }
-}
-
-function logMarkerRemoveFailed(
-  guildId: string,
-  userId: string,
-  err: unknown,
-): void {
-  logger.warn(
-    logPrefixed(LOG_PREFIX, "unverifiedKick:log.marker_role_remove_failed", {
-      guildId,
-      userId,
-    }),
-    err,
-  );
-}
-
-/**
- * 警告対象へ対象ロールを付与する（未付与のもののみ・通知投稿の直前に呼ぶ）。
- */
-async function assignMarkerRoles(
-  guild: Guild,
-  warnCandidates: CategorizedCandidate[],
+  members: GuildMember[],
+  buckets: CandidateBuckets,
   markerRoleId: string,
 ): Promise<void> {
   const t = await getGuildTranslator(guild.id);
-  for (const candidate of warnCandidates) {
-    if (candidate.hasMarkerRole) continue;
-    try {
-      const member = await guild.members
-        .fetch(candidate.userId)
-        .catch(() => null);
-      await member?.roles.add(
-        markerRoleId,
-        t("unverifiedKick:audit_reason.marker_assigned"),
-      );
-    } catch (err) {
-      logger.warn(
-        logPrefixed(
-          LOG_PREFIX,
-          "unverifiedKick:log.marker_role_assign_failed",
-          { guildId: guild.id, userId: candidate.userId },
-        ),
-        err,
-      );
+  const shouldHave = new Set([
+    ...buckets.warn.map((c) => c.userId),
+    ...buckets.kick.map((c) => c.userId),
+  ]);
+
+  for (const member of members) {
+    if (member.user.bot) continue;
+    const has = member.roles.cache.has(markerRoleId);
+    const needs = shouldHave.has(member.id);
+
+    if (has && !needs) {
+      await member.roles
+        .remove(
+          markerRoleId,
+          t("unverifiedKick:audit_reason.marker_removed_verified"),
+        )
+        .catch((err) =>
+          logger.warn(
+            logPrefixed(
+              LOG_PREFIX,
+              "unverifiedKick:log.marker_role_remove_failed",
+              {
+                guildId: guild.id,
+                userId: member.id,
+              },
+            ),
+            err,
+          ),
+        );
+    } else if (!has && needs) {
+      await member.roles
+        .add(markerRoleId, t("unverifiedKick:audit_reason.marker_assigned"))
+        .catch((err) =>
+          logger.warn(
+            logPrefixed(
+              LOG_PREFIX,
+              "unverifiedKick:log.marker_role_assign_failed",
+              {
+                guildId: guild.id,
+                userId: member.id,
+              },
+            ),
+            err,
+          ),
+        );
     }
   }
 }
@@ -450,7 +445,6 @@ function buildMockUnverifiedKickBuckets(
       remainingDays: 0,
       hasMarkerRole: true,
     })),
-    markerCleanup: [],
     clearWarn: [],
   };
 }
@@ -570,20 +564,18 @@ export async function processGuildUnverifiedKick(
     warnedMap,
   );
 
-  // 1. 対象ロール掃除（除外済み・認証済みの保持者から剥奪）
-  if (settings.markerRoleId && buckets.markerCleanup.length > 0) {
-    await applyMarkerCleanup(
+  // 1. 対象ロール整合性確保（全メンバー走査・付与/剥奪を一括補正）
+  if (settings.markerRoleId) {
+    await applyMarkerRoleConsistency(
       guild,
-      buckets.markerCleanup,
+      members,
+      buckets,
       settings.markerRoleId,
     );
   }
 
   // 2. 事前警告（DM + 通知チャンネル）。warnDays 未設定なら warn バケットは空
   if (buckets.warn.length > 0) {
-    if (settings.markerRoleId) {
-      await assignMarkerRoles(guild, buckets.warn, settings.markerRoleId);
-    }
     await sendWarnDms(guild, buckets.warn, settings);
     if (notifyChannel) {
       await sendWarnNotification(

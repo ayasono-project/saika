@@ -226,6 +226,27 @@ describe("unverified-kick/runner", () => {
     expect(mocks.logger.warn).toHaveBeenCalled();
   });
 
+  it("再参加後に ageDays < warnDays となった対象ロール保持メンバーから対象ロールを剥奪する", async () => {
+    // joinedAt を現在時刻に近い値にして ageDays < warnDays(5) にする（再参加シナリオ）
+    const member = fakeMember({ id: "u1", roles: [MARKER] });
+    member.joinedAt = new Date(); // ageDays ≒ 0 < warnDays=5
+    const guild = fakeGuild([member]);
+    // DB に再参加前の警告記録が残存している
+    mocks.getWarnedMap.mockResolvedValueOnce(new Map([["u1", new Date(0)]]));
+
+    await processGuildUnverifiedKick(fakeClient(guild), {
+      ...baseSettings,
+      markerRoleId: MARKER,
+      warnDays: 5,
+    });
+
+    expect(member.roles.remove).toHaveBeenCalledWith(
+      MARKER,
+      "unverifiedKick:audit_reason.marker_removed_verified",
+    );
+    expect(member.kick).not.toHaveBeenCalled();
+  });
+
   it("対象ロール保持の認証済みメンバーから対象ロールを剥奪する（保険クリーンアップ）", async () => {
     const member = fakeMember({ id: "u1", roles: [VERIFIED, MARKER] });
     const guild = fakeGuild([member]);
@@ -233,7 +254,10 @@ describe("unverified-kick/runner", () => {
       ...baseSettings,
       markerRoleId: MARKER,
     });
-    expect(member.roles.remove).toHaveBeenCalledWith(MARKER);
+    expect(member.roles.remove).toHaveBeenCalledWith(
+      MARKER,
+      "unverifiedKick:audit_reason.marker_removed_verified",
+    );
     expect(member.kick).not.toHaveBeenCalled();
   });
 

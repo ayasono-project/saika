@@ -169,7 +169,6 @@ describe("unverified-kick/notifier", () => {
     const empty: CandidateBuckets = {
       warn: [],
       kick: [],
-      markerCleanup: [],
       clearWarn: [],
     };
     it("対象 0 件なら none ページ", () => {
@@ -183,7 +182,6 @@ describe("unverified-kick/notifier", () => {
       const buckets: CandidateBuckets = {
         warn: [candidate({ userId: "w1" })],
         kick: [candidate({ userId: "k1", ageDays: 10 })],
-        markerCleanup: [],
         clearWarn: [],
       };
       const pages = buildPreviewEmbedPages(buckets, t);

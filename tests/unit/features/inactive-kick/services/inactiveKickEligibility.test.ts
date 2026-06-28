@@ -71,6 +71,16 @@ describe("inactive-kick/eligibility", () => {
       );
     });
 
+    it("最終警告済み・しきい値未到達 → PENDING_KICK（ロール維持・通知なし）", () => {
+      // T-3 〜 T-1 の範囲で warnStage=2（最終警告送信済み）
+      expect(classifyStage(27, T, WARN_STAGE.FINAL)).toBe(
+        INACTIVE_KICK_STAGE.PENDING_KICK,
+      );
+      expect(classifyStage(29, T, WARN_STAGE.FINAL)).toBe(
+        INACTIVE_KICK_STAGE.PENDING_KICK,
+      );
+    });
+
     it("しきい値超過でも最終警告未送信なら FINAL_WARN（警告ゲート）", () => {
       expect(classifyStage(30, T, WARN_STAGE.WEEK)).toBe(
         INACTIVE_KICK_STAGE.FINAL_WARN,

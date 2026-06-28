@@ -17,9 +17,6 @@ const MAX_FIELDS_PER_EMBED = 25;
 /** Embed 1 件あたりの最大合計文字数（おおよそ） */
 const MAX_EMBED_CHARS = 6000;
 
-/** preview 1 ページあたりの行数 */
-const PREVIEW_LINES_PER_PAGE = 20;
-
 /**
  * 単一波括弧 `{name}` プレースホルダーを実値へ置換する。
  * 未知のプレースホルダーはそのまま残す。
@@ -34,15 +31,6 @@ export function formatInactiveKickMessage(
   return template.replace(/\{(\w+)\}/g, (match, key: string) =>
     key in vars ? String(vars[key]) : match,
   );
-}
-
-/** 配列を指定サイズごとに分割する */
-function chunk<T>(items: T[], size: number): T[][] {
-  const pages: T[][] = [];
-  for (let i = 0; i < items.length; i += size) {
-    pages.push(items.slice(i, i + size));
-  }
-  return pages;
 }
 
 /**
@@ -411,13 +399,20 @@ export function buildKickNotification(
 
 /**
  * preview（現在のキック対象・通知対象の一覧）の Embed ページ配列を構築する。
+ * 各メンバーを 2 行（メンション行 + 詳細行）で表示し、エントリ境界でページを分割する。
  */
 export function buildPreviewEmbedPages(
   buckets: CandidateBuckets,
   t: GuildTFunction,
+  now: Date,
+  timezone: string,
+  runHour: number,
 ): EmbedBuilder[] {
   const total =
-    buckets.kick.length + buckets.finalWarn.length + buckets.weekWarn.length;
+    buckets.kick.length +
+    buckets.pendingKick.length +
+    buckets.finalWarn.length +
+    buckets.weekWarn.length;
 
   const title = t("inactiveKick:preview.title");
   if (total === 0) {
@@ -435,30 +430,109 @@ export function buildPreviewEmbedPages(
   }> = [
     { labelKey: "inactiveKick:preview.section.kick", items: buckets.kick },
     {
+      labelKey: "inactiveKick:preview.section.pending_kick",
+      items: buckets.pendingKick,
+    },
+    {
       labelKey: "inactiveKick:preview.section.final",
       items: buckets.finalWarn,
     },
     { labelKey: "inactiveKick:preview.section.week", items: buckets.weekWarn },
   ];
-  const lines: string[] = [];
+
+  // セクションごとに daysLeft でグループ化し、フィールドを構築する
+  type FieldSpec = { name: string; value: string };
+  const allFields: FieldSpec[] = [];
+
   for (const section of sections) {
     if (section.items.length === 0) continue;
-    lines.push(`**${t(section.labelKey)}** (${section.items.length})`);
-    for (const c of section.items) {
-      lines.push(
-        t("inactiveKick:preview.entry", {
-          user: `<@${c.userId}>`,
+
+    const sectionLabel = `${t(section.labelKey)} (${section.items.length})`;
+
+    // daysLeft 昇順でグループ化
+    const sorted = [...section.items].sort((a, b) => a.daysLeft - b.daysLeft);
+    const groupMap = new Map<number, CategorizedCandidate[]>();
+    for (const c of sorted) {
+      const arr = groupMap.get(c.daysLeft) ?? [];
+      arr.push(c);
+      groupMap.set(c.daysLeft, arr);
+    }
+
+    let isFirstGroup = true;
+    for (const [daysLeft, members] of groupMap) {
+      const kickUnix = computeKickUnix(now, daysLeft, runHour, timezone);
+      // フィールド値: 「キック予定: <t:...:f>」+ メンバー行
+      const kickLine = t("inactiveKick:preview.kick_line", {
+        kickAt: `<t:${kickUnix}:f>`,
+      });
+      const memberLines = members.map((c) =>
+        t("inactiveKick:preview.member_line", {
+          userId: c.userId,
           days: c.inactiveDays,
         }),
       );
+
+      // フィールド値を 1024 字以内に分割
+      let currentValue = kickLine;
+      let isFirstField = true;
+      for (const line of memberLines) {
+        const candidate = `${currentValue}\n${line}`;
+        if (candidate.length > MAX_FIELD_VALUE_LENGTH) {
+          allFields.push({
+            name: isFirstField && isFirstGroup ? sectionLabel : "​",
+            value: currentValue,
+          });
+          currentValue = line;
+          isFirstField = false;
+        } else {
+          currentValue = candidate;
+        }
+      }
+      allFields.push({
+        name: isFirstField && isFirstGroup ? sectionLabel : "​",
+        value: currentValue,
+      });
+
+      isFirstGroup = false;
     }
   }
 
-  return chunk(lines, PREVIEW_LINES_PER_PAGE).map((pageLines) =>
-    new EmbedBuilder()
-      .setColor(STATUS_COLORS.info)
-      .setTitle(title)
-      .setDescription(pageLines.join("\n"))
-      .setTimestamp(),
-  );
+  // フィールドを Embed に詰める（25フィールド / 6000字 制限）
+  const embeds: EmbedBuilder[] = [];
+  let currentEmbed: EmbedBuilder | null = null;
+  let currentFieldCount = 0;
+  let currentCharCount = 0;
+
+  const flushEmbed = () => {
+    if (currentEmbed) {
+      embeds.push(currentEmbed);
+      currentEmbed = null;
+      currentFieldCount = 0;
+      currentCharCount = 0;
+    }
+  };
+
+  for (const field of allFields) {
+    const fieldChars = field.name.length + field.value.length;
+    if (
+      currentEmbed === null ||
+      currentFieldCount >= MAX_FIELDS_PER_EMBED ||
+      currentCharCount + fieldChars > MAX_EMBED_CHARS
+    ) {
+      flushEmbed();
+      currentEmbed = new EmbedBuilder()
+        .setColor(STATUS_COLORS.info)
+        .setTimestamp();
+      if (embeds.length === 0) {
+        currentEmbed.setTitle(title);
+        currentCharCount = title.length;
+      }
+    }
+    currentEmbed.addFields(field);
+    currentFieldCount++;
+    currentCharCount += fieldChars;
+  }
+  flushEmbed();
+
+  return embeds;
 }

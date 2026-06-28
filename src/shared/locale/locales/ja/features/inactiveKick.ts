@@ -141,9 +141,11 @@ export const inactiveKick = {
   "preview.title": "🔍 自動キック対象プレビュー",
   "preview.none": "現在、キック対象・通知対象のメンバーはいません。",
   "preview.section.kick": "キック対象",
+  "preview.section.pending_kick": "キック待機中（最終警告済み）",
   "preview.section.final": "最終警告対象",
   "preview.section.week": "1 週間前通知対象",
-  "preview.entry": "{{user}} — {{days}} 日非アクティブ",
+  "preview.kick_line": "キック予定: {{kickAt}}",
+  "preview.member_line": "<@{{userId}}> — {{days}}日非アクティブ",
 
   // ── 監査ログ理由 ─────
   "audit_reason.reactivated": "再活動を検知したため対象ロールを剥奪",

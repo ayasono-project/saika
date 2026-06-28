@@ -167,11 +167,8 @@ async function applyMarkerRoleConsistency(
   markerRoleId: string,
 ): Promise<void> {
   const t = await getGuildTranslator(guild.id);
-  const shouldHave = new Set([
-    ...buckets.weekWarn.map((c) => c.userId),
-    ...buckets.finalWarn.map((c) => c.userId),
-    ...buckets.kick.map((c) => c.userId),
-  ]);
+  // アクションバケットではなく isMarkerRoleTarget の語義に従う（dead zone を含む全警告ウィンドウ対象）
+  const shouldHave = buckets.markerRoleTargetIds;
 
   for (const member of members) {
     if (member.user.bot) continue;
@@ -415,7 +412,9 @@ function buildMockInactiveKickBuckets(
     finalWarn: Array.from({ length: count }, (_, i) =>
       make(i, 1, threshold - 1, 1),
     ),
+    pendingKick: [],
     kick: Array.from({ length: count }, (_, i) => make(i, 2, threshold + 1, 0)),
+    markerRoleTargetIds: new Set<string>(), // モックパスは applyMarkerRoleConsistency を呼ばない
   };
 }
 

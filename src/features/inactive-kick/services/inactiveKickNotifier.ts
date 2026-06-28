@@ -470,7 +470,6 @@ export function buildPreviewEmbedPages(
       groupMap.set(c.daysLeft, arr);
     }
 
-    let isFirstGroup = true;
     for (const [daysLeft, members] of groupMap) {
       const kickUnix = computeKickUnix(now, daysLeft, runHour, timezone);
       // フィールド値: 「キック予定: <t:...:f>」+ メンバー行
@@ -484,28 +483,18 @@ export function buildPreviewEmbedPages(
         }),
       );
 
-      // フィールド値を 1024 字以内に分割
+      // フィールド値を 1024 字以内に分割（継続フィールドはセクションラベル・キック予定を再掲）
       let currentValue = kickLine;
-      let isFirstField = true;
       for (const line of memberLines) {
         const candidate = `${currentValue}\n${line}`;
         if (candidate.length > MAX_FIELD_VALUE_LENGTH) {
-          allFields.push({
-            name: isFirstField && isFirstGroup ? sectionLabel : "​",
-            value: currentValue,
-          });
-          currentValue = line;
-          isFirstField = false;
+          allFields.push({ name: sectionLabel, value: currentValue });
+          currentValue = `${kickLine}\n${line}`;
         } else {
           currentValue = candidate;
         }
       }
-      allFields.push({
-        name: isFirstField && isFirstGroup ? sectionLabel : "​",
-        value: currentValue,
-      });
-
-      isFirstGroup = false;
+      allFields.push({ name: sectionLabel, value: currentValue });
     }
   }
 

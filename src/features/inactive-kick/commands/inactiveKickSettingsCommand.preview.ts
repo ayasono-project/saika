@@ -6,7 +6,10 @@ import { getBotInactiveKickSettingsService } from "../../../bot/services/botComp
 import { sendPaginatedEmbeds } from "../../../bot/shared/pagination";
 import type { GuildTFunction } from "../../../shared/locale/helpers";
 import { tInteraction } from "../../../shared/locale/localeManager";
-import { buildPreviewEmbedPages } from "../services/inactiveKickNotifier";
+import {
+  buildPreviewEmbedPages,
+  computeTodayRunHour,
+} from "../services/inactiveKickNotifier";
 import { buildCandidateBuckets } from "../services/inactiveKickRunner";
 import {
   INACTIVE_KICK_PREVIEW_MS,
@@ -32,12 +35,19 @@ export async function handleInactiveKickPreview(
   const settings =
     await getBotInactiveKickSettingsService().getSettingsOrDefault(guildId);
   const members = [...(await guild.members.fetch()).values()];
-  const buckets = await buildCandidateBuckets(
-    guild,
-    members,
-    settings,
-    new Date(),
+
+  // 日次チェックと inactiveDays を合わせるため、基準時刻を「今日の runHour」にフロアする。
+  // preview を runHour より後に実行すると境界を越えたメンバーの inactiveDays が
+  // 1 多くなり kick 予定日が 1 日早くズレる問題を防ぐ。
+  const now = new Date();
+  const todayRunHour = computeTodayRunHour(
+    now,
+    settings.runHour,
+    settings.timezone,
   );
+  const ref = todayRunHour <= now ? todayRunHour : now;
+
+  const buckets = await buildCandidateBuckets(guild, members, settings, ref);
 
   // interaction.locale に束ねた翻訳関数
   const t: GuildTFunction = (key, options) =>
@@ -46,7 +56,7 @@ export async function handleInactiveKickPreview(
   const pages = buildPreviewEmbedPages(
     buckets,
     t,
-    new Date(),
+    ref,
     settings.timezone,
     settings.runHour,
   );

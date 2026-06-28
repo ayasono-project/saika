@@ -459,7 +459,7 @@ export function buildPreviewEmbedPages(
   for (const section of sections) {
     if (section.items.length === 0) continue;
 
-    const sectionLabel = `${t(section.labelKey)} (${section.items.length})`;
+    const sectionLabelBase = t(section.labelKey);
 
     // daysLeft 昇順でグループ化
     const sorted = [...section.items].sort((a, b) => a.daysLeft - b.daysLeft);
@@ -484,17 +484,28 @@ export function buildPreviewEmbedPages(
       );
 
       // フィールド値を 1024 字以内に分割（継続フィールドはセクションラベル・キック予定を再掲）
+      // フィールド名のカウントは「このフィールドの表示数/同一キック日グループの合計」
+      const groupTotal = members.length;
       let currentValue = kickLine;
+      let membersInField = 0;
       for (const line of memberLines) {
         const candidate = `${currentValue}\n${line}`;
         if (candidate.length > MAX_FIELD_VALUE_LENGTH) {
-          allFields.push({ name: sectionLabel, value: currentValue });
+          allFields.push({
+            name: `${sectionLabelBase} (${membersInField}/${groupTotal})`,
+            value: currentValue,
+          });
           currentValue = `${kickLine}\n${line}`;
+          membersInField = 1;
         } else {
           currentValue = candidate;
+          membersInField++;
         }
       }
-      allFields.push({ name: sectionLabel, value: currentValue });
+      allFields.push({
+        name: `${sectionLabelBase} (${membersInField}/${groupTotal})`,
+        value: currentValue,
+      });
     }
   }
 

@@ -117,6 +117,18 @@ function computeKickUnix(
   return Math.floor((Date.UTC(y, m - 1, d, runHour, 0, 0) + offsetMs) / 1000);
 }
 
+/**
+ * 指定タイムゾーンにおける today の runHour:00 を Date で返す。
+ * preview の基準時刻を日次チェックと合わせるために使う（dead zone による kick 日ズレ防止）。
+ */
+export function computeTodayRunHour(
+  now: Date,
+  runHour: number,
+  timezone: string,
+): Date {
+  return new Date(computeKickUnix(now, 0, runHour, timezone) * 1000);
+}
+
 /** 通知の構築結果（本文 + 固定 Embed ページ） */
 export interface NotificationContent {
   /** メッセージ本文（カスタム文。member-log 流儀で本文可変・embed 固定）。未指定なら本文なし */

@@ -43,7 +43,13 @@ export async function handleInactiveKickPreview(
   const t: GuildTFunction = (key, options) =>
     tInteraction(interaction.locale, key, options);
 
-  const pages = buildPreviewEmbedPages(buckets, t);
+  const pages = buildPreviewEmbedPages(
+    buckets,
+    t,
+    new Date(),
+    settings.timezone,
+    settings.runHour,
+  );
 
   await sendPaginatedEmbeds({
     send: (payload) => interaction.editReply(payload),

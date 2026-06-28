@@ -143,9 +143,11 @@ export const inactiveKick = {
   "preview.title": "🔍 Auto-kick target preview",
   "preview.none": "There are currently no kick/notification target members.",
   "preview.section.kick": "Kick targets",
+  "preview.section.pending_kick": "Pending kick (final warning sent)",
   "preview.section.final": "Final warning targets",
   "preview.section.week": "One-week notice targets",
-  "preview.entry": "{{user}} — inactive for {{days}} days",
+  "preview.kick_line": "kick: {{kickAt}}",
+  "preview.member_line": "<@{{userId}}> — inactive for {{days}} days",
 
   // ── Audit log reasons ─────
   "audit_reason.reactivated": "Marker role removed due to detected activity",

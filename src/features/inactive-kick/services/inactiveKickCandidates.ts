@@ -68,10 +68,18 @@ export interface CandidateBuckets {
   weekWarn: CategorizedCandidate[];
   /** 最終警告対象 */
   finalWarn: CategorizedCandidate[];
+  /** 最終警告済み・キック待機中（通知なし・ロール維持） */
+  pendingKick: CategorizedCandidate[];
   /** キック対象 */
   kick: CategorizedCandidate[];
   /** 除外メンバーのうち猶予クリア（warnStage リセット・対象ロール剥奪）が必要なもの */
   graceClear: GraceClearTarget[];
+  /**
+   * 対象ロールを持つべき非除外メンバーの userId 集合。
+   * `isMarkerRoleTarget(inactiveDays, T)` で判定するため、warnStage の段階に依存しない。
+   * dead zone（週通知済み待機中・最終警告済み待機中）のメンバーも網羅される。
+   */
+  markerRoleTargetIds: Set<string>;
 }
 
 /**
@@ -96,8 +104,10 @@ export function categorizeCandidates(
   const buckets: CandidateBuckets = {
     weekWarn: [],
     finalWarn: [],
+    pendingKick: [],
     kick: [],
     graceClear: [],
+    markerRoleTargetIds: new Set(),
   };
 
   for (const member of members) {
@@ -132,6 +142,12 @@ export function categorizeCandidates(
       settings.enabledAt ?? null,
     );
     const inactiveDays = computeInactiveDays(effective, now);
+
+    // 対象ロール維持対象をステージに依存せず収集（dead zone のメンバーも含む）
+    if (isMarkerRoleTarget(inactiveDays, settings.thresholdDays)) {
+      buckets.markerRoleTargetIds.add(member.userId);
+    }
+
     const stage = classifyStage(
       inactiveDays,
       settings.thresholdDays,
@@ -150,6 +166,8 @@ export function categorizeCandidates(
     };
 
     if (stage === INACTIVE_KICK_STAGE.KICK) buckets.kick.push(candidate);
+    else if (stage === INACTIVE_KICK_STAGE.PENDING_KICK)
+      buckets.pendingKick.push(candidate);
     else if (stage === INACTIVE_KICK_STAGE.FINAL_WARN)
       buckets.finalWarn.push(candidate);
     else buckets.weekWarn.push(candidate);

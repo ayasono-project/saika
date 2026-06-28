@@ -11,6 +11,8 @@ export const INACTIVE_KICK_STAGE = {
   WEEK_WARN: "week_warn",
   /** 最終警告（3 日前相当） */
   FINAL_WARN: "final_warn",
+  /** 最終警告済み・しきい値到達待ち（通知なし・ロール維持） */
+  PENDING_KICK: "pending_kick",
   /** キック対象 */
   KICK: "kick",
 } as const;
@@ -98,6 +100,10 @@ export function classifyStage(
   // しきい値超過 + 最終警告済 → キック
   if (inactiveDays >= thresholdDays && warnStage >= WARN_STAGE.FINAL) {
     return INACTIVE_KICK_STAGE.KICK;
+  }
+  // 最終警告済み・しきい値未到達 → キック待機中（通知なし・ロール維持）
+  if (inactiveDays >= finalWarnStart && warnStage >= WARN_STAGE.FINAL) {
+    return INACTIVE_KICK_STAGE.PENDING_KICK;
   }
   // 最終警告（3 日前相当・未送信）→ 今回は警告のみ（警告ゲート）
   if (inactiveDays >= finalWarnStart && warnStage < WARN_STAGE.FINAL) {

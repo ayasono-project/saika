@@ -14,7 +14,6 @@ import {
 } from "vitest";
 
 const h = vi.hoisted(() => {
-  // biome-ignore lint/suspicious/noExplicitAny: テスト用インメモリ設定
   const byCategory = new Map<string, any>();
   return {
     reset: () => byCategory.clear(),
@@ -22,12 +21,10 @@ const h = vi.hoisted(() => {
       findAllByGuild: async () => [...byCategory.values()],
       findByGuildAndCategory: async (_g: string, c: string) =>
         byCategory.get(c) ?? null,
-      // biome-ignore lint/suspicious/noExplicitAny: テスト用
       create: async (config: any) => {
         byCategory.set(config.categoryId, config);
         return config;
       },
-      // biome-ignore lint/suspicious/noExplicitAny: テスト用
       update: async (_g: string, c: string, data: any) => {
         const row = byCategory.get(c);
         Object.assign(row, data);

@@ -270,7 +270,7 @@ export function buildWarnNotification(
   // mentionEnabled の個別メンションテキストは sendNotification の content として渡す
   // カスタム/デフォルト本文と分けて別メッセージで送る形にする
   const allContent =
-    [content, mentionText].filter(Boolean).join("\n") || undefined;
+    [mentionText, content].filter(Boolean).join("\n") || undefined;
 
   return { content: allContent, embeds };
 }

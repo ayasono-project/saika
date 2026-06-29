@@ -25,6 +25,9 @@ export function toContractInactiveKick(
     mentionEnabled: domain.mentionEnabled,
     timezone: domain.timezone,
     runHour: domain.runHour,
+    trackMessage: domain.trackMessage,
+    trackVoice: domain.trackVoice,
+    trackReaction: domain.trackReaction,
   };
 }
 
@@ -73,6 +76,9 @@ export function applyInactiveKickPatch(
     runHour: patch.runHour ?? current.runHour,
     lastRunDate: current.lastRunDate,
     mentionEnabled: patch.mentionEnabled ?? current.mentionEnabled,
+    trackMessage: patch.trackMessage ?? current.trackMessage,
+    trackVoice: patch.trackVoice ?? current.trackVoice,
+    trackReaction: patch.trackReaction ?? current.trackReaction,
   };
 }
 

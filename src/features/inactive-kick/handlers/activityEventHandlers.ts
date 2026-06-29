@@ -29,7 +29,7 @@ export async function handleInactiveKickMessageActivity(
   if (!guild) return;
 
   const userId = message.author.id;
-  await recordMemberActivity(guild, userId, async () => {
+  await recordMemberActivity(guild, userId, "message", async () => {
     // 対象ロール剥奪が必要な場合のみメンバーを解決（キャッシュ優先）
     if (message.member) return message.member;
     return guild.members.fetch(userId).catch(() => null);
@@ -52,7 +52,12 @@ export async function handleInactiveKickVoiceActivity(
   const member = newState.member;
   if (!member || member.user.bot) return;
 
-  await recordMemberActivity(newState.guild, member.id, async () => member);
+  await recordMemberActivity(
+    newState.guild,
+    member.id,
+    "voice",
+    async () => member,
+  );
 }
 
 /**
@@ -70,7 +75,7 @@ export async function handleInactiveKickReactionActivity(
   const guild = reaction.message.guild;
   if (!guild) return;
 
-  await recordMemberActivity(guild, user.id, async () =>
+  await recordMemberActivity(guild, user.id, "reaction", async () =>
     guild.members.fetch(user.id).catch(() => null),
   );
 }

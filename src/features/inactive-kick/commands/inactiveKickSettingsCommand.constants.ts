@@ -29,6 +29,7 @@ export const INACTIVE_KICK_SETTINGS_COMMAND = {
   GROUP: {
     WHITELIST: "whitelist",
     MENTION: "mention",
+    ACTIVITY: "activity",
   },
   WHITELIST_SUBCOMMAND: {
     ADD: "add",
@@ -39,12 +40,21 @@ export const INACTIVE_KICK_SETTINGS_COMMAND = {
     ENABLE: "enable",
     DISABLE: "disable",
   },
+  ACTIVITY_SUBCOMMAND: {
+    SET: "set",
+  },
   OPTION: {
     CHANNEL: "channel",
     DAYS: "days",
     ROLE: "role",
     USER: "user",
   },
+  /** activity トリガー種別のセレクトメニュー値 */
+  ACTIVITY_TRIGGER: {
+    MESSAGE: "message",
+    VOICE: "voice",
+    REACTION: "reaction",
+  } as const,
   /** 事前通知メッセージ設定モーダルの customId（1週間前 / 最終警告） */
   SET_WEEK_WARN_MESSAGE_MODAL_ID:
     "inactive-kick-settings:week-warn-message-modal",
@@ -62,6 +72,8 @@ export const INACTIVE_KICK_SETTINGS_COMMAND = {
   PREVIEW_PAGINATOR_PREFIX: "inactive-kick-settings:preview",
   /** whitelist remove の項目選択セレクトメニュー customId */
   WHITELIST_REMOVE_SELECT_ID: "inactive-kick-settings:whitelist-remove-select",
+  /** activity set のトリガー選択セレクトメニュー customId */
+  ACTIVITY_SET_SELECT_ID: "inactive-kick-settings:activity-set-select",
   /** reset 確認ダイアログ */
   RESET_CONFIRM_ID: "inactive-kick-settings:reset-confirm",
   RESET_CANCEL_ID: "inactive-kick-settings:reset-cancel",

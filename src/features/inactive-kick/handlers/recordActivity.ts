@@ -11,6 +11,9 @@ import { logPrefixed } from "../../../shared/locale/localeManager";
 import { logger } from "../../../shared/utils/logger";
 import { TtlMap } from "../../../shared/utils/ttlMap";
 
+/** アクティビティ記録トリガーの種別 */
+export type ActivityTrigger = "message" | "voice" | "reaction";
+
 /** 同一メンバーの書き込みを抑制する throttle 間隔（1 時間） */
 const ACTIVITY_THROTTLE_MS = 60 * 60 * 1000;
 
@@ -69,21 +72,39 @@ async function clearMarkerRoleIfPresent(
  * メンバーの活動を記録する（throttle 付き）。
  *
  * - 直近 1 時間以内に書き込み済みなら何もしない（throttle）
+ * - 該当トリガーが設定で無効化されていたらスキップする
  * - `lastActivityAt` を現在時刻へ更新し、`warnStage` を 0 にリセットする
  * - 付与済みの対象ロールがあれば剥奪する（ロール未付与なら何もしない）
  *
  * @param guild 対象ギルド
  * @param userId 対象ユーザーID
+ * @param trigger このアクティビティを発生させたイベント種別
  * @param resolveMember 対象ロール剥奪に必要なメンバーを遅延解決する関数
  */
 export async function recordMemberActivity(
   guild: Guild,
   userId: string,
+  trigger: ActivityTrigger,
   resolveMember: () => Promise<GuildMember | null>,
 ): Promise<void> {
   const key = cacheKey(guild.id, userId);
   // throttle: 直近 1 時間以内に書き込み済みならスキップ
   if (lastWriteCache.has(key)) return;
+
+  // トリガーが無効化されている場合はスキップ（throttle はセットしない）
+  const settings = await getBotInactiveKickSettingsService().getSettings(
+    guild.id,
+  );
+  if (settings) {
+    const enabled =
+      trigger === "message"
+        ? settings.trackMessage
+        : trigger === "voice"
+          ? settings.trackVoice
+          : settings.trackReaction;
+    if (!enabled) return;
+  }
+
   lastWriteCache.set(key, true);
 
   const activityRepo = getBotMemberActivityRepository();

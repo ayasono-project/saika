@@ -80,6 +80,12 @@ export interface InactiveKickSettings {
   lastRunDate?: string;
   // 個別ユーザーメンション通知の有無
   mentionEnabled: boolean;
+  // テキストメッセージを活動として記録するか
+  trackMessage: boolean;
+  // VC参加を活動として記録するか
+  trackVoice: boolean;
+  // 絵文字リアクションを活動として記録するか
+  trackReaction: boolean;
 }
 
 export interface UnverifiedKickSettings {

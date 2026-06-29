@@ -14,7 +14,6 @@ import {
 } from "vitest";
 
 const h = vi.hoisted(() => {
-  // biome-ignore lint/suspicious/noExplicitAny: テスト用インメモリ行
   const items: any[] = [];
   let seq = 0;
   return {
@@ -26,7 +25,6 @@ const h = vi.hoisted(() => {
     service: {
       findAllByGuild: async (g: string) => items.filter((i) => i.guildId === g),
       findById: async (id: string) => items.find((i) => i.id === id) ?? null,
-      // biome-ignore lint/suspicious/noExplicitAny: テスト用
       create: async (data: any) => {
         const row = {
           ...data,
@@ -37,7 +35,6 @@ const h = vi.hoisted(() => {
         items.push(row);
         return row;
       },
-      // biome-ignore lint/suspicious/noExplicitAny: テスト用
       update: async (id: string, data: any) => {
         const row = items.find((i) => i.id === id);
         if (!row) throw new Error("not found");

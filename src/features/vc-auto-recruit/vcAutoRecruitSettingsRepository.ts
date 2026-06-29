@@ -38,6 +38,7 @@ export class VcAutoRecruitSettingsRepository
       message: record.message ?? undefined,
       embedEnabled: record.embedEnabled,
       enabledCategoryIds: record.enabledCategoryIds as unknown as string[],
+      enabledChannelIds: record.enabledChannelIds as unknown as string[],
       activeInvites: record.activeInvites as unknown as VcAutoRecruitRef[],
     };
   }
@@ -61,6 +62,8 @@ export class VcAutoRecruitSettingsRepository
         embedEnabled: vcAutoRecruitSettings.embedEnabled,
         enabledCategoryIds:
           vcAutoRecruitSettings.enabledCategoryIds as unknown as Prisma.InputJsonValue,
+        enabledChannelIds:
+          vcAutoRecruitSettings.enabledChannelIds as unknown as Prisma.InputJsonValue,
         activeInvites:
           vcAutoRecruitSettings.activeInvites as unknown as Prisma.InputJsonValue,
       },
@@ -71,6 +74,8 @@ export class VcAutoRecruitSettingsRepository
         embedEnabled: vcAutoRecruitSettings.embedEnabled,
         enabledCategoryIds:
           vcAutoRecruitSettings.enabledCategoryIds as unknown as Prisma.InputJsonValue,
+        enabledChannelIds:
+          vcAutoRecruitSettings.enabledChannelIds as unknown as Prisma.InputJsonValue,
         activeInvites:
           vcAutoRecruitSettings.activeInvites as unknown as Prisma.InputJsonValue,
       },

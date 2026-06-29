@@ -28,6 +28,7 @@ describe("vc-auto-recruit マッパー", () => {
         message: undefined,
         embedEnabled: true,
         enabledCategoryIds: ["cat1"],
+        enabledChannelIds: ["ch1"],
         activeInvites: [],
       }),
     ).toEqual({
@@ -36,6 +37,7 @@ describe("vc-auto-recruit マッパー", () => {
       message: "",
       embedEnabled: true,
       enabledCategoryIds: ["cat1"],
+      enabledChannelIds: ["ch1"],
     });
   });
 
@@ -46,6 +48,7 @@ describe("vc-auto-recruit マッパー", () => {
       message: undefined,
       embedEnabled: true,
       enabledCategoryIds: [],
+      enabledChannelIds: [],
       activeInvites: [
         {
           voiceChannelId: "v",
@@ -98,6 +101,9 @@ describe("inactive-kick マッパー", () => {
         timezone: "Asia/Tokyo",
         runHour: 4,
         mentionEnabled: true,
+        trackMessage: true,
+        trackVoice: true,
+        trackReaction: true,
       }),
     ).toEqual({
       enabled: false,
@@ -112,6 +118,9 @@ describe("inactive-kick マッパー", () => {
       mentionEnabled: true,
       timezone: "Asia/Tokyo",
       runHour: 4,
+      trackMessage: true,
+      trackVoice: true,
+      trackReaction: true,
     });
   });
 
@@ -124,6 +133,9 @@ describe("inactive-kick マッパー", () => {
       timezone: "Asia/Tokyo",
       runHour: 4,
       mentionEnabled: true,
+      trackMessage: true,
+      trackVoice: true,
+      trackReaction: true,
     };
     const next = applyInactiveKickPatch(cur, { enabled: true }, NOW);
     expect(next.enabled).toBe(true);
@@ -141,6 +153,9 @@ describe("inactive-kick マッパー", () => {
       timezone: "Asia/Tokyo",
       runHour: 4,
       mentionEnabled: true,
+      trackMessage: true,
+      trackVoice: true,
+      trackReaction: true,
     };
     const next = applyInactiveKickPatch(cur, { enabled: false }, NOW);
     expect(next.enabled).toBe(false);
@@ -157,6 +172,9 @@ describe("inactive-kick マッパー", () => {
       timezone: "Asia/Tokyo",
       runHour: 4,
       mentionEnabled: true,
+      trackMessage: true,
+      trackVoice: true,
+      trackReaction: true,
     };
     const next = applyInactiveKickPatch(
       cur,

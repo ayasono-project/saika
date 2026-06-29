@@ -216,6 +216,72 @@ export class VcAutoRecruitSettingsService {
   }
 
   /**
+   * 募集対象チャンネル（allowlist）を複数まとめて追加する
+   * @param guildId 設定対象のギルドID
+   * @param channelIds 追加する VC チャンネル ID 群
+   * @returns 実際に新規追加できたチャンネル ID の配列（既に追加済みのものは含まない）
+   */
+  async addEnabledChannels(
+    guildId: string,
+    channelIds: string[],
+  ): Promise<string[]> {
+    const current = await this.getVcAutoRecruitSettingsOrDefault(guildId);
+    const existing = new Set(current.enabledChannelIds);
+    const added = [...new Set(channelIds)].filter((id) => !existing.has(id));
+    if (added.length === 0) {
+      return [];
+    }
+    const enabledChannelIds = [...current.enabledChannelIds, ...added];
+    await this.updatePartial(guildId, { enabledChannelIds });
+    return added;
+  }
+
+  /**
+   * 募集対象チャンネル（allowlist）を複数まとめて解除する
+   * @param guildId 設定対象のギルドID
+   * @param channelIds 解除する VC チャンネル ID 群
+   * @returns 実際に解除できたチャンネル ID の配列（未登録だったものは含まない）
+   */
+  async removeEnabledChannels(
+    guildId: string,
+    channelIds: string[],
+  ): Promise<string[]> {
+    const current = await this.getVcAutoRecruitSettingsOrDefault(guildId);
+    const targets = new Set(channelIds);
+    const removed = current.enabledChannelIds.filter((id) => targets.has(id));
+    if (removed.length === 0) {
+      return [];
+    }
+    const removedSet = new Set(removed);
+    const enabledChannelIds = current.enabledChannelIds.filter(
+      (id) => !removedSet.has(id),
+    );
+    await this.updatePartial(guildId, { enabledChannelIds });
+    return removed;
+  }
+
+  /**
+   * 募集対象チャンネル（allowlist）から指定チャンネルを除去する（channelDelete 時など）
+   * @param guildId 設定対象のギルドID
+   * @param channelId 解除する VC チャンネル ID
+   * @returns 解除できた場合 true、未登録だった場合 false
+   */
+  async removeEnabledChannel(
+    guildId: string,
+    channelId: string,
+  ): Promise<boolean> {
+    const current = await this.getVcAutoRecruitSettingsOrDefault(guildId);
+    const enabledChannelIds = current.enabledChannelIds.filter(
+      (id) => id !== channelId,
+    );
+    if (enabledChannelIds.length === current.enabledChannelIds.length) {
+      return false;
+    }
+    await this.updatePartial(guildId, { enabledChannelIds });
+    return true;
+  }
+
+  /**
    * 設定をデフォルト状態へリセットする（追跡中の募集も破棄）
    * @param guildId 設定対象のギルドID
    */

@@ -2,46 +2,45 @@
 
 > タスク管理・進捗状況・残件リスト
 
-最終更新: 2026年6月28日
+最終更新: 2026年6月30日
 
 ---
 
 ## 残タスク サマリー
 
-| # | セクション | 概要 | 残件 |
-| --- | --- | --- | ---: |
-| 1 | VC自動募集 チャンネル単位再設計 ＋ VACオーナー個人設定 | カテゴリ→VCチャンネル allowlist 化・動的VCの on/off（3状態）＋個別募集文＋既定VC名/人数を `VacOwnerPreference` で一括・`/myvc`・移行方針確定 | 4 |
-| 3 | ドキュメント整理（spec 廃止・guides 集約） | `docs/specs/` 全廃止・重要情報の guides への移行・README/TODO の spec 参照除去 | 5 |
-| 11 | Bot 一般公開準備 | `/about` 充実（LP 公開時）・Discord 認証申請（75 サーバー到達後） | 2 |
-| **合計** | | | **11** |
+| セクション | 概要 | 残件 |
+| --- | --- | ---: |
+| 非アクティブキック アクティビティトリガー | web UI + shared v1.0.0 | 2 |
+| ドキュメント整理（spec 廃止・guides 集約） | spec 削除・リンク整理済み。残: 設計根拠・非自明な判断を ARCHITECTURE.md 等へ追記 | 2 |
+| Bot 一般公開準備 | `/about` 充実（LP 公開時）・Discord 認証申請（75 サーバー到達後） | 2 |
+| **合計** | | **6** |
 
-> web ダッシュボード・インフラ（VPS / Cloudflare / Coolify）は別リポジトリで管理。番号は優先度順（#1 から実装見込み順・#11 は低優先度）。
-> 次に実装見込みは §1。VC自動募集の再設計と VACオーナー個人設定（募集制御＋既定VC名/人数）は **同じ `/myvc` コマンド・同じ `VacOwnerPreference` を共有するため一括実装・一括リリース**（コマンド変更アナウンスを1回に集約・二段階移行も回避）。着手前に既存 `enabledCategoryIds` の移行方針を確定する。§3 ドキュメント整理は §1 と独立して着手可能（低優先度）。§11 Bot 一般公開準備は低優先度（Discord 認証申請は 75 サーバー到達後に着手する条件待ち）。
+> web ダッシュボード・インフラ（VPS / Cloudflare / Coolify）は別リポジトリで管理。上から優先度順（Bot 一般公開準備は低優先度）。
+> 次は shared v1.0.0 publish（非アクティブキック + VC自動募集 の shared 変更を統合）→ web: InactiveKickPage アクティビティトリガー UI → develop→main release PR。ドキュメント整理（guides 追記）は低優先度・独立着手可能。
 
 ---
 
 ## タスク一覧
 
-### 1. VC自動募集 チャンネル単位再設計 ＋ VACオーナー個人設定（募集制御・既定VC）
+### 非アクティブキック アクティビティトリガー
 
-現状はカテゴリ単位 allowlist（`enabledCategoryIds`・ルート直下 sentinel `"TOP"`）で、**同一カテゴリ内の一部VCだけON/OFFできない**のが構造的弱点。静的VCは **VCチャンネルID単位の allowlist** へ再設計し、VAC動的VC（設定時点で存在しない）は **管理者既定＋オーナー個別制御** の per-user モデルで別系統に扱う。設計はユーザーと合意済み・実装未着手。詳細議論で確定した方針を以下に集約。
+`/inactive-kick-settings activity set` マルチセレクトメニューで活動種別（テキスト/VC/リアクション）を一括 on/off できる機能。実装・typecheck/lint/test 全通過（2636件）・develop merge 済み（2026-06-29）。shared 変更（`trackMessage/trackVoice/trackReaction`）は VC チャンネル単位化と合わせて v1.0.0 で publish 予定。
 
-- [ ] 設計メモ／仕様（[VC_AUTO_RECRUIT_SPEC.md](docs/specs/VC_AUTO_RECRUIT_SPEC.md) 更新）確定 ＋ 関連ガイド（ARCHITECTURE / IMPLEMENTATION_GUIDELINES / DBスキーマ規約）準拠確認。**既存 `enabledCategoryIds` の移行方針 A（無停止でカテゴリ→現存子VCへ展開）/ B（リセット再設定）を決定**（本番稼働中につき A 推奨・未決）
-- [ ] 静的VC: カテゴリ→**VCチャンネルID allowlist** 再設計（個別トグル・「カテゴリ選択で現存子VCを個別エントリ一括登録」補助導線・`"TOP"` sentinel 廃止・判定を `channel.parentId` 参照から VC 個別へ）
-- [ ] VAC動的VC: per-user `VacOwnerPreference`（`guildId×userId`）新設 ＋ 管理者既定フラグ（`vac-settings`・`ManageGuild`）＋ オーナー個別 **on/off（3状態 未設定/ON/OFF）** ＋ **個別募集文**。フォールバック: on/off=ユーザー設定→管理者既定 / 募集文=オーナー個別→ギルド募集文→デフォルト。個別募集文は `allowedMentions` で一括メンション無効化（踏み台防止）。コマンド `/vc-recruit`→`/myvc` 再編・募集投稿に「`/myvc` でオフにできる」静的案内文。**オーナーパネル/ボタンは作らない**（§7 VCパネル廃止と整合）。旧アイデア（ユーザー個別 opt-out／VC単位指定・除外）を包含
-- [ ] VACオーナー既定VC（同コマンド・同モデルでまとめて実装）: `VacOwnerPreference` に **VC名テンプレート・人数制限**も持たせ `handleVacCreate` で適用（フォールバック: 名前=オーナー既定→ギルド既定名→グローバル既定 / 人数=オーナー既定→`VAC_EVENT.DEFAULT_LIMIT`）。`/myvc` の設定サブコマンドに統合（毎回 Discord 標準UIで再設定しなくて済む persistence）
+- [x] Discord コマンド動作確認 → feature → develop PR 作成（rebase merge）（2026-06-29）
+- [ ] shared v1.0.0 publish（VC自動募集 完了後）＋ saika の参照を `#v1.0.0` に更新（`CI=true pnpm install`）
+- [ ] web: InactiveKickPage にアクティビティトリガー設定 UI 追加（shared v1.0.0 対応後）
 
-### 3. ドキュメント整理（spec 廃止・guides 集約）
+### ドキュメント整理（spec 廃止・guides 集約）
 
 `docs/specs/` の全ファイルを廃止し、維持すべき設計意図・非自明な境界条件・決定経緯を guides（ARCHITECTURE.md / IMPLEMENTATION_GUIDELINES.md 等）に集約する。README / TODO の spec 参照も除去し、ドキュメント体系をコード＋guides に一本化する。
 
-- [ ] 各 spec を精査し、guides に移す価値のある情報（設計根拠・非自明な境界条件・決定経緯）を特定する（全18ファイル）
+- [ ] 各 spec を精査し、guides に移す価値のある情報（設計根拠・非自明な境界条件・決定経緯）を特定する
 - [ ] 特定した情報を適切なガイドに追記（ARCHITECTURE.md / IMPLEMENTATION_GUIDELINES.md 等）
-- [ ] `docs/specs/` ディレクトリを全削除（`_TEMPLATE.md` 含む全ファイル＋ディレクトリ本体）
-- [ ] README.md 更新: 機能表の `spec` 列を削除・「仕様書」セクションを `USER_MANUAL.md` リンクのみに整理（または削除）
-- [ ] TODO.md 更新: タスク説明・完了済みセクション内の spec パス参照を全除去
+- [x] `docs/specs/` ディレクトリを全削除（`_TEMPLATE.md` 含む全ファイル＋ディレクトリ本体）（2026-06-29）
+- [x] README.md 更新: 機能表の `spec` 列を削除・「仕様書」セクションを削除（2026-06-29）
+- [x] TODO.md 更新: 完了済みセクション内の spec リンクを除去（2026-06-29）
 
-### 11. Bot 一般公開準備
+### Bot 一般公開準備
 
 - [x] ライセンスを MIT → AGPL-3.0 に変更
 - [x] help コマンドにダッシュボード URL リンク追加（`DASHBOARD_URL` env 設定時のみ「🌐 ダッシュボード」フィールド表示・2026-06-06 本番反映）
@@ -54,7 +53,7 @@
 
 ## 機能拡張アイデア
 
-- **Web API 認証の堅牢化（§10 拡張・設定ミス耐性）** — 現状の認証防御は多層で機能しており**実害なし**。設定ミス時の事故耐性を上げる多層化として2点を検討: ①[jwt.ts](src/api/auth/jwt.ts) の `secretKey()` のフォールバック挙動を fail-closed 化（本番相当環境で署名鍵が未設定なら起動アサーション任せにせず `secretKey()` 自体で throw）。②[jwt.ts](src/api/auth/jwt.ts) の `jwtVerify` でトークン寿命を強制（`maxTokenAge` / `exp` 必須化）し、検証側でも有効期限を担保する。詳細な背景・脅威モデルは公開 TODO に書かず別途管理。
+- **Web API 認証の堅牢化（設定ミス耐性）** — 現状の認証防御は多層で機能しており**実害なし**。設定ミス時の事故耐性を上げる多層化として2点を検討: ①[jwt.ts](src/api/auth/jwt.ts) の `secretKey()` のフォールバック挙動を fail-closed 化（本番相当環境で署名鍵が未設定なら起動アサーション任せにせず `secretKey()` 自体で throw）。②[jwt.ts](src/api/auth/jwt.ts) の `jwtVerify` でトークン寿命を強制（`maxTokenAge` / `exp` 必須化）し、検証側でも有効期限を担保する。詳細な背景・脅威モデルは公開 TODO に書かず別途管理。
 - **予約募集(イベント募集)機能** — 他タスク完了後に実装可否判断。骨子: 予約時に VC + Discord Scheduled Event 作成 / RSVP・リマインダー・開始通知は Discord 標準任せ / VC 自動削除なし(投稿削除 or イベント終了ボタンで手動)/ 編集機能あり(日時・タイトル・説明)/ setup は既存 VC 募集と同構成 / VC 名変更は既存 `/vc rename` 流用。細部は実装決定時に詰める
 - **キック系ユーザーデータの削除対称性の整理（非アクティブキック／未承認キック整理）** — 非アクティブキック(`MemberActivity`)・未承認キック(`GuildUnverifiedKickWarn`)のユーザーデータについて、リセット種別ごとの削除挙動が非対称。①全設定リセット `deleteAllSettings` は `MemberActivity` を消すが `GuildUnverifiedKickWarn` を消していない（トランザクション未収載）、②未承認キックの個別リセットは warn 記録を `deleteAllByGuild` で消す、③非アクティブキックの個別リセットは `MemberActivity` を残す。`enabledAt` 起算下限・warnStage ゲート・warn-before-kick により**残存しても誤キック等の害は出ない**（孤児は verify/leave で掃除）ため緊急ではないが、「全設定リセット＝完全にまっさらに戻る」建付けに揃えるなら `deleteAllSettings` に `guildUnverifiedKickWarn.deleteMany` を追加し、個別リセットの削除有無も方針統一を検討。なお**エクスポートにユーザーデータを含めないのは現仕様維持で問題なし**（再有効化時の `enabledAt` フロアで安全・個人データ/サイズ観点でも除外が妥当）と確認済み。
 - **ユーザー embed 作成機能** — ユーザーが embed を作って bot 名義で投稿できる機能（Carl-bot 類似）。**詳細は後日決定**。方向性メモ: 需要あり（お知らせ/ルール/ロールパネル説明）。**管理権限必須にはしない**方針で、①作成・プレビューは誰でも自由（ephemeral/DM）②投稿は「投稿先チャンネルでのそのユーザーの送信権限」で判定（bot=ユーザーの代理・本来できる範囲を超えさせない）③`@everyone`/role メンションは Mention Everyone 権限保持時のみ許可（`allowedMentions` で抑止）④作成者 attribution + 所有権（編集/削除は作成者＋管理者）⑤運営がロール許可をカスタム可能。Web ダッシュボードも OAuth ユーザーのギルド権限で同じ②判定が可能だが、管理設定エリアとは別の一般導線が必要。コマンド版/Web 版どちらから着手するか・所有権の DB モデル等は実装決定時に詰める
@@ -68,9 +67,30 @@
 
 > 詳細な作業経過は git log を参照。
 
-### 通知送信リファクタリング + 実行時刻設定化 Steps 0〜6（§2・2026-06-28 完了）
+### VC自動募集 チャンネル単位化（2026-06-30 完了）
 
-（§2・2026-06-28 完了）設計書: [docs/specs/KICK_NOTIFICATION_REFACTOR_SPEC.md](docs/specs/KICK_NOTIFICATION_REFACTOR_SPEC.md)
+カテゴリ単位 allowlist（`enabledCategoryIds`）を VCチャンネルID 単位の allowlist（`enabledChannelIds`）に置き換え。本番 DB でカテゴリ設定済みレコードが0件であることを確認し clean migration で移行。`set-channel` → `set-post-channel` リネーム（`add-channel` との混同防止）。add-channel / remove-channel の StringSelectMenu 追加（VAC トリガー + AFK を候補除外・完了通知にチャンネルメンション一覧表示）。shared v0.3.4 で `enabledChannelIds` 追加。テスト全通過（2636件）。
+
+- [x] 本番 DB 確認 → 0件・clean migration
+- [x] DB: `enabledChannelIds` jsonb 追加（migration + Prisma スキーマ・entities・defaults・repository）
+- [x] コマンド: `add-channel`/`remove-channel` 追加・`set-channel` → `set-post-channel` リネーム・`view` 更新・ja/en ロケール・USER_MANUAL.md 更新
+- [x] shared v0.3.4 publish（`VcAutoRecruitSettings.enabledChannelIds` 追加）・テスト全通過（2636件）
+
+### 非アクティブキック アクティビティトリガー設定（2026-06-29 develop merge）
+
+活動種別（テキストメッセージ / VC参加 / 絵文字リアクション）を `/inactive-kick-settings activity set` のマルチセレクトメニューで一括 on/off できる機能。コマンド設計を `enable/disable` 2コマンドから `set`（1〜3択必須）に刷新し、「全無効」状態を物理的に排除。現在の設定をデフォルト選択で表示し、成功時に有効/無効のトリガー名を列挙。DB マイグレーション（`track_message` / `track_voice` / `track_reaction` カラム追加）・shared `InactiveKickSettings` 型拡張（v0.3.3 publish 済み）・ja/en ロケール・テスト全通過（2636件）。
+
+- [x] shared v0.3.3 publish（`trackMessage/trackVoice/trackReaction` を `InactiveKickSettings` に追加）
+- [x] DB マイグレーション `20260629000000_add_activity_triggers` + Prisma スキーマ・entities・defaults・repository 更新
+- [x] `setActivityTriggers` サービスメソッド追加（`setActivityTrigger` 単体→一括置換）
+- [x] activityEventHandlers にトリガーチェック追加・`recordActivity` に trigger 引数追加
+- [x] `activity set` サブコマンド実装（constants / locale / handler / execute ルーター / bot コマンド定義）
+- [x] inactiveKickResource.ts に新フィールドを反映
+- [x] テスト更新 + develop merge（PR #80・rebase）
+
+### 通知送信リファクタリング + 実行時刻設定化 Steps 0〜6（2026-06-28 完了）
+
+（2026-06-28 完了）設計書: KICK_NOTIFICATION_REFACTOR_SPEC.md
 
 inactive-kick / unverified-kick の通知ページネーション廃止・{markerRole} 廃止＋mentionEnabled による個別メンション化・予定日別 embed（`daysLeft` グループ）・`<t:unix:f>` タイムスタンプ・`computeKickUnix()`（runHour:00 基準）・{daysLeft} プレースホルダー廃止・`sendNotification` 共通送信ユーティリティ・毎時スイープ（`"0 * * * *"`）＋ per-guild `timezone`/`runHour` フィルタ・`lastRunDate` 同日ガード・`KickedMember` 型（displayName 取得）。`setWarnStage` upsert 化・`sendPaginatedEmbeds` の `pagination.ts` 統合・preview の PREVIEW_COLLECTOR_MS=300_000 化も含む。
 
@@ -101,7 +121,7 @@ Bot と同一プロセスで起動する Fastify API を実装し、web ダッ�
 
 `/message-delete` に投稿者タイプフィルタ（全投稿者 / 🤖 bot のみ / 👤 人のみ / 🚪 既に居ない人〔退出済みメンバー〕のみ）を追加。**コマンド実行時（条件設定フェーズ・収集対象の絞り込み）とスキャン後（プレビュー画面・表示の絞り込み）の双方**で利用可能。退出済みメンバーのメッセージ一括削除に対応。判定ロジック `matchesAuthorType` をスキャン時・プレビュー時で共用。退出済み判定はスキャン直前に `guild.members.fetch()` で在籍メンバーID集合を一括取得（失敗時キャッシュfallback）し、各スキャン済みメッセージに `authorIsBot`/`authorIsMember` を刻む（プレビューは再フェッチ不要）。プレビューは ActionRow 5 行上限のため既存の投稿者セレクト（Row 2）にカテゴリを統合（カテゴリ⇔個別投稿者は単一選択で排他・表示の絞り込みのみで削除対象件数は不変）。当初の方式A（任意ID入力）は既存 Webhook ID 入力モーダルで代替可能なため方式B（タイプ別フィルタ）+ bot/人フィルタに集約。
 
-- [x] 仕様書更新: [MESSAGE_DELETE_SPEC.md](docs/specs/MESSAGE_DELETE_SPEC.md)（条件設定UI・プレビューRow2・条件Embed・ローカライズ表・テストケース）
+- [x] 仕様書更新: MESSAGE_DELETE_SPEC.md（条件設定UI・プレビューRow2・条件Embed・ローカライズ表・テストケース）
 - [x] 実装（`matchesAuthorType` + scan フィルタ + 条件設定の投稿者タイプ Select + execute のメンバー取得 + プレビュー投稿者セレクト統合 + 条件Embed + ja/en ロケール）
 - [x] テスト（scan の bot/人/退出済みフィルタ・membership刻み・`matchesAuthorType`・条件設定セレクト・プレビューのカテゴリ振り分け・全 2437 通過）
 - [x] [USER_MANUAL.md](docs/guides/USER_MANUAL.md) 更新（できること・条件設定ステップ表・プレビュー説明・使用例）
@@ -109,15 +129,15 @@ Bot と同一プロセスで起動する Fastify API を実装し、web ダッ�
 
 > NOTE: 実機検証（`pnpm start` 起動 + 動作確認）は未実施（auto-merge 指示により release を先行）。本番での軽い動作確認を推奨。
 
-### VC自動募集（§2・2026-06-04 完了・本番デプロイ済み）
+### VC自動募集（2026-06-04 完了・本番デプロイ済み）
 
 VC が **0人→1人（最初の1人）** になった時、指定チャンネルへ募集メッセージ（カスタム本文＋固定 Embed＋「🔊 VCに参加」Link ボタン）を自動投稿。VC から全員退出すると投稿済みメッセージのボタンを無効の「募集終了」へ差し替え（募集終了は `enabled` 非依存・空室時のみ・開始者の在室は不問）。CreateVC トリガー・AFK・Bot 参加は除外し、VAC 作成 VC は対象。募集文は content として送信し `allowedMentions` でメンションを実ピング。設計・実装は member-log/VAC 流儀（本文可変・Embed 固定・DB 保存・jsonb 配列・起動クリーンアップ）に準拠。
 
-- [x] 仕様書作成: [VC_AUTO_RECRUIT_SPEC.md](docs/specs/VC_AUTO_RECRUIT_SPEC.md)（投稿先=固定通知チャンネル / 0→1 のみ / カスタム本文 + Embed + ボタン / 全員退出で募集終了 / 60s 連投抑制 / opt-out は将来拡張）
+- [x] 仕様書作成: VC_AUTO_RECRUIT_SPEC.md（投稿先=固定通知チャンネル / 0→1 のみ / カスタム本文 + Embed + ボタン / 全員退出で募集終了 / 60s 連投抑制 / opt-out は将来拡張）
 - [x] 実装（DB `GuildVcAutoRecruitSettings`〔`activeInvites` jsonb〕 + migration + リポジトリ/設定サービス + イベントサービス `VcAutoRecruitService`〔投稿・募集終了・channelDelete・起動クリーンアップ〕 + `/vc-auto-recruit-settings` コマンド群 + set-message モーダル + content/Embed/ボタンビルダー + `voiceStateUpdate`/`channelDelete`/clientReady 配線 + composition root + help 追加）
 - [x] **本番リリース**: release PR #44（develop→main・2026-06-04）。命名は当初 `vc-invite`→ ユーザー指示で **VC自動募集 / `/vc-auto-recruit-settings`** に全面リネーム
 - [x] **カテゴリ allowlist 追加（§2 拡張・後追い）**: 募集は**明示的に有効化したカテゴリの VC でのみ**投稿（`enabledCategoryIds` jsonb・ルート直下は sentinel `"TOP"`）。`enable-category`/`disable-category` 追加、空＝投稿なし、`@everyone` 可視性は判定に使わず認証制サーバーのメンバー専用 VC も有効カテゴリなら投稿、カテゴリ削除で allowlist 自動掃除。全 2418 通過
-- [x] **二重通知バグ修正（§2・後追い）**: CreateVC 経由の参加で募集通知が2件投稿される問題を修正。原因は discord.js の `newState` がキャッシュ上のライブ参照で、VAC の `setChannel` が `newState.channelId` を破壊的に書き換えるため、`voiceStateUpdate` で VAC を先に await すると vc-auto-recruit がトリガー除外をすり抜けて生成 VC を指し、移動イベントと合わせ2件投稿されていた。ハンドラ順序を **vc-auto-recruit → VAC** に入替え、トリガー Ch を同期的に読ませて解消。全 2437 通過。release PR #49（develop→main・2026-06-04・本番デプロイ済み）
+- [x] **二重通知バグ修正（後追い）**: CreateVC 経由の参加で募集通知が2件投稿される問題を修正。原因は discord.js の `newState` がキャッシュ上のライブ参照で、VAC の `setChannel` が `newState.channelId` を破壊的に書き換えるため、`voiceStateUpdate` で VAC を先に await すると vc-auto-recruit がトリガー除外をすり抜けて生成 VC を指し、移動イベントと合わせ2件投稿されていた。ハンドラ順序を **vc-auto-recruit → VAC** に入替え、トリガー Ch を同期的に読ませて解消。全 2437 通過。release PR #49（develop→main・2026-06-04・本番デプロイ済み）
 
 > NOTE: 起動クリーンアップ・closeInvite の Discord 副作用経路はロジック実装済み（ユニットでは主要分岐を担保）。カテゴリ allowlist 拡張は別 release PR で本番反映予定。
 
@@ -125,7 +145,7 @@ VC が **0人→1人（最初の1人）** になった時、指定チャンネ�
 
 参加から猶予日数（`graceDays` 1〜30）内に認証ロール未取得のメンバーを、事前警告（本人へ DM + 任意で通知チャンネルへキック予告）を経て日次で自動キック。判定は単一条件（`joinedAt` 起算・認証ロール未取得・Bot/管理者/オーナー/除外ロール以外）。`enabledAt` 起算下限で有効化直後の無警告一斉キックを防止し、warn-before-kick（`GuildUnverifiedKickWarn.warnedAt`）で日次チェック取りこぼし時のサイレントキックも防止。Notion 引き継ぎを一次情報源に、コマンド構成は inactive-kick（§8）に、本文可変・Embed 固定は member-log 流儀に揃えて実装。
 
-- [x] 仕様書作成: [UNVERIFIED_KICK_SPEC.md](docs/specs/UNVERIFIED_KICK_SPEC.md)（`/unverified-kick-settings` / DM + 通知/ログ 2チャンネル分離 / 対象ロール〔通知直前付与・認証時 `guildMemberUpdate` 剥奪〕 / `enabledAt` 起算下限 / dry-run=`TEST_MODE`）
+- [x] 仕様書作成: UNVERIFIED_KICK_SPEC.md（`/unverified-kick-settings` / DM + 通知/ログ 2チャンネル分離 / 対象ロール〔通知直前付与・認証時 `guildMemberUpdate` 剥奪〕 / `enabledAt` 起算下限 / dry-run=`TEST_MODE`）
 - [x] 実装（DB `GuildUnverifiedKickSettings` + リポジトリ/サービス + `/unverified-kick-settings` コマンド群〔19 サブコマンド + exempt グループ + preview〕 + 日次チェック `addJob`〔03:00 JST・`noOverlap`・`UNVERIFIED_KICK_CRON` 上書き〕 + 警告 DM + 通知/ログ Embed〔キック予告本文も本文可変・Embed 固定でカスタム可〕 + 対象ロール付与/剥奪 + `guildMemberUpdate` ハンドラ + guildDelete 一括削除）
 - [x] サイレントキック防止（warn-before-kick・2026-06-05）: 警告判定を `ageDays == warnDays` の点比較から `warnedAt`（新 DB `GuildUnverifiedKickWarn`）の状態判定へ変更。通知猶予（`graceDays - warnDays`）確保後にのみキックし、警告日を飛び越えた未警告者はまず警告して繰り延べる。記録は認証/退出/起算リセット/警告無効化で失効削除、`enable`/`reset` で一括破棄。migration `20260605092936_add_unverified_kick_warn`
 - [x] テスト（eligibility/candidates/notifier/runner/設定サービス/warn リポジトリ/コマンド定義・全 2561 通過）
@@ -136,7 +156,7 @@ VC が **0人→1人（最初の1人）** になった時、指定チャンネ�
 
 一定期間テキスト/VC/リアクションで活動がないメンバーを、段階通知（1週間前・3日前）を経て日次で自動キック。誤キック防止の安全策（警告ゲート `warnStage==2` 必須・`enabledAt` 起算下限・送信成功後に warnStage 前進・除外時の猶予クリア・dry-run `TEST_MODE`）を中核に据えた。member-log の流儀（本文可変・embed 固定・DB 保存・単一波括弧）に準拠。
 
-- [x] 仕様書作成: [INACTIVE_KICK_SPEC.md](docs/specs/INACTIVE_KICK_SPEC.md)（活動=テキスト+VC+リアクション / 段階通知 / 除外=Bot・Administrator・whitelist・オーナー・VC接続中 / dry-run=`TEST_MODE` / 対象ロール自動付与。デフォルトしきい値 30 日）
+- [x] 仕様書作成: INACTIVE_KICK_SPEC.md（活動=テキスト+VC+リアクション / 段階通知 / 除外=Bot・Administrator・whitelist・オーナー・VC接続中 / dry-run=`TEST_MODE` / 対象ロール自動付与。デフォルトしきい値 30 日）
 - [x] 実装（DB `GuildInactiveKickSettings`/`MemberActivity` + リポジトリ/サービス + アクティビティ記録ハンドラ〔throttle 1h〕 + `/inactive-kick-settings` コマンド群〔13 サブコマンド + whitelist グループ + preview〕 + 日次チェック `addJob`〔04:00 JST・`noOverlap`〕 + 段階通知/キック実行 + `GuildMessageReactions` Intent / Partials 追加）
 - [x] テスト（eligibility/candidates/notifier/runner/設定サービス/コマンド定義・全 2310 通過）
 - [x] 実機検証 + UX 追補（develop 反映済み）: 事前通知を **1週間前/最終警告で別メッセージ**化、通知の**カスタム文を本文(content)・embed は固定**化（`{markerRole}` は本文に含めたときだけメンション）、**キック通知はデフォルト文なし**（未設定なら本文なし）、`view` で実際の本文を表示、preview の色を info、`whitelist remove` を**セレクト複数選択**化、検証用に **`INACTIVE_KICK_CRON`** env 上書きを追加

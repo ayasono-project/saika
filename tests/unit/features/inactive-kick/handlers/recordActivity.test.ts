@@ -63,7 +63,12 @@ describe("inactive-kick/recordMemberActivity", () => {
   });
 
   it("初回活動で lastActivityAt を記録する（警告履歴なし→warnStage は更新せず）", async () => {
-    await recordMemberActivity(createFakeGuild(), USER_ID, async () => null);
+    await recordMemberActivity(
+      createFakeGuild(),
+      USER_ID,
+      "message",
+      async () => null,
+    );
 
     expect(mocks.recordActivity).toHaveBeenCalledTimes(1);
     const [guildId, userId, , warnStage] = mocks.recordActivity.mock.calls[0];
@@ -74,8 +79,18 @@ describe("inactive-kick/recordMemberActivity", () => {
   });
 
   it("throttle: 直近に書き込み済みなら2回目はスキップする", async () => {
-    await recordMemberActivity(createFakeGuild(), USER_ID, async () => null);
-    await recordMemberActivity(createFakeGuild(), USER_ID, async () => null);
+    await recordMemberActivity(
+      createFakeGuild(),
+      USER_ID,
+      "message",
+      async () => null,
+    );
+    await recordMemberActivity(
+      createFakeGuild(),
+      USER_ID,
+      "message",
+      async () => null,
+    );
 
     expect(mocks.recordActivity).toHaveBeenCalledTimes(1);
   });
@@ -88,7 +103,12 @@ describe("inactive-kick/recordMemberActivity", () => {
       warnStage: 2,
     });
 
-    await recordMemberActivity(createFakeGuild(), USER_ID, async () => null);
+    await recordMemberActivity(
+      createFakeGuild(),
+      USER_ID,
+      "message",
+      async () => null,
+    );
 
     const [, , , warnStage] = mocks.recordActivity.mock.calls[0];
     expect(warnStage).toBe(0);
@@ -102,12 +122,18 @@ describe("inactive-kick/recordMemberActivity", () => {
       lastActivityAt: new Date(0),
       warnStage: 1,
     });
-    mocks.getSettings.mockResolvedValue({ markerRoleId: MARKER });
+    mocks.getSettings.mockResolvedValue({
+      markerRoleId: MARKER,
+      trackMessage: true,
+      trackVoice: true,
+      trackReaction: true,
+    });
     const { member, remove } = createFakeMember([MARKER]);
 
     await recordMemberActivity(
       createFakeGuild(),
       USER_ID,
+      "message",
       async () => member as never,
     );
 
@@ -125,12 +151,18 @@ describe("inactive-kick/recordMemberActivity", () => {
       lastActivityAt: new Date(0),
       warnStage: 1,
     });
-    mocks.getSettings.mockResolvedValue({ markerRoleId: MARKER });
+    mocks.getSettings.mockResolvedValue({
+      markerRoleId: MARKER,
+      trackMessage: true,
+      trackVoice: true,
+      trackReaction: true,
+    });
     const { member, remove } = createFakeMember([]);
 
     await recordMemberActivity(
       createFakeGuild(),
       USER_ID,
+      "message",
       async () => member as never,
     );
 
@@ -146,20 +178,34 @@ describe("inactive-kick/recordMemberActivity", () => {
     });
     const resolveMember = vi.fn(async () => null);
 
-    await recordMemberActivity(createFakeGuild(), USER_ID, resolveMember);
+    await recordMemberActivity(
+      createFakeGuild(),
+      USER_ID,
+      "message",
+      resolveMember,
+    );
 
     expect(resolveMember).not.toHaveBeenCalled();
-    expect(mocks.getSettings).not.toHaveBeenCalled();
   });
 
   it("書き込み失敗時は throttle キャッシュを戻し、次回再試行できる", async () => {
     mocks.recordActivity.mockRejectedValueOnce(new Error("db down"));
 
-    await recordMemberActivity(createFakeGuild(), USER_ID, async () => null);
+    await recordMemberActivity(
+      createFakeGuild(),
+      USER_ID,
+      "message",
+      async () => null,
+    );
     expect(mocks.logger.error).toHaveBeenCalledTimes(1);
 
     // 次回は throttle されず再試行される
-    await recordMemberActivity(createFakeGuild(), USER_ID, async () => null);
+    await recordMemberActivity(
+      createFakeGuild(),
+      USER_ID,
+      "message",
+      async () => null,
+    );
     expect(mocks.recordActivity).toHaveBeenCalledTimes(2);
   });
 });

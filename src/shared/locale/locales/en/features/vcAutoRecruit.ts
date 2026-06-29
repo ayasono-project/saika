@@ -5,9 +5,9 @@ export const vcAutoRecruit = {
   // ── Command definitions ──────────────────────
   "vc-auto-recruit-settings.description":
     "Configure VC auto recruit feature (requires Manage Server)",
-  "vc-auto-recruit-settings.set-channel.description":
+  "vc-auto-recruit-settings.set-post-channel.description":
     "Set the notification channel",
-  "vc-auto-recruit-settings.set-channel.channel.description":
+  "vc-auto-recruit-settings.set-post-channel.channel.description":
     "Text channel to post recruit messages to",
   "vc-auto-recruit-settings.enable.description":
     "Enable VC auto recruit feature",
@@ -20,10 +20,10 @@ export const vcAutoRecruit = {
   "vc-auto-recruit-settings.set-embed.description": "Toggle the recruit embed",
   "vc-auto-recruit-settings.set-embed.enabled.description":
     "Whether to include the embed",
-  "vc-auto-recruit-settings.add-category.description":
-    "Add target categories from a select menu",
-  "vc-auto-recruit-settings.remove-category.description":
-    "Remove target categories from a select menu",
+  "vc-auto-recruit-settings.add-channel.description":
+    "Add target VC channels from a select menu",
+  "vc-auto-recruit-settings.remove-channel.description":
+    "Remove target VC channels from a select menu",
   "vc-auto-recruit-settings.view.description": "Show current settings",
   "vc-auto-recruit-settings.reset.description":
     "Reset VC auto recruit settings",
@@ -33,7 +33,7 @@ export const vcAutoRecruit = {
     "Notification channel set to {{channel}}",
   "user-response.enable_success": "VC auto recruit feature has been enabled",
   "user-response.enable_error_no_channel":
-    "No notification channel is configured. Run /vc-auto-recruit-settings set-channel first.",
+    "No notification channel is configured. Run /vc-auto-recruit-settings set-post-channel first.",
   "user-response.disable_success": "VC auto recruit feature has been disabled",
   "user-response.set_message_success": "Recruit message has been set",
   "user-response.clear_message_success": "Recruit message has been cleared",
@@ -41,7 +41,7 @@ export const vcAutoRecruit = {
   "user-response.set_embed_disabled": "Embed has been disabled",
   "user-response.text_channel_only": "Please specify a text channel.",
   "user-response.channel_deleted_notice":
-    "⚠️ The VC auto recruit notification channel has been deleted.\nSettings have been reset. Please reconfigure with `/vc-auto-recruit-settings set-channel`.",
+    "⚠️ The VC auto recruit notification channel has been deleted.\nSettings have been reset. Please reconfigure with `/vc-auto-recruit-settings set-post-channel`.",
   "user-response.reset_success": "VC auto recruit settings have been reset.",
   "user-response.reset_cancelled": "Reset has been cancelled.",
   "user-response.categories_added_count":
@@ -55,6 +55,17 @@ export const vcAutoRecruit = {
   "user-response.enable_warning_no_category":
     "Enabled, but no category is enabled so nothing will be posted. Add one with /vc-auto-recruit-settings add-category.",
   "user-response.category_top_label": "TOP (no category)",
+  "user-response.channels_added_count":
+    "Added {{count}} VC channel(s) to recruit targets.\n{{channels}}",
+  "user-response.channels_removed_count":
+    "Removed {{count}} VC channel(s) from recruit targets.\n{{channels}}",
+  "user-response.no_addable_channels":
+    "No VC channels to add. All are already registered or are VAC-only channels.",
+  "user-response.no_enabled_channels": "No recruit target channels to remove.",
+  "user-response.enable_warning_no_channel":
+    "Enabled, but no channel is set so nothing will be posted. Add one with /vc-auto-recruit-settings add-channel.",
+  "user-response.add_channel_truncated":
+    "More than 25 VC channels found — showing first 25 only. Run the command again after adding some.",
 
   // ── Recruit content ───────────────────────────
   "content.invite_default":
@@ -69,6 +80,8 @@ export const vcAutoRecruit = {
   "embed.field.name.categories": "Enabled Categories",
   "embed.field.value.categories_none": "Not set (nothing will be posted)",
   "embed.field.value.top": "TOP (no category)",
+  "embed.field.name.channels": "Enabled Channels",
+  "embed.field.value.channels_none": "Not set (nothing will be posted)",
 
   // ── Embed: recruit notification ───────────────
   "embed.title.invite": "🔊 A voice call has started",
@@ -81,7 +94,7 @@ export const vcAutoRecruit = {
     "Reset VC auto recruit settings?\nThe following settings will be deleted. This action cannot be undone.",
   "embed.field.name.reset_target": "Targets",
   "embed.field.value.reset_target":
-    "Enabled/Disabled / Notification Channel / Embed Setting / Custom Message / Enabled Categories / Active recruits",
+    "Enabled/Disabled / Notification Channel / Embed Setting / Custom Message / Enabled Channels / Active recruits",
 
   // ── UI labels ─────────────────────────────────
   "ui.modal.set_message_title": "Set Recruit Message",
@@ -92,6 +105,10 @@ export const vcAutoRecruit = {
     "Select categories to add (multiple allowed)",
   "ui.select.remove_category_placeholder":
     "Select categories to remove (multiple allowed)",
+  "ui.select.add_channel_placeholder":
+    "Select VC channels to add (multiple allowed)",
+  "ui.select.remove_channel_placeholder":
+    "Select VC channels to remove (multiple allowed)",
   "ui.button.join": "Join VC",
   "ui.button.ended": "Recruitment closed",
 
@@ -123,6 +140,12 @@ export const vcAutoRecruit = {
     "recruit target category removed GuildId: {{guildId}} CategoryId: {{categoryId}}",
   "log.category_removed_by_delete":
     "removed deleted category from enabled list GuildId: {{guildId}} CategoryId: {{categoryId}}",
+  "log.config_channel_added":
+    "recruit target channel added GuildId: {{guildId}} ChannelId: {{channelId}}",
+  "log.config_channel_removed":
+    "recruit target channel removed GuildId: {{guildId}} ChannelId: {{channelId}}",
+  "log.channel_removed_by_delete":
+    "removed deleted channel from enabled list GuildId: {{guildId}} ChannelId: {{channelId}}",
   "log.config_embed_set":
     "embed setting changed GuildId: {{guildId}} Enabled: {{enabled}}",
   "log.config_reset": "settings reset GuildId: {{guildId}}",

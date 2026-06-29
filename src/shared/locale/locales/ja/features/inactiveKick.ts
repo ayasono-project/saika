@@ -49,6 +49,9 @@ export const inactiveKick = {
     "個別メンション通知を有効化",
   "inactive-kick-settings.mention.disable.description":
     "個別メンション通知を無効化",
+  "inactive-kick-settings.activity.description": "活動検出トリガーを管理",
+  "inactive-kick-settings.activity.set.description":
+    "有効にするトリガーを選択して一括設定",
   "inactive-kick-settings.preview.description":
     "現在のキック対象・通知対象の一覧を表示",
   "inactive-kick-settings.view.description": "現在の設定を表示",
@@ -103,6 +106,8 @@ export const inactiveKick = {
     "実行時刻を {{hour}} 時に設定しました。",
   "user-response.mention_enabled": "個別メンション通知を有効化しました。",
   "user-response.mention_disabled": "個別メンション通知を無効化しました。",
+  "user-response.activity_set_success": "有効: {{enabled}}\n無効: {{disabled}}",
+  "user-response.activity_set_all_enabled": "有効: {{enabled}}",
   "user-response.reset_success": "設定をリセットしました。",
   "user-response.reset_cancelled": "リセットをキャンセルしました。",
   "user-response.channel_deleted_notice":
@@ -121,6 +126,12 @@ export const inactiveKick = {
   "embed.field.name.timezone": "タイムゾーン",
   "embed.field.name.run_hour": "実行時刻",
   "embed.field.name.mention_enabled": "個別メンション通知",
+  "embed.field.name.activity_triggers": "活動検出トリガー",
+  "embed.field.value.activity_triggers":
+    "テキスト: {{message}} / VC参加: {{voice}} / リアクション: {{reaction}}",
+  "activity_trigger.message": "テキストメッセージ",
+  "activity_trigger.voice": "VC参加",
+  "activity_trigger.reaction": "絵文字リアクション",
   "embed.field.value.threshold_days": "{{count}} 日",
   "embed.field.value.whitelist_counts":
     "ロール {{roles}} 件 / ユーザー {{users}} 件",
@@ -132,7 +143,7 @@ export const inactiveKick = {
     "非アクティブ自動キックの設定をリセットしますか？この操作は元に戻せません（活動履歴は保持されます）。",
   "embed.field.name.reset_target": "削除対象",
   "embed.field.value.reset_target":
-    "有効/無効 / 通知チャンネル / しきい値 / 各カスタムメッセージ / 対象ロール / 除外リスト / 有効化日時",
+    "有効/無効 / 通知チャンネル / しきい値 / 各カスタムメッセージ / 対象ロール / 除外リスト / 有効化日時 / 活動検出トリガー",
   "embed.title.whitelist": "除外リスト",
   "embed.field.name.whitelist_roles": "除外ロール",
   "embed.field.name.whitelist_users": "除外ユーザー",
@@ -193,6 +204,7 @@ export const inactiveKick = {
     "{count}, {thresholdDays}, {serverName} を使用可（最大500文字）",
   "ui.select.set_timezone_placeholder": "タイムゾーンを選択",
   "ui.select.set_run_hour_placeholder": "実行時刻を選択",
+  "ui.select.activity_set_placeholder": "有効にするトリガーを選択（1つ以上）",
 
   // ── ログ ─────────────────────────────────────
   "log.activity_record_failed":

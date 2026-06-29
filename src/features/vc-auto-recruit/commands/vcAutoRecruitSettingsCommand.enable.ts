@@ -57,14 +57,14 @@ export async function handleVcAutoRecruitSettingsEnable(
   // 機能を有効化
   await getBotVcAutoRecruitSettingsService().setEnabled(guildId, true);
 
-  // 有効カテゴリが未設定だと投稿されないため、その場合は警告で案内する
-  if (config.enabledCategoryIds.length === 0) {
+  // 有効チャンネルが未設定だと投稿されないため、その場合は警告で案内する
+  if (config.enabledChannelIds.length === 0) {
     await interaction.reply({
       embeds: [
         createWarningEmbed(
           tInteraction(
             interaction.locale,
-            "vcAutoRecruit:user-response.enable_warning_no_category",
+            "vcAutoRecruit:user-response.enable_warning_no_channel",
           ),
           {
             title: tInteraction(

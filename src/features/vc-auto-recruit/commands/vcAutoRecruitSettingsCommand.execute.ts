@@ -7,12 +7,12 @@ import { handleCommandError } from "../../../bot/errors/interactionErrorHandler"
 import { getBotVcAutoRecruitSettingsService } from "../../../bot/services/botCompositionRoot";
 import { COMMON_I18N_KEYS } from "../../../bot/shared/i18nKeys";
 import { ensureManageGuildPermission } from "../../../bot/shared/permissionGuards";
-import { handleVcAutoRecruitSettingsAddCategory } from "./vcAutoRecruitSettingsCommand.addCategory";
+import { handleVcAutoRecruitSettingsAddChannel } from "./vcAutoRecruitSettingsCommand.addChannel";
 import { handleVcAutoRecruitSettingsClearMessage } from "./vcAutoRecruitSettingsCommand.clearMessage";
 import { VC_AUTO_RECRUIT_SETTINGS_COMMAND } from "./vcAutoRecruitSettingsCommand.constants";
 import { handleVcAutoRecruitSettingsDisable } from "./vcAutoRecruitSettingsCommand.disable";
 import { handleVcAutoRecruitSettingsEnable } from "./vcAutoRecruitSettingsCommand.enable";
-import { handleVcAutoRecruitSettingsRemoveCategory } from "./vcAutoRecruitSettingsCommand.removeCategory";
+import { handleVcAutoRecruitSettingsRemoveChannel } from "./vcAutoRecruitSettingsCommand.removeChannel";
 import { handleVcAutoRecruitSettingsReset } from "./vcAutoRecruitSettingsCommand.reset";
 import { handleVcAutoRecruitSettingsSetChannel } from "./vcAutoRecruitSettingsCommand.setChannel";
 import { handleVcAutoRecruitSettingsSetEmbed } from "./vcAutoRecruitSettingsCommand.setEmbed";
@@ -74,12 +74,12 @@ export async function executeVcAutoRecruitSettingsCommand(
         await handleVcAutoRecruitSettingsSetEmbed(interaction, guildId);
         break;
 
-      case VC_AUTO_RECRUIT_SETTINGS_COMMAND.SUBCOMMAND.ADD_CATEGORY:
-        await handleVcAutoRecruitSettingsAddCategory(interaction, guildId);
+      case VC_AUTO_RECRUIT_SETTINGS_COMMAND.SUBCOMMAND.ADD_CHANNEL:
+        await handleVcAutoRecruitSettingsAddChannel(interaction, guildId);
         break;
 
-      case VC_AUTO_RECRUIT_SETTINGS_COMMAND.SUBCOMMAND.REMOVE_CATEGORY:
-        await handleVcAutoRecruitSettingsRemoveCategory(interaction, guildId);
+      case VC_AUTO_RECRUIT_SETTINGS_COMMAND.SUBCOMMAND.REMOVE_CHANNEL:
+        await handleVcAutoRecruitSettingsRemoveChannel(interaction, guildId);
         break;
 
       case VC_AUTO_RECRUIT_SETTINGS_COMMAND.SUBCOMMAND.VIEW:

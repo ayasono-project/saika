@@ -18,8 +18,14 @@ import { handleCommandError } from "../errors/interactionErrorHandler";
 import { createSlashCommand } from "../shared/createSlashCommand";
 import type { Command } from "../types/discord";
 
-const { SUBCOMMAND, GROUP, WHITELIST_SUBCOMMAND, MENTION_SUBCOMMAND, OPTION } =
-  INACTIVE_KICK_SETTINGS_COMMAND;
+const {
+  SUBCOMMAND,
+  GROUP,
+  WHITELIST_SUBCOMMAND,
+  MENTION_SUBCOMMAND,
+  ACTIVITY_SUBCOMMAND,
+  OPTION,
+} = INACTIVE_KICK_SETTINGS_COMMAND;
 
 /**
  * 非アクティブ自動キック設定コマンド（サーバー管理権限専用）
@@ -268,6 +274,20 @@ export const inactiveKickSettingsCommand: Command = {
               .setName(WHITELIST_SUBCOMMAND.LIST)
               .setDescription(listD.base)
               .setDescriptionLocalizations(listD.localizations),
+          );
+      })
+      .addSubcommandGroup((group) => {
+        const gd = desc("inactive-kick-settings.activity.description");
+        const setD = desc("inactive-kick-settings.activity.set.description");
+        return group
+          .setName(GROUP.ACTIVITY)
+          .setDescription(gd.base)
+          .setDescriptionLocalizations(gd.localizations)
+          .addSubcommand((sub) =>
+            sub
+              .setName(ACTIVITY_SUBCOMMAND.SET)
+              .setDescription(setD.base)
+              .setDescriptionLocalizations(setD.localizations),
           );
       });
   })(),

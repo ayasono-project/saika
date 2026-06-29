@@ -22,6 +22,9 @@ export const DEFAULT_INACTIVE_KICK_SETTINGS: InactiveKickSettings = {
   timezone: "Asia/Tokyo",
   runHour: 4,
   mentionEnabled: true,
+  trackMessage: true,
+  trackVoice: true,
+  trackReaction: true,
 };
 
 /**

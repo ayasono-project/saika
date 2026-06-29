@@ -369,6 +369,7 @@ describe("shared/database/repositories/guildSettingsAggregateRepository", () => 
         message: "msg",
         embedEnabled: true,
         enabledCategoryIds: ["TOP", "cat-1"],
+        enabledChannelIds: ["ch-1"],
         activeInvites: [
           {
             voiceChannelId: "vc-1",
@@ -655,6 +656,7 @@ describe("shared/database/repositories/guildSettingsAggregateRepository", () => 
           message: "msg",
           embedEnabled: false,
           enabledCategoryIds: ["TOP"],
+          enabledChannelIds: [],
           activeInvites: [
             {
               voiceChannelId: "vc-1",
@@ -686,6 +688,9 @@ describe("shared/database/repositories/guildSettingsAggregateRepository", () => 
           timezone: "Asia/Tokyo",
           runHour: 4,
           mentionEnabled: true,
+          trackMessage: true,
+          trackVoice: true,
+          trackReaction: true,
         },
       };
 
@@ -710,6 +715,9 @@ describe("shared/database/repositories/guildSettingsAggregateRepository", () => 
           timezone: "Asia/Tokyo",
           runHour: 4,
           mentionEnabled: true,
+          trackMessage: true,
+          trackVoice: true,
+          trackReaction: true,
         },
       };
 

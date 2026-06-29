@@ -37,6 +37,9 @@ export class InactiveKickSettingsRepository
     runHour: number;
     lastRunDate: string | null;
     mentionEnabled: boolean;
+    trackMessage: boolean;
+    trackVoice: boolean;
+    trackReaction: boolean;
   }): InactiveKickSettings {
     return {
       enabled: record.enabled,
@@ -53,6 +56,9 @@ export class InactiveKickSettingsRepository
       runHour: record.runHour,
       lastRunDate: record.lastRunDate ?? undefined,
       mentionEnabled: record.mentionEnabled,
+      trackMessage: record.trackMessage,
+      trackVoice: record.trackVoice,
+      trackReaction: record.trackReaction,
     };
   }
 
@@ -85,6 +91,9 @@ export class InactiveKickSettingsRepository
       runHour: settings.runHour,
       lastRunDate: settings.lastRunDate ?? null,
       mentionEnabled: settings.mentionEnabled,
+      trackMessage: settings.trackMessage,
+      trackVoice: settings.trackVoice,
+      trackReaction: settings.trackReaction,
     };
     await this.prisma.guildInactiveKickSettings.upsert({
       where: { guildId },

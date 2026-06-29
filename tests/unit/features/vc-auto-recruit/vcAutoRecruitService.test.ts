@@ -99,6 +99,7 @@ function createServices() {
     getActiveInvite: vi.fn(),
     removeActiveInvite: vi.fn(),
     removeEnabledCategory: vi.fn(),
+    removeEnabledChannel: vi.fn(),
     disableAndClearChannel: vi.fn(),
   };
   const vacSettingsService = {
@@ -116,8 +117,9 @@ const enabledConfig = (overrides?: Record<string, unknown>) => ({
   channelId: "ch-1",
   embedEnabled: true,
   message: undefined,
-  // 既定では TOP（カテゴリなし）を有効化（テストの VC は parentId 未設定＝TOP 扱い）
-  enabledCategoryIds: ["TOP"],
+  enabledCategoryIds: [],
+  // 既定ではテスト VC（"vc-1"）を有効チャンネルとして登録
+  enabledChannelIds: ["vc-1"],
   activeInvites: [],
   ...overrides,
 });
@@ -325,17 +327,14 @@ describe("features/vc-auto-recruit/vcAutoRecruitService", () => {
     });
   });
 
-  describe("カテゴリ allowlist ゲート", () => {
-    /** 指定の enabledCategoryIds・parentId で投稿可否を評価するヘルパー */
-    async function runJoin(
-      enabledCategoryIds: string[],
-      parentId: string | null,
-    ) {
+  describe("チャンネル allowlist ゲート", () => {
+    /** 指定の enabledChannelIds で投稿可否を評価するヘルパー */
+    async function runJoin(enabledChannelIds: string[]) {
       const { settingsService, vacSettingsService } = createServices();
       const post = makePostChannel();
       const guild = makeGuild(post);
       settingsService.getVcAutoRecruitSettings.mockResolvedValue(
-        enabledConfig({ enabledCategoryIds }),
+        enabledConfig({ enabledChannelIds }),
       );
       const service = new VcAutoRecruitService(
         settingsService as never,
@@ -346,34 +345,26 @@ describe("features/vc-auto-recruit/vcAutoRecruitService", () => {
         {
           channelId: "vc-1",
           guild,
-          channel: makeVoiceChannel("vc-1", 1, 0, "VC", parentId),
+          channel: makeVoiceChannel("vc-1", 1),
           member: makeMember(),
         } as never,
       );
       return post;
     }
 
-    it("有効カテゴリ内の VC では投稿すること", async () => {
-      const post = await runJoin(["cat-1"], "cat-1");
+    it("有効チャンネルに登録された VC では投稿すること", async () => {
+      const post = await runJoin(["vc-1"]);
       expect(post.send).toHaveBeenCalledTimes(1);
     });
 
-    it("非有効カテゴリの VC では投稿しないこと", async () => {
-      const post = await runJoin(["cat-1"], "cat-2");
+    it("未登録の VC では投稿しないこと", async () => {
+      const post = await runJoin(["vc-2"]);
       expect(post.send).not.toHaveBeenCalled();
     });
 
-    it("有効カテゴリ未設定（空）ならどこにも投稿しないこと", async () => {
-      const post = await runJoin([], "cat-1");
+    it("有効チャンネル未設定（空）ならどこにも投稿しないこと", async () => {
+      const post = await runJoin([]);
       expect(post.send).not.toHaveBeenCalled();
-    });
-
-    it("ルート直下 VC は TOP 有効時のみ投稿すること", async () => {
-      const withTop = await runJoin(["TOP"], null);
-      expect(withTop.send).toHaveBeenCalledTimes(1);
-
-      const withoutTop = await runJoin(["cat-1"], null);
-      expect(withoutTop.send).not.toHaveBeenCalled();
     });
   });
 
@@ -461,7 +452,7 @@ describe("features/vc-auto-recruit/vcAutoRecruitService", () => {
       );
     });
 
-    it("有効カテゴリが削除されたら allowlist から除去すること", async () => {
+    it("有効カテゴリが削除されたら enabledCategoryIds から除去すること", async () => {
       const { settingsService, vacSettingsService } = createServices();
       const post = makePostChannel();
       const guild = makeGuild(post);
@@ -483,6 +474,31 @@ describe("features/vc-auto-recruit/vcAutoRecruitService", () => {
       expect(settingsService.removeEnabledCategory).toHaveBeenCalledWith(
         "g-1",
         "cat-1",
+      );
+    });
+
+    it("有効チャンネルが削除されたら enabledChannelIds から除去すること", async () => {
+      const { settingsService, vacSettingsService } = createServices();
+      const post = makePostChannel();
+      const guild = makeGuild(post);
+      settingsService.getVcAutoRecruitSettings.mockResolvedValue(
+        enabledConfig({ enabledChannelIds: ["vc-2"], activeInvites: [] }),
+      );
+
+      const service = new VcAutoRecruitService(
+        settingsService as never,
+        vacSettingsService as never,
+      );
+      await service.handleChannelDelete({
+        id: "vc-2",
+        guild,
+        isDMBased: () => false,
+        type: ChannelType.GuildVoice,
+      } as never);
+
+      expect(settingsService.removeEnabledChannel).toHaveBeenCalledWith(
+        "g-1",
+        "vc-2",
       );
     });
   });

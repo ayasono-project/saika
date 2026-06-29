@@ -80,6 +80,12 @@ export interface InactiveKickSettings {
   lastRunDate?: string;
   // 個別ユーザーメンション通知の有無
   mentionEnabled: boolean;
+  // テキストメッセージを活動として記録するか
+  trackMessage: boolean;
+  // VC参加を活動として記録するか
+  trackVoice: boolean;
+  // 絵文字リアクションを活動として記録するか
+  trackReaction: boolean;
 }
 
 export interface UnverifiedKickSettings {
@@ -124,8 +130,10 @@ export interface VcAutoRecruitSettings {
   message?: string;
   // 募集 Embed を投稿に含めるか
   embedEnabled: boolean;
-  // 募集を投稿する対象カテゴリ ID の allowlist（ルート直下は sentinel "TOP"・空＝どこにも投稿しない）
+  // 募集を投稿する対象カテゴリ ID の allowlist（ルート直下は sentinel "TOP"・空＝どこにも投稿しない）移行期間中保持
   enabledCategoryIds: string[];
+  // 募集を投稿する対象 VC チャンネル ID の allowlist（空＝どこにも投稿しない）
+  enabledChannelIds: string[];
   // 投稿済みで「募集中」状態の募集メッセージ参照（募集終了処理で参照・編集後に除去）
   activeInvites: VcAutoRecruitRef[];
 }

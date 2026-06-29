@@ -13,6 +13,7 @@ describe("features/vc-auto-recruit/vcAutoRecruitSettingsDefaults", () => {
       enabled: false,
       embedEnabled: true,
       enabledCategoryIds: [],
+      enabledChannelIds: [],
       activeInvites: [],
     });
   });
@@ -33,6 +34,7 @@ describe("features/vc-auto-recruit/vcAutoRecruitSettingsDefaults", () => {
       message: "hi",
       embedEnabled: false,
       enabledCategoryIds: ["cat-1", "TOP"],
+      enabledChannelIds: ["vc-1"],
       activeInvites: [
         {
           voiceChannelId: "vc-1",
@@ -47,5 +49,6 @@ describe("features/vc-auto-recruit/vcAutoRecruitSettingsDefaults", () => {
 
     expect(normalized).toEqual(source);
     expect(normalized.activeInvites).not.toBe(source.activeInvites);
+    expect(normalized.enabledChannelIds).not.toBe(source.enabledChannelIds);
   });
 });

@@ -25,7 +25,6 @@ const h = vi.hoisted(() => {
     },
     repo: {
       getVcRecruitSettingsOrDefault: async () => state,
-      // biome-ignore lint/suspicious/noExplicitAny: テスト用
       saveVcRecruitSettings: async (_g: string, cfg: any) => {
         state = cfg;
       },

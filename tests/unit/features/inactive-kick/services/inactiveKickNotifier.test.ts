@@ -72,13 +72,13 @@ describe("inactive-kick/notifier", () => {
       expect(embeds[0]?.data.description).toBeUndefined();
     });
 
-    it("mentionEnabled:true なら全対象メンションを本文末尾に追加する", () => {
+    it("mentionEnabled:true なら全対象メンションを本文先頭に追加する", () => {
       const { content } = buildWarnNotification([candidate({ userId: "u1" })], {
         ...baseCtx,
         mentionEnabled: true,
         customMessage: "警告",
       });
-      expect(content).toBe("警告\n<@u1>");
+      expect(content).toBe("<@u1>\n警告");
     });
 
     it("対象メンバーフィールドとキック予定日タイムスタンプを Embed に出す", () => {

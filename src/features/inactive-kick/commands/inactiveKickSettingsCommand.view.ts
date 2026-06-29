@@ -143,6 +143,22 @@ export async function handleInactiveKickView(
       {
         name: tInteraction(
           locale,
+          "inactiveKick:embed.field.name.activity_triggers",
+        ),
+        value: tInteraction(
+          locale,
+          "inactiveKick:embed.field.value.activity_triggers",
+          {
+            message: settings.trackMessage ? enabled : disabled,
+            voice: settings.trackVoice ? enabled : disabled,
+            reaction: settings.trackReaction ? enabled : disabled,
+          },
+        ),
+        inline: false,
+      },
+      {
+        name: tInteraction(
+          locale,
           "inactiveKick:embed.field.name.test_mode_status",
         ),
         value: env.INACTIVE_KICK_DRY_RUN ? enabled : disabled,

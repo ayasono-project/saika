@@ -123,6 +123,9 @@ const baseSettings = {
   timezone: "Asia/Tokyo",
   runHour: 4,
   mentionEnabled: true,
+  trackMessage: true,
+  trackVoice: true,
+  trackReaction: true,
 };
 
 describe("inactive-kick/runner", () => {

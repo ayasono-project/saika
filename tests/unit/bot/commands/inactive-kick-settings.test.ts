@@ -13,7 +13,7 @@ describe("bot/commands/inactive-kick-settings (definition)", () => {
     );
   });
 
-  it("17 個のサブコマンドと whitelist・mention サブコマンドグループを持つ", () => {
+  it("17 個のサブコマンドと whitelist・mention・activity サブコマンドグループを持つ", () => {
     const subcommands = (json.options ?? []).filter(
       (o) => o.type === ApplicationCommandOptionType.Subcommand,
     );
@@ -21,9 +21,22 @@ describe("bot/commands/inactive-kick-settings (definition)", () => {
       (o) => o.type === ApplicationCommandOptionType.SubcommandGroup,
     );
     expect(subcommands).toHaveLength(17);
-    expect(groups).toHaveLength(2);
+    expect(groups).toHaveLength(3);
     expect(groups.map((g) => g.name)).toContain("whitelist");
     expect(groups.map((g) => g.name)).toContain("mention");
+    expect(groups.map((g) => g.name)).toContain("activity");
+  });
+
+  it("activity グループは set サブコマンドのみを持つ", () => {
+    const group = (json.options ?? []).find(
+      (o) =>
+        o.type === ApplicationCommandOptionType.SubcommandGroup &&
+        o.name === "activity",
+    );
+    const subNames = (
+      (group as { options?: Array<{ name: string }> }).options ?? []
+    ).map((s) => s.name);
+    expect(subNames).toEqual(["set"]);
   });
 
   it("週/最終の事前メッセージ設定サブコマンドを持つ", () => {

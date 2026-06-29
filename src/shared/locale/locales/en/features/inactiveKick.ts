@@ -53,6 +53,10 @@ export const inactiveKick = {
     "Enable individual mention notifications",
   "inactive-kick-settings.mention.disable.description":
     "Disable individual mention notifications",
+  "inactive-kick-settings.activity.description":
+    "Manage activity detection triggers",
+  "inactive-kick-settings.activity.set.description":
+    "Select which triggers to enable",
   "inactive-kick-settings.preview.description":
     "Show current kick/notification targets",
   "inactive-kick-settings.view.description": "Show current settings",
@@ -106,6 +110,9 @@ export const inactiveKick = {
   "user-response.mention_enabled": "Enabled individual mention notifications.",
   "user-response.mention_disabled":
     "Disabled individual mention notifications.",
+  "user-response.activity_set_success":
+    "Enabled: {{enabled}}\nDisabled: {{disabled}}",
+  "user-response.activity_set_all_enabled": "Enabled: {{enabled}}",
   "user-response.reset_success": "Reset the settings.",
   "user-response.reset_cancelled": "Cancelled the reset.",
   "user-response.channel_deleted_notice":
@@ -124,6 +131,12 @@ export const inactiveKick = {
   "embed.field.name.timezone": "Timezone",
   "embed.field.name.run_hour": "Run hour",
   "embed.field.name.mention_enabled": "Individual mentions",
+  "embed.field.name.activity_triggers": "Activity triggers",
+  "embed.field.value.activity_triggers":
+    "Text: {{message}} / VC join: {{voice}} / Reaction: {{reaction}}",
+  "activity_trigger.message": "Text messages",
+  "activity_trigger.voice": "VC joins",
+  "activity_trigger.reaction": "Emoji reactions",
   "embed.field.value.threshold_days": "{{count}} days",
   "embed.field.value.whitelist_counts": "{{roles}} role(s) / {{users}} user(s)",
   "embed.field.value.message_default_prefix": "(not set — default text)",
@@ -134,7 +147,7 @@ export const inactiveKick = {
     "Reset the inactive auto-kick settings? This cannot be undone (activity history is preserved).",
   "embed.field.name.reset_target": "Will be removed",
   "embed.field.value.reset_target":
-    "Enabled state / channel / threshold / custom messages / marker role / exclusion list / enabled-at",
+    "Enabled state / channel / threshold / custom messages / marker role / exclusion list / enabled-at / activity triggers",
   "embed.title.whitelist": "Exclusion list",
   "embed.field.name.whitelist_roles": "Excluded roles",
   "embed.field.name.whitelist_users": "Excluded users",
@@ -185,6 +198,8 @@ export const inactiveKick = {
     "Select items to remove from the exclusion list (multi-select)",
   "ui.select.set_timezone_placeholder": "Select a timezone",
   "ui.select.set_run_hour_placeholder": "Select a run hour",
+  "ui.select.activity_set_placeholder":
+    "Select triggers to enable (at least one)",
   "ui.modal.set_week_warn_message_title": "Set 1-week notice message",
   "ui.modal.set_week_warn_message_label": "1-week notice message",
   "ui.modal.set_final_warn_message_title": "Set final-warning message",

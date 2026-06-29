@@ -2,7 +2,7 @@
 
 > タスク管理・進捗状況・残件リスト
 
-最終更新: 2026年6月28日
+最終更新: 2026年6月29日
 
 ---
 
@@ -10,26 +10,35 @@
 
 | # | セクション | 概要 | 残件 |
 | --- | --- | --- | ---: |
-| 1 | VC自動募集 チャンネル単位再設計 ＋ VACオーナー個人設定 | カテゴリ→VCチャンネル allowlist 化・動的VCの on/off（3状態）＋個別募集文＋既定VC名/人数を `VacOwnerPreference` で一括・`/myvc`・移行方針確定 | 4 |
+| 8+ | 非アクティブキック アクティビティトリガー | コマンド動作確認→commit/PR 待ち + web UI + shared v1.0.0 | 3 |
+| 1 | VC自動募集 チャンネル単位化 | カテゴリ→VCチャンネルID allowlist 化（VacOwnerPreference・/myvc は別タスクへ分離） | 4 |
 | 3 | ドキュメント整理（spec 廃止・guides 集約） | `docs/specs/` 全廃止・重要情報の guides への移行・README/TODO の spec 参照除去 | 5 |
 | 11 | Bot 一般公開準備 | `/about` 充実（LP 公開時）・Discord 認証申請（75 サーバー到達後） | 2 |
-| **合計** | | | **11** |
+| **合計** | | | **14** |
 
-> web ダッシュボード・インフラ（VPS / Cloudflare / Coolify）は別リポジトリで管理。番号は優先度順（#1 から実装見込み順・#11 は低優先度）。
-> 次に実装見込みは §1。VC自動募集の再設計と VACオーナー個人設定（募集制御＋既定VC名/人数）は **同じ `/myvc` コマンド・同じ `VacOwnerPreference` を共有するため一括実装・一括リリース**（コマンド変更アナウンスを1回に集約・二段階移行も回避）。着手前に既存 `enabledCategoryIds` の移行方針を確定する。§3 ドキュメント整理は §1 と独立して着手可能（低優先度）。§11 Bot 一般公開準備は低優先度（Discord 認証申請は 75 サーバー到達後に着手する条件待ち）。
+> web ダッシュボード・インフラ（VPS / Cloudflare / Coolify）は別リポジトリで管理。番号は優先度順（#8+ が最優先・#11 は低優先度）。
+> 次は §8+ の動作確認→commit/PR 完了後に §1 VC自動募集チャンネル単位化。§1 実装前に本番 DB で `enabledCategoryIds != '[]'` のレコード有無を確認し、案内要否を判断（0件または自サーバーのみなら案内なし・clean migration 可）。§3 ドキュメント整理は独立して着手可能（低優先度）。§11 Bot 一般公開準備は条件待ち（Discord 認証申請は 75 サーバー到達後）。
 
 ---
 
 ## タスク一覧
 
-### 1. VC自動募集 チャンネル単位再設計 ＋ VACオーナー個人設定（募集制御・既定VC）
+### 8+. 非アクティブキック アクティビティトリガー（§8 追加）
 
-現状はカテゴリ単位 allowlist（`enabledCategoryIds`・ルート直下 sentinel `"TOP"`）で、**同一カテゴリ内の一部VCだけON/OFFできない**のが構造的弱点。静的VCは **VCチャンネルID単位の allowlist** へ再設計し、VAC動的VC（設定時点で存在しない）は **管理者既定＋オーナー個別制御** の per-user モデルで別系統に扱う。設計はユーザーと合意済み・実装未着手。詳細議論で確定した方針を以下に集約。
+`/inactive-kick-settings activity enable/disable` コマンドで活動種別（テキスト/VC/リアクション）を個別 on/off できる機能。`feature/inactive-kick-activity-triggers` ブランチで実装完了・typecheck/lint/test 全通過（2635件）。通知順序（メンション→カスタムメッセージ→embed）修正済み・choice ローカライズ対応済み（日英別表示）。shared 変更（`trackMessage/trackVoice/trackReaction`）は VC チャンネル単位化と合わせて v1.0.0 で publish 予定。
 
-- [ ] 設計メモ／仕様（[VC_AUTO_RECRUIT_SPEC.md](docs/specs/VC_AUTO_RECRUIT_SPEC.md) 更新）確定 ＋ 関連ガイド（ARCHITECTURE / IMPLEMENTATION_GUIDELINES / DBスキーマ規約）準拠確認。**既存 `enabledCategoryIds` の移行方針 A（無停止でカテゴリ→現存子VCへ展開）/ B（リセット再設定）を決定**（本番稼働中につき A 推奨・未決）
-- [ ] 静的VC: カテゴリ→**VCチャンネルID allowlist** 再設計（個別トグル・「カテゴリ選択で現存子VCを個別エントリ一括登録」補助導線・`"TOP"` sentinel 廃止・判定を `channel.parentId` 参照から VC 個別へ）
-- [ ] VAC動的VC: per-user `VacOwnerPreference`（`guildId×userId`）新設 ＋ 管理者既定フラグ（`vac-settings`・`ManageGuild`）＋ オーナー個別 **on/off（3状態 未設定/ON/OFF）** ＋ **個別募集文**。フォールバック: on/off=ユーザー設定→管理者既定 / 募集文=オーナー個別→ギルド募集文→デフォルト。個別募集文は `allowedMentions` で一括メンション無効化（踏み台防止）。コマンド `/vc-recruit`→`/myvc` 再編・募集投稿に「`/myvc` でオフにできる」静的案内文。**オーナーパネル/ボタンは作らない**（§7 VCパネル廃止と整合）。旧アイデア（ユーザー個別 opt-out／VC単位指定・除外）を包含
-- [ ] VACオーナー既定VC（同コマンド・同モデルでまとめて実装）: `VacOwnerPreference` に **VC名テンプレート・人数制限**も持たせ `handleVacCreate` で適用（フォールバック: 名前=オーナー既定→ギルド既定名→グローバル既定 / 人数=オーナー既定→`VAC_EVENT.DEFAULT_LIMIT`）。`/myvc` の設定サブコマンドに統合（毎回 Discord 標準UIで再設定しなくて済む persistence）
+- [ ] Discord コマンド動作確認（`/inactive-kick-settings activity enable/disable` が正常動作するか）→ 確認後に feature → develop PR 作成（rebase merge）
+- [ ] shared v1.0.0 publish（§1 完了後）＋ saika の参照を `#v1.0.0` に更新（`CI=true pnpm install`）
+- [ ] web: InactiveKickPage にアクティビティトリガー設定 UI 追加（shared v1.0.0 対応後）
+
+### 1. VC自動募集 チャンネル単位化
+
+現状のカテゴリ単位 allowlist（`enabledCategoryIds`・ルート直下 sentinel `"TOP"`）を **VCチャンネルID 単位の allowlist**（`enabledChannelIds`）に置き換える。スコープはこれのみ（VACオーナー個別制御・`/myvc` は別途検討）。**実装前に本番 DB で `SELECT "guildId", "enabledCategoryIds" FROM guild_vc_auto_recruit_settings WHERE "enabledCategoryIds" != '[]'::jsonb;` を実行して他サーバーの設定有無を確認し、案内要否を判断する**（0件 or 自サーバーのみなら案内なし・clean migration 可）。
+
+- [ ] 本番 DB 確認（上記 SQL）→ 案内要否を確定する
+- [ ] DB: `enabledChannelIds` jsonb 追加・`enabledCategoryIds` は暫定保持（案内が必要な場合は移行案内後にクリア）・migration
+- [ ] コマンド: `add-channel`/`remove-channel` に変更（`add-category`/`disable-category` 廃止）・`view` 更新・ja/en ロケール
+- [ ] shared: `VcAutoRecruitSettings.enabledChannelIds` 追加（§8+ と合わせて v1.0.0 で publish）
 
 ### 3. ドキュメント整理（spec 廃止・guides 集約）
 

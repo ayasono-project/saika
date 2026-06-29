@@ -187,6 +187,22 @@ export class InactiveKickSettingsService {
   }
 
   /**
+   * アクティビティ記録トリガーを一括設定する
+   * @param guildId 設定対象のギルドID
+   * @param triggers 各トリガーの有効/無効
+   */
+  async setActivityTriggers(
+    guildId: string,
+    triggers: {
+      trackMessage: boolean;
+      trackVoice: boolean;
+      trackReaction: boolean;
+    },
+  ): Promise<void> {
+    await this.updatePartial(guildId, triggers);
+  }
+
+  /**
    * 最終実行日を更新する（スイープ重複防止）
    */
   async updateLastRunDate(guildId: string, date: string): Promise<void> {

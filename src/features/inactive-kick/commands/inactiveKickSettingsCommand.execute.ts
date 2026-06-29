@@ -12,6 +12,7 @@ import {
   buildObsoleteInactiveKickNotice,
   detectObsoleteInactiveKickPlaceholders,
 } from "../services/inactiveKickObsoletePlaceholders";
+import { handleInactiveKickActivitySet } from "./inactiveKickSettingsCommand.activity";
 import { INACTIVE_KICK_SETTINGS_COMMAND } from "./inactiveKickSettingsCommand.constants";
 import {
   handleInactiveKickClearMarkerRole,
@@ -104,6 +105,8 @@ export async function executeInactiveKickSettingsCommand(
         default:
           throw ValidationError.fromKey(COMMON_I18N_KEYS.INVALID_SUBCOMMAND);
       }
+    } else if (group === GROUP.ACTIVITY) {
+      await handleInactiveKickActivitySet(interaction, guildId);
     } else {
       const subcommand = interaction.options.getSubcommand();
       isModalCommand = MODAL_SUBCOMMANDS.has(subcommand);

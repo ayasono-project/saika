@@ -80,6 +80,12 @@ vi.mock(
   }),
 );
 vi.mock(
+  "@/features/inactive-kick/commands/inactiveKickSettingsCommand.activity",
+  () => ({
+    handleInactiveKickActivitySet: vi.fn(),
+  }),
+);
+vi.mock(
   "@/features/inactive-kick/commands/inactiveKickSettingsCommand.whitelist",
   () => ({
     handleInactiveKickWhitelistAdd: vi.fn(),

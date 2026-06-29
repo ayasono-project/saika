@@ -98,6 +98,9 @@ describe("inactive-kick マッパー", () => {
         timezone: "Asia/Tokyo",
         runHour: 4,
         mentionEnabled: true,
+        trackMessage: true,
+        trackVoice: true,
+        trackReaction: true,
       }),
     ).toEqual({
       enabled: false,
@@ -112,6 +115,9 @@ describe("inactive-kick マッパー", () => {
       mentionEnabled: true,
       timezone: "Asia/Tokyo",
       runHour: 4,
+      trackMessage: true,
+      trackVoice: true,
+      trackReaction: true,
     });
   });
 
@@ -124,6 +130,9 @@ describe("inactive-kick マッパー", () => {
       timezone: "Asia/Tokyo",
       runHour: 4,
       mentionEnabled: true,
+      trackMessage: true,
+      trackVoice: true,
+      trackReaction: true,
     };
     const next = applyInactiveKickPatch(cur, { enabled: true }, NOW);
     expect(next.enabled).toBe(true);
@@ -141,6 +150,9 @@ describe("inactive-kick マッパー", () => {
       timezone: "Asia/Tokyo",
       runHour: 4,
       mentionEnabled: true,
+      trackMessage: true,
+      trackVoice: true,
+      trackReaction: true,
     };
     const next = applyInactiveKickPatch(cur, { enabled: false }, NOW);
     expect(next.enabled).toBe(false);
@@ -157,6 +169,9 @@ describe("inactive-kick マッパー", () => {
       timezone: "Asia/Tokyo",
       runHour: 4,
       mentionEnabled: true,
+      trackMessage: true,
+      trackVoice: true,
+      trackReaction: true,
     };
     const next = applyInactiveKickPatch(
       cur,

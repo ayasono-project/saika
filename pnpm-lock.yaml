@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       '@ayasono/shared':
-        specifier: github:ayasono-project/shared#v0.3.2
-        version: https://codeload.github.com/ayasono-project/shared/tar.gz/063668855e08b489a31ff52398b661502b5b1456(winston-daily-rotate-file@5.0.0(winston@3.19.0))(winston-transport@4.9.0)(winston@3.19.0)
+        specifier: github:ayasono-project/shared#v0.3.3
+        version: https://codeload.github.com/ayasono-project/shared/tar.gz/856b26008b6fc34f66b303ca6306d75f65392649(winston-daily-rotate-file@5.0.0(winston@3.19.0))(winston-transport@4.9.0)(winston@3.19.0)
       '@fastify/cookie':
         specifier: ^11.0.2
         version: 11.0.2
@@ -108,9 +108,9 @@ importers:
 
 packages:
 
-  '@ayasono/shared@https://codeload.github.com/ayasono-project/shared/tar.gz/063668855e08b489a31ff52398b661502b5b1456':
-    resolution: {gitHosted: true, integrity: sha512-/lykbD2VSUj2rm5bCNfHw5HgUBOya9XnpYaBX1pr+Ot/YYFi/mE1P0GBDrpEUfi6OM/f/e+NYWL95xT56Ikd9A==, tarball: https://codeload.github.com/ayasono-project/shared/tar.gz/063668855e08b489a31ff52398b661502b5b1456}
-    version: 0.3.2
+  '@ayasono/shared@https://codeload.github.com/ayasono-project/shared/tar.gz/856b26008b6fc34f66b303ca6306d75f65392649':
+    resolution: {gitHosted: true, integrity: sha512-UFtoTClqNPZQuq3k8KfKS0FeHsI4t/aV8ZZGcv/u2RixeFkCokQ9OWWisv0aRIk05K9xjWY93/yjwDySDkG2Fg==, tarball: https://codeload.github.com/ayasono-project/shared/tar.gz/856b26008b6fc34f66b303ca6306d75f65392649}
+    version: 0.3.3
     engines: {node: '>=24'}
     peerDependencies:
       winston: ^3.19.0
@@ -2540,7 +2540,7 @@ packages:
 
 snapshots:
 
-  '@ayasono/shared@https://codeload.github.com/ayasono-project/shared/tar.gz/063668855e08b489a31ff52398b661502b5b1456(winston-daily-rotate-file@5.0.0(winston@3.19.0))(winston-transport@4.9.0)(winston@3.19.0)':
+  '@ayasono/shared@https://codeload.github.com/ayasono-project/shared/tar.gz/856b26008b6fc34f66b303ca6306d75f65392649(winston-daily-rotate-file@5.0.0(winston@3.19.0))(winston-transport@4.9.0)(winston@3.19.0)':
     dependencies:
       winston: 3.19.0
       winston-daily-rotate-file: 5.0.0(winston@3.19.0)

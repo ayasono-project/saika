@@ -5,8 +5,9 @@ export const vcAutoRecruit = {
   // ── コマンド定義 ─────────────────────────────
   "vc-auto-recruit-settings.description":
     "VC自動募集機能の設定（サーバー管理権限が必要）",
-  "vc-auto-recruit-settings.set-channel.description": "投稿先チャンネルを設定",
-  "vc-auto-recruit-settings.set-channel.channel.description":
+  "vc-auto-recruit-settings.set-post-channel.description":
+    "投稿先チャンネルを設定",
+  "vc-auto-recruit-settings.set-post-channel.channel.description":
     "募集メッセージを投稿するテキストチャンネル",
   "vc-auto-recruit-settings.enable.description": "VC自動募集機能を有効化",
   "vc-auto-recruit-settings.disable.description": "VC自動募集機能を無効化",
@@ -18,10 +19,10 @@ export const vcAutoRecruit = {
     "Embed の有効/無効を切り替え",
   "vc-auto-recruit-settings.set-embed.enabled.description":
     "Embed を投稿に含めるか",
-  "vc-auto-recruit-settings.add-category.description":
-    "募集対象カテゴリをメニューから選んで追加",
-  "vc-auto-recruit-settings.remove-category.description":
-    "募集対象カテゴリをメニューから選んで解除",
+  "vc-auto-recruit-settings.add-channel.description":
+    "募集対象VCチャンネルをメニューから選んで追加",
+  "vc-auto-recruit-settings.remove-channel.description":
+    "募集対象VCチャンネルをメニューから選んで解除",
   "vc-auto-recruit-settings.view.description": "現在の設定を表示",
   "vc-auto-recruit-settings.reset.description": "VC自動募集設定をリセット",
 
@@ -30,7 +31,7 @@ export const vcAutoRecruit = {
     "投稿先チャンネルを {{channel}} に設定しました。",
   "user-response.enable_success": "VC自動募集機能を有効化しました。",
   "user-response.enable_error_no_channel":
-    "投稿先チャンネルが設定されていません。先に /vc-auto-recruit-settings set-channel を実行してください。",
+    "投稿先チャンネルが設定されていません。先に /vc-auto-recruit-settings set-post-channel を実行してください。",
   "user-response.disable_success": "VC自動募集機能を無効化しました。",
   "user-response.set_message_success": "募集メッセージを設定しました。",
   "user-response.clear_message_success": "募集メッセージを削除しました。",
@@ -38,7 +39,7 @@ export const vcAutoRecruit = {
   "user-response.set_embed_disabled": "Embed を無効にしました。",
   "user-response.text_channel_only": "テキストチャンネルを指定してください。",
   "user-response.channel_deleted_notice":
-    "⚠️ VC自動募集の投稿先チャンネルが削除されました。\n設定をリセットしたので、`/vc-auto-recruit-settings set-channel` で再設定してください。",
+    "⚠️ VC自動募集の投稿先チャンネルが削除されました。\n設定をリセットしたので、`/vc-auto-recruit-settings set-post-channel` で再設定してください。",
   "user-response.reset_success": "VC自動募集設定をリセットしました。",
   "user-response.reset_cancelled": "リセットをキャンセルしました。",
   "user-response.categories_added_count":
@@ -52,6 +53,18 @@ export const vcAutoRecruit = {
   "user-response.enable_warning_no_category":
     "有効化しましたが、有効カテゴリが未設定のため投稿されません。`/vc-auto-recruit-settings add-category` でカテゴリを追加してください。",
   "user-response.category_top_label": "TOP（カテゴリなし）",
+  "user-response.channels_added_count":
+    "{{count}} 件のVCチャンネルを募集対象に追加しました。\n{{channels}}",
+  "user-response.channels_removed_count":
+    "{{count}} 件のVCチャンネルを募集対象から解除しました。\n{{channels}}",
+  "user-response.no_addable_channels":
+    "追加できるVCチャンネルがありません。すべて登録済みか、VAC専用チャンネルのみです。",
+  "user-response.no_enabled_channels":
+    "解除できる募集対象チャンネルがありません。",
+  "user-response.enable_warning_no_channel":
+    "有効化しましたが、有効チャンネルが未設定のため投稿されません。`/vc-auto-recruit-settings add-channel` でチャンネルを追加してください。",
+  "user-response.add_channel_truncated":
+    "VCチャンネルが25件を超えるため、一部のみ表示しています。追加後に再度実行してください。",
 
   // ── 投稿本文（content） ───────────────────────
   "content.invite_default":
@@ -66,6 +79,8 @@ export const vcAutoRecruit = {
   "embed.field.name.categories": "有効カテゴリ",
   "embed.field.value.categories_none": "未設定（どこにも投稿されません）",
   "embed.field.value.top": "TOP（カテゴリなし）",
+  "embed.field.name.channels": "有効チャンネル",
+  "embed.field.value.channels_none": "未設定（どこにも投稿されません）",
 
   // ── Embed: 募集通知 ──────────────────────────
   "embed.title.invite": "🔊 通話がはじまりました",
@@ -78,7 +93,7 @@ export const vcAutoRecruit = {
     "VC自動募集設定をリセットしますか？\n以下の設定が削除されます。この操作は元に戻せません。",
   "embed.field.name.reset_target": "削除対象",
   "embed.field.value.reset_target":
-    "有効/無効設定 / 投稿先チャンネル / Embed 設定 / カスタムメッセージ / 有効カテゴリ / 追跡中の募集",
+    "有効/無効設定 / 投稿先チャンネル / Embed 設定 / カスタムメッセージ / 有効チャンネル / 追跡中の募集",
 
   // ── UIラベル ──────────────────────────────────
   "ui.modal.set_message_title": "募集メッセージを設定",
@@ -88,6 +103,10 @@ export const vcAutoRecruit = {
   "ui.select.add_category_placeholder": "追加するカテゴリを選択（複数選択可）",
   "ui.select.remove_category_placeholder":
     "解除するカテゴリを選択（複数選択可）",
+  "ui.select.add_channel_placeholder":
+    "追加するVCチャンネルを選択（複数選択可）",
+  "ui.select.remove_channel_placeholder":
+    "解除するVCチャンネルを選択（複数選択可）",
   "ui.button.join": "VCに参加",
   "ui.button.ended": "募集終了",
 
@@ -119,6 +138,12 @@ export const vcAutoRecruit = {
     "募集対象カテゴリ解除 GuildId: {{guildId}} CategoryId: {{categoryId}}",
   "log.category_removed_by_delete":
     "削除されたカテゴリを有効カテゴリから除外 GuildId: {{guildId}} CategoryId: {{categoryId}}",
+  "log.config_channel_added":
+    "募集対象チャンネル追加 GuildId: {{guildId}} ChannelId: {{channelId}}",
+  "log.config_channel_removed":
+    "募集対象チャンネル解除 GuildId: {{guildId}} ChannelId: {{channelId}}",
+  "log.channel_removed_by_delete":
+    "削除されたチャンネルを有効チャンネルから除外 GuildId: {{guildId}} ChannelId: {{channelId}}",
   "log.config_embed_set":
     "Embed 設定変更 GuildId: {{guildId}} Enabled: {{enabled}}",
   "log.config_reset": "設定リセット GuildId: {{guildId}}",

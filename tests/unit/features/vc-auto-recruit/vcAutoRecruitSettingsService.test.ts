@@ -33,6 +33,7 @@ describe("features/vc-auto-recruit/vcAutoRecruitSettingsService", () => {
     channelId: "ch-1",
     embedEnabled: true,
     enabledCategoryIds: [],
+    enabledChannelIds: [],
     activeInvites: [],
   });
 
@@ -60,6 +61,7 @@ describe("features/vc-auto-recruit/vcAutoRecruitSettingsService", () => {
         enabled: false,
         embedEnabled: true,
         enabledCategoryIds: [],
+        enabledChannelIds: [],
         activeInvites: [],
       });
     });
@@ -74,6 +76,7 @@ describe("features/vc-auto-recruit/vcAutoRecruitSettingsService", () => {
         enabled: false,
         embedEnabled: true,
         enabledCategoryIds: [],
+        enabledChannelIds: [],
         activeInvites: [],
       });
 
@@ -85,6 +88,7 @@ describe("features/vc-auto-recruit/vcAutoRecruitSettingsService", () => {
           enabled: false,
           embedEnabled: true,
           enabledCategoryIds: [],
+          enabledChannelIds: [],
           activeInvites: [],
           channelId: "ch-new",
         },
@@ -157,6 +161,7 @@ describe("features/vc-auto-recruit/vcAutoRecruitSettingsService", () => {
           enabled: false,
           embedEnabled: true,
           enabledCategoryIds: [],
+          enabledChannelIds: [],
           activeInvites: [],
         },
       );

@@ -7,14 +7,14 @@
 export const VC_AUTO_RECRUIT_SETTINGS_COMMAND = {
   NAME: "vc-auto-recruit-settings",
   SUBCOMMAND: {
-    SET_CHANNEL: "set-channel",
+    SET_CHANNEL: "set-post-channel",
     ENABLE: "enable",
     DISABLE: "disable",
     SET_MESSAGE: "set-message",
     CLEAR_MESSAGE: "clear-message",
     SET_EMBED: "set-embed",
-    ADD_CATEGORY: "add-category",
-    REMOVE_CATEGORY: "remove-category",
+    ADD_CHANNEL: "add-channel",
+    REMOVE_CHANNEL: "remove-channel",
     VIEW: "view",
     RESET: "reset",
   },
@@ -26,11 +26,11 @@ export const VC_AUTO_RECRUIT_SETTINGS_COMMAND = {
   SET_MESSAGE_MODAL_ID: "vc-auto-recruit-settings:message-modal",
   /** モーダル内テキスト入力欄の customId */
   MODAL_INPUT_MESSAGE: "vc-auto-recruit-settings:message-modal-input",
-  /** 募集対象カテゴリ追加セレクトメニューの customId */
-  ADD_CATEGORY_SELECT_ID: "vc-auto-recruit-settings:add-category-select",
-  /** 募集対象カテゴリ解除セレクトメニューの customId */
-  REMOVE_CATEGORY_SELECT_ID: "vc-auto-recruit-settings:remove-category-select",
+  /** 募集対象チャンネル追加セレクトメニューの customId */
+  ADD_CHANNEL_SELECT_ID: "vc-auto-recruit-settings:add-channel-select",
+  /** 募集対象チャンネル解除セレクトメニューの customId */
+  REMOVE_CHANNEL_SELECT_ID: "vc-auto-recruit-settings:remove-channel-select",
 } as const;
 
-/** 募集対象カテゴリ追加/解除セレクトメニューの操作受付タイムアウト（ms） */
-export const VC_AUTO_RECRUIT_CATEGORY_SELECT_TIMEOUT_MS: number = 3 * 60 * 1000;
+/** 募集対象チャンネル追加/解除セレクトメニューの操作受付タイムアウト（ms） */
+export const VC_AUTO_RECRUIT_CHANNEL_SELECT_TIMEOUT_MS: number = 3 * 60 * 1000;

@@ -91,7 +91,8 @@ model GuildVcAutoRecruitSettings {
   channelId          String? @map("channel_id")
   message            String?
   embedEnabled       Boolean @default(true) @map("embed_enabled")
-  enabledCategoryIds Json    @default("[]") @map("enabled_category_ids") // jsonb: string[]（ルートは "TOP"）
+  enabledCategoryIds Json    @default("[]") @map("enabled_category_ids") // jsonb: string[]（ルートは "TOP"）・移行期間中保持
+  enabledChannelIds  Json    @default("[]") @map("enabled_channel_ids") // jsonb: string[]（VC チャンネル ID allowlist）
   activeInvites      Json    @default("[]") @map("active_invites") // jsonb: VcAutoRecruitRef[]
 
   @@map("guild_vc_invite_settings")

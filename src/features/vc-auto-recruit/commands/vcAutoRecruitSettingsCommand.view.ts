@@ -5,7 +5,6 @@ import { type ChatInputCommandInteraction, MessageFlags } from "discord.js";
 import { getBotVcAutoRecruitSettingsService } from "../../../bot/services/botCompositionRoot";
 import { createInfoEmbed } from "../../../bot/utils/messageResponse";
 import { tInteraction } from "../../../shared/locale/localeManager";
-import { VC_AUTO_RECRUIT_ROOT_CATEGORY } from "../constants/vcAutoRecruit.constants";
 import { ensureVcAutoRecruitManageGuildPermission } from "./vcAutoRecruitSettingsCommand.guard";
 
 /**
@@ -51,19 +50,11 @@ export async function handleVcAutoRecruitSettingsView(
   const labelDisabled = tInteraction(locale, "common:disabled");
   const labelNone = tInteraction(locale, "common:none");
 
-  // 有効カテゴリ一覧（TOP は専用ラベル、それ以外はカテゴリ名）。カテゴリメンション（<#id>）は
-  // embed 内でクリックできず先頭に "#" が付くだけのため、カテゴリ名をプレーンテキストで表示する。
-  // キャッシュ未取得時は id にフォールバック。未設定時は警告込みの表示。
-  const categoriesValue =
-    config.enabledCategoryIds.length === 0
-      ? tInteraction(locale, "vcAutoRecruit:embed.field.value.categories_none")
-      : config.enabledCategoryIds
-          .map((id) =>
-            id === VC_AUTO_RECRUIT_ROOT_CATEGORY
-              ? tInteraction(locale, "vcAutoRecruit:embed.field.value.top")
-              : (interaction.guild?.channels.cache.get(id)?.name ?? id),
-          )
-          .join(", ");
+  // 有効チャンネル一覧（<#channelId> 形式で表示）
+  const channelsValue =
+    config.enabledChannelIds.length === 0
+      ? tInteraction(locale, "vcAutoRecruit:embed.field.value.channels_none")
+      : config.enabledChannelIds.map((id) => `<#${id}>`).join(", ");
 
   // 設定内容を固定構成で表示
   const embed = createInfoEmbed("", {
@@ -90,8 +81,8 @@ export async function handleVcAutoRecruitSettingsView(
         inline: false,
       },
       {
-        name: tInteraction(locale, "vcAutoRecruit:embed.field.name.categories"),
-        value: categoriesValue,
+        name: tInteraction(locale, "vcAutoRecruit:embed.field.name.channels"),
+        value: channelsValue,
         inline: false,
       },
     ],

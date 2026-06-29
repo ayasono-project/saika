@@ -30,6 +30,7 @@ export function toContractVcAutoRecruit(
     message: domain.message ?? "",
     embedEnabled: domain.embedEnabled,
     enabledCategoryIds: domain.enabledCategoryIds,
+    enabledChannelIds: domain.enabledChannelIds,
   };
 }
 
@@ -50,6 +51,7 @@ export function applyVcAutoRecruitPatch(
         : patch.message || undefined,
     embedEnabled: patch.embedEnabled ?? current.embedEnabled,
     enabledCategoryIds: patch.enabledCategoryIds ?? current.enabledCategoryIds,
+    enabledChannelIds: patch.enabledChannelIds ?? current.enabledChannelIds,
     activeInvites: current.activeInvites,
   };
 }

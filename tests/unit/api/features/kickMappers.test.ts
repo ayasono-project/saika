@@ -28,6 +28,7 @@ describe("vc-auto-recruit マッパー", () => {
         message: undefined,
         embedEnabled: true,
         enabledCategoryIds: ["cat1"],
+        enabledChannelIds: ["ch1"],
         activeInvites: [],
       }),
     ).toEqual({
@@ -36,6 +37,7 @@ describe("vc-auto-recruit マッパー", () => {
       message: "",
       embedEnabled: true,
       enabledCategoryIds: ["cat1"],
+      enabledChannelIds: ["ch1"],
     });
   });
 
@@ -46,6 +48,7 @@ describe("vc-auto-recruit マッパー", () => {
       message: undefined,
       embedEnabled: true,
       enabledCategoryIds: [],
+      enabledChannelIds: [],
       activeInvites: [
         {
           voiceChannelId: "v",

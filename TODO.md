@@ -2,7 +2,7 @@
 
 > タスク管理・進捗状況・残件リスト
 
-最終更新: 2026年6月29日
+最終更新: 2026年6月30日
 
 ---
 
@@ -10,14 +10,13 @@
 
 | セクション | 概要 | 残件 |
 | --- | --- | ---: |
-| 非アクティブキック アクティビティトリガー | web UI + shared v1.0.0（VC自動募集完了後） | 2 |
-| VC自動募集 チャンネル単位化 | カテゴリ→VCチャンネルID allowlist 化（VacOwnerPreference・/myvc は別タスクへ分離） | 4 |
+| 非アクティブキック アクティビティトリガー | web UI + shared v1.0.0 | 2 |
 | ドキュメント整理（spec 廃止・guides 集約） | spec 削除・リンク整理済み。残: 設計根拠・非自明な判断を ARCHITECTURE.md 等へ追記 | 2 |
 | Bot 一般公開準備 | `/about` 充実（LP 公開時）・Discord 認証申請（75 サーバー到達後） | 2 |
-| **合計** | | **10** |
+| **合計** | | **6** |
 
 > web ダッシュボード・インフラ（VPS / Cloudflare / Coolify）は別リポジトリで管理。上から優先度順（Bot 一般公開準備は低優先度）。
-> 次は VC自動募集 チャンネル単位化。実装前に本番 DB で `enabledCategoryIds != '[]'` のレコード有無を確認し、案内要否を判断（0件または自サーバーのみなら案内なし・clean migration 可）。非アクティブキック残件（web UI・shared v1.0.0）は VC自動募集完了後に着手。ドキュメント整理（guides 追記）は低優先度・独立着手可能。
+> 次は shared v1.0.0 publish（非アクティブキック + VC自動募集 の shared 変更を統合）→ web: InactiveKickPage アクティビティトリガー UI → develop→main release PR。ドキュメント整理（guides 追記）は低優先度・独立着手可能。
 
 ---
 
@@ -30,15 +29,6 @@
 - [x] Discord コマンド動作確認 → feature → develop PR 作成（rebase merge）（2026-06-29）
 - [ ] shared v1.0.0 publish（VC自動募集 完了後）＋ saika の参照を `#v1.0.0` に更新（`CI=true pnpm install`）
 - [ ] web: InactiveKickPage にアクティビティトリガー設定 UI 追加（shared v1.0.0 対応後）
-
-### VC自動募集 チャンネル単位化
-
-現状のカテゴリ単位 allowlist（`enabledCategoryIds`・ルート直下 sentinel `"TOP"`）を **VCチャンネルID 単位の allowlist**（`enabledChannelIds`）に置き換える。スコープはこれのみ（VACオーナー個別制御・`/myvc` は別途検討）。**実装前に本番 DB で `SELECT "guildId", "enabledCategoryIds" FROM guild_vc_auto_recruit_settings WHERE "enabledCategoryIds" != '[]'::jsonb;` を実行して他サーバーの設定有無を確認し、案内要否を判断する**（0件 or 自サーバーのみなら案内なし・clean migration 可）。
-
-- [ ] 本番 DB 確認（上記 SQL）→ 案内要否を確定する
-- [ ] DB: `enabledChannelIds` jsonb 追加・`enabledCategoryIds` は暫定保持（案内が必要な場合は移行案内後にクリア）・migration
-- [ ] コマンド: `add-channel`/`remove-channel` に変更（`add-category`/`disable-category` 廃止）・`view` 更新・ja/en ロケール
-- [ ] shared: `VcAutoRecruitSettings.enabledChannelIds` 追加（非アクティブキック分と合わせて v1.0.0 で publish）
 
 ### ドキュメント整理（spec 廃止・guides 集約）
 
@@ -77,7 +67,16 @@
 
 > 詳細な作業経過は git log を参照。
 
-### 非アクティブキック アクティビティトリガー設定（§2・2026-06-29 develop merge）
+### VC自動募集 チャンネル単位化（2026-06-30 完了）
+
+カテゴリ単位 allowlist（`enabledCategoryIds`）を VCチャンネルID 単位の allowlist（`enabledChannelIds`）に置き換え。本番 DB でカテゴリ設定済みレコードが0件であることを確認し clean migration で移行。`set-channel` → `set-post-channel` リネーム（`add-channel` との混同防止）。add-channel / remove-channel の StringSelectMenu 追加（VAC トリガー + AFK を候補除外・完了通知にチャンネルメンション一覧表示）。shared v0.3.4 で `enabledChannelIds` 追加。テスト全通過（2636件）。
+
+- [x] 本番 DB 確認 → 0件・clean migration
+- [x] DB: `enabledChannelIds` jsonb 追加（migration + Prisma スキーマ・entities・defaults・repository）
+- [x] コマンド: `add-channel`/`remove-channel` 追加・`set-channel` → `set-post-channel` リネーム・`view` 更新・ja/en ロケール・USER_MANUAL.md 更新
+- [x] shared v0.3.4 publish（`VcAutoRecruitSettings.enabledChannelIds` 追加）・テスト全通過（2636件）
+
+### 非アクティブキック アクティビティトリガー設定（2026-06-29 develop merge）
 
 活動種別（テキストメッセージ / VC参加 / 絵文字リアクション）を `/inactive-kick-settings activity set` のマルチセレクトメニューで一括 on/off できる機能。コマンド設計を `enable/disable` 2コマンドから `set`（1〜3択必須）に刷新し、「全無効」状態を物理的に排除。現在の設定をデフォルト選択で表示し、成功時に有効/無効のトリガー名を列挙。DB マイグレーション（`track_message` / `track_voice` / `track_reaction` カラム追加）・shared `InactiveKickSettings` 型拡張（v0.3.3 publish 済み）・ja/en ロケール・テスト全通過（2636件）。
 
@@ -89,9 +88,9 @@
 - [x] inactiveKickResource.ts に新フィールドを反映
 - [x] テスト更新 + develop merge（PR #80・rebase）
 
-### 通知送信リファクタリング + 実行時刻設定化 Steps 0〜6（§2・2026-06-28 完了）
+### 通知送信リファクタリング + 実行時刻設定化 Steps 0〜6（2026-06-28 完了）
 
-（§2・2026-06-28 完了）設計書: KICK_NOTIFICATION_REFACTOR_SPEC.md
+（2026-06-28 完了）設計書: KICK_NOTIFICATION_REFACTOR_SPEC.md
 
 inactive-kick / unverified-kick の通知ページネーション廃止・{markerRole} 廃止＋mentionEnabled による個別メンション化・予定日別 embed（`daysLeft` グループ）・`<t:unix:f>` タイムスタンプ・`computeKickUnix()`（runHour:00 基準）・{daysLeft} プレースホルダー廃止・`sendNotification` 共通送信ユーティリティ・毎時スイープ（`"0 * * * *"`）＋ per-guild `timezone`/`runHour` フィルタ・`lastRunDate` 同日ガード・`KickedMember` 型（displayName 取得）。`setWarnStage` upsert 化・`sendPaginatedEmbeds` の `pagination.ts` 統合・preview の PREVIEW_COLLECTOR_MS=300_000 化も含む。
 
@@ -130,7 +129,7 @@ Bot と同一プロセスで起動する Fastify API を実装し、web ダッ�
 
 > NOTE: 実機検証（`pnpm start` 起動 + 動作確認）は未実施（auto-merge 指示により release を先行）。本番での軽い動作確認を推奨。
 
-### VC自動募集（§2・2026-06-04 完了・本番デプロイ済み）
+### VC自動募集（2026-06-04 完了・本番デプロイ済み）
 
 VC が **0人→1人（最初の1人）** になった時、指定チャンネルへ募集メッセージ（カスタム本文＋固定 Embed＋「🔊 VCに参加」Link ボタン）を自動投稿。VC から全員退出すると投稿済みメッセージのボタンを無効の「募集終了」へ差し替え（募集終了は `enabled` 非依存・空室時のみ・開始者の在室は不問）。CreateVC トリガー・AFK・Bot 参加は除外し、VAC 作成 VC は対象。募集文は content として送信し `allowedMentions` でメンションを実ピング。設計・実装は member-log/VAC 流儀（本文可変・Embed 固定・DB 保存・jsonb 配列・起動クリーンアップ）に準拠。
 
@@ -138,7 +137,7 @@ VC が **0人→1人（最初の1人）** になった時、指定チャンネ�
 - [x] 実装（DB `GuildVcAutoRecruitSettings`〔`activeInvites` jsonb〕 + migration + リポジトリ/設定サービス + イベントサービス `VcAutoRecruitService`〔投稿・募集終了・channelDelete・起動クリーンアップ〕 + `/vc-auto-recruit-settings` コマンド群 + set-message モーダル + content/Embed/ボタンビルダー + `voiceStateUpdate`/`channelDelete`/clientReady 配線 + composition root + help 追加）
 - [x] **本番リリース**: release PR #44（develop→main・2026-06-04）。命名は当初 `vc-invite`→ ユーザー指示で **VC自動募集 / `/vc-auto-recruit-settings`** に全面リネーム
 - [x] **カテゴリ allowlist 追加（§2 拡張・後追い）**: 募集は**明示的に有効化したカテゴリの VC でのみ**投稿（`enabledCategoryIds` jsonb・ルート直下は sentinel `"TOP"`）。`enable-category`/`disable-category` 追加、空＝投稿なし、`@everyone` 可視性は判定に使わず認証制サーバーのメンバー専用 VC も有効カテゴリなら投稿、カテゴリ削除で allowlist 自動掃除。全 2418 通過
-- [x] **二重通知バグ修正（§2・後追い）**: CreateVC 経由の参加で募集通知が2件投稿される問題を修正。原因は discord.js の `newState` がキャッシュ上のライブ参照で、VAC の `setChannel` が `newState.channelId` を破壊的に書き換えるため、`voiceStateUpdate` で VAC を先に await すると vc-auto-recruit がトリガー除外をすり抜けて生成 VC を指し、移動イベントと合わせ2件投稿されていた。ハンドラ順序を **vc-auto-recruit → VAC** に入替え、トリガー Ch を同期的に読ませて解消。全 2437 通過。release PR #49（develop→main・2026-06-04・本番デプロイ済み）
+- [x] **二重通知バグ修正（後追い）**: CreateVC 経由の参加で募集通知が2件投稿される問題を修正。原因は discord.js の `newState` がキャッシュ上のライブ参照で、VAC の `setChannel` が `newState.channelId` を破壊的に書き換えるため、`voiceStateUpdate` で VAC を先に await すると vc-auto-recruit がトリガー除外をすり抜けて生成 VC を指し、移動イベントと合わせ2件投稿されていた。ハンドラ順序を **vc-auto-recruit → VAC** に入替え、トリガー Ch を同期的に読ませて解消。全 2437 通過。release PR #49（develop→main・2026-06-04・本番デプロイ済み）
 
 > NOTE: 起動クリーンアップ・closeInvite の Discord 副作用経路はロジック実装済み（ユニットでは主要分岐を担保）。カテゴリ allowlist 拡張は別 release PR で本番反映予定。
 

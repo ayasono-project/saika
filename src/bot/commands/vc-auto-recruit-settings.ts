@@ -15,7 +15,7 @@ import type { Command } from "../types/discord";
 
 /**
  * VC自動募集設定コマンド（サーバー管理権限専用）
- * 投稿先チャンネル・有効化/無効化・カスタムメッセージ・Embed の設定を提供する
+ * 投稿先チャンネル・有効化/無効化・カスタムメッセージ・Embed・対象チャンネルの設定を提供する
  */
 export const vcAutoRecruitSettingsCommand: Command = {
   data: (() => {
@@ -26,11 +26,11 @@ export const vcAutoRecruitSettingsCommand: Command = {
     );
     const setChannelDesc = getCommandLocalizations(
       "vcAutoRecruit",
-      "vc-auto-recruit-settings.set-channel.description",
+      "vc-auto-recruit-settings.set-post-channel.description",
     );
     const setChannelChannelDesc = getCommandLocalizations(
       "vcAutoRecruit",
-      "vc-auto-recruit-settings.set-channel.channel.description",
+      "vc-auto-recruit-settings.set-post-channel.channel.description",
     );
     const enableDesc = getCommandLocalizations(
       "vcAutoRecruit",
@@ -56,13 +56,13 @@ export const vcAutoRecruitSettingsCommand: Command = {
       "vcAutoRecruit",
       "vc-auto-recruit-settings.set-embed.enabled.description",
     );
-    const addCategoryDesc = getCommandLocalizations(
+    const addChannelDesc = getCommandLocalizations(
       "vcAutoRecruit",
-      "vc-auto-recruit-settings.add-category.description",
+      "vc-auto-recruit-settings.add-channel.description",
     );
-    const removeCategoryDesc = getCommandLocalizations(
+    const removeChannelDesc = getCommandLocalizations(
       "vcAutoRecruit",
-      "vc-auto-recruit-settings.remove-category.description",
+      "vc-auto-recruit-settings.remove-channel.description",
     );
     const viewDesc = getCommandLocalizations(
       "vcAutoRecruit",
@@ -142,20 +142,18 @@ export const vcAutoRecruitSettingsCommand: Command = {
             ),
         )
         .addSubcommand((subcommand) =>
-          // 募集対象カテゴリ追加（未登録カテゴリをメニューから複数選択）
+          // 募集対象チャンネル追加（未登録 VC チャンネルをメニューから複数選択）
           subcommand
-            .setName(VC_AUTO_RECRUIT_SETTINGS_COMMAND.SUBCOMMAND.ADD_CATEGORY)
-            .setDescription(addCategoryDesc.base)
-            .setDescriptionLocalizations(addCategoryDesc.localizations),
+            .setName(VC_AUTO_RECRUIT_SETTINGS_COMMAND.SUBCOMMAND.ADD_CHANNEL)
+            .setDescription(addChannelDesc.base)
+            .setDescriptionLocalizations(addChannelDesc.localizations),
         )
         .addSubcommand((subcommand) =>
-          // 募集対象カテゴリ解除（登録済みカテゴリをメニューから複数選択）
+          // 募集対象チャンネル解除（登録済み VC チャンネルをメニューから複数選択）
           subcommand
-            .setName(
-              VC_AUTO_RECRUIT_SETTINGS_COMMAND.SUBCOMMAND.REMOVE_CATEGORY,
-            )
-            .setDescription(removeCategoryDesc.base)
-            .setDescriptionLocalizations(removeCategoryDesc.localizations),
+            .setName(VC_AUTO_RECRUIT_SETTINGS_COMMAND.SUBCOMMAND.REMOVE_CHANNEL)
+            .setDescription(removeChannelDesc.base)
+            .setDescriptionLocalizations(removeChannelDesc.localizations),
         )
         .addSubcommand((subcommand) =>
           // 設定表示

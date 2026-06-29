@@ -20,10 +20,7 @@ import {
   getVacSettingsService,
   type VacSettingsService,
 } from "../../vac/vacSettingsService";
-import {
-  VC_AUTO_RECRUIT_REPOST_COOLDOWN_MS,
-  VC_AUTO_RECRUIT_ROOT_CATEGORY,
-} from "../constants/vcAutoRecruit.constants";
+import { VC_AUTO_RECRUIT_REPOST_COOLDOWN_MS } from "../constants/vcAutoRecruit.constants";
 import {
   buildEndedComponents,
   buildInviteEmbed,
@@ -122,10 +119,8 @@ export class VcAutoRecruitService {
       return;
     }
 
-    // カテゴリ allowlist（opt-in）: 所属カテゴリ（ルート直下は "TOP"）が有効な場合のみ。
-    // @everyone 可視性は判定に用いない（メンバー専用 VC を誤除外しないため）
-    const categoryKey = channel.parentId ?? VC_AUTO_RECRUIT_ROOT_CATEGORY;
-    if (!settings.enabledCategoryIds.includes(categoryKey)) {
+    // チャンネル allowlist（opt-in）: 登録済み VC チャンネルのみ投稿する
+    if (!settings.enabledChannelIds.includes(channel.id)) {
       return;
     }
 
@@ -283,7 +278,7 @@ export class VcAutoRecruitService {
         );
       }
 
-      // (c) 有効カテゴリが削除された → allowlist から除去
+      // (c) 有効カテゴリが削除された → allowlist から除去（移行期間中の旧データ対応）
       if (settings.enabledCategoryIds.includes(channel.id)) {
         await this.settingsService.removeEnabledCategory(guild.id, channel.id);
         logger.info(
@@ -291,6 +286,18 @@ export class VcAutoRecruitService {
             "system:log_prefix.vc_auto_recruit",
             "vcAutoRecruit:log.category_removed_by_delete",
             { guildId: guild.id, categoryId: channel.id },
+          ),
+        );
+      }
+
+      // (d) 有効チャンネルが削除された → allowlist から除去
+      if (settings.enabledChannelIds.includes(channel.id)) {
+        await this.settingsService.removeEnabledChannel(guild.id, channel.id);
+        logger.info(
+          logPrefixed(
+            "system:log_prefix.vc_auto_recruit",
+            "vcAutoRecruit:log.channel_removed_by_delete",
+            { guildId: guild.id, channelId: channel.id },
           ),
         );
       }

@@ -8,8 +8,8 @@ import {
 } from "@/features/inactive-kick/services/inactiveKickNotifier";
 import type { GuildTFunction } from "@/shared/locale/helpers";
 
-// テスト用翻訳関数: キー文字列をそのまま返す
-const t = ((key: string) => key) as unknown as GuildTFunction;
+// テスト用翻訳関数: キー文字列をそのまま返す（呼び出し引数の検証用に vi.fn 化）
+const t = vi.fn((key: string) => key) as unknown as GuildTFunction;
 
 // キック予定日算出の基準時刻（固定）
 const NOW = new Date(2026, 0, 10, 12, 0, 0);
@@ -40,6 +40,11 @@ const baseCtx = {
 };
 
 describe("inactive-kick/notifier", () => {
+  // t の呼び出し履歴（引数検証用）をテスト間で共有させない
+  beforeEach(() => {
+    vi.mocked(t).mockClear();
+  });
+
   describe("formatInactiveKickMessage", () => {
     it("単一波括弧プレースホルダーを置換する", () => {
       const result = formatInactiveKickMessage(
@@ -167,6 +172,54 @@ describe("inactive-kick/notifier", () => {
       });
       expect(normal.embeds[0]?.data.fields).toHaveLength(1);
       expect(test.embeds[0]?.data.fields).toHaveLength(2);
+    });
+
+    it("フィールド名に「このフィールドの人数/合計人数」を付与する", () => {
+      const { embeds } = buildKickNotification(
+        [
+          { displayName: "Alice", userId: "u1" },
+          { displayName: "Bob", userId: "u2" },
+        ],
+        { t, serverName: "s", thresholdDays: 30, testMode: false },
+      );
+      expect(embeds[0]?.data.fields?.[0]?.name).toBe(
+        "inactiveKick:embed.field.name.kicked_members (2/2)",
+      );
+    });
+
+    it("1024 文字を超える場合は複数フィールドに分割し、各フィールド名の人数の合計が総数と一致する", () => {
+      const kicked = Array.from({ length: 100 }, (_, i) => ({
+        displayName: `Member-${i}`,
+        userId: `${1000000000000000000n + BigInt(i)}`,
+      }));
+      const { embeds } = buildKickNotification(kicked, {
+        t,
+        serverName: "s",
+        thresholdDays: 30,
+        testMode: false,
+      });
+      const fields = embeds.flatMap((e) => e.data.fields ?? []);
+      expect(fields.length).toBeGreaterThan(1);
+      const counts = fields.map((f) => {
+        const match = f.name.match(/\((\d+)\/(\d+)\)$/);
+        expect(match).not.toBeNull();
+        expect(match?.[2]).toBe("100");
+        return Number(match?.[1]);
+      });
+      expect(counts.reduce((sum, n) => sum + n, 0)).toBe(100);
+    });
+
+    it("タイトル生成時に合計人数を t の第二引数へ渡す", () => {
+      buildKickNotification(
+        [
+          { displayName: "Alice", userId: "u1" },
+          { displayName: "Bob", userId: "u2" },
+        ],
+        { t, serverName: "s", thresholdDays: 30, testMode: false },
+      );
+      expect(t).toHaveBeenCalledWith("inactiveKick:embed.title.kick", {
+        total: 2,
+      });
     });
   });
 });

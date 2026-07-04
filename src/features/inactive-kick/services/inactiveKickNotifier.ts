@@ -278,13 +278,16 @@ export function buildWarnNotification(
 /**
  * キックしたメンバーの一覧を `displayName (userId)` 形式でフィールド配列へ動的分割する。
  * 各フィールド値が 1024 文字を超えないようにコンマ区切りで詰める。
+ * フィールド名には「このフィールドの表示人数/全体の合計人数」を付与する。
  */
 function splitKickedMemberFields(
   fieldName: string,
   kicked: { displayName: string; userId: string }[],
 ): { name: string; value: string }[] {
+  const total = kicked.length;
   const fields: { name: string; value: string }[] = [];
   let current = "";
+  let countInField = 0;
 
   for (const { displayName, userId } of kicked) {
     const entry = `${displayName} (\`${userId}\`)`;
@@ -292,20 +295,31 @@ function splitKickedMemberFields(
 
     if (candidate.length > MAX_FIELD_VALUE_LENGTH) {
       if (current.length > 0) {
-        fields.push({ name: fieldName, value: current });
+        fields.push({
+          name: `${fieldName} (${countInField}/${total})`,
+          value: current,
+        });
         current = entry;
+        countInField = 1;
       } else {
         fields.push({
-          name: fieldName,
+          name: `${fieldName} (1/${total})`,
           value: entry.slice(0, MAX_FIELD_VALUE_LENGTH),
         });
         current = "";
+        countInField = 0;
       }
     } else {
       current = candidate;
+      countInField++;
     }
   }
-  if (current.length > 0) fields.push({ name: fieldName, value: current });
+  if (current.length > 0) {
+    fields.push({
+      name: `${fieldName} (${countInField}/${total})`,
+      value: current,
+    });
+  }
   return fields;
 }
 
@@ -379,7 +393,7 @@ export function buildKickNotification(
   };
 
   const openEmbed = (): EmbedBuilder => {
-    const titleText = ctx.t("inactiveKick:embed.title.kick");
+    const titleText = ctx.t("inactiveKick:embed.title.kick", { total });
     const embed = new EmbedBuilder()
       .setColor(EMBED_COLORS.INACTIVE_KICK_KICK)
       .setTimestamp();

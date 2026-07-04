@@ -45,7 +45,7 @@ export interface OverviewInputs {
   ticketCount: number;
   reactionRoleCount: number;
   inactiveKickEnabled: boolean;
-  inactiveKickThresholdDays: number;
+  inactiveKickTierCount: number;
   unverifiedKickEnabled: boolean;
   unverifiedKickVerifiedRoleId: string | null;
 }
@@ -118,7 +118,7 @@ export function toFeatureStatuses(input: OverviewInputs): FeatureStatus[] {
     {
       key: "inactive-kick",
       state: toggle(input.inactiveKickEnabled),
-      summary: `閾値: ${input.inactiveKickThresholdDays}日`,
+      summary: `在籍階層: ${input.inactiveKickTierCount}件`,
     },
     {
       key: "unverified-kick",
@@ -193,7 +193,7 @@ async function collectInputs(
     ticketCount: tickets.length,
     reactionRoleCount: reactionRoles.length,
     inactiveKickEnabled: inactive.enabled,
-    inactiveKickThresholdDays: inactive.thresholdDays,
+    inactiveKickTierCount: inactive.tiers.length,
     unverifiedKickEnabled: unverified.enabled,
     unverifiedKickVerifiedRoleId: unverified.verifiedRoleId,
   };

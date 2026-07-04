@@ -113,7 +113,15 @@ const baseSettings = {
   enabled: true,
   enabledAt: OLD,
   channelId: "chan-1",
-  thresholdDays: 30,
+  tiers: [
+    {
+      tenureDays: 0,
+      thresholdDays: 30,
+      trackMessage: true,
+      trackVoice: true,
+      trackReaction: true,
+    },
+  ],
   weekWarnMessage: undefined,
   finalWarnMessage: undefined,
   kickMessage: undefined,
@@ -123,9 +131,6 @@ const baseSettings = {
   timezone: "Asia/Tokyo",
   runHour: 4,
   mentionEnabled: true,
-  trackMessage: true,
-  trackVoice: true,
-  trackReaction: true,
 };
 
 describe("inactive-kick/runner", () => {
@@ -157,7 +162,24 @@ describe("inactive-kick/runner", () => {
     const guild = fakeGuild([fakeMember({ id: "u1" })]);
     await processGuildInactiveKick(fakeClient(guild), {
       ...baseSettings,
-      thresholdDays: 5,
+      tiers: [
+        {
+          tenureDays: 0,
+          thresholdDays: 5,
+          trackMessage: true,
+          trackVoice: true,
+          trackReaction: true,
+        },
+      ],
+    });
+    expect(mocks.disableInvalid).toHaveBeenCalledWith("g1");
+  });
+
+  it("階層が空なら自動無効化する", async () => {
+    const guild = fakeGuild([fakeMember({ id: "u1" })]);
+    await processGuildInactiveKick(fakeClient(guild), {
+      ...baseSettings,
+      tiers: [],
     });
     expect(mocks.disableInvalid).toHaveBeenCalledWith("g1");
   });

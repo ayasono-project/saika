@@ -104,7 +104,7 @@ model GuildInactiveKickSettings {
   enabled          Boolean   @default(false)
   enabledAt        DateTime? @map("enabled_at") // 最後に有効化した時刻（キック起算の下限）
   channelId        String?   @map("channel_id")
-  thresholdDays    Int       @default(30) @map("threshold_days")
+  tiers            Json      @default("[{\"tenureDays\":0,\"thresholdDays\":30,\"trackMessage\":true,\"trackVoice\":true,\"trackReaction\":true}]") @map("tiers") // jsonb: InactiveKickTier[]（在籍N日以上でこのしきい値・活動判定・アクティブ条件を適用）
   weekWarnMessage  String?   @map("week_warn_message") // 1週間前通知のカスタム文
   finalWarnMessage String?   @map("final_warn_message") // 最終警告（3日前）のカスタム文
   kickMessage      String?   @map("kick_message")
@@ -115,9 +115,6 @@ model GuildInactiveKickSettings {
   runHour          Int       @default(4) @map("run_hour") // 実行時刻（0〜23）
   lastRunDate      String?   @map("last_run_date") // 同日2回実行ガード（"YYYY-MM-DD"）
   mentionEnabled   Boolean   @default(true) @map("mention_enabled") // 個別ユーザーメンション通知
-  trackMessage     Boolean   @default(true) @map("track_message")  // テキストメッセージを活動として記録
-  trackVoice       Boolean   @default(true) @map("track_voice")    // VC参加を活動として記録
-  trackReaction    Boolean   @default(true) @map("track_reaction") // 絵文字リアクションを活動として記録
 
   @@map("guild_inactive_kick_settings")
 }
@@ -129,6 +126,9 @@ model MemberActivity {
   userId         String   @map("user_id")
   lastActivityAt DateTime @map("last_activity_at")
   warnStage      Int      @default(0) @map("warn_stage") // 0=未通知, 1=1週間前済, 2=最終警告済
+  messageCount   Int      @default(0) @map("message_count")  // 累積メッセージ送信回数（アクティブ条件判定用）
+  voiceCount     Int      @default(0) @map("voice_count")    // 累積VC参加回数
+  reactionCount  Int      @default(0) @map("reaction_count") // 累積リアクション回数
 
   @@unique([guildId, userId])
   @@index([guildId])

@@ -1,10 +1,11 @@
 // src/features/inactive-kick/inactiveKickSettingsRepository.ts
 // 非アクティブ自動キック設定リポジトリ（guild_inactive_kick_settings テーブル）
 
-import type { PrismaClient } from "@prisma/client";
+import type { Prisma, PrismaClient } from "@prisma/client";
 import type {
   IInactiveKickSettingsRepository,
   InactiveKickSettings,
+  InactiveKickTier,
 } from "../../shared/database/types";
 import { createRepositoryGetter } from "../../shared/utils/serviceFactory";
 
@@ -26,7 +27,7 @@ export class InactiveKickSettingsRepository
     enabled: boolean;
     enabledAt: Date | null;
     channelId: string | null;
-    thresholdDays: number;
+    tiers: unknown;
     weekWarnMessage: string | null;
     finalWarnMessage: string | null;
     kickMessage: string | null;
@@ -37,15 +38,12 @@ export class InactiveKickSettingsRepository
     runHour: number;
     lastRunDate: string | null;
     mentionEnabled: boolean;
-    trackMessage: boolean;
-    trackVoice: boolean;
-    trackReaction: boolean;
   }): InactiveKickSettings {
     return {
       enabled: record.enabled,
       enabledAt: record.enabledAt ?? undefined,
       channelId: record.channelId ?? undefined,
-      thresholdDays: record.thresholdDays,
+      tiers: record.tiers as InactiveKickTier[],
       weekWarnMessage: record.weekWarnMessage ?? undefined,
       finalWarnMessage: record.finalWarnMessage ?? undefined,
       kickMessage: record.kickMessage ?? undefined,
@@ -56,9 +54,6 @@ export class InactiveKickSettingsRepository
       runHour: record.runHour,
       lastRunDate: record.lastRunDate ?? undefined,
       mentionEnabled: record.mentionEnabled,
-      trackMessage: record.trackMessage,
-      trackVoice: record.trackVoice,
-      trackReaction: record.trackReaction,
     };
   }
 
@@ -80,7 +75,7 @@ export class InactiveKickSettingsRepository
       enabled: settings.enabled,
       enabledAt: settings.enabledAt ?? null,
       channelId: settings.channelId ?? null,
-      thresholdDays: settings.thresholdDays,
+      tiers: settings.tiers as unknown as Prisma.InputJsonValue,
       weekWarnMessage: settings.weekWarnMessage ?? null,
       finalWarnMessage: settings.finalWarnMessage ?? null,
       kickMessage: settings.kickMessage ?? null,
@@ -91,9 +86,6 @@ export class InactiveKickSettingsRepository
       runHour: settings.runHour,
       lastRunDate: settings.lastRunDate ?? null,
       mentionEnabled: settings.mentionEnabled,
-      trackMessage: settings.trackMessage,
-      trackVoice: settings.trackVoice,
-      trackReaction: settings.trackReaction,
     };
     await this.prisma.guildInactiveKickSettings.upsert({
       where: { guildId },

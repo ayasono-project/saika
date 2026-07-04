@@ -11,6 +11,7 @@ import { executeInactiveKickSettingsCommand } from "../../features/inactive-kick
 import {
   INACTIVE_KICK_THRESHOLD_MAX_DAYS,
   INACTIVE_KICK_THRESHOLD_MIN_DAYS,
+  INACTIVE_KICK_TIER_TENURE_MIN_DAYS,
 } from "../../features/inactive-kick/inactiveKickSettingsDefaults";
 import { getCommandLocalizations } from "../../shared/locale/commandLocalizations";
 import type { InactiveKickTranslations } from "../../shared/locale/locales/ja/features/inactiveKick";
@@ -23,7 +24,7 @@ const {
   GROUP,
   WHITELIST_SUBCOMMAND,
   MENTION_SUBCOMMAND,
-  ACTIVITY_SUBCOMMAND,
+  TIER_SUBCOMMAND,
   OPTION,
 } = INACTIVE_KICK_SETTINGS_COMMAND;
 
@@ -59,25 +60,6 @@ export const inactiveKickSettingsCommand: Command = {
               .setDescription(od.base)
               .setDescriptionLocalizations(od.localizations)
               .addChannelTypes(ChannelType.GuildText)
-              .setRequired(true),
-          );
-      })
-      .addSubcommand((sub) => {
-        const d = desc("inactive-kick-settings.set-threshold.description");
-        const od = desc(
-          "inactive-kick-settings.set-threshold.days.description",
-        );
-        return sub
-          .setName(SUBCOMMAND.SET_THRESHOLD)
-          .setDescription(d.base)
-          .setDescriptionLocalizations(d.localizations)
-          .addIntegerOption((o) =>
-            o
-              .setName(OPTION.DAYS)
-              .setDescription(od.base)
-              .setDescriptionLocalizations(od.localizations)
-              .setMinValue(INACTIVE_KICK_THRESHOLD_MIN_DAYS)
-              .setMaxValue(INACTIVE_KICK_THRESHOLD_MAX_DAYS)
               .setRequired(true),
           );
       })
@@ -277,17 +259,123 @@ export const inactiveKickSettingsCommand: Command = {
           );
       })
       .addSubcommandGroup((group) => {
-        const gd = desc("inactive-kick-settings.activity.description");
-        const setD = desc("inactive-kick-settings.activity.set.description");
+        const gd = desc("inactive-kick-settings.tier.description");
+        const setD = desc("inactive-kick-settings.tier.set.description");
+        const setTenureD = desc(
+          "inactive-kick-settings.tier.set.tenure-days.description",
+        );
+        const setThresholdD = desc(
+          "inactive-kick-settings.tier.set.threshold-days.description",
+        );
+        const setTrackMessageD = desc(
+          "inactive-kick-settings.tier.set.track-message.description",
+        );
+        const setTrackVoiceD = desc(
+          "inactive-kick-settings.tier.set.track-voice.description",
+        );
+        const setTrackReactionD = desc(
+          "inactive-kick-settings.tier.set.track-reaction.description",
+        );
+        const setMinMessageD = desc(
+          "inactive-kick-settings.tier.set.min-message-count.description",
+        );
+        const setMinVoiceD = desc(
+          "inactive-kick-settings.tier.set.min-voice-count.description",
+        );
+        const setMinReactionD = desc(
+          "inactive-kick-settings.tier.set.min-reaction-count.description",
+        );
+        const setTenureDeadlineD = desc(
+          "inactive-kick-settings.tier.set.tenure-deadline.description",
+        );
+        const rmD = desc("inactive-kick-settings.tier.remove.description");
+        const listD = desc("inactive-kick-settings.tier.list.description");
         return group
-          .setName(GROUP.ACTIVITY)
+          .setName(GROUP.TIER)
           .setDescription(gd.base)
           .setDescriptionLocalizations(gd.localizations)
           .addSubcommand((sub) =>
             sub
-              .setName(ACTIVITY_SUBCOMMAND.SET)
+              .setName(TIER_SUBCOMMAND.SET)
               .setDescription(setD.base)
-              .setDescriptionLocalizations(setD.localizations),
+              .setDescriptionLocalizations(setD.localizations)
+              .addIntegerOption((o) =>
+                o
+                  .setName(OPTION.TENURE_DAYS)
+                  .setDescription(setTenureD.base)
+                  .setDescriptionLocalizations(setTenureD.localizations)
+                  .setMinValue(INACTIVE_KICK_TIER_TENURE_MIN_DAYS)
+                  .setRequired(true),
+              )
+              .addIntegerOption((o) =>
+                o
+                  .setName(OPTION.THRESHOLD_DAYS)
+                  .setDescription(setThresholdD.base)
+                  .setDescriptionLocalizations(setThresholdD.localizations)
+                  .setMinValue(INACTIVE_KICK_THRESHOLD_MIN_DAYS)
+                  .setMaxValue(INACTIVE_KICK_THRESHOLD_MAX_DAYS)
+                  .setRequired(true),
+              )
+              .addBooleanOption((o) =>
+                o
+                  .setName(OPTION.TRACK_MESSAGE)
+                  .setDescription(setTrackMessageD.base)
+                  .setDescriptionLocalizations(setTrackMessageD.localizations),
+              )
+              .addBooleanOption((o) =>
+                o
+                  .setName(OPTION.TRACK_VOICE)
+                  .setDescription(setTrackVoiceD.base)
+                  .setDescriptionLocalizations(setTrackVoiceD.localizations),
+              )
+              .addBooleanOption((o) =>
+                o
+                  .setName(OPTION.TRACK_REACTION)
+                  .setDescription(setTrackReactionD.base)
+                  .setDescriptionLocalizations(setTrackReactionD.localizations),
+              )
+              .addIntegerOption((o) =>
+                o
+                  .setName(OPTION.MIN_MESSAGE_COUNT)
+                  .setDescription(setMinMessageD.base)
+                  .setDescriptionLocalizations(setMinMessageD.localizations)
+                  .setMinValue(0),
+              )
+              .addIntegerOption((o) =>
+                o
+                  .setName(OPTION.MIN_VOICE_COUNT)
+                  .setDescription(setMinVoiceD.base)
+                  .setDescriptionLocalizations(setMinVoiceD.localizations)
+                  .setMinValue(0),
+              )
+              .addIntegerOption((o) =>
+                o
+                  .setName(OPTION.MIN_REACTION_COUNT)
+                  .setDescription(setMinReactionD.base)
+                  .setDescriptionLocalizations(setMinReactionD.localizations)
+                  .setMinValue(0),
+              )
+              .addBooleanOption((o) =>
+                o
+                  .setName(OPTION.TENURE_DEADLINE)
+                  .setDescription(setTenureDeadlineD.base)
+                  .setDescriptionLocalizations(
+                    setTenureDeadlineD.localizations,
+                  ),
+              ),
+          )
+          .addSubcommand((sub) =>
+            // remove は登録済み階層をセレクトメニューで複数選択するためオプションなし
+            sub
+              .setName(TIER_SUBCOMMAND.REMOVE)
+              .setDescription(rmD.base)
+              .setDescriptionLocalizations(rmD.localizations),
+          )
+          .addSubcommand((sub) =>
+            sub
+              .setName(TIER_SUBCOMMAND.LIST)
+              .setDescription(listD.base)
+              .setDescriptionLocalizations(listD.localizations),
           );
       });
   })(),

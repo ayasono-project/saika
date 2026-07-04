@@ -8,6 +8,7 @@ import type { GuildTFunction } from "../../../shared/locale/helpers";
 export interface ObsoleteInactiveKickPlaceholders {
   hasDaysLeft: boolean;
   hasMarkerRole: boolean;
+  hasThresholdDays: boolean;
 }
 
 /** inactive-kick テンプレート設定に廃止プレースホルダーが含まれているか検出する */
@@ -24,6 +25,9 @@ export function detectObsoleteInactiveKickPlaceholders(settings: {
   return {
     hasDaysLeft: templates.some((t) => t?.includes("{daysLeft}") ?? false),
     hasMarkerRole: templates.some((t) => t?.includes("{markerRole}") ?? false),
+    hasThresholdDays: templates.some(
+      (t) => t?.includes("{thresholdDays}") ?? false,
+    ),
   };
 }
 
@@ -32,7 +36,13 @@ export function buildObsoleteInactiveKickNotice(
   t: GuildTFunction,
   detected: ObsoleteInactiveKickPlaceholders,
 ): EmbedBuilder | null {
-  if (!detected.hasDaysLeft && !detected.hasMarkerRole) return null;
+  if (
+    !detected.hasDaysLeft &&
+    !detected.hasMarkerRole &&
+    !detected.hasThresholdDays
+  ) {
+    return null;
+  }
 
   const embed = new EmbedBuilder()
     .setColor(EMBED_COLORS.INACTIVE_KICK_WARN)
@@ -49,6 +59,12 @@ export function buildObsoleteInactiveKickNotice(
     embed.addFields({
       name: t("inactiveKick:embed.field.name.obsolete_days_left"),
       value: t("inactiveKick:embed.field.value.obsolete_days_left"),
+    });
+  }
+  if (detected.hasThresholdDays) {
+    embed.addFields({
+      name: t("inactiveKick:embed.field.name.obsolete_threshold_days"),
+      value: t("inactiveKick:embed.field.value.obsolete_threshold_days"),
     });
   }
 

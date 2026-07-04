@@ -1,8 +1,12 @@
 // tests/unit/features/inactive-kick/services/inactiveKickNotifier.test.ts
 
-import type { CategorizedCandidate } from "@/features/inactive-kick/services/inactiveKickCandidates";
+import type {
+  CandidateBuckets,
+  CategorizedCandidate,
+} from "@/features/inactive-kick/services/inactiveKickCandidates";
 import {
   buildKickNotification,
+  buildPreviewEmbedPages,
   buildWarnNotification,
   formatInactiveKickMessage,
 } from "@/features/inactive-kick/services/inactiveKickNotifier";
@@ -22,8 +26,10 @@ function candidate(
     inactiveDays: 30,
     daysLeft: 3,
     warnStage: 0,
+    thresholdDays: 30,
     isMarkerTarget: true,
     hasMarkerRole: false,
+    tenureDeadline: false,
     ...over,
   };
 }
@@ -31,7 +37,6 @@ function candidate(
 const baseCtx = {
   t,
   serverName: "彩園",
-  thresholdDays: 30,
   now: NOW,
   defaultMessageKey: "inactiveKick:default.week_warn_message" as const,
   timezone: "Asia/Tokyo",
@@ -62,7 +67,7 @@ describe("inactive-kick/notifier", () => {
   });
 
   describe("buildWarnNotification", () => {
-    it("カスタム文を本文(content)に出し、count と thresholdDays を差し込む", () => {
+    it("カスタム文を本文(content)に出し、count を差し込む（thresholdDays は非対応・未知プレースホルダーとして残る）", () => {
       const candidates = [
         candidate({ userId: "u1", daysLeft: 3 }),
         candidate({ userId: "u2", daysLeft: 1 }),
@@ -73,7 +78,7 @@ describe("inactive-kick/notifier", () => {
       });
       // daysLeft が異なる 2 グループ → 2 Embed
       expect(embeds).toHaveLength(2);
-      expect(content).toBe("2名・しきい値30日");
+      expect(content).toBe("2名・しきい値{thresholdDays}日");
       expect(embeds[0]?.data.description).toBeUndefined();
     });
 
@@ -130,7 +135,7 @@ describe("inactive-kick/notifier", () => {
           { displayName: "Alice", userId: "u1" },
           { displayName: "Bob", userId: "u2" },
         ],
-        { t, serverName: "s", thresholdDays: 30, testMode: false },
+        { t, serverName: "s", testMode: false },
       );
       expect(embeds[0]?.data.fields?.[0]?.value).toBe(
         "Alice (`u1`), Bob (`u2`)",
@@ -143,7 +148,6 @@ describe("inactive-kick/notifier", () => {
         {
           t,
           serverName: "s",
-          thresholdDays: 30,
           customMessage: "{count}名キック",
           testMode: false,
         },
@@ -154,7 +158,7 @@ describe("inactive-kick/notifier", () => {
     it("カスタム未設定なら content は undefined", () => {
       const { content } = buildKickNotification(
         [{ displayName: "A", userId: "u1" }],
-        { t, serverName: "s", thresholdDays: 30, testMode: false },
+        { t, serverName: "s", testMode: false },
       );
       expect(content).toBeUndefined();
     });
@@ -162,12 +166,11 @@ describe("inactive-kick/notifier", () => {
     it("テストモードでは注記フィールドを追加する", () => {
       const normal = buildKickNotification(
         [{ displayName: "A", userId: "u1" }],
-        { t, serverName: "s", thresholdDays: 30, testMode: false },
+        { t, serverName: "s", testMode: false },
       );
       const test = buildKickNotification([{ displayName: "A", userId: "u1" }], {
         t,
         serverName: "s",
-        thresholdDays: 30,
         testMode: true,
       });
       expect(normal.embeds[0]?.data.fields).toHaveLength(1);
@@ -180,7 +183,7 @@ describe("inactive-kick/notifier", () => {
           { displayName: "Alice", userId: "u1" },
           { displayName: "Bob", userId: "u2" },
         ],
-        { t, serverName: "s", thresholdDays: 30, testMode: false },
+        { t, serverName: "s", testMode: false },
       );
       expect(embeds[0]?.data.fields?.[0]?.name).toBe(
         "inactiveKick:embed.field.name.kicked_members (2/2)",
@@ -195,7 +198,6 @@ describe("inactive-kick/notifier", () => {
       const { embeds } = buildKickNotification(kicked, {
         t,
         serverName: "s",
-        thresholdDays: 30,
         testMode: false,
       });
       const fields = embeds.flatMap((e) => e.data.fields ?? []);
@@ -215,11 +217,51 @@ describe("inactive-kick/notifier", () => {
           { displayName: "Alice", userId: "u1" },
           { displayName: "Bob", userId: "u2" },
         ],
-        { t, serverName: "s", thresholdDays: 30, testMode: false },
+        { t, serverName: "s", testMode: false },
       );
       expect(t).toHaveBeenCalledWith("inactiveKick:embed.title.kick", {
         total: 2,
       });
+    });
+  });
+
+  describe("buildPreviewEmbedPages", () => {
+    function buckets(items: CategorizedCandidate[]): CandidateBuckets {
+      return {
+        weekWarn: [],
+        finalWarn: [],
+        pendingKick: [],
+        kick: items,
+        graceClear: [],
+        markerRoleTargetIds: new Set(),
+      };
+    }
+
+    it("通常モードの階層は preview.member_line を使う（在籍日数締め切りモードの文言にはならない）", () => {
+      const embeds = buildPreviewEmbedPages(
+        buckets([candidate({ userId: "u1", tenureDeadline: false })]),
+        t,
+        NOW,
+        "Asia/Tokyo",
+        4,
+      );
+      const value = embeds.flatMap((e) => e.data.fields ?? [])[0]?.value ?? "";
+      expect(value).toContain("inactiveKick:preview.member_line");
+      expect(value).not.toContain("member_line_tenure_deadline");
+    });
+
+    it("在籍日数締め切りモードの階層は preview.member_line_tenure_deadline を使う", () => {
+      const embeds = buildPreviewEmbedPages(
+        buckets([candidate({ userId: "u1", tenureDeadline: true })]),
+        t,
+        NOW,
+        "Asia/Tokyo",
+        4,
+      );
+      const value = embeds.flatMap((e) => e.data.fields ?? [])[0]?.value ?? "";
+      expect(value).toContain(
+        "inactiveKick:preview.member_line_tenure_deadline",
+      );
     });
   });
 });

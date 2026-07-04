@@ -9,10 +9,31 @@ export const inactiveKick = {
     "Set the notification channel",
   "inactive-kick-settings.set-channel.channel.description":
     "Text channel to send notifications to",
-  "inactive-kick-settings.set-threshold.description":
-    "Set the days of inactivity before kicking",
-  "inactive-kick-settings.set-threshold.days.description":
+  "inactive-kick-settings.tier.description":
+    "Manage tenure tiers (threshold / activity tracking / active condition)",
+  "inactive-kick-settings.tier.set.description":
+    "Add or update a tier (specifying an existing tenure overwrites it)",
+  "inactive-kick-settings.tier.set.tenure-days.description":
+    "Minimum tenure in days this tier applies from (0 or more)",
+  "inactive-kick-settings.tier.set.threshold-days.description":
     "Inactivity threshold in days (14-365)",
+  "inactive-kick-settings.tier.set.track-message.description":
+    "Count text messages as activity (omit to keep existing / true for new tiers)",
+  "inactive-kick-settings.tier.set.track-voice.description":
+    "Count VC joins as activity (omit to keep existing / true for new tiers)",
+  "inactive-kick-settings.tier.set.track-reaction.description":
+    "Count emoji reactions as activity (omit to keep existing / true for new tiers)",
+  "inactive-kick-settings.tier.set.min-message-count.description":
+    "Active condition: minimum cumulative message count (omit to skip)",
+  "inactive-kick-settings.tier.set.min-voice-count.description":
+    "Active condition: minimum cumulative VC join count (omit to skip)",
+  "inactive-kick-settings.tier.set.min-reaction-count.description":
+    "Active condition: minimum cumulative reaction count (omit to skip)",
+  "inactive-kick-settings.tier.set.tenure-deadline.description":
+    "true: kick at tenure deadline unless active condition is met (then exempt)",
+  "inactive-kick-settings.tier.remove.description":
+    "Pick tiers to remove (multi-select)",
+  "inactive-kick-settings.tier.list.description": "Show the tier list",
   "inactive-kick-settings.enable.description": "Enable the auto-kick feature",
   "inactive-kick-settings.disable.description": "Disable the auto-kick feature",
   "inactive-kick-settings.set-week-warn-message.description":
@@ -53,10 +74,6 @@ export const inactiveKick = {
     "Enable individual mention notifications",
   "inactive-kick-settings.mention.disable.description":
     "Disable individual mention notifications",
-  "inactive-kick-settings.activity.description":
-    "Manage activity detection triggers",
-  "inactive-kick-settings.activity.set.description":
-    "Select which triggers to enable",
   "inactive-kick-settings.preview.description":
     "Show current kick/notification targets",
   "inactive-kick-settings.view.description": "Show current settings",
@@ -68,10 +85,17 @@ export const inactiveKick = {
   "user-response.text_channel_only": "Please specify a text channel.",
   "user-response.channel_bot_permission":
     "Missing permissions to send to that channel (View Channel / Send Messages / Embed Links).",
-  "user-response.set_threshold_success":
-    "Set the inactivity threshold to {{days}} days.",
-  "user-response.threshold_out_of_range":
-    "Please specify a value between 14 and 365 days.",
+  "user-response.tier_set_success":
+    "Set tier: tenure {{tenure}}+ days → threshold {{threshold}} days.",
+  "user-response.tier_remove_count": "Removed {{count}} tier(s).",
+  "user-response.tier_remove_empty":
+    "There are no tiers to remove (at least one is required).",
+  "user-response.tier_max_reached":
+    "You can have at most {{max}} tiers. Remove one before adding another.",
+  "user-response.tier_tenure_out_of_range":
+    "Tenure must be {{min}} days or more.",
+  "user-response.tier_threshold_out_of_range":
+    "The inactivity threshold must be between 14 and 365 days.",
   "user-response.enable_success": "Enabled the auto-kick feature.",
   "user-response.enable_error_no_channel":
     "No notification channel is set. Run /inactive-kick-settings set-channel first.",
@@ -110,9 +134,6 @@ export const inactiveKick = {
   "user-response.mention_enabled": "Enabled individual mention notifications.",
   "user-response.mention_disabled":
     "Disabled individual mention notifications.",
-  "user-response.activity_set_success":
-    "Enabled: {{enabled}}\nDisabled: {{disabled}}",
-  "user-response.activity_set_all_enabled": "Enabled: {{enabled}}",
   "user-response.reset_success": "Reset the settings.",
   "user-response.reset_cancelled": "Cancelled the reset.",
   "user-response.channel_deleted_notice":
@@ -121,7 +142,7 @@ export const inactiveKick = {
   // ── Settings view / reset embed ─────
   "embed.title.view": "Inactive Auto-Kick Settings",
   "embed.field.name.channel": "Notification channel",
-  "embed.field.name.threshold": "Inactivity threshold",
+  "embed.field.name.tier_list": "Tenure tiers",
   "embed.field.name.enabled_at": "Enabled at",
   "embed.field.name.marker_role": "Marker role",
   "embed.field.name.week_warn_message": "1-week notice message",
@@ -131,13 +152,24 @@ export const inactiveKick = {
   "embed.field.name.timezone": "Timezone",
   "embed.field.name.run_hour": "Run hour",
   "embed.field.name.mention_enabled": "Individual mentions",
-  "embed.field.name.activity_triggers": "Activity triggers",
-  "embed.field.value.activity_triggers":
-    "Text: {{message}} / VC join: {{voice}} / Reaction: {{reaction}}",
-  "activity_trigger.message": "Text messages",
+  "activity_trigger.message": "Messages",
   "activity_trigger.voice": "VC joins",
-  "activity_trigger.reaction": "Emoji reactions",
-  "embed.field.value.threshold_days": "{{count}} days",
+  "activity_trigger.reaction": "Reactions",
+  "embed.field.value.tier_tier":
+    "Tenure {{tenure}}+ days → inactive {{threshold}} days",
+  "embed.field.value.tier_tier_tenure_deadline":
+    "Tenure {{tenure}}–{{threshold}} days: judged at deadline",
+  "embed.field.value.tier_tracking": "Activity tracking: {{summary}}",
+  "embed.field.value.tier_condition_message": "{{count}}+ messages",
+  "embed.field.value.tier_condition_voice": "{{count}}+ VC joins",
+  "embed.field.value.tier_condition_reaction": "{{count}}+ reactions",
+  "embed.field.value.tier_condition_or": "or",
+  "embed.field.value.tier_active_condition": "Active condition: {{summary}}",
+  "embed.field.value.tier_mode": "Mode: {{value}}",
+  "embed.field.value.tier_mode_tenure_value":
+    "Tenure deadline (kicked at tenure day N if unmet; exempt afterward if met)",
+  "embed.field.value.tier_mode_normal_value": "Normal (based on inactive days)",
+  "embed.title.tier_list": "Tenure tier list",
   "embed.field.value.whitelist_counts": "{{roles}} role(s) / {{users}} user(s)",
   "embed.field.value.message_default_prefix": "(not set — default text)",
   "embed.field.value.kick_message_unset": "Not set (no body — embed only)",
@@ -147,7 +179,7 @@ export const inactiveKick = {
     "Reset the inactive auto-kick settings? This cannot be undone (activity history is preserved).",
   "embed.field.name.reset_target": "Will be removed",
   "embed.field.value.reset_target":
-    "Enabled state / channel / threshold / custom messages / marker role / exclusion list / enabled-at / activity triggers",
+    "Enabled state / channel / tenure tiers (incl. activity tracking / active condition) / custom messages / marker role / exclusion list / enabled-at",
   "embed.title.whitelist": "Exclusion list",
   "embed.field.name.whitelist_roles": "Excluded roles",
   "embed.field.name.whitelist_users": "Excluded users",
@@ -160,7 +192,10 @@ export const inactiveKick = {
   "preview.section.final": "Final warning targets",
   "preview.section.week": "One-week notice targets",
   "preview.kick_line": "kick: {{kickAt}}",
-  "preview.member_line": "<@{{userId}}> — inactive for {{days}} days",
+  "preview.member_line":
+    "<@{{userId}}> — inactive for {{days}} days (threshold {{threshold}} days)",
+  "preview.member_line_tenure_deadline":
+    "<@{{userId}}> — tenure {{days}} days (deadline {{threshold}} days, tenure-deadline mode)",
 
   // ── Audit log reasons ─────
   "audit_reason.reactivated": "Marker role removed due to detected activity",
@@ -192,24 +227,26 @@ export const inactiveKick = {
   "embed.field.name.obsolete_days_left": "{daysLeft} deprecated",
   "embed.field.value.obsolete_days_left":
     "The remaining-days placeholder has been removed.\nThe scheduled kick date and time is now shown per member in the notification embed.",
+  "embed.field.name.obsolete_threshold_days": "{thresholdDays} deprecated",
+  "embed.field.value.obsolete_threshold_days":
+    "With tenure-based tiers, the threshold can differ per member, so the {thresholdDays} placeholder has been removed.\nCheck each tier's threshold via /inactive-kick-settings tier list or the dashboard.",
 
   // ── UI labels (modals) ─────
   "ui.select.whitelist_remove_placeholder":
     "Select items to remove from the exclusion list (multi-select)",
+  "ui.select.tier_remove_placeholder": "Select tiers to remove (multi-select)",
   "ui.select.set_timezone_placeholder": "Select a timezone",
   "ui.select.set_run_hour_placeholder": "Select a run hour",
-  "ui.select.activity_set_placeholder":
-    "Select triggers to enable (at least one)",
   "ui.modal.set_week_warn_message_title": "Set 1-week notice message",
   "ui.modal.set_week_warn_message_label": "1-week notice message",
   "ui.modal.set_final_warn_message_title": "Set final-warning message",
   "ui.modal.set_final_warn_message_label": "Final-warning message",
   "ui.modal.set_warn_message_placeholder":
-    "You can use {count}, {thresholdDays}, {serverName} (max 500 chars)",
+    "You can use {count}, {serverName} (max 500 chars)",
   "ui.modal.set_kick_message_title": "Set kick notification message",
   "ui.modal.set_kick_message_label": "Kick notification message",
   "ui.modal.set_kick_message_placeholder":
-    "You can use {count}, {thresholdDays}, {serverName} (max 500 chars)",
+    "You can use {count}, {serverName} (max 500 chars)",
 
   // ── Logs ─────────────────────────────────────
   "log.activity_record_failed":

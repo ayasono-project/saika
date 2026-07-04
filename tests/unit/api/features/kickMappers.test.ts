@@ -91,23 +91,28 @@ describe("vc-auto-recruit マッパー", () => {
 });
 
 describe("inactive-kick マッパー", () => {
+  const TIER = {
+    tenureDays: 0,
+    thresholdDays: 30,
+    trackMessage: true,
+    trackVoice: true,
+    trackReaction: true,
+  };
+
   it("toContract は未設定を null/空文字にする", () => {
     expect(
       toContractInactiveKick({
         enabled: false,
-        thresholdDays: 30,
+        tiers: [TIER],
         whitelistRoleIds: [],
         whitelistUserIds: [],
         timezone: "Asia/Tokyo",
         runHour: 4,
         mentionEnabled: true,
-        trackMessage: true,
-        trackVoice: true,
-        trackReaction: true,
       }),
     ).toEqual({
       enabled: false,
-      thresholdDays: 30,
+      tiers: [TIER],
       channelId: null,
       markerRoleId: null,
       weekWarnMessage: "",
@@ -118,24 +123,18 @@ describe("inactive-kick マッパー", () => {
       mentionEnabled: true,
       timezone: "Asia/Tokyo",
       runHour: 4,
-      trackMessage: true,
-      trackVoice: true,
-      trackReaction: true,
     });
   });
 
   it("有効化時は enabledAt を now にする", () => {
     const cur = {
       enabled: false,
-      thresholdDays: 30,
+      tiers: [TIER],
       whitelistRoleIds: [],
       whitelistUserIds: [],
       timezone: "Asia/Tokyo",
       runHour: 4,
       mentionEnabled: true,
-      trackMessage: true,
-      trackVoice: true,
-      trackReaction: true,
     };
     const next = applyInactiveKickPatch(cur, { enabled: true }, NOW);
     expect(next.enabled).toBe(true);
@@ -147,15 +146,12 @@ describe("inactive-kick マッパー", () => {
     const cur = {
       enabled: true,
       enabledAt: prev,
-      thresholdDays: 30,
+      tiers: [TIER],
       whitelistRoleIds: [],
       whitelistUserIds: [],
       timezone: "Asia/Tokyo",
       runHour: 4,
       mentionEnabled: true,
-      trackMessage: true,
-      trackVoice: true,
-      trackReaction: true,
     };
     const next = applyInactiveKickPatch(cur, { enabled: false }, NOW);
     expect(next.enabled).toBe(false);
@@ -165,16 +161,13 @@ describe("inactive-kick マッパー", () => {
   it("空文字メッセージはクリア扱い・whitelist は置換", () => {
     const cur = {
       enabled: false,
-      thresholdDays: 30,
+      tiers: [TIER],
       weekWarnMessage: "w",
       whitelistRoleIds: ["r1"],
       whitelistUserIds: [],
       timezone: "Asia/Tokyo",
       runHour: 4,
       mentionEnabled: true,
-      trackMessage: true,
-      trackVoice: true,
-      trackReaction: true,
     };
     const next = applyInactiveKickPatch(
       cur,

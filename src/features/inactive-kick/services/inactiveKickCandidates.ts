@@ -1,15 +1,19 @@
 // src/features/inactive-kick/services/inactiveKickCandidates.ts
 // メンバー集合からキック/段階通知の対象を区分する（純関数・日次チェックと preview で共有）
 
+import type { InactiveKickTier } from "../../../shared/database/types";
 import {
   classifyStage,
   computeDaysLeft,
   computeEffectiveLastActivity,
   computeInactiveDays,
+  computeTenureDays,
   type ExclusionInput,
   INACTIVE_KICK_STAGE,
   isExcluded,
   isMarkerRoleTarget,
+  meetsActiveCondition,
+  resolveApplicableTier,
 } from "./inactiveKickEligibility";
 
 /** 区分判定に必要なメンバー情報（GuildMember から正規化した形） */
@@ -29,15 +33,18 @@ export interface CandidateMemberInput {
   hasMarkerRole: boolean;
 }
 
-/** メンバーの活動履歴（無ければ lastActivityAt=null / warnStage=0） */
+/** メンバーの活動履歴（無ければ lastActivityAt=null / warnStage=0 / 各カウント=0） */
 export interface CandidateActivity {
   lastActivityAt: Date | null;
   warnStage: number;
+  messageCount: number;
+  voiceCount: number;
+  reactionCount: number;
 }
 
 /** 区分に必要な設定値 */
 export interface CandidateSettings {
-  thresholdDays: number;
+  tiers: InactiveKickTier[];
   enabledAt?: Date | null;
   whitelistRoleIds: string[];
   whitelistUserIds: string[];
@@ -47,13 +54,18 @@ export interface CandidateSettings {
 export interface CategorizedCandidate {
   userId: string;
   displayName: string;
+  /** 判定に使った経過日数（`tier.tenureDeadline` が true なら在籍日数、それ以外は非アクティブ日数） */
   inactiveDays: number;
   daysLeft: number;
   warnStage: number;
+  /** このメンバーの在籍階層から解決された適用しきい値日数 */
+  thresholdDays: number;
   /** 対象ロール付与対象（警告段階に入っている）か */
   isMarkerTarget: boolean;
   /** 対象ロールを既に付与済みか */
   hasMarkerRole: boolean;
+  /** 適用階層が在籍日数締め切りモードか（true なら inactiveDays は在籍日数・表示文言の出し分けに使う） */
+  tenureDeadline: boolean;
 }
 
 /** 除外され、かつ猶予クリアが必要なメンバー */
@@ -87,7 +99,10 @@ export interface CandidateBuckets {
  *
  * - 除外メンバー（Bot/Admin/オーナー/ホワイトリスト/VC 接続中）はキック・通知の対象外。
  *   ただし `warnStage > 0` または対象ロール付与済みのものは `graceClear` に積む（除外＝猶予リセット）。
- * - それ以外は実効最終活動時刻から非アクティブ日数を求め、警告段階を判定する。
+ * - 在籍日数から適用階層を解決し、その階層のアクティブ条件（累積回数の下限）を満たすメンバーも
+ *   同様に除外メンバー扱い（`graceClear`）にする。
+ * - それ以外は、階層が `tenureDeadline` なら在籍日数を、そうでなければ実効最終活動時刻からの
+ *   非アクティブ日数を経過日数として警告段階を判定する。
  *
  * @param members 正規化済みメンバー一覧
  * @param activities userId → 活動履歴のマップ
@@ -136,33 +151,65 @@ export function categorizeCandidates(
       continue;
     }
 
-    const effective = computeEffectiveLastActivity(
-      activity?.lastActivityAt ?? null,
-      member.joinedAt,
-      settings.enabledAt ?? null,
-    );
-    const inactiveDays = computeInactiveDays(effective, now);
+    // 在籍日数から適用階層を解決する（該当階層なし＝対象外）
+    const tenureDays = computeTenureDays(member.joinedAt, now);
+    const tier = resolveApplicableTier(tenureDays, settings.tiers);
+    if (tier === null) continue;
+    const thresholdDays = tier.thresholdDays;
+
+    // アクティブ条件（累積回数の下限）を満たすメンバーは、非アクティブ日数に関わらず
+    // 除外メンバーと同じ扱い（猶予クリア）にする
+    if (
+      meetsActiveCondition(
+        {
+          messageCount: activity?.messageCount ?? 0,
+          voiceCount: activity?.voiceCount ?? 0,
+          reactionCount: activity?.reactionCount ?? 0,
+        },
+        tier,
+      )
+    ) {
+      if (warnStage > 0 || member.hasMarkerRole) {
+        buckets.graceClear.push({
+          userId: member.userId,
+          hasMarkerRole: member.hasMarkerRole,
+        });
+      }
+      continue;
+    }
+
+    // 判定に使う経過日数: 在籍日数締め切りモードなら在籍日数そのもの、
+    // 通常モードなら従来通り実効最終活動時刻からの非アクティブ日数
+    let inactiveDays: number;
+    if (tier.tenureDeadline) {
+      inactiveDays = tenureDays;
+    } else {
+      const effective = computeEffectiveLastActivity(
+        activity?.lastActivityAt ?? null,
+        member.joinedAt,
+        settings.enabledAt ?? null,
+      );
+      inactiveDays = computeInactiveDays(effective, now);
+    }
 
     // 対象ロール維持対象をステージに依存せず収集（dead zone のメンバーも含む）
-    if (isMarkerRoleTarget(inactiveDays, settings.thresholdDays)) {
+    if (isMarkerRoleTarget(inactiveDays, thresholdDays)) {
       buckets.markerRoleTargetIds.add(member.userId);
     }
 
-    const stage = classifyStage(
-      inactiveDays,
-      settings.thresholdDays,
-      warnStage,
-    );
+    const stage = classifyStage(inactiveDays, thresholdDays, warnStage);
     if (stage === INACTIVE_KICK_STAGE.NONE) continue;
 
     const candidate: CategorizedCandidate = {
       userId: member.userId,
       displayName: member.displayName,
       inactiveDays,
-      daysLeft: computeDaysLeft(inactiveDays, settings.thresholdDays),
+      daysLeft: computeDaysLeft(inactiveDays, thresholdDays),
       warnStage,
-      isMarkerTarget: isMarkerRoleTarget(inactiveDays, settings.thresholdDays),
+      thresholdDays,
+      isMarkerTarget: isMarkerRoleTarget(inactiveDays, thresholdDays),
       hasMarkerRole: member.hasMarkerRole,
+      tenureDeadline: tier.tenureDeadline ?? false,
     };
 
     if (stage === INACTIVE_KICK_STAGE.KICK) buckets.kick.push(candidate);

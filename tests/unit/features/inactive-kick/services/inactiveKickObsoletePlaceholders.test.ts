@@ -98,6 +98,13 @@ describe("inactive-kick/inactiveKickObsoletePlaceholders", () => {
       expect(result.hasDaysLeft).toBe(true);
       expect(result.hasMarkerRole).toBe(true);
     });
+
+    it("finalWarnMessage に {thresholdDays} があれば hasThresholdDays=true を返す", () => {
+      const result = detectObsoleteInactiveKickPlaceholders({
+        finalWarnMessage: "{thresholdDays} 日超過",
+      });
+      expect(result.hasThresholdDays).toBe(true);
+    });
   });
 
   describe("buildObsoleteInactiveKickNotice", () => {
@@ -105,6 +112,7 @@ describe("inactive-kick/inactiveKickObsoletePlaceholders", () => {
       const result = buildObsoleteInactiveKickNotice(t, {
         hasDaysLeft: false,
         hasMarkerRole: false,
+        hasThresholdDays: false,
       });
       expect(result).toBeNull();
     });
@@ -113,6 +121,7 @@ describe("inactive-kick/inactiveKickObsoletePlaceholders", () => {
       const embed = buildObsoleteInactiveKickNotice(t, {
         hasDaysLeft: false,
         hasMarkerRole: true,
+        hasThresholdDays: false,
       });
       expect(embed).not.toBeNull();
       const data = embed!.data;
@@ -133,6 +142,7 @@ describe("inactive-kick/inactiveKickObsoletePlaceholders", () => {
       const embed = buildObsoleteInactiveKickNotice(t, {
         hasDaysLeft: true,
         hasMarkerRole: false,
+        hasThresholdDays: false,
       });
       expect(embed).not.toBeNull();
       const fieldNames = (embed!.data.fields ?? []).map((f) => f.name);
@@ -148,6 +158,7 @@ describe("inactive-kick/inactiveKickObsoletePlaceholders", () => {
       const embed = buildObsoleteInactiveKickNotice(t, {
         hasDaysLeft: true,
         hasMarkerRole: true,
+        hasThresholdDays: false,
       });
       expect(embed).not.toBeNull();
       const fieldNames = (embed!.data.fields ?? []).map((f) => f.name);
@@ -157,6 +168,19 @@ describe("inactive-kick/inactiveKickObsoletePlaceholders", () => {
       );
       expect(fieldNames[1]).toBe(
         "inactiveKick:embed.field.name.obsolete_days_left",
+      );
+    });
+
+    it("hasThresholdDays=true のとき thresholdDays フィールドを含む Embed を返す", () => {
+      const embed = buildObsoleteInactiveKickNotice(t, {
+        hasDaysLeft: false,
+        hasMarkerRole: false,
+        hasThresholdDays: true,
+      });
+      expect(embed).not.toBeNull();
+      const fieldNames = (embed!.data.fields ?? []).map((f) => f.name);
+      expect(fieldNames).toContain(
+        "inactiveKick:embed.field.name.obsolete_threshold_days",
       );
     });
   });

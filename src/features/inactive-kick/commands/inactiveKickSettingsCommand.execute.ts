@@ -12,7 +12,6 @@ import {
   buildObsoleteInactiveKickNotice,
   detectObsoleteInactiveKickPlaceholders,
 } from "../services/inactiveKickObsoletePlaceholders";
-import { handleInactiveKickActivitySet } from "./inactiveKickSettingsCommand.activity";
 import { INACTIVE_KICK_SETTINGS_COMMAND } from "./inactiveKickSettingsCommand.constants";
 import {
   handleInactiveKickClearMarkerRole,
@@ -38,8 +37,12 @@ import {
   handleInactiveKickDisable,
   handleInactiveKickEnable,
   handleInactiveKickSetChannel,
-  handleInactiveKickSetThreshold,
 } from "./inactiveKickSettingsCommand.simple";
+import {
+  handleInactiveKickTierList,
+  handleInactiveKickTierRemove,
+  handleInactiveKickTierSet,
+} from "./inactiveKickSettingsCommand.tier";
 import { handleInactiveKickView } from "./inactiveKickSettingsCommand.view";
 import {
   handleInactiveKickWhitelistAdd,
@@ -47,8 +50,13 @@ import {
   handleInactiveKickWhitelistRemove,
 } from "./inactiveKickSettingsCommand.whitelist";
 
-const { SUBCOMMAND, GROUP, WHITELIST_SUBCOMMAND, MENTION_SUBCOMMAND } =
-  INACTIVE_KICK_SETTINGS_COMMAND;
+const {
+  SUBCOMMAND,
+  GROUP,
+  WHITELIST_SUBCOMMAND,
+  MENTION_SUBCOMMAND,
+  TIER_SUBCOMMAND,
+} = INACTIVE_KICK_SETTINGS_COMMAND;
 
 /** モーダルを表示するサブコマンド（返信スロットを消費するため followUp 不可） */
 const MODAL_SUBCOMMANDS = new Set<string>([
@@ -105,17 +113,27 @@ export async function executeInactiveKickSettingsCommand(
         default:
           throw ValidationError.fromKey(COMMON_I18N_KEYS.INVALID_SUBCOMMAND);
       }
-    } else if (group === GROUP.ACTIVITY) {
-      await handleInactiveKickActivitySet(interaction, guildId);
+    } else if (group === GROUP.TIER) {
+      const sub = interaction.options.getSubcommand();
+      switch (sub) {
+        case TIER_SUBCOMMAND.SET:
+          await handleInactiveKickTierSet(interaction, guildId);
+          break;
+        case TIER_SUBCOMMAND.REMOVE:
+          await handleInactiveKickTierRemove(interaction, guildId);
+          break;
+        case TIER_SUBCOMMAND.LIST:
+          await handleInactiveKickTierList(interaction, guildId);
+          break;
+        default:
+          throw ValidationError.fromKey(COMMON_I18N_KEYS.INVALID_SUBCOMMAND);
+      }
     } else {
       const subcommand = interaction.options.getSubcommand();
       isModalCommand = MODAL_SUBCOMMANDS.has(subcommand);
       switch (subcommand) {
         case SUBCOMMAND.SET_CHANNEL:
           await handleInactiveKickSetChannel(interaction, guildId);
-          break;
-        case SUBCOMMAND.SET_THRESHOLD:
-          await handleInactiveKickSetThreshold(interaction, guildId);
           break;
         case SUBCOMMAND.ENABLE:
           await handleInactiveKickEnable(interaction, guildId);
@@ -177,7 +195,12 @@ export async function executeInactiveKickSettingsCommand(
     }
 
     // モーダルでないコマンドかつ廃止プレースホルダーがあれば ephemeral で案内を追送する
-    if (!isModalCommand && (obsolete.hasDaysLeft || obsolete.hasMarkerRole)) {
+    if (
+      !isModalCommand &&
+      (obsolete.hasDaysLeft ||
+        obsolete.hasMarkerRole ||
+        obsolete.hasThresholdDays)
+    ) {
       const t = await getGuildTranslator(guildId);
       const notice = buildObsoleteInactiveKickNotice(t, obsolete);
       if (notice) {

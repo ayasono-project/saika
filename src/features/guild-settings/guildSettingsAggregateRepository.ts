@@ -352,7 +352,7 @@ export class GuildSettingsAggregateRepository
             ? new Date(data.inactiveKick.enabledAt)
             : null,
           channelId: data.inactiveKick.channelId ?? null,
-          thresholdDays: data.inactiveKick.thresholdDays,
+          tiers: data.inactiveKick.tiers as unknown as Prisma.InputJsonValue,
           weekWarnMessage: data.inactiveKick.weekWarnMessage ?? null,
           finalWarnMessage: data.inactiveKick.finalWarnMessage ?? null,
           kickMessage: data.inactiveKick.kickMessage ?? null,

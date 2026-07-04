@@ -5,11 +5,21 @@ import {
   computeDaysLeft,
   computeEffectiveLastActivity,
   computeInactiveDays,
+  computeTenureDays,
+  hasActiveCondition,
   INACTIVE_KICK_STAGE,
   isExcluded,
   isMarkerRoleTarget,
+  meetsActiveCondition,
+  resolveApplicableTier,
   WARN_STAGE,
 } from "@/features/inactive-kick/services/inactiveKickEligibility";
+
+const BASE_TIER = {
+  trackMessage: true,
+  trackVoice: true,
+  trackReaction: true,
+};
 
 const day = (n: number) => new Date(2026, 0, n, 0, 0, 0);
 
@@ -38,6 +48,102 @@ describe("inactive-kick/eligibility", () => {
     it("enabledAt が null なら floor しない", () => {
       const result = computeEffectiveLastActivity(day(2), day(1), null);
       expect(result).toEqual(day(2));
+    });
+  });
+
+  describe("computeTenureDays", () => {
+    it("在籍満日数を返す（enabledAt フロアは適用しない）", () => {
+      expect(computeTenureDays(day(1), day(31))).toBe(30);
+    });
+    it("joinedAt が不明（null）なら 0 を返す", () => {
+      expect(computeTenureDays(null, day(31))).toBe(0);
+    });
+    it("未来時刻でも 0 を下限とする", () => {
+      expect(computeTenureDays(day(31), day(1))).toBe(0);
+    });
+  });
+
+  describe("resolveApplicableTier", () => {
+    const tiers = [
+      { ...BASE_TIER, tenureDays: 0, thresholdDays: 14 },
+      { ...BASE_TIER, tenureDays: 14, thresholdDays: 30 },
+      { ...BASE_TIER, tenureDays: 90, thresholdDays: 90 },
+    ];
+
+    it("在籍日数を満たす最大 tenureDays の階層を採用する", () => {
+      expect(resolveApplicableTier(0, tiers)?.thresholdDays).toBe(14);
+      expect(resolveApplicableTier(13, tiers)?.thresholdDays).toBe(14);
+      expect(resolveApplicableTier(14, tiers)?.thresholdDays).toBe(30);
+      expect(resolveApplicableTier(89, tiers)?.thresholdDays).toBe(30);
+      expect(resolveApplicableTier(90, tiers)?.thresholdDays).toBe(90);
+      expect(resolveApplicableTier(1000, tiers)?.thresholdDays).toBe(90);
+    });
+
+    it("tiers の並び順に依存しない", () => {
+      const shuffled = [tiers[2], tiers[0], tiers[1]];
+      expect(resolveApplicableTier(50, shuffled)?.thresholdDays).toBe(30);
+    });
+
+    it("該当階層が無ければ null を返す（在籍日数が全階層の最小未満）", () => {
+      const tiersWithoutBase = [
+        { ...BASE_TIER, tenureDays: 30, thresholdDays: 14 },
+      ];
+      expect(resolveApplicableTier(29, tiersWithoutBase)).toBeNull();
+      expect(resolveApplicableTier(30, tiersWithoutBase)?.thresholdDays).toBe(
+        14,
+      );
+    });
+  });
+
+  describe("hasActiveCondition / meetsActiveCondition", () => {
+    const NO_CONDITION = { ...BASE_TIER, tenureDays: 0, thresholdDays: 30 };
+    const WITH_CONDITION = {
+      ...BASE_TIER,
+      tenureDays: 0,
+      thresholdDays: 30,
+      minMessageCount: 5,
+      minVoiceCount: 3,
+    };
+
+    it("min*Count が1つも設定されていなければ false", () => {
+      expect(hasActiveCondition(NO_CONDITION)).toBe(false);
+    });
+
+    it("min*Count が1つでも設定されていれば true", () => {
+      expect(hasActiveCondition(WITH_CONDITION)).toBe(true);
+    });
+
+    it("条件未設定の階層は meetsActiveCondition が常に false", () => {
+      expect(
+        meetsActiveCondition(
+          { messageCount: 999, voiceCount: 999, reactionCount: 999 },
+          NO_CONDITION,
+        ),
+      ).toBe(false);
+    });
+
+    it("設定した種別のいずれか1つでも下限以上なら true（OR条件）", () => {
+      expect(
+        meetsActiveCondition(
+          { messageCount: 0, voiceCount: 3, reactionCount: 0 },
+          WITH_CONDITION,
+        ),
+      ).toBe(true);
+      expect(
+        meetsActiveCondition(
+          { messageCount: 5, voiceCount: 0, reactionCount: 0 },
+          WITH_CONDITION,
+        ),
+      ).toBe(true);
+    });
+
+    it("いずれの種別も下限未満なら false", () => {
+      expect(
+        meetsActiveCondition(
+          { messageCount: 4, voiceCount: 2, reactionCount: 0 },
+          WITH_CONDITION,
+        ),
+      ).toBe(false);
     });
   });
 

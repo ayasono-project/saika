@@ -141,7 +141,6 @@ export interface NotificationContent {
 export interface WarnNotificationContext {
   t: GuildTFunction;
   serverName: string;
-  thresholdDays: number;
   /** 現在時刻（キック予定日の算出に使用） */
   now: Date;
   /** ギルドのタイムゾーン（IANA。キック予定日時の算出に使用） */
@@ -176,7 +175,6 @@ export function buildWarnNotification(
   const template = ctx.customMessage ?? ctx.t(ctx.defaultMessageKey);
   const content = formatInactiveKickMessage(template, {
     count: total,
-    thresholdDays: ctx.thresholdDays,
     serverName: ctx.serverName,
   });
 
@@ -327,7 +325,6 @@ function splitKickedMemberFields(
 export interface KickNotificationContext {
   t: GuildTFunction;
   serverName: string;
-  thresholdDays: number;
   /** カスタムキック通知メッセージ。未設定時は本文を出さない（Embed のみ） */
   customMessage?: string;
   /** テストモード（実際にはキックしていない）か */
@@ -349,7 +346,6 @@ export function buildKickNotification(
   const content = ctx.customMessage
     ? formatInactiveKickMessage(ctx.customMessage, {
         count: total,
-        thresholdDays: ctx.thresholdDays,
         serverName: ctx.serverName,
       })
     : undefined;
@@ -491,10 +487,16 @@ export function buildPreviewEmbedPages(
         kickAt: `<t:${kickUnix}:f>`,
       });
       const memberLines = members.map((c) =>
-        t("inactiveKick:preview.member_line", {
-          userId: c.userId,
-          days: c.inactiveDays,
-        }),
+        t(
+          c.tenureDeadline
+            ? "inactiveKick:preview.member_line_tenure_deadline"
+            : "inactiveKick:preview.member_line",
+          {
+            userId: c.userId,
+            days: c.inactiveDays,
+            threshold: c.thresholdDays,
+          },
+        ),
       );
 
       // フィールド値を 1024 字以内に分割（継続フィールドはセクションラベル・キック予定を再掲）

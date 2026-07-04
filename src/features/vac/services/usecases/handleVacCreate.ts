@@ -151,7 +151,16 @@ export async function handleVacCreateUseCase(
 
   try {
     await member.voice.setChannel(voiceChannel);
-  } catch {
+  } catch (error) {
+    if (
+      error instanceof DiscordAPIError &&
+      error.code === RESTJSONErrorCodes.MissingPermissions
+    ) {
+      await notifyErrorChannel(member.guild, error, {
+        feature: "VAC",
+        action: "Bot権限不足によるメンバー移動失敗（新規作成VC）",
+      });
+    }
     // ユーザーがチャンネル参加直後に切断した場合、移動不可能なため作成チャンネルを削除して終了
     await voiceChannel.delete().catch(() => null);
     return;

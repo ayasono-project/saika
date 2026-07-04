@@ -13,30 +13,18 @@ describe("bot/commands/inactive-kick-settings (definition)", () => {
     );
   });
 
-  it("17 個のサブコマンドと whitelist・mention・activity サブコマンドグループを持つ", () => {
+  it("16 個のサブコマンドと whitelist・mention・tier サブコマンドグループを持つ", () => {
     const subcommands = (json.options ?? []).filter(
       (o) => o.type === ApplicationCommandOptionType.Subcommand,
     );
     const groups = (json.options ?? []).filter(
       (o) => o.type === ApplicationCommandOptionType.SubcommandGroup,
     );
-    expect(subcommands).toHaveLength(17);
+    expect(subcommands).toHaveLength(16);
     expect(groups).toHaveLength(3);
     expect(groups.map((g) => g.name)).toContain("whitelist");
     expect(groups.map((g) => g.name)).toContain("mention");
-    expect(groups.map((g) => g.name)).toContain("activity");
-  });
-
-  it("activity グループは set サブコマンドのみを持つ", () => {
-    const group = (json.options ?? []).find(
-      (o) =>
-        o.type === ApplicationCommandOptionType.SubcommandGroup &&
-        o.name === "activity",
-    );
-    const subNames = (
-      (group as { options?: Array<{ name: string }> }).options ?? []
-    ).map((s) => s.name);
-    expect(subNames).toEqual(["set"]);
+    expect(groups.map((g) => g.name)).toContain("tier");
   });
 
   it("週/最終の事前メッセージ設定サブコマンドを持つ", () => {
@@ -59,13 +47,42 @@ describe("bot/commands/inactive-kick-settings (definition)", () => {
     expect(subNames).toEqual(["add", "remove", "list"]);
   });
 
-  it("set-threshold は 14〜365 の整数オプションを持つ", () => {
-    const sub = (json.options ?? []).find((o) => o.name === "set-threshold") as
+  it("tier グループは set / remove / list を持ち、set は在籍日数・しきい値日数・活動判定・アクティブ条件のオプションを持つ", () => {
+    const group = (json.options ?? []).find(
+      (o) =>
+        o.type === ApplicationCommandOptionType.SubcommandGroup &&
+        o.name === "tier",
+    ) as
+      | { options?: Array<{ name: string } & Record<string, unknown>> }
+      | undefined;
+    const subNames = (group?.options ?? []).map((s) => s.name);
+    expect(subNames).toEqual(["set", "remove", "list"]);
+
+    const setSub = group?.options?.find((s) => s.name === "set") as
       | { options?: Array<Record<string, unknown>> }
       | undefined;
-    const daysOption = sub?.options?.find((o) => o.name === "days");
-    expect(daysOption?.min_value).toBe(14);
-    expect(daysOption?.max_value).toBe(365);
-    expect(daysOption?.required).toBe(true);
+    const tenureOption = setSub?.options?.find((o) => o.name === "tenure-days");
+    const thresholdOption = setSub?.options?.find(
+      (o) => o.name === "threshold-days",
+    );
+    expect(tenureOption?.min_value).toBe(0);
+    expect(tenureOption?.max_value).toBeUndefined();
+    expect(tenureOption?.required).toBe(true);
+    expect(thresholdOption?.min_value).toBe(14);
+    expect(thresholdOption?.max_value).toBe(365);
+    expect(thresholdOption?.required).toBe(true);
+
+    const optionNames = (setSub?.options ?? []).map((o) => o.name);
+    expect(optionNames).toEqual(
+      expect.arrayContaining([
+        "track-message",
+        "track-voice",
+        "track-reaction",
+        "min-message-count",
+        "min-voice-count",
+        "min-reaction-count",
+        "tenure-deadline",
+      ]),
+    );
   });
 });

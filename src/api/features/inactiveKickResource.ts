@@ -3,7 +3,10 @@
 
 import type { InactiveKickSettings as ContractInactiveKickSettings } from "@ayasono/shared/api";
 import type { PrismaClient } from "@prisma/client";
-import { createDefaultInactiveKickSettings } from "../../features/inactive-kick/inactiveKickSettingsDefaults";
+import {
+  createDefaultInactiveKickSettings,
+  normalizeInactiveKickTiers,
+} from "../../features/inactive-kick/inactiveKickSettingsDefaults";
 import { getInactiveKickSettingsRepository } from "../../features/inactive-kick/inactiveKickSettingsRepository";
 import type { InactiveKickSettings } from "../../shared/database/types";
 import type { SettingsResource } from "../routes/settingsResource";
@@ -14,7 +17,7 @@ export function toContractInactiveKick(
 ): ContractInactiveKickSettings {
   return {
     enabled: domain.enabled,
-    thresholdDays: domain.thresholdDays,
+    tiers: domain.tiers,
     channelId: domain.channelId ?? null,
     markerRoleId: domain.markerRoleId ?? null,
     weekWarnMessage: domain.weekWarnMessage ?? "",
@@ -25,9 +28,6 @@ export function toContractInactiveKick(
     mentionEnabled: domain.mentionEnabled,
     timezone: domain.timezone,
     runHour: domain.runHour,
-    trackMessage: domain.trackMessage,
-    trackVoice: domain.trackVoice,
-    trackReaction: domain.trackReaction,
   };
 }
 
@@ -49,7 +49,10 @@ export function applyInactiveKickPatch(
   return {
     enabled,
     enabledAt,
-    thresholdDays: patch.thresholdDays ?? current.thresholdDays,
+    tiers:
+      patch.tiers && patch.tiers.length > 0
+        ? normalizeInactiveKickTiers(patch.tiers)
+        : current.tiers,
     channelId:
       patch.channelId === undefined
         ? current.channelId
@@ -76,9 +79,6 @@ export function applyInactiveKickPatch(
     runHour: patch.runHour ?? current.runHour,
     lastRunDate: current.lastRunDate,
     mentionEnabled: patch.mentionEnabled ?? current.mentionEnabled,
-    trackMessage: patch.trackMessage ?? current.trackMessage,
-    trackVoice: patch.trackVoice ?? current.trackVoice,
-    trackReaction: patch.trackReaction ?? current.trackReaction,
   };
 }
 

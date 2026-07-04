@@ -25,7 +25,7 @@ const BASE: OverviewInputs = {
   ticketCount: 0,
   reactionRoleCount: 0,
   inactiveKickEnabled: false,
-  inactiveKickThresholdDays: 30,
+  inactiveKickTierCount: 1,
   unverifiedKickEnabled: false,
   unverifiedKickVerifiedRoleId: null,
 };
@@ -80,13 +80,12 @@ describe("toFeatureStatuses", () => {
     ).toBe("パネル: 1件");
   });
 
-  it("要約に件数・閾値を反映する", () => {
+  it("要約に件数・階層数を反映する", () => {
     expect(statusFor("vac", { ...BASE, vacTriggerCount: 3 }).summary).toBe(
       "トリガー: 3チャンネル",
     );
     expect(
-      statusFor("inactive-kick", { ...BASE, inactiveKickThresholdDays: 14 })
-        .summary,
-    ).toBe("閾値: 14日");
+      statusFor("inactive-kick", { ...BASE, inactiveKickTierCount: 3 }).summary,
+    ).toBe("在籍階層: 3件");
   });
 });

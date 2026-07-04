@@ -2,6 +2,7 @@
 // 非アクティブ自動キックの判定ロジック（純関数・日次チェックと preview で共有）
 
 import { differenceInDays } from "date-fns";
+import type { InactiveKickTier } from "../../../shared/database/types";
 
 /** 段階通知・キックの区分 */
 export const INACTIVE_KICK_STAGE = {
@@ -53,6 +54,80 @@ export function computeEffectiveLastActivity(
     return enabledAt;
   }
   return base;
+}
+
+/**
+ * 在籍日数（満日数）を算出する。
+ * 階層判定専用の軸であり、`enabledAt` によるフロアは適用しない
+ * （有効化した瞬間から、既存在籍者の実在籍期間がそのまま階層へ反映されるようにするため）。
+ * @param joinedAt サーバー参加日時（取得できなければ null）
+ * @param now 現在時刻
+ * @returns 在籍日数（0 以上。joinedAt 不明時は 0）
+ */
+export function computeTenureDays(joinedAt: Date | null, now: Date): number {
+  if (!joinedAt) return 0;
+  return Math.max(0, differenceInDays(now, joinedAt));
+}
+
+/**
+ * 在籍日数から適用すべき在籍階層を解決する。
+ * `tenureDays <= 在籍日数` を満たす最大 tenureDays の階層を採用する。
+ * 該当階層が無ければ（在籍日数が全階層の最小 tenureDays 未満）null を返す（対象外）。
+ * @param tenureDays 在籍日数
+ * @param tiers 在籍階層一覧（順不同で渡してよい）
+ * @returns 適用すべき在籍階層（該当なしなら null）
+ */
+export function resolveApplicableTier(
+  tenureDays: number,
+  tiers: InactiveKickTier[],
+): InactiveKickTier | null {
+  let best: InactiveKickTier | null = null;
+  for (const tier of tiers) {
+    if (tier.tenureDays > tenureDays) continue;
+    if (!best || tier.tenureDays > best.tenureDays) best = tier;
+  }
+  return best;
+}
+
+/** アクティブ条件の判定に使う累積回数 */
+export interface ActivityCounts {
+  messageCount: number;
+  voiceCount: number;
+  reactionCount: number;
+}
+
+/**
+ * 階層にアクティブ条件（累積回数の下限）が1つでも設定されているか。
+ * @param tier 判定対象の在籍階層
+ * @returns いずれかの `min*Count` が設定されていれば true
+ */
+export function hasActiveCondition(tier: InactiveKickTier): boolean {
+  return (
+    tier.minMessageCount != null ||
+    tier.minVoiceCount != null ||
+    tier.minReactionCount != null
+  );
+}
+
+/**
+ * アクティブ条件を満たすか（OR条件）。
+ * 条件が1つも設定されていなければ false（＝この仕組みでは免除しない）。
+ * @param counts メンバーの累積活動回数
+ * @param tier 判定対象の在籍階層
+ * @returns 設定された種別のいずれか1つでも下限以上なら true
+ */
+export function meetsActiveCondition(
+  counts: ActivityCounts,
+  tier: InactiveKickTier,
+): boolean {
+  if (!hasActiveCondition(tier)) return false;
+  return (
+    (tier.minMessageCount != null &&
+      counts.messageCount >= tier.minMessageCount) ||
+    (tier.minVoiceCount != null && counts.voiceCount >= tier.minVoiceCount) ||
+    (tier.minReactionCount != null &&
+      counts.reactionCount >= tier.minReactionCount)
+  );
 }
 
 /**

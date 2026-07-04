@@ -4,11 +4,13 @@
 import type {
   IInactiveKickSettingsRepository,
   InactiveKickSettings,
+  InactiveKickTier,
 } from "../../shared/database/types";
 import { createServiceGetter } from "../../shared/utils/serviceFactory";
 import {
   createDefaultInactiveKickSettings,
   DEFAULT_INACTIVE_KICK_SETTINGS,
+  normalizeInactiveKickTiers,
 } from "./inactiveKickSettingsDefaults";
 import { getInactiveKickSettingsRepository } from "./inactiveKickSettingsRepository";
 
@@ -77,10 +79,93 @@ export class InactiveKickSettingsService {
   }
 
   /**
-   * しきい値（非アクティブ判定日数）を設定する
+   * 在籍階層を1件追加・更新する（tenureDays が一致する既存階層は上書き）。
+   * 活動種別トグル・アクティブ条件は省略時、既存階層があればその値を維持し、
+   * 新規階層なら track* は true・アクティブ条件は未設定になる（部分更新セマンティクス）。
+   * @param guildId 設定対象のギルドID
+   * @param tenureDays この階層が適用される在籍日数の下限
+   * @param updates 更新内容（しきい値は必須、他は省略可）
    */
-  async setThresholdDays(guildId: string, days: number): Promise<void> {
-    await this.updatePartial(guildId, { thresholdDays: days });
+  async setTier(
+    guildId: string,
+    tenureDays: number,
+    updates: {
+      thresholdDays: number;
+      trackMessage?: boolean;
+      trackVoice?: boolean;
+      trackReaction?: boolean;
+      minMessageCount?: number;
+      minVoiceCount?: number;
+      minReactionCount?: number;
+      tenureDeadline?: boolean;
+    },
+  ): Promise<void> {
+    const current = await this.getSettingsOrDefault(guildId);
+    const existing = current.tiers.find((t) => t.tenureDays === tenureDays);
+    const nextTier: InactiveKickTier = {
+      tenureDays,
+      thresholdDays: updates.thresholdDays,
+      trackMessage: updates.trackMessage ?? existing?.trackMessage ?? true,
+      trackVoice: updates.trackVoice ?? existing?.trackVoice ?? true,
+      trackReaction: updates.trackReaction ?? existing?.trackReaction ?? true,
+      minMessageCount: updates.minMessageCount ?? existing?.minMessageCount,
+      minVoiceCount: updates.minVoiceCount ?? existing?.minVoiceCount,
+      minReactionCount: updates.minReactionCount ?? existing?.minReactionCount,
+      tenureDeadline: updates.tenureDeadline ?? existing?.tenureDeadline,
+    };
+    const nextTiers = normalizeInactiveKickTiers([
+      ...current.tiers.filter((t) => t.tenureDays !== tenureDays),
+      nextTier,
+    ]);
+    await this.updatePartial(guildId, { tiers: nextTiers });
+  }
+
+  /**
+   * 在籍階層を1件削除する（最後の1件は削除できない）
+   * @param guildId 設定対象のギルドID
+   * @param tenureDays 削除対象階層の在籍日数
+   * @returns 実際に削除できたら true（未登録・最後の1件なら false）
+   */
+  async removeTier(guildId: string, tenureDays: number): Promise<boolean> {
+    const current = await this.getSettingsOrDefault(guildId);
+    if (!current.tiers.some((t) => t.tenureDays === tenureDays)) return false;
+    if (current.tiers.length <= 1) return false;
+    const nextTiers = current.tiers.filter((t) => t.tenureDays !== tenureDays);
+    await this.updatePartial(guildId, { tiers: nextTiers });
+    return true;
+  }
+
+  /**
+   * 在籍階層を複数件まとめて削除する（最低1件は残す）。
+   * 選択範囲が全件に及ぶ場合は、在籍日数が最小の階層を残して削除する。
+   * @param guildId 設定対象のギルドID
+   * @param tenureDaysList 削除対象階層の在籍日数一覧
+   * @returns 実際に削除できた件数
+   */
+  async removeTiers(
+    guildId: string,
+    tenureDaysList: number[],
+  ): Promise<number> {
+    const current = await this.getSettingsOrDefault(guildId);
+    const toRemove = new Set(tenureDaysList);
+    let nextTiers = current.tiers.filter((t) => !toRemove.has(t.tenureDays));
+    if (nextTiers.length === 0) {
+      const [keep] = normalizeInactiveKickTiers(current.tiers);
+      nextTiers = keep ? [keep] : current.tiers;
+    }
+    const removed = current.tiers.length - nextTiers.length;
+    if (removed === 0) return 0;
+    await this.updatePartial(guildId, { tiers: nextTiers });
+    return removed;
+  }
+
+  /**
+   * 在籍階層一覧を一括設定する（web ダッシュボードからの patch 用）
+   */
+  async setTiers(guildId: string, tiers: InactiveKickTier[]): Promise<void> {
+    await this.updatePartial(guildId, {
+      tiers: normalizeInactiveKickTiers(tiers),
+    });
   }
 
   /**
@@ -184,22 +269,6 @@ export class InactiveKickSettingsService {
     mentionEnabled: boolean,
   ): Promise<void> {
     await this.updatePartial(guildId, { mentionEnabled });
-  }
-
-  /**
-   * アクティビティ記録トリガーを一括設定する
-   * @param guildId 設定対象のギルドID
-   * @param triggers 各トリガーの有効/無効
-   */
-  async setActivityTriggers(
-    guildId: string,
-    triggers: {
-      trackMessage: boolean;
-      trackVoice: boolean;
-      trackReaction: boolean;
-    },
-  ): Promise<void> {
-    await this.updatePartial(guildId, triggers);
   }
 
   /**

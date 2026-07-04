@@ -51,6 +51,33 @@ export interface MemberLogSettings {
   leaveMessage?: string;
 }
 
+/**
+ * 在籍階層1件（在籍N日以上でこのしきい値日数を適用）。
+ * 活動種別のトラッキング可否・アクティブ条件（累積回数の下限）は階層ごとに個別設定する。
+ */
+export interface InactiveKickTier {
+  // この階層が適用される在籍日数の下限（0 = 新規メンバーから適用）
+  tenureDays: number;
+  // 非アクティブ判定日数（しきい値）
+  thresholdDays: number;
+  // この階層適用中にテキストメッセージを活動（非アクティブクロックのリセット対象）として扱うか
+  trackMessage: boolean;
+  // この階層適用中にVC参加を活動として扱うか
+  trackVoice: boolean;
+  // この階層適用中に絵文字リアクションを活動として扱うか
+  trackReaction: boolean;
+  // アクティブ条件（メッセージ累積回数の下限）。未設定ならこの種別は対象外
+  minMessageCount?: number;
+  // アクティブ条件（VC参加累積回数の下限）
+  minVoiceCount?: number;
+  // アクティブ条件（リアクション累積回数の下限）
+  minReactionCount?: number;
+  // true: thresholdDays を在籍日数の締め切りとして扱う（アクティブ条件未達なら在籍N日目でキック・
+  //       達していれば以後恒久的に対象外）。false/未設定: 従来通り非アクティブ日数で判定
+  //       （アクティブ条件はOR安全弁として働く）
+  tenureDeadline?: boolean;
+}
+
 export interface InactiveKickSettings {
   // 機能有効フラグ
   enabled: boolean;
@@ -58,8 +85,8 @@ export interface InactiveKickSettings {
   enabledAt?: Date;
   // 通知チャンネルID
   channelId?: string;
-  // 非アクティブ判定日数（しきい値）
-  thresholdDays: number;
+  // 在籍階層一覧（tenureDays 昇順・最低1件）
+  tiers: InactiveKickTier[];
   // カスタム事前通知メッセージ: 1週間前（{count}/{thresholdDays}/{serverName} 置換可）
   weekWarnMessage?: string;
   // カスタム事前通知メッセージ: 最終警告（3日前・同上の変数）
@@ -80,12 +107,6 @@ export interface InactiveKickSettings {
   lastRunDate?: string;
   // 個別ユーザーメンション通知の有無
   mentionEnabled: boolean;
-  // テキストメッセージを活動として記録するか
-  trackMessage: boolean;
-  // VC参加を活動として記録するか
-  trackVoice: boolean;
-  // 絵文字リアクションを活動として記録するか
-  trackReaction: boolean;
 }
 
 export interface UnverifiedKickSettings {
@@ -149,6 +170,9 @@ export interface VcAutoRecruitRef {
   createdAt: number;
 }
 
+/** アクティビティ記録トリガーの種別 */
+export type ActivityTrigger = "message" | "voice" | "reaction";
+
 export interface MemberActivity {
   // ギルドID
   guildId: string;
@@ -158,4 +182,10 @@ export interface MemberActivity {
   lastActivityAt: Date;
   // 事前通知の進行段階（0=未通知, 1=1週間前済, 2=最終警告済）
   warnStage: number;
+  // 累積メッセージ送信回数（アクティブ条件判定用）
+  messageCount: number;
+  // 累積VC参加回数
+  voiceCount: number;
+  // 累積リアクション回数
+  reactionCount: number;
 }

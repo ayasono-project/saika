@@ -39,7 +39,15 @@ describe("inactive-kick/InactiveKickSettingsService", () => {
     const service = createInactiveKickSettingsService(createFakeRepository());
     const settings = await service.getSettingsOrDefault(GUILD);
     expect(settings.enabled).toBe(false);
-    expect(settings.thresholdDays).toBe(DEFAULT_INACTIVE_KICK_THRESHOLD_DAYS);
+    expect(settings.tiers).toEqual([
+      {
+        tenureDays: 0,
+        thresholdDays: DEFAULT_INACTIVE_KICK_THRESHOLD_DAYS,
+        trackMessage: true,
+        trackVoice: true,
+        trackReaction: true,
+      },
+    ]);
     expect(settings.whitelistRoleIds).toEqual([]);
   });
 
@@ -101,12 +109,20 @@ describe("inactive-kick/InactiveKickSettingsService", () => {
     expect(settings.whitelistRoleIds).toEqual(["r1"]);
   });
 
-  it("setThresholdDays / setMarkerRole / clearMarkerRole が反映される", async () => {
+  it("setTier / setMarkerRole / clearMarkerRole が反映される", async () => {
     const service = createInactiveKickSettingsService(createFakeRepository());
-    await service.setThresholdDays(GUILD, 90);
+    await service.setTier(GUILD, 0, { thresholdDays: 90 });
     await service.setMarkerRole(GUILD, "role-x");
     let settings = await service.getSettingsOrDefault(GUILD);
-    expect(settings.thresholdDays).toBe(90);
+    expect(settings.tiers).toEqual([
+      {
+        tenureDays: 0,
+        thresholdDays: 90,
+        trackMessage: true,
+        trackVoice: true,
+        trackReaction: true,
+      },
+    ]);
     expect(settings.markerRoleId).toBe("role-x");
 
     await service.clearMarkerRole(GUILD);
@@ -114,25 +130,151 @@ describe("inactive-kick/InactiveKickSettingsService", () => {
     expect(settings.markerRoleId).toBeUndefined();
   });
 
+  it("setTier は新しい tenureDays を追加し、既存 tenureDays は上書きする", async () => {
+    const service = createInactiveKickSettingsService(createFakeRepository());
+    await service.setTier(GUILD, 30, { thresholdDays: 60 });
+    await service.setTier(GUILD, 0, { thresholdDays: 14 });
+    let settings = await service.getSettingsOrDefault(GUILD);
+    expect(settings.tiers).toEqual([
+      {
+        tenureDays: 0,
+        thresholdDays: 14,
+        trackMessage: true,
+        trackVoice: true,
+        trackReaction: true,
+      },
+      {
+        tenureDays: 30,
+        thresholdDays: 60,
+        trackMessage: true,
+        trackVoice: true,
+        trackReaction: true,
+      },
+    ]);
+
+    await service.setTier(GUILD, 30, { thresholdDays: 90 });
+    settings = await service.getSettingsOrDefault(GUILD);
+    expect(settings.tiers).toEqual([
+      {
+        tenureDays: 0,
+        thresholdDays: 14,
+        trackMessage: true,
+        trackVoice: true,
+        trackReaction: true,
+      },
+      {
+        tenureDays: 30,
+        thresholdDays: 90,
+        trackMessage: true,
+        trackVoice: true,
+        trackReaction: true,
+      },
+    ]);
+  });
+
+  it("setTier は省略したフィールドについて既存階層の値を維持する", async () => {
+    const service = createInactiveKickSettingsService(createFakeRepository());
+    await service.setTier(GUILD, 0, {
+      thresholdDays: 30,
+      trackVoice: false,
+      minMessageCount: 5,
+    });
+    await service.setTier(GUILD, 0, { thresholdDays: 45 });
+    const settings = await service.getSettingsOrDefault(GUILD);
+    expect(settings.tiers).toEqual([
+      {
+        tenureDays: 0,
+        thresholdDays: 45,
+        trackMessage: true,
+        trackVoice: false,
+        trackReaction: true,
+        minMessageCount: 5,
+      },
+    ]);
+  });
+
+  it("removeTier は最後の1件を削除できない", async () => {
+    const service = createInactiveKickSettingsService(createFakeRepository());
+    await service.setTier(GUILD, 30, { thresholdDays: 60 });
+    expect(await service.removeTier(GUILD, 30)).toBe(true);
+    expect(await service.removeTier(GUILD, 0)).toBe(false);
+    expect(await service.removeTier(GUILD, 999)).toBe(false);
+    const settings = await service.getSettingsOrDefault(GUILD);
+    expect(settings.tiers).toEqual([
+      {
+        tenureDays: 0,
+        thresholdDays: DEFAULT_INACTIVE_KICK_THRESHOLD_DAYS,
+        trackMessage: true,
+        trackVoice: true,
+        trackReaction: true,
+      },
+    ]);
+  });
+
+  it("removeTiers は複数件を一括削除し、実際に削除した件数を返す", async () => {
+    const service = createInactiveKickSettingsService(createFakeRepository());
+    await service.setTier(GUILD, 15, { thresholdDays: 30 });
+    await service.setTier(GUILD, 30, { thresholdDays: 60 });
+    expect(await service.removeTiers(GUILD, [15, 30])).toBe(2);
+    const settings = await service.getSettingsOrDefault(GUILD);
+    expect(settings.tiers).toEqual([
+      {
+        tenureDays: 0,
+        thresholdDays: DEFAULT_INACTIVE_KICK_THRESHOLD_DAYS,
+        trackMessage: true,
+        trackVoice: true,
+        trackReaction: true,
+      },
+    ]);
+    // 既に無い在籍日数は無視され、削除件数に含まれない
+    expect(await service.removeTiers(GUILD, [999])).toBe(0);
+  });
+
+  it("removeTiers は全件選択されても最低1件（在籍日数が最小のもの）を残す", async () => {
+    const service = createInactiveKickSettingsService(createFakeRepository());
+    await service.setTier(GUILD, 15, { thresholdDays: 30 });
+    await service.setTier(GUILD, 30, { thresholdDays: 60 });
+    const removed = await service.removeTiers(GUILD, [0, 15, 30]);
+    expect(removed).toBe(2);
+    const settings = await service.getSettingsOrDefault(GUILD);
+    expect(settings.tiers).toEqual([
+      {
+        tenureDays: 0,
+        thresholdDays: DEFAULT_INACTIVE_KICK_THRESHOLD_DAYS,
+        trackMessage: true,
+        trackVoice: true,
+        trackReaction: true,
+      },
+    ]);
+  });
+
   it("reset はデフォルトへ戻す", async () => {
     const repo = createFakeRepository();
     const service = createInactiveKickSettingsService(repo);
     await service.enable(GUILD, new Date());
-    await service.setThresholdDays(GUILD, 200);
+    await service.setTier(GUILD, 0, { thresholdDays: 200 });
     await service.addWhitelistRole(GUILD, "r1");
 
     await service.reset(GUILD);
     const settings = await service.getSettingsOrDefault(GUILD);
     expect(settings.enabled).toBe(false);
     expect(settings.enabledAt).toBeUndefined();
-    expect(settings.thresholdDays).toBe(DEFAULT_INACTIVE_KICK_THRESHOLD_DAYS);
+    expect(settings.tiers).toEqual([
+      {
+        tenureDays: 0,
+        thresholdDays: DEFAULT_INACTIVE_KICK_THRESHOLD_DAYS,
+        trackMessage: true,
+        trackVoice: true,
+        trackReaction: true,
+      },
+    ]);
     expect(settings.whitelistRoleIds).toEqual([]);
   });
 
   it("getAllEnabled は有効なギルドのみ返す", async () => {
     const service = createInactiveKickSettingsService(createFakeRepository());
     await service.enable("g1", new Date());
-    await service.setThresholdDays("g2", 60); // 無効のまま
+    await service.setTier("g2", 0, { thresholdDays: 60 }); // 無効のまま
     const enabled = await service.getAllEnabled();
     expect(enabled.map((s) => s.guildId)).toEqual(["g1"]);
   });

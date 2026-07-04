@@ -9,6 +9,7 @@ import type {
   BumpReminderMentionUsersClearResult,
 } from "./bumpReminderTypes";
 import type {
+  ActivityTrigger,
   AfkSettings,
   BumpReminderSettings,
   GuildSettings,
@@ -189,11 +190,15 @@ export interface IUnverifiedKickWarnRepository {
 }
 
 export interface IMemberActivityRepository {
-  /** 活動を記録（upsert で lastActivityAt 更新・warnStage は指定時のみ更新） */
+  /**
+   * 活動を記録（upsert で lastActivityAt 更新・warnStage は指定時のみ更新）。
+   * `trigger` に対応する累積カウント（messageCount/voiceCount/reactionCount）も +1 する。
+   */
   recordActivity(
     guildId: string,
     userId: string,
     lastActivityAt: Date,
+    trigger: ActivityTrigger,
     warnStage?: number,
   ): Promise<void>;
   /** warnStage のみ更新（通知送信成功後の前進用） */

@@ -123,7 +123,13 @@ export async function buildCandidateBuckets(
   const activities = new Map<string, CandidateActivity>(
     activityList.map((a) => [
       a.userId,
-      { lastActivityAt: a.lastActivityAt, warnStage: a.warnStage },
+      {
+        lastActivityAt: a.lastActivityAt,
+        warnStage: a.warnStage,
+        messageCount: a.messageCount,
+        voiceCount: a.voiceCount,
+        reactionCount: a.reactionCount,
+      },
     ]),
   );
   const normalized = members.map((m) =>
@@ -223,7 +229,6 @@ async function sendStageNotification(
   const { content, embeds } = buildWarnNotification(candidates, {
     t,
     serverName: guild.name,
-    thresholdDays: settings.thresholdDays,
     now,
     timezone: settings.timezone,
     runHour: settings.runHour,
@@ -278,7 +283,13 @@ async function sendObsoleteInactiveKickNotice(
   },
 ): Promise<void> {
   const detected = detectObsoleteInactiveKickPlaceholders(settings);
-  if (!detected.hasDaysLeft && !detected.hasMarkerRole) return;
+  if (
+    !detected.hasDaysLeft &&
+    !detected.hasMarkerRole &&
+    !detected.hasThresholdDays
+  ) {
+    return;
+  }
   const t = await getGuildTranslator(guild.id);
   const notice = buildObsoleteInactiveKickNotice(t, detected);
   if (notice) {
@@ -361,7 +372,6 @@ async function processKicks(
   const { content, embeds } = buildKickNotification(kicked, {
     t,
     serverName: guild.name,
-    thresholdDays: settings.thresholdDays,
     customMessage: settings.kickMessage,
     testMode,
   });
@@ -381,13 +391,16 @@ async function processKicks(
 
 /**
  * `INACTIVE_KICK_MOCK_MEMBERS` 用のモックバケットを生成する。
- * thresholdDays を基準に週次警告・最終警告・キックを count 件に分配する。
+ * 先頭階層（tenureDays 最小）のしきい値を基準に週次警告・最終警告・キックを count 件に分配する。
  */
 function buildMockInactiveKickBuckets(
   count: number,
   settings: InactiveKickSettings,
 ): CandidateBuckets {
-  const threshold = settings.thresholdDays;
+  const lowestTier = [...settings.tiers].sort(
+    (a, b) => a.tenureDays - b.tenureDays,
+  )[0];
+  const threshold = lowestTier.thresholdDays;
 
   const make = (
     i: number,
@@ -400,8 +413,10 @@ function buildMockInactiveKickBuckets(
     inactiveDays,
     daysLeft,
     warnStage: stage,
+    thresholdDays: threshold,
     isMarkerTarget: stage > 0,
     hasMarkerRole: stage > 0,
+    tenureDeadline: lowestTier.tenureDeadline ?? false,
   });
 
   return {
@@ -430,10 +445,12 @@ export async function processGuildInactiveKick(
 
   const settingsService = getBotInactiveKickSettingsService();
 
-  if (
-    settings.thresholdDays < INACTIVE_KICK_THRESHOLD_MIN_DAYS ||
-    settings.thresholdDays > INACTIVE_KICK_THRESHOLD_MAX_DAYS
-  ) {
+  const hasInvalidTier = settings.tiers.some(
+    (tier) =>
+      tier.thresholdDays < INACTIVE_KICK_THRESHOLD_MIN_DAYS ||
+      tier.thresholdDays > INACTIVE_KICK_THRESHOLD_MAX_DAYS,
+  );
+  if (settings.tiers.length === 0 || hasInvalidTier) {
     await settingsService.disableInvalid(guild.id);
     logger.warn(
       logPrefixed(LOG_PREFIX, "inactiveKick:log.guild_disabled_invalid", {

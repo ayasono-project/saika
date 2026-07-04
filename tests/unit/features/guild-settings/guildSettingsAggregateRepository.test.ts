@@ -383,7 +383,7 @@ describe("shared/database/repositories/guildSettingsAggregateRepository", () => 
       inactiveKickRepo.getInactiveKickSettings.mockResolvedValue({
         enabled: true,
         enabledAt,
-        thresholdDays: 30,
+        tiers: [{ tenureDays: 0, thresholdDays: 30 }],
         whitelistRoleIds: ["r-1"],
         whitelistUserIds: ["u-1"],
       });
@@ -682,15 +682,20 @@ describe("shared/database/repositories/guildSettingsAggregateRepository", () => 
           enabled: true,
           // export JSON 経由では enabledAt は ISO 文字列になる
           enabledAt: "2026-01-01T00:00:00.000Z" as unknown as Date,
-          thresholdDays: 30,
+          tiers: [
+            {
+              tenureDays: 0,
+              thresholdDays: 30,
+              trackMessage: true,
+              trackVoice: true,
+              trackReaction: true,
+            },
+          ],
           whitelistRoleIds: ["r-1"],
           whitelistUserIds: ["u-1"],
           timezone: "Asia/Tokyo",
           runHour: 4,
           mentionEnabled: true,
-          trackMessage: true,
-          trackVoice: true,
-          trackReaction: true,
         },
       };
 
@@ -709,15 +714,20 @@ describe("shared/database/repositories/guildSettingsAggregateRepository", () => 
         locale: "ja",
         inactiveKick: {
           enabled: false,
-          thresholdDays: 30,
+          tiers: [
+            {
+              tenureDays: 0,
+              thresholdDays: 30,
+              trackMessage: true,
+              trackVoice: true,
+              trackReaction: true,
+            },
+          ],
           whitelistRoleIds: [],
           whitelistUserIds: [],
           timezone: "Asia/Tokyo",
           runHour: 4,
           mentionEnabled: true,
-          trackMessage: true,
-          trackVoice: true,
-          trackReaction: true,
         },
       };
 

@@ -58,6 +58,22 @@
 
 > 詳細な作業経過は git log を参照。
 
+### 非アクティブキック 在籍階層制導入・活動判定/アクティブ条件のティア単位化（2026-07-04 完了）
+
+非アクティブ自動キックのしきい値を、ギルド単位の単一 `thresholdDays` から在籍日数ベースの多段階「階層（tier、旧称ランク）」（`tiers: InactiveKickTier[]`）に置き換え。さらに設計レビューで見つかった「緩い階層へ在籍日数だけで昇格し、以後無活動でも恒久的にキックされなくなる」抜け穴を塞ぐため、階層ごとに活動判定（`trackMessage/trackVoice/trackReaction`）・アクティブ条件（`minMessageCount/minVoiceCount/minReactionCount` の累積回数下限、OR判定）・在籍日数締め切りモード（`tenureDeadline`）を個別設定できるよう全面リファクタ。旧ギルド共通の活動判定トグル・`/inactive-kick-settings activity set` は廃止し、各階層の設定に一本化した。shared v1.3.0 publish・DB migration（`ranks`→`tiers` リネーム＋活動カウント3列追加）・`/inactive-kick-settings tier set/remove/list`・web ダッシュボードの階層編集 UI（行内折りたたみで活動判定・アクティブ条件・締め切りモードを設定）を実装。
+
+- [x] shared v1.3.0 publish（`InactiveKickRank`→`InactiveKickTier`、`trackMessage/Voice/Reaction`・`minMessageCount/Voice/ReactionCount`・`tenureDeadline` を追加、`ranks`→`tiers`）・saika/web の参照を更新
+- [x] DB migration（`ranks`→`tiers` リネーム・旧ギルド共通 track 列を削除して各ティア要素へ backfill・`member_activities` に `message/voice/reaction_count` を追加）+ ドメイン型/デフォルト/リポジトリ/サービス更新
+- [x] 記録パイプライン刷新: `recordMemberActivity` がメンバーの現在の在籍日数から適用階層を解決し、その階層の `trackX` を見てから記録・カウント加算するよう変更（ティアをまたいでも常に現在適用中の階層基準で判定）
+- [x] 判定ロジック更新: `resolveApplicableTier`（旧 `resolveRankThreshold` を拡張）・`hasActiveCondition`/`meetsActiveCondition`（OR条件）・`tenureDeadline` 時は非アクティブ日数の代わりに在籍日数そのものを締め切りとして使う分岐を追加
+- [x] コマンド刷新: `rank` グループを `tier` に改称して活動判定・アクティブ条件・締め切りモードのオプションを追加、旧 `activity set` グループを完全廃止、`view`/preview を階層表示に対応
+- [x] 呼称を「ランク」→「階層（tier）」に全面置換（コマンド名・型名・変数名・ロケール・ドキュメント・DBカラム名）
+- [x] web ダッシュボード: 階層一覧を行ごとに直接編集可能な UI に刷新（「詳細設定」の折りたたみで活動判定・アクティブ条件・締め切りモードを設定）、旧「アクティビティ判定」独立カードを削除
+- [x] 在籍日数の上限バリデーション（当初3650日）を撤廃 — 実在籍日数に技術的な上限はないため下限（0以上）のみとする
+- [x] ja/en ロケール・USER_MANUAL.md 更新・テスト全通過（saika 2668件・web typecheck/test green）
+
+> NOTE: 未コミット。コミット・develop merge・release は別途対応。
+
 ### 非アクティブキック/未承認キック 通知の件数表示改善（2026-07-04 完了）
 
 キック通知（`buildKickNotification`、非アクティブキック・未承認キック両機能）のフィールド名に「このフィールドの表示人数/合計人数」`(x/y)` を付与し、プレビュー（`buildPreviewEmbedPages`）と同じ表示形式に揃えた。加えて Embed タイトルにも合計人数 `{{total}}` を補間し、複数 Embed に跨る場合でも全体件数が一目でわかるようにした。ja/en ロケール `embed.title.kick` を更新し、既存 notifier テストにケースを追加。

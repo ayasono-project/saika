@@ -178,7 +178,8 @@ export const unverifiedKick = {
   "embed.field.name.kick_schedule": "キック予定日時",
 
   // ── キックサマリー Embed（ログチャンネル）─────
-  "embed.title.kick": "👢 未承認メンバーを自動キックしました",
+  "embed.title.kick":
+    "👢 未承認メンバーを自動キックしました（合計 {{total}}名）",
   "embed.description.kick":
     "認証ロール {{role}} が未取得のためキックしました。",
   "embed.field.name.kicked_members": "キックしたメンバー",

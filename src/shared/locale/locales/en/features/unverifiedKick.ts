@@ -174,7 +174,7 @@ export const unverifiedKick = {
   "embed.field.name.kick_schedule": "Scheduled Kick Date and Time",
 
   // ── Kick summary embed (log channel) ─────
-  "embed.title.kick": "👢 Auto-kicked unverified members",
+  "embed.title.kick": "👢 Auto-kicked unverified members (total: {{total}})",
   "embed.description.kick": "Kicked for not obtaining the {{role}} role.",
   "embed.field.name.kicked_members": "Kicked members",
   "embed.field.name.test_mode": "Test Mode",

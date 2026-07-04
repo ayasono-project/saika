@@ -173,7 +173,8 @@ export const inactiveKick = {
     "【最終警告】サーバー「{serverName}」で活動のないメンバー {count} 名がキック対象です。退出を避けるには、今のうちにメッセージの投稿やリアクションで活動してください。キック予定日時は通知内に表示されます。",
 
   // ── キック通知 Embed（当日）─────
-  "embed.title.kick": "👋 非アクティブメンバーを自動キックしました",
+  "embed.title.kick":
+    "👋 非アクティブメンバーを自動キックしました（合計 {{total}}名）",
   "embed.field.name.kicked_members": "キックしたメンバー",
   "embed.field.name.test_mode": "テストモード",
   "embed.field.value.test_mode": "（テストモード: 実際にはキックしていません）",

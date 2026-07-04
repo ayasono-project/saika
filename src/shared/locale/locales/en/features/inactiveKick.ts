@@ -177,7 +177,7 @@ export const inactiveKick = {
     '[Final warning] {count} inactive member(s) on "{serverName}" will be kicked. To avoid removal, be active now by posting a message or adding a reaction. The scheduled kick date is shown in the notification embed.',
 
   // ── Kick notification embed ─────
-  "embed.title.kick": "👋 Inactive members were auto-kicked",
+  "embed.title.kick": "👋 Inactive members were auto-kicked (total: {{total}})",
   "embed.field.name.kicked_members": "Kicked members",
   "embed.field.name.test_mode": "Test mode",
   "embed.field.value.test_mode": "(Test mode: no one was actually kicked)",

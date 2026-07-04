@@ -2,7 +2,7 @@
 
 > タスク管理・進捗状況・残件リスト
 
-最終更新: 2026年6月30日
+最終更新: 2026年7月4日
 
 ---
 
@@ -10,25 +10,16 @@
 
 | セクション | 概要 | 残件 |
 | --- | --- | ---: |
-| 非アクティブキック アクティビティトリガー | web UI + shared v1.0.0 | 2 |
 | ドキュメント整理（spec 廃止・guides 集約） | spec 削除・リンク整理済み。残: 設計根拠・非自明な判断を ARCHITECTURE.md 等へ追記 | 2 |
 | Bot 一般公開準備 | `/about` 充実（LP 公開時）・Discord 認証申請（75 サーバー到達後） | 2 |
-| **合計** | | **6** |
+| **合計** | | **4** |
 
 > web ダッシュボード・インフラ（VPS / Cloudflare / Coolify）は別リポジトリで管理。上から優先度順（Bot 一般公開準備は低優先度）。
-> 次は shared v1.0.0 publish（非アクティブキック + VC自動募集 の shared 変更を統合）→ web: InactiveKickPage アクティビティトリガー UI → develop→main release PR。ドキュメント整理（guides 追記）は低優先度・独立着手可能。
+> 次はドキュメント整理（guides 追記）または Bot 一般公開準備。
 
 ---
 
 ## タスク一覧
-
-### 非アクティブキック アクティビティトリガー
-
-`/inactive-kick-settings activity set` マルチセレクトメニューで活動種別（テキスト/VC/リアクション）を一括 on/off できる機能。実装・typecheck/lint/test 全通過（2636件）・develop merge 済み（2026-06-29）。shared 変更（`trackMessage/trackVoice/trackReaction`）は VC チャンネル単位化と合わせて v1.0.0 で publish 予定。
-
-- [x] Discord コマンド動作確認 → feature → develop PR 作成（rebase merge）（2026-06-29）
-- [ ] shared v1.0.0 publish（VC自動募集 完了後）＋ saika の参照を `#v1.0.0` に更新（`CI=true pnpm install`）
-- [ ] web: InactiveKickPage にアクティビティトリガー設定 UI 追加（shared v1.0.0 対応後）
 
 ### ドキュメント整理（spec 廃止・guides 集約）
 
@@ -67,7 +58,25 @@
 
 > 詳細な作業経過は git log を参照。
 
-### VC自動募集 チャンネル単位化（2026-06-30 完了）
+### 非アクティブキック/未承認キック 通知の件数表示改善（2026-07-04 完了）
+
+キック通知（`buildKickNotification`、非アクティブキック・未承認キック両機能）のフィールド名に「このフィールドの表示人数/合計人数」`(x/y)` を付与し、プレビュー（`buildPreviewEmbedPages`）と同じ表示形式に揃えた。加えて Embed タイトルにも合計人数 `{{total}}` を補間し、複数 Embed に跨る場合でも全体件数が一目でわかるようにした。ja/en ロケール `embed.title.kick` を更新し、既存 notifier テストにケースを追加。
+
+- [x] `inactiveKickNotifier.ts` / `unverifiedKickNotifier.ts` の `splitKickedMemberFields` にフィールド名 `(x/y)` カウントを追加
+- [x] 両 notifier のキック通知タイトルに合計人数 `{{total}}` を補間
+- [x] ja/en ロケール4ファイルの `embed.title.kick` を更新
+- [x] 既存テストにケース追加（フィールド分割時の件数整合性・タイトルへの total 受け渡し・全 2642 通過）
+
+> NOTE: 未コミット。コミット・develop merge・release は別途対応。
+
+### 非アクティブキック アクティビティトリガー web UI + shared v1.0.0（2026-06-30 完了・本番デプロイ済み）
+
+shared v1.0.0 publish（`enabledChannelIds` + `trackMessage/trackVoice/trackReaction` を統合）・saika v2.2.0 で `#v1.0.0` 参照に更新・web: InactiveKickPage にアクティビティ判定カードを追加（2枚目に配置）。release PR #92（develop→main・auto-merge）・web main push 済み。
+
+- [x] shared v1.0.0 publish + saika の参照を `#v1.0.0` に更新（2026-06-30）
+- [x] web: InactiveKickPage にアクティビティトリガー設定 UI 追加（2026-06-30）
+
+### VC自動募集 チャンネル単位化（2026-06-30 完了・本番デプロイ済み）
 
 カテゴリ単位 allowlist（`enabledCategoryIds`）を VCチャンネルID 単位の allowlist（`enabledChannelIds`）に置き換え。本番 DB でカテゴリ設定済みレコードが0件であることを確認し clean migration で移行。`set-channel` → `set-post-channel` リネーム（`add-channel` との混同防止）。add-channel / remove-channel の StringSelectMenu 追加（VAC トリガー + AFK を候補除外・完了通知にチャンネルメンション一覧表示）。shared v0.3.4 で `enabledChannelIds` 追加。テスト全通過（2636件）。
 

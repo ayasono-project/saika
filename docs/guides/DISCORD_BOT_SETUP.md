@@ -2,7 +2,7 @@
 
 > Discord Developer Portal でアプリを作成し、サーバーへ招待するまでの手順
 
-最終更新: 2026年6月16日
+最終更新: 2026年7月4日
 
 ---
 
@@ -79,6 +79,7 @@
 | チャンネルの管理 | Manage Channels | ticket / vac / vc-recruit / vc-auto-recruit / vc-command |
 | ロールの管理 | Manage Roles | ticket / reaction-role / kick 系マーカーロール |
 | メンバーを移動 | Move Members | vac / vc-command / afk |
+| 接続 | Connect | vac / vc-command / afk（移動先VCへの接続。Move Members だけでは移動不可） |
 | メンバーをキック | Kick Members | unverified-kick / inactive-kick |
 | 公開スレッドの作成 | Create Public Threads | vc-recruit（自動スレッド） |
 | スレッドの管理 | Manage Threads | vc-recruit（募集スレッド削除） |
@@ -96,6 +97,18 @@
 3. **認証** → **はい** で完了
 
 > Bot を追加するには「サーバーを管理する」権限が必要。
+
+### 4-3. Installation タブの Default Install Settings
+
+ダッシュボードの「Bot を追加」ボタンは `client.generateInvite()`（`src/api/routes/bot.ts` の `INVITE_PERMISSIONS`）で招待URLをその都度動的に生成しているため、上記 4-1/4-2 とは独立して常に最新の権限セットになる。
+
+一方、**Botのプロフィールから直接「サーバーに追加」した場合や公開Bot一覧経由のインストールは、この動的生成を経由せず Developer Portal 側の設定を使う**。以下を必ず揃えておく:
+
+1. 左メニュー → **Installation**
+2. **Guild Install** → **Permissions** に `INVITE_PERMISSIONS`（本ページ 4-1 の表）と同じ権限を設定
+3. Scopes は `bot` + `applications.commands`
+
+`INVITE_PERMISSIONS` を変更したときは、このタブも忘れず同期させること。
 
 ---
 

@@ -8,6 +8,7 @@ import { env } from "../../../shared/config/env";
 import type { AllParseKeys } from "../../../shared/locale/i18n";
 import { tInteraction } from "../../../shared/locale/localeManager";
 import { ensureInactiveKickManageGuildPermission } from "./inactiveKickSettingsCommand.guard";
+import { formatTierSummary } from "./inactiveKickSettingsCommand.tier";
 
 /**
  * 現在の非アクティブ自動キック設定を表示する。
@@ -56,13 +57,12 @@ export async function handleInactiveKickView(
         inline: true,
       },
       {
-        name: tInteraction(locale, "inactiveKick:embed.field.name.threshold"),
-        value: tInteraction(
-          locale,
-          "inactiveKick:embed.field.value.threshold_days",
-          { count: settings.thresholdDays },
-        ),
-        inline: true,
+        name: tInteraction(locale, "inactiveKick:embed.field.name.tier_list"),
+        value: [...settings.tiers]
+          .sort((a, b) => a.tenureDays - b.tenureDays)
+          .map((tier) => formatTierSummary(locale, tier))
+          .join("\n\n"),
+        inline: false,
       },
       {
         name: tInteraction(locale, "inactiveKick:embed.field.name.enabled_at"),
@@ -139,22 +139,6 @@ export async function handleInactiveKickView(
         ),
         value: settings.mentionEnabled ? enabled : disabled,
         inline: true,
-      },
-      {
-        name: tInteraction(
-          locale,
-          "inactiveKick:embed.field.name.activity_triggers",
-        ),
-        value: tInteraction(
-          locale,
-          "inactiveKick:embed.field.value.activity_triggers",
-          {
-            message: settings.trackMessage ? enabled : disabled,
-            voice: settings.trackVoice ? enabled : disabled,
-            reaction: settings.trackReaction ? enabled : disabled,
-          },
-        ),
-        inline: false,
       },
       {
         name: tInteraction(

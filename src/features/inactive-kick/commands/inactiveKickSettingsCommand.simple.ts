@@ -16,10 +16,6 @@ import {
   tInteraction,
 } from "../../../shared/locale/localeManager";
 import { logger } from "../../../shared/utils/logger";
-import {
-  INACTIVE_KICK_THRESHOLD_MAX_DAYS,
-  INACTIVE_KICK_THRESHOLD_MIN_DAYS,
-} from "../inactiveKickSettingsDefaults";
 import { INACTIVE_KICK_SETTINGS_COMMAND } from "./inactiveKickSettingsCommand.constants";
 import { ensureInactiveKickManageGuildPermission } from "./inactiveKickSettingsCommand.guard";
 
@@ -94,47 +90,6 @@ export async function handleInactiveKickSetChannel(
     logPrefixed(LOG_PREFIX, "inactiveKick:log.config_updated", {
       guildId,
       action: "set-channel",
-    }),
-  );
-}
-
-/**
- * 非アクティブ判定日数（しきい値）を設定する。
- */
-export async function handleInactiveKickSetThreshold(
-  interaction: ChatInputCommandInteraction,
-  guildId: string,
-): Promise<void> {
-  await ensureInactiveKickManageGuildPermission(interaction);
-
-  const days = interaction.options.getInteger(
-    INACTIVE_KICK_SETTINGS_COMMAND.OPTION.DAYS,
-    true,
-  );
-  if (
-    days < INACTIVE_KICK_THRESHOLD_MIN_DAYS ||
-    days > INACTIVE_KICK_THRESHOLD_MAX_DAYS
-  ) {
-    throw new ValidationError(
-      tInteraction(
-        interaction.locale,
-        "inactiveKick:user-response.threshold_out_of_range",
-      ),
-    );
-  }
-
-  await getBotInactiveKickSettingsService().setThresholdDays(guildId, days);
-  await replySuccess(
-    interaction,
-    "inactiveKick:user-response.set_threshold_success",
-    {
-      days,
-    },
-  );
-  logger.info(
-    logPrefixed(LOG_PREFIX, "inactiveKick:log.config_updated", {
-      guildId,
-      action: "set-threshold",
     }),
   );
 }

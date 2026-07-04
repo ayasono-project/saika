@@ -3,10 +3,18 @@
 
 import type { PrismaClient } from "@prisma/client";
 import type {
+  ActivityTrigger,
   IMemberActivityRepository,
   MemberActivity,
 } from "../../shared/database/types";
 import { createRepositoryGetter } from "../../shared/utils/serviceFactory";
+
+/** トリガー種別から Prisma の増分対象カラム名への対応 */
+const COUNT_FIELD_BY_TRIGGER = {
+  message: "messageCount",
+  voice: "voiceCount",
+  reaction: "reactionCount",
+} as const satisfies Record<ActivityTrigger, string>;
 
 /**
  * member_activities テーブルを使用したメンバー活動履歴リポジトリ
@@ -21,9 +29,11 @@ export class MemberActivityRepository implements IMemberActivityRepository {
     guildId: string,
     userId: string,
     lastActivityAt: Date,
+    trigger: ActivityTrigger,
     warnStage?: number,
   ): Promise<void> {
-    // warnStage は指定時のみ更新する（活動記録は基本 lastActivityAt のみ更新）
+    // warnStage は指定時のみ更新する（活動記録は基本 lastActivityAt + 該当カウントのみ更新）
+    const countField = COUNT_FIELD_BY_TRIGGER[trigger];
     await this.prisma.memberActivity.upsert({
       where: { guildId_userId: { guildId, userId } },
       create: {
@@ -31,10 +41,12 @@ export class MemberActivityRepository implements IMemberActivityRepository {
         userId,
         lastActivityAt,
         warnStage: warnStage ?? 0,
+        [countField]: 1,
       },
       update: {
         lastActivityAt,
         ...(warnStage !== undefined ? { warnStage } : {}),
+        [countField]: { increment: 1 },
       },
     });
   }
@@ -64,6 +76,9 @@ export class MemberActivityRepository implements IMemberActivityRepository {
       userId: record.userId,
       lastActivityAt: record.lastActivityAt,
       warnStage: record.warnStage,
+      messageCount: record.messageCount,
+      voiceCount: record.voiceCount,
+      reactionCount: record.reactionCount,
     };
   }
 
@@ -76,6 +91,9 @@ export class MemberActivityRepository implements IMemberActivityRepository {
       userId: record.userId,
       lastActivityAt: record.lastActivityAt,
       warnStage: record.warnStage,
+      messageCount: record.messageCount,
+      voiceCount: record.voiceCount,
+      reactionCount: record.reactionCount,
     }));
   }
 

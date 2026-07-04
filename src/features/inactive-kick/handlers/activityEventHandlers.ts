@@ -29,11 +29,22 @@ export async function handleInactiveKickMessageActivity(
   if (!guild) return;
 
   const userId = message.author.id;
-  await recordMemberActivity(guild, userId, "message", async () => {
-    // 対象ロール剥奪が必要な場合のみメンバーを解決（キャッシュ優先）
-    if (message.member) return message.member;
-    return guild.members.fetch(userId).catch(() => null);
-  });
+  // メンバー解決は1回だけ行い、在籍階層の解決・対象ロール剥奪の双方で使い回す
+  let cachedMember: GuildMember | null | undefined =
+    message.member ?? undefined;
+  const resolveMember = async (): Promise<GuildMember | null> => {
+    if (cachedMember !== undefined) return cachedMember;
+    cachedMember = await guild.members.fetch(userId).catch(() => null);
+    return cachedMember;
+  };
+
+  await recordMemberActivity(
+    guild,
+    userId,
+    "message",
+    async () => (await resolveMember())?.joinedAt ?? null,
+    resolveMember,
+  );
 }
 
 /**
@@ -56,6 +67,7 @@ export async function handleInactiveKickVoiceActivity(
     newState.guild,
     member.id,
     "voice",
+    async () => member.joinedAt,
     async () => member,
   );
 }
@@ -75,8 +87,20 @@ export async function handleInactiveKickReactionActivity(
   const guild = reaction.message.guild;
   if (!guild) return;
 
-  await recordMemberActivity(guild, user.id, "reaction", async () =>
-    guild.members.fetch(user.id).catch(() => null),
+  // メンバー解決は1回だけ行い、在籍階層の解決・対象ロール剥奪の双方で使い回す
+  let cachedMember: GuildMember | null | undefined;
+  const resolveMember = async (): Promise<GuildMember | null> => {
+    if (cachedMember !== undefined) return cachedMember;
+    cachedMember = await guild.members.fetch(user.id).catch(() => null);
+    return cachedMember;
+  };
+
+  await recordMemberActivity(
+    guild,
+    user.id,
+    "reaction",
+    async () => (await resolveMember())?.joinedAt ?? null,
+    resolveMember,
   );
 }
 

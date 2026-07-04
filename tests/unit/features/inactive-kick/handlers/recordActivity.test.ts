@@ -62,16 +62,25 @@ describe("inactive-kick/recordMemberActivity", () => {
     mocks.getSettings.mockResolvedValue(null);
   });
 
+  const TRACKING_TIER = {
+    tenureDays: 0,
+    thresholdDays: 30,
+    trackMessage: true,
+    trackVoice: true,
+    trackReaction: true,
+  };
+
   it("初回活動で lastActivityAt を記録する（警告履歴なし→warnStage は更新せず）", async () => {
     await recordMemberActivity(
       createFakeGuild(),
       USER_ID,
       "message",
       async () => null,
+      async () => null,
     );
 
     expect(mocks.recordActivity).toHaveBeenCalledTimes(1);
-    const [guildId, userId, , warnStage] = mocks.recordActivity.mock.calls[0];
+    const [guildId, userId, , , warnStage] = mocks.recordActivity.mock.calls[0];
     expect(guildId).toBe(GUILD_ID);
     expect(userId).toBe(USER_ID);
     // 警告履歴がないため warnStage は更新しない（undefined）
@@ -84,11 +93,13 @@ describe("inactive-kick/recordMemberActivity", () => {
       USER_ID,
       "message",
       async () => null,
+      async () => null,
     );
     await recordMemberActivity(
       createFakeGuild(),
       USER_ID,
       "message",
+      async () => null,
       async () => null,
     );
 
@@ -108,9 +119,10 @@ describe("inactive-kick/recordMemberActivity", () => {
       USER_ID,
       "message",
       async () => null,
+      async () => null,
     );
 
-    const [, , , warnStage] = mocks.recordActivity.mock.calls[0];
+    const [, , , , warnStage] = mocks.recordActivity.mock.calls[0];
     expect(warnStage).toBe(0);
   });
 
@@ -124,9 +136,7 @@ describe("inactive-kick/recordMemberActivity", () => {
     });
     mocks.getSettings.mockResolvedValue({
       markerRoleId: MARKER,
-      trackMessage: true,
-      trackVoice: true,
-      trackReaction: true,
+      tiers: [TRACKING_TIER],
     });
     const { member, remove } = createFakeMember([MARKER]);
 
@@ -134,6 +144,7 @@ describe("inactive-kick/recordMemberActivity", () => {
       createFakeGuild(),
       USER_ID,
       "message",
+      async () => null,
       async () => member as never,
     );
 
@@ -153,9 +164,7 @@ describe("inactive-kick/recordMemberActivity", () => {
     });
     mocks.getSettings.mockResolvedValue({
       markerRoleId: MARKER,
-      trackMessage: true,
-      trackVoice: true,
-      trackReaction: true,
+      tiers: [TRACKING_TIER],
     });
     const { member, remove } = createFakeMember([]);
 
@@ -163,6 +172,7 @@ describe("inactive-kick/recordMemberActivity", () => {
       createFakeGuild(),
       USER_ID,
       "message",
+      async () => null,
       async () => member as never,
     );
 
@@ -182,10 +192,27 @@ describe("inactive-kick/recordMemberActivity", () => {
       createFakeGuild(),
       USER_ID,
       "message",
+      async () => null,
       resolveMember,
     );
 
     expect(resolveMember).not.toHaveBeenCalled();
+  });
+
+  it("設定にトラッキング対象外の階層が解決された場合は記録しない", async () => {
+    mocks.getSettings.mockResolvedValue({
+      tiers: [{ ...TRACKING_TIER, trackMessage: false }],
+    });
+
+    await recordMemberActivity(
+      createFakeGuild(),
+      USER_ID,
+      "message",
+      async () => new Date(0),
+      async () => null,
+    );
+
+    expect(mocks.recordActivity).not.toHaveBeenCalled();
   });
 
   it("書き込み失敗時は throttle キャッシュを戻し、次回再試行できる", async () => {
@@ -196,6 +223,7 @@ describe("inactive-kick/recordMemberActivity", () => {
       USER_ID,
       "message",
       async () => null,
+      async () => null,
     );
     expect(mocks.logger.error).toHaveBeenCalledTimes(1);
 
@@ -204,6 +232,7 @@ describe("inactive-kick/recordMemberActivity", () => {
       createFakeGuild(),
       USER_ID,
       "message",
+      async () => null,
       async () => null,
     );
     expect(mocks.recordActivity).toHaveBeenCalledTimes(2);

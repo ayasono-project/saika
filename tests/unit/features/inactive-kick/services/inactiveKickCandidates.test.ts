@@ -373,4 +373,62 @@ describe("inactive-kick/categorizeCandidates（tenureDeadline モード）", () 
     expect(buckets.kick).toHaveLength(0);
     expect(buckets.graceClear.map((g) => g.userId)).toEqual(["u1"]);
   });
+
+  it("有効化時点で既にウィンドウ（0〜しきい値日数）を過ぎていた既存の長期在籍者は、この階層の対象外になる", () => {
+    // 有効化(day(1)=2026-01-01)の 400 日以上前から在籍 → 有効化時点の在籍日数が既に
+    // しきい値(30日)を超えている＝一度もこの階層で評価される機会がなかった
+    const joinedLongAgo = new Date(2024, 11, 27); // 2024-12-27
+    const members = [member({ userId: "u1", joinedAt: joinedLongAgo })];
+    const activities = new Map<string, CandidateActivity>([
+      [
+        "u1",
+        activity({
+          lastActivityAt: joinedLongAgo,
+          warnStage: WARN_STAGE.NONE,
+          messageCount: 0,
+        }),
+      ],
+    ]);
+    const buckets = categorizeCandidates(
+      members,
+      activities,
+      DEADLINE_SETTINGS,
+      NOW,
+    );
+    expect(buckets.kick).toHaveLength(0);
+    expect(buckets.pendingKick).toHaveLength(0);
+    expect(buckets.finalWarn).toHaveLength(0);
+    expect(buckets.weekWarn).toHaveLength(0);
+    expect(buckets.graceClear).toHaveLength(0);
+    expect(buckets.markerRoleTargetIds.size).toBe(0);
+  });
+
+  it("対象外になった既存の長期在籍者が既に warnStage 進行・対象ロール付与済みなら猶予クリアされる（誤判定からの自動復帰）", () => {
+    const joinedLongAgo = new Date(2024, 11, 27); // 2024-12-27
+    const members = [
+      member({
+        userId: "u1",
+        joinedAt: joinedLongAgo,
+        hasMarkerRole: true,
+      }),
+    ];
+    const activities = new Map<string, CandidateActivity>([
+      [
+        "u1",
+        activity({
+          lastActivityAt: joinedLongAgo,
+          warnStage: WARN_STAGE.FINAL,
+          messageCount: 0,
+        }),
+      ],
+    ]);
+    const buckets = categorizeCandidates(
+      members,
+      activities,
+      DEADLINE_SETTINGS,
+      NOW,
+    );
+    expect(buckets.kick).toHaveLength(0);
+    expect(buckets.graceClear).toEqual([{ userId: "u1", hasMarkerRole: true }]);
+  });
 });

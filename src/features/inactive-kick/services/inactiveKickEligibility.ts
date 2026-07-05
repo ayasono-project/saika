@@ -89,6 +89,30 @@ export function resolveApplicableTier(
   return best;
 }
 
+/**
+ * 在籍日数締め切りモードの階層が、有効化時点で既にウィンドウ（0〜しきい値日数）を
+ * 過ぎていたかを判定する。
+ * 過ぎていた場合、そのメンバーは一度もこの階層で評価される機会がないまま
+ * 在籍日数だけがしきい値を超えていたことになるため、以後このメンバーを
+ * この階層の対象外（恒久的に対象外＝除外と同様の扱い）とする。
+ * 有効化前から在籍している既存の長期在籍者に、有効化直後の遡及的な
+ * 即キック判定が下るのを防ぐための保護。
+ * ウィンドウがまだ開いていた（有効化時点の在籍日数がしきい値未満だった）場合や
+ * `enabledAt` が不明な場合は false を返し、通常通り現在の在籍日数で判定させる。
+ * @param joinedAt サーバー参加日時（取得できなければ null）
+ * @param enabledAt 機能を有効化した時刻（未有効化時 null）
+ * @param thresholdDays 締め切りしきい値日数
+ * @returns 有効化時点で既にウィンドウが終了していれば true
+ */
+export function isTenureDeadlineWindowExpiredAtEnable(
+  joinedAt: Date | null,
+  enabledAt: Date | null,
+  thresholdDays: number,
+): boolean {
+  if (!enabledAt) return false;
+  return computeTenureDays(joinedAt, enabledAt) >= thresholdDays;
+}
+
 /** アクティブ条件の判定に使う累積回数 */
 export interface ActivityCounts {
   messageCount: number;

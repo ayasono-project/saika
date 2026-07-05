@@ -12,6 +12,7 @@ import {
   INACTIVE_KICK_STAGE,
   isExcluded,
   isMarkerRoleTarget,
+  isTenureDeadlineWindowExpiredAtEnable,
   meetsActiveCondition,
   resolveApplicableTier,
 } from "./inactiveKickEligibility";
@@ -101,6 +102,8 @@ export interface CandidateBuckets {
  *   ただし `warnStage > 0` または対象ロール付与済みのものは `graceClear` に積む（除外＝猶予リセット）。
  * - 在籍日数から適用階層を解決し、その階層のアクティブ条件（累積回数の下限）を満たすメンバーも
  *   同様に除外メンバー扱い（`graceClear`）にする。
+ * - 在籍日数締め切りモードの階層は、有効化時点で既にウィンドウ（0〜しきい値日数）を
+ *   過ぎていたメンバーを対象外（`graceClear`）にする。
  * - それ以外は、階層が `tenureDeadline` なら在籍日数を、そうでなければ実効最終活動時刻からの
  *   非アクティブ日数を経過日数として警告段階を判定する。
  *
@@ -167,6 +170,27 @@ export function categorizeCandidates(
           reactionCount: activity?.reactionCount ?? 0,
         },
         tier,
+      )
+    ) {
+      if (warnStage > 0 || member.hasMarkerRole) {
+        buckets.graceClear.push({
+          userId: member.userId,
+          hasMarkerRole: member.hasMarkerRole,
+        });
+      }
+      continue;
+    }
+
+    // 在籍日数締め切りモードでは、有効化時点で既にこの階層のウィンドウ
+    // （0〜しきい値日数）を過ぎていたメンバーを対象外にする。
+    // 一度も評価される機会がないまま在籍日数だけがしきい値を超えていた
+    // 既存の長期在籍者に、有効化直後の遡及的な即キック判定が下るのを防ぐ。
+    if (
+      tier.tenureDeadline &&
+      isTenureDeadlineWindowExpiredAtEnable(
+        member.joinedAt,
+        settings.enabledAt ?? null,
+        thresholdDays,
       )
     ) {
       if (warnStage > 0 || member.hasMarkerRole) {

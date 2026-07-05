@@ -10,6 +10,7 @@ import {
   INACTIVE_KICK_STAGE,
   isExcluded,
   isMarkerRoleTarget,
+  isTenureDeadlineWindowExpiredAtEnable,
   meetsActiveCondition,
   resolveApplicableTier,
   WARN_STAGE,
@@ -60,6 +61,29 @@ describe("inactive-kick/eligibility", () => {
     });
     it("未来時刻でも 0 を下限とする", () => {
       expect(computeTenureDays(day(31), day(1))).toBe(0);
+    });
+  });
+
+  describe("isTenureDeadlineWindowExpiredAtEnable", () => {
+    it("有効化時点の在籍日数がしきい値未満ならウィンドウはまだ開いていた（false）", () => {
+      // 参加(day(1))から有効化(day(20))までは19日 < しきい値30日
+      expect(isTenureDeadlineWindowExpiredAtEnable(day(1), day(20), 30)).toBe(
+        false,
+      );
+    });
+
+    it("有効化時点の在籍日数がしきい値以上ならウィンドウは既に過ぎていた（true）", () => {
+      // 参加が有効化(day(1))の 400 日以上前 → 有効化時点で既に 30 日を超過
+      const joinedLongAgo = new Date(2024, 11, 2, 0, 0, 0);
+      expect(
+        isTenureDeadlineWindowExpiredAtEnable(joinedLongAgo, day(1), 30),
+      ).toBe(true);
+    });
+
+    it("enabledAt が null なら判定不可として false を返す", () => {
+      expect(isTenureDeadlineWindowExpiredAtEnable(day(1), null, 30)).toBe(
+        false,
+      );
     });
   });
 

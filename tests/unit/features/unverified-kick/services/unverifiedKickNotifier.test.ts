@@ -104,7 +104,7 @@ describe("unverified-kick/notifier", () => {
         mentionEnabled: true,
         customMessage: "警告",
       });
-      expect(content).toBe("警告\n<@u1>");
+      expect(content).toBe("<@u1>\n警告");
     });
 
     it("mentionEnabled:false ならメンションを本文に含めない", () => {

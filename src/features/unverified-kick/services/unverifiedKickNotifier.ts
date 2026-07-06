@@ -198,7 +198,7 @@ export function buildWarnNotification(
       : undefined;
 
   const allContent =
-    [rendered || undefined, mentionText].filter(Boolean).join("\n") ||
+    [mentionText, rendered || undefined].filter(Boolean).join("\n") ||
     undefined;
 
   const kickUnix = computeKickUnix(

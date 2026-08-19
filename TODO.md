@@ -1,68 +1,36 @@
 # saika - TODO
 
-> タスク管理・進捗状況・残件リスト
+> タスク管理・進捗状況・残件リスト。web ダッシュボード・インフラ（VPS / Cloudflare / Coolify）は別リポジトリで管理。
 
 最終更新: 2026年8月20日
 
-**優先度の基準**: ①本番のユーザーに実害が出ているか ②他のタスクをブロックしているか ③依存が無く単独で進められるか
-
-> Phase 3〜6 の詳細な設計判断は Notion「Saika バグ修正〜キック機能整理〜マニュアル修正 実行計画（2026-07-29 アーカイブ）」に残っている。本ファイルで「Phase 3」等と書いた項目の中身はそちらを参照。
-> web ダッシュボード・インフラ（VPS / Cloudflare / Coolify）は別リポジトリで管理。
+**並び順の基準**: ①後続に影響するもの → ②前提の完了待ち → ③詳細が未設計 → ④単独で実装できるもの。各グループ内は変更の大きいものから。実害の有無・依存関係は各タスクの本文に書く。
 
 ---
 
 ## 残タスク サマリー
 
-| セクション | 概要 | 残件 |
-| --- | --- | ---: |
-| 判断待ち | 案D猶予日数・Guild親テーブル・bump上限値 | 3 |
-| 実装（依存なし） | Phase 3・bump クールタイム env 化・Bot ステータス更新 | 3 |
-| 実装（依存あり） | 案D＋guildCreate・ポーリング化・export/import 削除・DM トグル化・Phase 6-1・Phase 5 | 6 |
-| 棚卸し・未決 | resetAll の要否・機能単位 reset・変更履歴・findAllPending | 4 |
-| 機能改善 | メンバーログ出力先分離・メッセージ出力機能・ダッシュボード4件 | 3 |
-| ドキュメント整理（spec 廃止・guides 集約） | 設計根拠を ARCHITECTURE.md 等へ追記 | 2 |
-| Bot 一般公開準備 | `/about` 充実（LP 公開時）・Discord 認証申請（75 サーバー到達後） | 2 |
-| **合計** | | **23** |
+| グループ | 残件 |
+| --- | ---: |
+| 未決事項 | 9 |
+| 後続に影響する | 5 |
+| 前提の完了待ち | 5 |
+| 詳細が未設計 | 2 |
+| 単独で実装できる | 4 |
+| **合計** | **25** |
 
-> 次は **Phase 3**（依存ゼロで最も価値が高い）。案D は猶予日数と Guild 親テーブルの判断待ち。
-
----
-
-## 決定事項
-
-### export / import は廃止する（2026-08-19 決定）
-
-**案Dを採用し、その後 export / import を削除する。**
-
-判断の根拠:
-
-- **主用途が案Dで自動化される。** マニュアルが案内していた唯一の実用途は「Bot 除外前に export → 再招待後に import」であり、案D（退出後 N 日間データを保持し再導入で復活）がこれを自動で行う。手動の劣化版が残る形になる
-- **維持コストが実バグを生み続けている。** 機能・カラムを追加するたびに「3点セット」（entities 型 / repository マッピング / import の列挙）を手で更新する構造で、更新漏れが必ず**サイレント故障**（復元できたように見えて壊れている）になる。実際に 1-3・`lastRunDate` 非対称・export 不能バグの3件が発生
-- **使われている形跡がない。** 1-3 のバグは v2.2.0（2026-06-30）から存在し、round-trip した guild は「有効なのに投稿されない」状態で残るはずだが、本番調査（2026-08-19）で**該当0件**。export 不能バグも未報告
-
-> ⚠️ **順序が重要。案Dを先に入れてから export/import を削除する。** 逆にすると、案D が入るまでの間ユーザーが退出時の保全手段を持たない期間ができる。
-
-**「どうなったら要るか」の再検討条件**（これに該当しない限り再検討しない）:
-
-1. 自己ホストへの移行需要が出たとき（AGPL。同一 guildId なので現行実装で通る唯一のシナリオ）
-2. 案Dの猶予期間より長く Bot を外す運用が現れたとき
-3. 設定を丸ごと複製したい要望が出たとき（現行実装では guildId チェックにより不可能なので、実質は別機能の新規開発）
-
-「前どういう文面にしてたっけ」という需要は、export/import ではなく**変更履歴**（棚卸し・未決）のほうが正確かつ軽量に応える。
-
-### 案D（遅延削除）を採用する（2026-08-19 決定）
-
-`guildDelete` 時に即削除せず、猶予後に削除する。詳細はタスク 4。猶予日数と Guild 親テーブルの採否は未決（下記）。
+> **次にやること**: 未決事項を潰す。**実装より設計を先に片付ける。**
+> 特に「遅延削除の猶予日数」「Guild 親テーブル」「bump 上限値」の3件は、**決まらないと「後続に影響する」の遅延削除とポーリング化が着手できない**ボトルネック。
 
 ---
 
-## 判断待ち（着手前に決めるもの）
+## 未決事項
 
-決まらないと下流のタスクが動かせないもの。**勝手に決めないこと。**
+決めないと先へ進めないもの。**勝手に決めないこと。** 各項目の「止まっているもの」が、決まると動き出す。
 
-### 案D（遅延削除）の猶予日数
+### 遅延削除の猶予日数
 
-**ブロック中**: 案D の実装。
+**止まっているもの**: 退出時データの遅延削除
 
 30日 / 7日 / それ以外。
 
@@ -72,17 +40,17 @@
 
 ### Guild 親テーブル ＋ カスケードにするか
 
-**ブロック中**: 案D の実装量と、Phase 6-1 の要否。
+**止まっているもの**: 退出時データの遅延削除（実装量が変わる）／ `deleteAllSettings` のレジストリ化（採用すると不要になる）
 
-緊急性は消えており（Phase 1 で削除漏れは塞いだ）、純粋な構造改善の判断。
+緊急性は消えており（追従漏れバグ修正で削除漏れは塞いだ）、純粋な構造改善の判断。
 
-- **利点**: Guild 行を1つ消せば全部消える → 案Dが「猶予後に Guild 行を削除」で済み実装が激減。新テーブル追加時にリレーション必須になり**同じ漏れが構造的に起きなくなる**。案D関連の保存項目（導入日時・削除予定日時）の置き場所にもなる
-- **欠点**: マイグレーションが重い（バックフィル＋FK付与）。**現状スキーマに `@relation` は1つも無く、FK制約はゼロからの導入**。孤児レコードがあると FK 作成が失敗するため、事前に本番で孤児の有無を SELECT する必要がある（Phase 1 以前の削除漏れで孤児が存在する可能性が高い）
-- **単独で着手する作業ではない。** 採用するなら案Dと1つの塊として設計する
+- **利点**: Guild 行を1つ消せば全部消える → 遅延削除が「猶予後に Guild 行を削除」で済み実装が激減。新テーブル追加時にリレーション必須になり**同じ漏れが構造的に起きなくなる**。遅延削除関連の保存項目（導入日時・削除予定日時）の置き場所にもなる
+- **欠点**: マイグレーションが重い（バックフィル＋FK付与）。**現状スキーマに `@relation` は1つも無く、FK制約はゼロからの導入**。孤児レコードがあると FK 作成が失敗するため、事前に本番で孤児の有無を SELECT する必要がある（追従漏れバグ修正より前の削除漏れで孤児が存在する可能性が高い）
+- **単独で着手する作業ではない。** 採用するなら遅延削除と1つの塊として設計する
 
 ### bump リマインダー「遅すぎる通知」の上限値
 
-**ブロック中**: ポーリング化。
+**止まっているもの**: bump-reminder のポーリング化
 
 方針は「**送る。ただし上限を設ける**」で確定済み、値だけが空欄。
 
@@ -90,46 +58,69 @@
 - 24時間程度が妥当かという話まで出ている
 - 実装はポーリングのクエリ条件が範囲指定になるだけ（`now - 上限 < scheduledAt <= now`）
 
+### メッセージ出力機能の設計
+
+**止まっているもの**: メッセージ出力機能（作業範囲を切れない）
+
+- **機能拡張アイデアの「ユーザー embed 作成機能」との関係。** あちらは一般ユーザー向けで「投稿先チャンネルでのそのユーザーの送信権限で判定」という権限委譲設計が本体。こちらは管理者向けのお知らせ投稿。**別機能として並べるか、1つに統合するかを先に決める**（統合するなら権限判定の設計はあちら側が一次情報源）
+- 投稿後の**編集・再送**を持つか（持つなら投稿メッセージの所有権を DB に持つ必要がある）
+- `@everyone` / role メンションの扱い（`allowedMentions` での抑止と、Mention Everyone 権限保持時のみ許可するか）
+- ダッシュボードからの投稿を **OAuth ユーザーのギルド権限でどう判定するか**（現状の Web API は `guildId ∈ jwt.guilds` の粒度しか見ていない）
+
+### メンバーログ出力先分離の方式
+
+**止まっているもの**: メンバーログの join/leave 出力先分離
+
+- **A: `joinChannelId` / `leaveChannelId` へ分割**（既存 `channelId` を両方にバックフィルして廃止）。設定が常に明示的になるが、片方だけ使いたいときも2つ埋める必要がある
+- **B: `channelId` を既定値として残し、`joinChannelId` / `leaveChannelId` を任意の上書きとして追加**。既存ギルドは無変更で済み、分けたい人だけ設定する
+
+> キック機能の `notifyChannelId` / `logChannelId` と**同じ形にする必然性はない**。あちらは「宛先が違う2種類の通知」の分離、こちらは「同じ用途のイベント別出力先」で、性質が異なる。
+
+### DM 通知トグル化の詰め残し
+
+**止まっているもの**: キック機能の DM 通知トグル化（キック機能のチャンネル分離の完了後）
+
+1. 非アクティブ側 DM のテンプレート設計 — DM 専用テンプレートを新設するか、既存の `weekWarnMessage` / `finalWarnMessage` / `kickMessage` を流用するか（未承認側は `dmTemplate` と `notifyTemplate` を別々に持っている）
+2. 不達として扱う範囲 — Discord API エラー 50007（DM 閉鎖）のみか、全ての送信失敗か
+3. soft warning を入れるか — DM 有効かつ通知チャンネルが一般メンバー非公開の場合に警告を出すか（**不要寄り・未確定**）
+4. 不達0人のときにもまとめログを出すか
+
+### `resetAll` の要否 ＋ 機能単位 reset を足すか
+
+**止まっているもの**: なし（着手時期未定）
+
+`reset`（**`locale` と `errorChannelId` の2項目のみ**・確認済み）と `reset-all`（全消し）の間が空白で、ユーザーが小さい目的のために過剰な手段を取らされる構造 → **誤爆シナリオの温床**。両者は一体で判断する。
+
+- **遅延削除の採用が決定したため `resetAll` は「要る」側で確定に近い**（即時削除の経路がここだけになるため）
+- export/import 廃止により**誤爆時の復旧手段が無くなる**ため、確認の強度がより重要になる。残すなら、日常設定コマンドからの隔離と、サーバー名の手入力のような強めの確認（GitHub のリポジトリ削除方式）を併せて検討する
+
+> **即時削除の経路はもう1つある**: Web API の `POST /:guildId/reset-all`（追従漏れバグ修正で `purgeGuildDataUsecase` に差し替えた3経路目）。ダッシュボードからの削除をどう扱うかもセットで判断が要る。
+
+### 変更履歴を作るか
+
+**止まっているもの**: なし（着手時期未定）
+
+動機は「前どういう文面にしてたっけ？」であり、**バックアップではなく変更履歴の需要**。有力案は `setting_change_log(guildId, feature, field, oldValue, newValue, changedBy, changedAt)` をリポジトリ層でフックし、対象を**文面フィールドだけに絞る**（7機能程度）。
+
+> ⚠️ 「JSONで吐いて後から戻せるように」を足すと軽さの根拠が全部消えて **export/import に逆戻りする**。「見えるだけ」で不便ならUIで解決する（履歴をクリックで入力欄に流し込む。保存は従来通り管理者が押す）。
+
+### `findAllPending()` の絞り込み
+
+**止まっているもの**: なし。ポーリング化で論点ごと消える可能性がある
+
+起動時復元を「Bot が現在参加中のギルドのみ」に限定するか。追従漏れバグ修正で新規のゴミは出なくなったので緊急性なし。
+
+> **ポーリング化で `restorePendingReminders` 自体が消えるなら、この論点も一緒に消える。単独で着手しないこと。**
+
 ---
 
-## タスク一覧（優先度順）
+## 後続に影響する
 
-### 1. Phase 3: キック機能のチャンネル分離・必須化・disabledReason 【実装】
+下流のタスクの前提を決めてしまうもの。遅延削除とポーリング化は未決事項でブロックされている。
 
-**依存ゼロで着手できる中で最大かつ最も価値が高い。**
+### 退出時データの遅延削除 ＋ guildCreate ハンドラ ＋ 導入時／再導入時の通知 【実装】
 
-現状、非アクティブキックは `channelId` 1本でメンバー向け通知と管理者向けログを兼ねている。「管理者がログのつもりでプライベートchに設定 → 予告が本人に届かないままキックされる」が成立する。
-
-- [ ] `notifyChannelId` / `logChannelId` に分離（未承認側は既に分離済み。**対称化が目的**）
-- [ ] `enabled=true` に両チャンネルを必須化（DB制約ではなく実行時バリデーション）
-- [ ] `disabledReason` の追加（TypeScript の union 型 ＋ DB は素の `String`。Prisma enum は使わない）
-- [ ] `/inactive-kick-settings set-channel` → `set-notify-channel` にリネーム、`set-log-channel` を追加（**唯一の基本仕様変更・承認済み**）
-- [ ] ja/en 両方の locale キーを揃える
-
-### 2. bump クールタイムを env に外出しし、サービスごとに分ける 【実装・小】
-
-**依存なし。最小。隙間で潰せる。**
-
-- 現状 `getReminderDelayMinutes()`（`bumpReminderConstants.ts:91`）は `env.BUMP_REMINDER_TEST_MODE ? 1 : 120` で**120分がハードコード**、かつサービス名を引数に取らないため Disboard / Dissoku 共通
-- **env が持つのはクールタイムの分数だけ。サービスごとに独立して持つ**（Bot ID・コマンド名などはコード側の定数のまま）
-- 予約時に絶対時刻を確定させる現在の形（`toScheduledAt`）は**維持する** → 設定値を変えても既存の予約は繰り上がらない
-- env 名の付け方は実装時に決めてよい
-
-### 3. Bot ステータスをサーバー参加・退出時に更新する 【実装・小】
-
-**依存なし。小さい。**
-
-`applyBotPresence()` は稼働サーバー数をプレゼンスに反映するが、呼び出し元が `clientReady` / `shardReady` / `shardResume` の3箇所しかない（`src/bot/handlers/clientReadyHandler.ts:74-79`）。**`guildCreate` / `guildDelete` では更新されないため、再起動または再接続まで古いサーバー数が表示され続ける。**
-
-- [ ] ギルド参加時にプレゼンスを更新する
-- [ ] ギルド退出時にプレゼンスを更新する
-
-> **タスク 4（案D）と実装が重なる。** 案Dも `guildCreate` ハンドラの新設を必要とするため、**先に着手したほうがハンドラを作り、もう一方はそこに乗せる**。二重に作らないこと。
-> `applyBotPresence` は `clientReadyHandler.ts` 内のプライベート関数なので、外から呼ぶには export するか共通モジュールへ切り出す必要がある。
-
-### 4. 案D（遅延削除）＋ guildCreate ハンドラ ＋ 導入時／再導入時の通知 【実装】
-
-**判断待ち: 猶予日数・Guild 親テーブル。**
+**未決**: 猶予日数 ／ Guild 親テーブル（→「未決事項」）。**決まるまで着手できない。**
 
 `guildDelete` 時に `deleteAllSettings()` を即実行せず、削除予約を入れて猶予後に実行する。「Botの再招待は破壊的操作ではない」というユーザーの当たり前の期待に実装を合わせる話。
 
@@ -146,38 +137,112 @@
 
 **設計上の罠**
 
-> **案Dは「データの削除」を遅らせるが、「実行中のジョブの停止」は遅らせてはいけない。** 猶予期間中 Bot はそのギルドに居ないので、ジョブが生きていると送信に失敗してエラーログを吐き続ける。**退出時にジョブは即停止、データは猶予後に削除。**
+> **遅延削除は「データの削除」を遅らせるが、「実行中のジョブの停止」は遅らせてはいけない。** 猶予期間中 Bot はそのギルドに居ないので、ジョブが生きていると送信に失敗してエラーログを吐き続ける。**退出時にジョブは即停止、データは猶予後に削除。**
 
-**棚卸しへの影響**: `purgeGuildDataUsecase` は reset-all 経路で**残る**（即時削除は消えないため）。案Dで変わるのは「`guildDelete` から呼ぶ経路」だけ。
+**棚卸しへの影響**: `purgeGuildDataUsecase` は reset-all 経路で**残る**（即時削除は消えないため）。遅延削除で変わるのは「`guildDelete` から呼ぶ経路」だけ。
 
-### 5. bump-reminder のポーリング化 【実装】
+### キック機能のチャンネル分離・必須化・disabledReason 【実装】
 
-**判断待ち: 遅すぎる通知の上限値。**
+**未決なし。** DM 通知トグル化とマニュアル反映の前提。設計判断の詳細は Notion「Saika バグ修正〜キック機能整理〜マニュアル修正 実行計画（2026-07-29 アーカイブ）」。
+
+現状、非アクティブキックは `channelId` 1本でメンバー向け通知と管理者向けログを兼ねている。「管理者がログのつもりでプライベートchに設定 → 予告が本人に届かないままキックされる」が成立する。
+
+- [ ] `notifyChannelId` / `logChannelId` に分離（未承認側は既に分離済み。**対称化が目的**）
+- [ ] `enabled=true` に両チャンネルを必須化（DB制約ではなく実行時バリデーション）
+- [ ] `disabledReason` の追加（TypeScript の union 型 ＋ DB は素の `String`。Prisma enum は使わない）
+- [ ] `/inactive-kick-settings set-channel` → `set-notify-channel` にリネーム、`set-log-channel` を追加（**唯一の基本仕様変更・承認済み**）
+- [ ] ja/en 両方の locale キーを揃える
+
+### bump-reminder のポーリング化 【実装】
+
+**未決**: 遅すぎる通知の上限値（→「未決事項」）。**決まるまで着手できない。**
 
 動機はバグ修正ではなく**構造の単純化とメンテナンス性**。復元まわりは調査の結果ちゃんと作られていた。「キャンセルが2つある」構造上の問題の解消が本来の目的。
 
-**やること**: ①一定間隔で回るジョブを1本立てる ②「status=pending かつ scheduledAt <= 今」を拾う（上限は判断待ちの値で範囲指定） ③送信する ④status を sent にする
+**やること**: ①一定間隔で回るジョブを1本立てる ②「status=pending かつ scheduledAt <= 今」を拾う（上限は未決事項で決める値で範囲指定） ③送信する ④status を sent にする
 
 **消えるもの**: メモリ上の `Map<string, ScheduledReminderRef>` / `restorePendingReminders` / `cancelScheduledReminder` / `cancelReminder` と `cancelByGuild` の使い分け
+
+> **独自 Map の廃止は「タイマー / スケジューラ実装の整理」から切り出してここに寄せている。** bump-reminder だけが `jobScheduler` に独自 Map を重ねており、チケット自動削除は決定的 jobId のみで同じことを実現できている。ポーリング化を採らない判断になった場合でも、**ticket 方式へ寄せるだけで Map は消せる**（その場合は整理タスク側へ戻す）。
 
 **移行時に落としてはいけないもの**
 
 - 期限切れの即時実行 → クエリ条件が等価になる。楽
 - **重複の正規化**（同一 guild+service の pending を最新1件に）→ 現在はメモリ上の Map が担保している。**DB側で担保し直す必要がある。最大の移行ポイント**（`serviceName` が nullable な点に注意）
-- 遅すぎるものの扱い → 判断待ちの上限値
+- 遅すぎるものの扱い → 未決事項の上限値
 - **送信失敗時の status 更新 → 新方式で新たに必要。**更新しないと永久に拾い続ける
+- **disable / reset で予約をキャンセルすること** → メモリ解除が無くなる分、DB 側で `pending` → `cancelled` にしないと「無効化 → 予定時刻前に再有効化」で古い予約が発火する。「`/bump-reminder-settings disable` が予約をキャンセルできていない」を参照
 
 **既にある資産**: schema の `@@index([status, scheduledAt])`（確認済み）、`jobScheduler`
 
 **同時に棚卸しするデッドコード**（2026-08-19 確認）
 
-- `bumpReminderRepository.cancelByGuild()` — 本番コードからの呼び出し**ゼロ**。NEW-5 の `cancelAllForGuild` は Manager 側の別物で、これを置き換えてはいない
+- `bumpReminderRepository.cancelByGuild()` — 本番コードからの呼び出し**ゼロ**。`BumpReminderManager.cancelAllForGuild` は Manager 側の別物で、これを置き換えてはいない。⚠️ **ただしポーリング化後の disable / reset は「DB の pending を cancelled にする」ことが必要になり、それはこのメソッドそのもの。消す前に受け皿の要否を判断すること**
 - `bumpReminderRepository.cancelByGuildAndChannel()` — **同じく呼び出しゼロ**
-- NEW-5 で新設した `cancelAllForGuild` もポーリング化で不要になりうる
+- 追従漏れバグ修正で新設した `cancelAllForGuild` もポーリング化で不要になりうる
 
-### 6. export / import の削除 【実装】
+### Bot ステータスをサーバー参加・退出時に更新する 【実装・小】
 
-**タスク 4（案D）の完了待ち。** 順序を逆にしないこと。
+**依存なし。小さい。**
+
+`applyBotPresence()` は稼働サーバー数をプレゼンスに反映するが、呼び出し元が `clientReady` / `shardReady` / `shardResume` の3箇所しかない（`src/bot/handlers/clientReadyHandler.ts:74-79`）。**`guildCreate` / `guildDelete` では更新されないため、再起動または再接続まで古いサーバー数が表示され続ける。**
+
+- [ ] ギルド参加時にプレゼンスを更新する
+- [ ] ギルド退出時にプレゼンスを更新する
+
+> **退出時データの遅延削除と実装が重なる。** 遅延削除も `guildCreate` ハンドラの新設を必要とするため、**先に着手したほうがハンドラを作り、もう一方はそこに乗せる**。二重に作らないこと。
+> `applyBotPresence` は `clientReadyHandler.ts` 内のプライベート関数なので、外から呼ぶには export するか共通モジュールへ切り出す必要がある。
+
+### `/bump-reminder-settings disable` が予約をキャンセルできていない 【実装・小・バグ】
+
+**依存なし。最小。** 2026-08-20 の棚卸しで発見（既存の記載なし）。
+
+> **要件は「disable したら予約が消えること」であって、`cancelAllForGuild` に差し替えることではない。** 実装手段はポーリング化の前後で変わるが、要件は変わらない（下記）。
+
+`handleBumpReminderSettingsDisable`（`src/features/bump-reminder/commands/bumpReminderSettingsCommand.disable.ts:29`）が `cancelReminder(guildId)` を呼んでいるが、実リマインダーは常に複合キー `"guildId:serviceName"` で登録される（`scheduleBumpReminder` は `serviceName` を必須引数で受け取る）。`toBumpReminderKey(guildId, undefined)` は素の `guildId` を返すため**完全一致照合が1件もヒットせず、タイマーが解除されない**。
+
+`f79d703` で reset 系3経路（reset-all / guildDelete / Web API）は `cancelAllForGuild` に差し替えたが、**disable だけ取り残されている。** `cancelAllForGuild` の JSDoc は「ギルド単位の後始末では必ず本メソッドを使うこと」と明記しており、それに違反している唯一の呼び出し元。
+
+**影響範囲**: 送信直前に `sendBumpReminder` が最新設定を再取得して `enabled=false` なら抑止するため、**無効化したまま誤送信されることはない**。実害が出るのは **disable → 予定時刻より前に enable し直した場合**で、解除されなかった旧タイマーがそのまま発火し、無効化前の bump に対するリマインダーが送られる。
+
+- [ ] `cancelReminder(guildId)` → `cancelAllForGuild(guildId)` に差し替え（`cancelAllForGuild` はメモリ解除と DB の `status=cancelled` を両方やるので、これ1本で足りる）
+- [ ] 回帰テストは **「disable 後にそのギルドの pending が残っていないこと」** を見る（メモリ上の Map を直接覗かない。ポーリング化で Map ごと消えてもテストが生き残る形にする）
+
+> ⚠️ **ポーリング化しても自動的には消えないバグ。** 消えるのは*メカニズム*（複合キー照合のすれ違い）だけで、*要件*は残る。ポーリング後は「`status=pending` かつ `scheduledAt <= now`」で拾う形になるため、**disable が pending 行を cancelled にしなければ、disable → 予定時刻前に enable で同じ症状が再現する。** その DB 側キャンセルこそ `bumpReminderRepository.cancelByGuild()` で、いま「デッドコードだから消す」候補に入っているもの。**ポーリング化の棚卸しで消すと決める前に、この経路の受け皿になるかを必ず確認すること。**
+
+---
+
+## 前提の完了待ち
+
+前提となるタスク・外部条件が片付けば着手できるもの。
+
+### キック機能の DM 通知トグル化 【実装】
+
+**キック機能のチャンネル分離の完了待ち。** 指示書: Notion「Saika キック機能 DM通知トグル化 実装計画」
+
+未承認・非アクティブの両キック機能に DM 通知の on/off トグルを追加する。事前通知のベースラインは**通知チャンネル（必須）**で、DM は**到達率ブーストの上乗せオプション**という位置づけ。**DM-only 構成は許可しない**（DM は相手の設定次第で送信行為自体が成立せず、予告の基盤にできないため）。
+
+> ⚠️ **着手前に前提を必ず確認すること。** 指示書は「両機能に `notifyChannelId` / `logChannelId` が存在し、`enabled=true` に両方必須」であることを前提としている（＝キック機能のチャンネル分離の成果物）。**両チャンネル必須のバリデーションが無いまま DM トグルを入れると、通知チャンネル未設定 + DM オフで「誰にも予告が届かないままキックされる」構成が作れてしまう。**
+
+**この順に上から実装する**（1つ = 1 PR）
+
+- [ ] **トグル4本の追加**（警告 DM / キック時 DM × 未承認 / 非アクティブ）。**デフォルトは現状の振る舞いを再現する値**にする（未承認の警告 DM のみ true、他3本は false）。非アクティブ側を true にすると**アップデートした瞬間に既存サーバーで突然 DM が飛び始める**ため厳禁
+- [ ] **非アクティブ側の DM 送信実装**（未承認側は `sendWarnDms` が実装済みでトグルを被せるだけ。非アクティブ側は新規）。**逐次 `for...await` を踏襲し `Promise.all` の一斉送信は禁止**
+- [ ] **DM 不達まとめログ**（logChannel へ日次集約 Embed）。現状 `catch(() => {})` で失敗を握りつぶしており**不達情報がコード上に存在しない**ため、収集する形に変えるところから
+- [ ] **ja/en locale ・ マニュアル修正**
+
+**落としてはいけない原則**
+
+- **「送信試行 = 警告済み」**（DM の成否ではなく試行で警告済みを立てる）。未承認側は既にこの方針で実装済みで、非アクティブ側に踏襲するだけ。**不達を検知できるようになっても変えないこと**（DM 拒否がキック回避策になる）
+- 警告は**到達保証ではなくベストエフォート**。長い猶予期間が本来のセーフティネットで、警告は補助
+
+> **export/import 削除との順序に注意。** 指示書は「エクスポートの3点セットを必ず更新」「バージョン互換を保て」と指示しているが、**export/import 削除が先に完了していればこの作業は丸ごと不要**になる。着手時点でどちらが済んでいるかを確認すること。
+
+**未決**: DM 設計の詰め残し4件（→「未決事項」）。前提が済んでも、これが決まらないと実装に入れない。
+
+### export / import の削除 【実装】
+
+**退出時データの遅延削除の完了待ち。** 順序を逆にしないこと。
 
 [決定事項](#exportimport-は廃止する2026-08-19-決定)に基づき、export / import 機能を削除する。**Bot コマンド専用機能で Web API からは使われていない**ため（2026-08-19 確認）、削除範囲はダッシュボードに波及しない。
 
@@ -193,57 +258,99 @@
 
 **残すもの**: `serializers/guildSettingsSerializer.ts` は `guildSettingsCoreUsecases` から使われており export とは無関係。
 
-**マニュアル**: 「設定をエクスポートする」「設定をインポートする」セクションを削除し、「⚠️ Bot をサーバーから除外する場合」を**案Dの説明に書き換える**（Phase 2 で直した export 記述はここで消える）。
+**マニュアル**: 「設定をエクスポートする」「設定をインポートする」セクションを削除し、「⚠️ Bot をサーバーから除外する場合」を**遅延削除の説明に書き換える**（ドキュメント修正で直した export 記述はここで消える）。
 
-> **既知の未修正バグ（削除により解消）**: `getFullSettings` は `GuildSettings` 行が無いと即 `null` を返すため（`guildSettingsAggregateRepository.ts:93-94`）、`/guild-settings set-locale` も `set-error-channel` も実行していないギルドでは、他9機能が設定済みでも export が「設定がありません」で失敗する。**削除するため修正しない方針**だが、案D 実装までの期間は「除外前に export しようとして失敗 → 設定が無いと誤解 → そのまま Bot を外してデータ消失」という導線が残る。案Dが長引く場合は暫定修正を検討する。
+> **既知の未修正バグ（削除により解消）**: `getFullSettings` は `GuildSettings` 行が無いと即 `null` を返すため（`guildSettingsAggregateRepository.ts:93-94`）、`/guild-settings set-locale` も `set-error-channel` も実行していないギルドでは、他9機能が設定済みでも export が「設定がありません」で失敗する。**削除するため修正しない方針**だが、遅延削除の実装までの期間は「除外前に export しようとして失敗 → 設定が無いと誤解 → そのまま Bot を外してデータ消失」という導線が残る。遅延削除が長引く場合は暫定修正を検討する。
 
-### 7. キック機能の DM 通知トグル化 【実装】
+### `deleteAllSettings` のレジストリ化 【実装・条件付き】
 
-**タスク 1（Phase 3）の完了待ち。** 指示書: Notion「Saika キック機能 DM通知トグル化 実装計画」
-
-未承認・非アクティブの両キック機能に DM 通知の on/off トグルを追加する。事前通知のベースラインは**通知チャンネル（必須）**で、DM は**到達率ブーストの上乗せオプション**という位置づけ。**DM-only 構成は許可しない**（DM は相手の設定次第で送信行為自体が成立せず、予告の基盤にできないため）。
-
-> ⚠️ **着手前に前提を必ず確認すること。** 指示書は「両機能に `notifyChannelId` / `logChannelId` が存在し、`enabled=true` に両方必須」であることを前提としている（＝タスク 1 の成果物）。**前提2が無いまま DM トグルを入れると、通知チャンネル未設定 + DM オフで「誰にも予告が届かないままキックされる」構成が作れてしまう。**
-
-**Phase 構成**（1 Phase = 1 PR）
-
-- [ ] **Phase 1**: トグル4本の追加（警告 DM / キック時 DM × 未承認 / 非アクティブ）。**デフォルトは現状の振る舞いを再現する値**にする（未承認の警告 DM のみ true、他3本は false）。非アクティブ側を true にすると**アップデートした瞬間に既存サーバーで突然 DM が飛び始める**ため厳禁
-- [ ] **Phase 2**: 非アクティブ側の DM 送信実装（未承認側は `sendWarnDms` が実装済みでトグルを被せるだけ。非アクティブ側は新規）。**逐次 `for...await` を踏襲し `Promise.all` の一斉送信は禁止**
-- [ ] **Phase 3**: DM 不達まとめログ（logChannel へ日次集約 Embed）。現状 `catch(() => {})` で失敗を握りつぶしており**不達情報がコード上に存在しない**ため、収集する形に変えるところから
-- [ ] **Phase 4**: ja/en locale ・ マニュアル修正
-
-**落としてはいけない原則**
-
-- **「送信試行 = 警告済み」**（DM の成否ではなく試行で警告済みを立てる）。未承認側は既にこの方針で実装済みで、非アクティブ側に踏襲するだけ。**不達を検知できるようになっても変えないこと**（DM 拒否がキック回避策になる）
-- 警告は**到達保証ではなくベストエフォート**。長い猶予期間が本来のセーフティネットで、警告は補助
-
-> **export/import 削除（タスク 6）との順序に注意。** 指示書は「エクスポートの3点セットを必ず更新」「バージョン互換を保て」と指示しているが、**タスク 6 が先に完了していればこの作業は丸ごと不要**になる。着手時点でどちらが済んでいるかを確認すること。
-
-**Open Questions**（Sonozaki 確認要）
-
-1. 非アクティブ側 DM のテンプレート設計 — DM 専用テンプレートを新設するか、既存の `weekWarnMessage` / `finalWarnMessage` / `kickMessage` を流用するか（未承認側は `dmTemplate` と `notifyTemplate` を別々に持っている）
-2. 不達として扱う範囲 — Discord API エラー 50007（DM 閉鎖）のみか、全ての送信失敗か
-3. soft warning を入れるか — DM 有効かつ通知チャンネルが一般メンバー非公開の場合に警告を出すか（**Sonozaki は不要寄り・未確定**）
-4. 不達0人のときにもまとめログを出すか
-
-### 8. Phase 6-1: `deleteAllSettings` のレジストリ化 【実装・条件付き】
-
-**判断待ち: Guild 親テーブル。カスケードを採るなら不要になる。**
+**未決**: Guild 親テーブル（→「未決事項」）。カスケードを採るなら本タスクごと不要になる。設計判断の詳細は Notion「Saika バグ修正〜キック機能整理〜マニュアル修正 実行計画（2026-07-29 アーカイブ）」。
 
 `Prisma.TypeMap` から「`guildId` スカラーを持つモデル名」の union を導出し、後始末処理をその union の `Record` として保持する。意図的に削除しないモデルは列挙から外すのではなく `{ action: "skip", reason: "..." }` のようにレジストリの値として書く（外すと網羅性チェックが無意味になる）。
 
 **検証**: レジストリからモデルを1つ意図的に削り、コンパイルエラーになることを確認する。
 
-### 9. Phase 3 の差分をマニュアルに反映 【文書】
+### キック機能のチャンネル分離の差分をマニュアルに反映 【文書】
 
-**タスク 1（Phase 3）の完了待ち。**
+**キック機能のチャンネル分離の完了待ち。**
 
 `set-notify-channel` へのリネームと `set-log-channel` の追加／両チャンネル必須である旨／同一チャンネルの兼用が可能である旨／`view` に自動無効化理由が表示される旨／冒頭の「最終更新」日付。**実装後のコードを実際に読んで確認してから書くこと。**
 
-> export/import 廃止に伴うマニュアル修正は**タスク 6 に同梱**する（別タイミングで走るため分離）。
-> DM トグルのマニュアル反映は**タスク 7 の Phase 4 に含まれる**ため、ここでは扱わない。
+> export/import 廃止に伴うマニュアル修正は**export/import 削除に同梱**する（別タイミングで走るため分離）。
+> DM トグルのマニュアル反映は**DM トグル化の「ja/en locale ・ マニュアル修正」に含まれる**ため、ここでは扱わない。
 
-### 10. ドキュメント整理（spec 廃止・guides 集約）
+### Bot 一般公開準備
+
+- [ ] `/about` の充実（**LP 公開時に実施**）— 公式サイト（`OFFICIAL_URL`）に加え各種リンクを追加: ダッシュボード（`DASHBOARD_URL`）/ GitHub ソース（AGPL 公開リポ）/ ユーザーマニュアル（`USER_MANUAL_URL`）。LP 完成まで現状維持
+- [ ] Discord Bot 認証申請（75 サーバー到達後）
+
+> AGPL 化・`/about` 新設・help へのダッシュボードリンク・日本語ローカライズ復活は完了済み（完了済みセクション参照）。
+
+---
+
+## 詳細が未設計
+
+着手前に設計判断が要るもの。**勝手に決めないこと。**
+
+### メッセージ出力機能 【機能追加】
+
+Bot 名義で任意のメッセージ（プレーンテキスト / embed）を指定チャンネルへ投稿する機能。**コマンドはモーダル入力、ダッシュボードからも投稿できるようにする。**
+
+**既にある資産**
+
+- Bot 側のモーダル入力は前例多数（`stickyMessageSet` / `reactionRoleSettingsSetup` / `vcAutoRecruitSettingsCommand.setMessage` 等）
+- web 側は `components/embed/EmbedEditor.tsx` / `EmbedPreview.tsx` が既にあり、sticky / tickets / reaction-roles の3ページで使用中。**embed 編集 UI は流用できる**
+
+**未決**: 設計4件（→「未決事項」）。決まるまで作業範囲を切れない。
+
+### メンバーログの join/leave 出力先分離 【機能改善】
+
+現状 `GuildMemberLogSettings` は `channelId` 1本（`prisma/schema.prisma:77-85`）で、参加ログ（`guildMemberAddHandler.ts:31,37`）と退出ログ（`guildMemberRemoveHandler.ts:37,43`）が同じチャンネルへ出る。「参加は歓迎チャンネル・退出は管理ログ」のような分け方ができない。
+
+**未決**: 分離方式 A / B（→「未決事項」）。下記の作業範囲は方式が決まると確定する。
+
+**作業範囲**
+
+- [ ] DB マイグレーション（列追加＋既存値のバックフィル）・entities / defaults / `memberLogSettingsRepository.ts`
+- [ ] `memberLogSettingsService` のセッター追加（現状は `setChannelId` 1本・`resetChannel` 相当の `updatePartial(guildId, { channelId: undefined, enabled: false })` も要追従）
+- [ ] コマンド: `set-channel` の扱いを A/B の判断に合わせて決定し、join/leave 用サブコマンドを追加。`enable` の必須チェック（`memberLogSettingsCommand.enable.ts:36`）と `view` の表示（`memberLogSettingsCommand.view.ts:81`）も追従
+- [ ] ja/en ロケール
+- [ ] shared の `MemberLogSettings`（`shared/src/api/types.ts:109`）を拡張して publish → saika / web の `#v1.3.0` 参照を更新
+- [ ] web ダッシュボード `MemberLogPage.tsx` のチャンネル選択を追従
+- [ ] USER_MANUAL.md
+
+---
+
+## 単独で実装できる
+
+依存がなく、他のタスクにも影響しないもの。いつ着手してもよい。
+
+### タイマー / スケジューラ実装の整理 【実装・小〜中・リファクタ】
+
+**依存なし。** 2026-08-20 に棚卸し。時間で動くコードが `jobScheduler` と生 `setTimeout` に散っており、同じ「キー付きタイマー」を3通りの書き方で持っている。
+
+| 用途 | 実装 | 場所 |
+| --- | --- | --- |
+| 定期スイープ（cron） | `jobScheduler.addJob` | 非アクティブ / 未承認キックの毎時スイープ（`clientReadyHandler.ts:97,106`） |
+| 予約実行（起動時復元あり） | `addOneTimeJob` のみ | チケット自動削除（`ticketAutoDeleteService.ts`） |
+| 予約実行（起動時復元あり） | `addOneTimeJob` ＋ **独自 Map** | bump-reminder（`bumpReminderScheduleHelper.ts`） |
+| デバウンス | 生 `setTimeout` ＋ module-level Map | スティッキー再送（`stickyMessageResendService.ts`） |
+| TTL 付きエントリ | 生 `setTimeout` ＋ 二重 Map | `cooldownManager.ts` / `shared/utils/ttlMap.ts` |
+| UI タイムアウト | 共通関数（13箇所で使用） | `bot/shared/disableComponentsAfterTimeout.ts` |
+| UI タイムアウト | **手書き `setTimeout`** | `vcRecruitButton.ts:416` / `vcRecruitStringSelect.ts:191` |
+| フェーズ中断 | `setTimeout` ＋ `AbortController` | message-delete（性質が違うので対象外） |
+
+**やること**
+
+- [ ] **vc-recruit の手書き無効化2箇所を `disableComponentsAfterTimeout` に寄せる。** 手書きになっている理由は共通関数の引数型が `ChatInputCommandInteraction` 固定で `ButtonInteraction` / `StringSelectMenuInteraction` を渡せないため。`editReply` を持つ interaction 型へ広げれば統合できる
+- [ ] **スティッキー再送のデバウンスを `jobScheduler.addOneTimeJob` へ寄せる。** `addOneTimeJob` は同 ID を `replaceExistingJob` で置き換えるので、デバウンスそのものになる。ただし置換のたびに `system:scheduler.job_exists` の warn が出るため、**デバウンス用途で warn を抑止するオプションを先に足すこと**（無いまま寄せるとログが荒れる）
+
+**判断が要るもの**
+
+- **bump-reminder の独自 Map 廃止はポーリング化に含める。** Map が持っているのは `jobId` と `reminderId` だけで、`jobId` は `toBumpReminderJobId(guildId, serviceName)` で決定的に再計算でき、`reminderId` は DB から引ける。**チケット自動削除は実際にこの形（決定的 jobId のみ・Map なし）で成立している。** ポーリング化を待たずに ticket 方式へ寄せることもできるが、二重作業を避けるためポーリング化の一部として扱う
+- **`cooldownManager` と `TtlMap` の統合は見送り寄り。** どちらも「キー付き TTL エントリ」だが、`cooldownManager` は `commandName × userId` の二段 Map ＋ `expiresAt` 一致チェック（古いタイマーによる誤削除防止）を持ち、`TtlMap` に押し込むと機能が落ちる。やるなら `TtlMap` 側の拡張になるので**別タスク**
+
+### ドキュメント整理（spec 廃止・guides 集約）
 
 `docs/specs/` の全ファイルを廃止し、維持すべき設計意図・非自明な境界条件・決定経緯を guides に集約する。
 
@@ -251,58 +358,26 @@
 - [ ] 特定した情報を適切なガイドに追記（ARCHITECTURE.md / IMPLEMENTATION_GUIDELINES.md 等）
 
 > 2026-08-19 の監査で guides の事実誤り16件を修正し、`purgeGuildDataUsecase` 等の直近の設計も追記済み（完了済み参照）。残るのは spec に埋もれている設計根拠の掘り起こしのみ。
-- [x] `docs/specs/_TEMPLATE.md` とディレクトリ本体を削除（2026-08-19）— 仕様書作成テンプレートとして意図的に残されていたが、spec 廃止から約2ヶ月間一度も使われず、guides への一本化と衝突するため削除。必要になれば git history から復元できる
-- [x] `docs/specs/` の他ファイルを削除（2026-06-29）
-- [x] README.md 更新: 機能表の `spec` 列を削除・「仕様書」セクションを削除（2026-06-29）
-- [x] TODO.md 更新: 完了済みセクション内の spec リンクを除去（2026-06-29）
+> `docs/specs/` の削除自体は完了済み（完了済みセクション参照）。
 
-### 11. Bot 一般公開準備
+### ダッシュボード 【UI層・web リポジトリ】
 
-- [ ] `/about` の充実（**LP 公開時に実施**）— 公式サイト（`OFFICIAL_URL`）に加え各種リンクを追加: ダッシュボード（`DASHBOARD_URL`）/ GitHub ソース（AGPL 公開リポ）/ ユーザーマニュアル（`USER_MANUAL_URL`）。LP 完成まで現状維持
-- [ ] Discord Bot 認証申請（75 サーバー到達後）
-- [x] ライセンスを MIT → AGPL-3.0 に変更
-- [x] help コマンドにダッシュボード URL リンク追加（2026-06-06 本番反映）
-- [x] `/about` コマンド（2026-06-07 実装完了）
-- [x] ディスカバリー審査通過後の日本語ローカライズ復活（2026-06-28 確認済み・commit `b32eb95`）
-
-### 12. メンバーログの join/leave 出力先分離 【機能改善】
-
-### 13. メッセージ出力機能 【機能追加】
-
-### 14. ダッシュボード 【UI層・コアに影響しないので優先度低】
+**詳細と実装範囲は [web/TODO.md](../web/TODO.md) 側に記載する**（web リポジトリ単独で完結し、saika のコアには影響しないため）。ここは索引。
 
 - リアクションロール：ロール未設定で保存できる問題（バリデーション＋警告）
 - カスタムメッセージのプレビュー機能
 - 本文へのチャンネル挿入ボタン
 - 共通 ChannelSelect コンポーネント
 
----
+### bump クールタイムを env に外出しし、サービスごとに分ける 【実装・小】
 
-## 棚卸し・未決
+**依存なし。最小。隙間で潰せる。**
 
-設計判断が必要だが着手時期は未定のもの。
+- 現状 `getReminderDelayMinutes()`（`bumpReminderConstants.ts:91`）は `env.BUMP_REMINDER_TEST_MODE ? 1 : 120` で**120分がハードコード**、かつサービス名を引数に取らないため Disboard / Dissoku 共通
+- **env が持つのはクールタイムの分数だけ。サービスごとに独立して持つ**（Bot ID・コマンド名などはコード側の定数のまま）
+- 予約時に絶対時刻を確定させる現在の形（`toScheduledAt`）は**維持する** → 設定値を変えても既存の予約は繰り上がらない
+- env 名の付け方は実装時に決めてよい
 
-### `resetAll` の要否
-
-**案D採用が決定したため「要る」側で確定に近い**（即時削除の経路がここだけになるため）。加えて export/import 廃止により**誤爆時の復旧手段が無くなる**ため、確認の強度がより重要になる。残すなら、日常設定コマンドからの隔離と、サーバー名の手入力のような強めの確認（GitHub のリポジトリ削除方式）を併せて検討する。
-
-> **即時削除の経路はもう1つある**: Web API の `POST /:guildId/reset-all`（Phase 1 で `purgeGuildDataUsecase` に差し替えた3経路目）。ダッシュボードからの削除をどう扱うかもセットで判断が要る。
-
-### 機能単位の reset を足すか
-
-`reset`（**`locale` と `errorChannelId` の2項目のみ**・確認済み）と `reset-all`（全消し）の間が空白で、ユーザーが小さい目的のために過剰な手段を取らされる構造 → **誤爆シナリオの温床**。`resetAll` の要否と一体で判断する。
-
-### 変更履歴を作るか
-
-動機は「前どういう文面にしてたっけ？」であり、**バックアップではなく変更履歴の需要**。有力案は `setting_change_log(guildId, feature, field, oldValue, newValue, changedBy, changedAt)` をリポジトリ層でフックし、対象を**文面フィールドだけに絞る**（7機能程度）。
-
-> ⚠️ 「JSONで吐いて後から戻せるように」を足すと軽さの根拠が全部消えて **export/import に逆戻りする**。「見えるだけ」で不便ならUIで解決する（履歴をクリックで入力欄に流し込む。保存は従来通り管理者が押す）。
-
-### `findAllPending()` の絞り込み
-
-起動時復元を「Bot が現在参加中のギルドのみ」に限定するか。Phase 1 で新規のゴミは出なくなったので緊急性なし。
-
-> **ポーリング化で `restorePendingReminders` 自体が消えるなら、この論点も一緒に消える。単独で着手しないこと。**
 
 ---
 
@@ -325,10 +400,38 @@
 - 監査ログのエントリが `guildCreate` より遅れて書かれることがあるか（リトライ／待機の要否）
 - `POST /:guildId/reset-all` にフロント側の確認ダイアログがあるか（web リポジトリ側）
 - 変更履歴のフック対象となる各リポジトリの upsert 実装（member-log 以外は未確認）
-- 案Dを入れたとき、Bot が居ないギルドの設定がダッシュボードでどう見えるか
+- 遅延削除を入れたとき、Bot が居ないギルドの設定がダッシュボードでどう見えるか
 - 退出直後のDMが本当に届かないか（未実測。退出時DMを見送ったため優先度は低い）
 - `vitest.config.ts` の `coverage.exclude` が旧パス（`src/bot/features/**`）を参照しており実質無効になっている（2026-08-19 のドキュメント監査で発見。コード側の修正が必要）
 - ja / en の翻訳キー突合を機械的に検証するテストが無い。ja だけ追加しても型・実行時とも検出されず、en 環境で日本語が出る（I18N_GUIDE に運用ルールとして明記済みだが、テスト化の余地あり）
+
+---
+
+## 決定事項
+
+### export / import は廃止する（2026-08-19 決定）
+
+**遅延削除を採用し、その後 export / import を削除する。**
+
+判断の根拠:
+
+- **主用途が遅延削除で自動化される。** マニュアルが案内していた唯一の実用途は「Bot 除外前に export → 再招待後に import」であり、遅延削除（退出後 N 日間データを保持し再導入で復活）がこれを自動で行う。手動の劣化版が残る形になる
+- **維持コストが実バグを生み続けている。** 機能・カラムを追加するたびに「3点セット」（entities 型 / repository マッピング / import の列挙）を手で更新する構造で、更新漏れが必ず**サイレント故障**（復元できたように見えて壊れている）になる。実際に `enabledChannelIds` の取りこぼし・`lastRunDate` 非対称・export 不能バグの3件が発生
+- **使われている形跡がない。** `enabledChannelIds` 取りこぼしのバグは v2.2.0（2026-06-30）から存在し、round-trip した guild は「有効なのに投稿されない」状態で残るはずだが、本番調査（2026-08-19）で**該当0件**。export 不能バグも未報告
+
+> ⚠️ **順序が重要。遅延削除を先に入れてから export/import を削除する。** 逆にすると、遅延削除が入るまでの間ユーザーが退出時の保全手段を持たない期間ができる。
+
+**「どうなったら要るか」の再検討条件**（これに該当しない限り再検討しない）:
+
+1. 自己ホストへの移行需要が出たとき（AGPL。同一 guildId なので現行実装で通る唯一のシナリオ）
+2. 遅延削除の猶予期間より長く Bot を外す運用が現れたとき
+3. 設定を丸ごと複製したい要望が出たとき（現行実装では guildId チェックにより不可能なので、実質は別機能の新規開発）
+
+「前どういう文面にしてたっけ」という需要は、export/import ではなく**変更履歴**（棚卸し・未決）のほうが正確かつ軽量に応える。
+
+### 退出時データの遅延削除を採用する（2026-08-19 決定）
+
+`guildDelete` 時に即削除せず、猶予後に削除する。詳細は「退出時データの遅延削除 ＋ guildCreate ハンドラ」の項を参照。猶予日数と Guild 親テーブルの採否は未決（「未決事項」参照）。
 
 ---
 
@@ -338,10 +441,10 @@
 
 - **VC自動募集のカテゴリ→チャンネル移行のバックフィル欠如** — バグではなかった（移行時に本番0件を確認済みの意図的な clean migration）
 - **バックフィル値1で救済されない残存リスク** — 杞憂だった（`meetsActiveCondition` が OR 条件のため、下限1が1つでもあれば救済される）
-- **export / import 機能そのもの** — 案Dで主用途が自動化され、維持コストがサイレント故障を生み続けているため廃止。詳細と再検討条件は「決定事項」を参照
+- **export / import 機能そのもの** — 遅延削除で主用途が自動化され、維持コストがサイレント故障を生み続けているため廃止。詳細と再検討条件は「決定事項」を参照
 - **「export だけ残す」案** — 復元できないバックアップは意味がない
-- **Phase 6-2（export/import の列挙を `satisfies` で縛る）** — 縛る対象そのものが無くなるため不要
-- **Phase 4（エクスポート互換のバージョン分岐・v1→v2 変換）** — 同上
+- **export/import の列挙を `satisfies` で縛る案** — 縛る対象そのものが無くなるため不要
+- **エクスポート互換のバージョン分岐（v1→v2 変換）** — 同上
 - **`lastRunDate` の export 非対称の修正** — 同上
 - **退出時のDM通知** — サポートサーバー参加者にしか届かず、届いた人にも取れる行動がない。副次的に導入者IDの記録が不要になった
 - **彩加の全面作り直し** — 「作り直さなければ実装できないもの」が1つも出なかったのが決め手
@@ -356,11 +459,11 @@
 
 > 詳細な作業経過は git log を参照。
 
-### Phase 1 / 2 の本番リリース（2026-08-19 リリース・本番デプロイ済み）
+### 追従漏れバグ修正とドキュメント修正の本番リリース（2026-08-19 リリース・本番デプロイ済み）
 
 develop → main（PR #103・merge commit `490fdf6`）。Coolify のデプロイ成功を確認し、起動時の `prisma migrate deploy` でバックフィルが適用されたことを本番 DB で検証済み（対象7行が 0 件になったことを SELECT で確認・2026-08-20）。
 
-コード変更は Phase 1 のバグ修正1本のみで、残り9コミットはドキュメント。リリース前に本番 DB 事前確認・ローカル DB での実データ検証・テスト Bot での実機検証（起動 / reset-all / export→reset-all→import で `enabledChannelIds` が復元され募集投稿まで発火）を実施。
+コード変更は追従漏れバグ修正1本のみで、残り9コミットはドキュメント。リリース前に本番 DB 事前確認・ローカル DB での実データ検証・テスト Bot での実機検証（起動 / reset-all / export→reset-all→import で `enabledChannelIds` が復元され募集投稿まで発火）を実施。
 
 影響を受けているユーザーが実在しないことを確認済みのため（export→import で壊れたギルド0件・誤キック予備軍は機能無効の1ギルドのみ・`warn_stage` 全て0）、**サポートサーバーでの告知は不要と判断**。
 
@@ -405,6 +508,15 @@ develop → main（PR #103・merge commit `490fdf6`）。Coolify のデプロイ
 - [x] `member_activities` の累積カウントをバックフィルするマイグレーション追加（`20260704070000` の適用前から在籍するメンバーの誤キックを解消）
 - [x] 本番DB事前確認: 影響7行・単一ギルド（機能無効・`warn_stage` 全て0）・export→import で壊れたギルドは0件のためアナウンス不要と確定
 - [x] テスト追加22ケース（複合キー解除の回帰・呼び出し順序・全モデル網羅・import round-trip）
+
+### docs/specs/ の削除（2026-08-19 完了）
+
+仕様書ディレクトリを廃止し、ドキュメント体系を `docs/guides/` に一本化。**guides への設計根拠の集約は未完了**（タスク一覧「ドキュメント整理」に残っている）。
+
+- [x] `docs/specs/_TEMPLATE.md` とディレクトリ本体を削除（2026-08-19）— 仕様書作成テンプレートとして意図的に残されていたが、spec 廃止から約2ヶ月間一度も使われず、guides への一本化と衝突するため削除。必要になれば git history から復元できる
+- [x] `docs/specs/` の他ファイルを削除（2026-06-29）
+- [x] README.md 更新: 機能表の `spec` 列を削除・「仕様書」セクションを削除（2026-06-29）
+- [x] TODO.md 更新: 完了済みセクション内の spec リンクを除去（2026-06-29）
 
 ### 非アクティブキック 在籍階層制導入・活動判定/アクティブ条件のティア単位化（2026-07-04 完了）
 
@@ -461,23 +573,32 @@ shared v1.0.0 publish（`enabledChannelIds` + `trackMessage/trackVoice/trackReac
 - [x] inactiveKickResource.ts に新フィールドを反映
 - [x] テスト更新 + develop merge（PR #80・rebase）
 
-### 通知送信リファクタリング + 実行時刻設定化 Steps 0〜6（2026-06-28 完了）
+### 一般公開に向けたライセンス・導線整備（2026-06-28 完了）
+
+一般公開の前提になるライセンス変更と、Bot 内からの導線整備。**`/about` の充実（LP 公開時）と Discord Bot 認証申請（75 サーバー到達後）は未着手**（タスク一覧「Bot 一般公開準備」に残っている）。
+
+- [x] ライセンスを MIT → AGPL-3.0 に変更
+- [x] help コマンドにダッシュボード URL リンク追加（2026-06-06 本番反映）
+- [x] `/about` コマンド（2026-06-07 実装完了）
+- [x] ディスカバリー審査通過後の日本語ローカライズ復活（2026-06-28 確認済み・commit `b32eb95`）
+
+### 通知送信リファクタリング + 実行時刻設定化（2026-06-28 完了）
 
 （2026-06-28 完了）設計書: KICK_NOTIFICATION_REFACTOR_SPEC.md
 
 inactive-kick / unverified-kick の通知ページネーション廃止・{markerRole} 廃止＋mentionEnabled による個別メンション化・予定日別 embed（`daysLeft` グループ）・`<t:unix:f>` タイムスタンプ・`computeKickUnix()`（runHour:00 基準）・{daysLeft} プレースホルダー廃止・`sendNotification` 共通送信ユーティリティ・毎時スイープ（`"0 * * * *"`）＋ per-guild `timezone`/`runHour` フィルタ・`lastRunDate` 同日ガード・`KickedMember` 型（displayName 取得）。`setWarnStage` upsert 化・`sendPaginatedEmbeds` の `pagination.ts` 統合・preview の PREVIEW_COLLECTOR_MS=300_000 化も含む。
 
-- [x] Step 0: `setWarnStage` upsert 化・`sendPaginatedEmbeds` → `pagination.ts` 統合・`embedPaginator.ts` 削除・preview PREVIEW_COLLECTOR_MS 化（`recordMemberActivity` の getActivity 条件付き挙動はテスト定義に従い維持）
-- [x] Step 1: `GuildInactiveKickSettings` / `GuildUnverifiedKickSettings` に `timezone` / `runHour` / `lastRunDate` / `mentionEnabled` 追加・マイグレーション
-- [x] Step 2: `set-timezone` / `set-run-hour` / `mention enable` / `mention disable` コマンド追加（両機能）・セレクトメニュー・バリデーション・`view` 更新・ja/en ロケール
-- [x] Step 3: 毎時スイープ化・per-guild `timezone`/`runHour` フィルタ・`lastRunDate` 同日ガード・`timezone:` を `addJob` から除去
-- [x] Step 4: `notificationSender.ts` 新規作成・両 runner の `sendPaginatedEmbeds` を `sendNotification` へ差し替え・`warnStage` 前進条件を最初のメッセージ成功のみ必須に変更
-- [x] Step 5: `splitMentionFields` 動的分割・warn/kick 表示形式変更・予定日別 embed・`computeKickUnix`・`{daysLeft}` 廃止・`mentionEnabled` 制御・`KickedMember` 型
-- [x] Step 6: API エンドポイントに `timezone`/`runHour`/`mentionEnabled` 追加（shared v0.3.2）・Web UI（両機能の設定カードにメンション通知・タイムゾーン・実行時刻を追加）・廃止プレースホルダー警告 UI（MessageTemplateEditor）
+- [x] `setWarnStage` upsert 化・`sendPaginatedEmbeds` → `pagination.ts` 統合・`embedPaginator.ts` 削除・preview PREVIEW_COLLECTOR_MS 化（`recordMemberActivity` の getActivity 条件付き挙動はテスト定義に従い維持）
+- [x] `GuildInactiveKickSettings` / `GuildUnverifiedKickSettings` に `timezone` / `runHour` / `lastRunDate` / `mentionEnabled` 追加・マイグレーション
+- [x] `set-timezone` / `set-run-hour` / `mention enable` / `mention disable` コマンド追加（両機能）・セレクトメニュー・バリデーション・`view` 更新・ja/en ロケール
+- [x] 毎時スイープ化・per-guild `timezone`/`runHour` フィルタ・`lastRunDate` 同日ガード・`timezone:` を `addJob` から除去
+- [x] `notificationSender.ts` 新規作成・両 runner の `sendPaginatedEmbeds` を `sendNotification` へ差し替え・`warnStage` 前進条件を最初のメッセージ成功のみ必須に変更
+- [x] `splitMentionFields` 動的分割・warn/kick 表示形式変更・予定日別 embed・`computeKickUnix`・`{daysLeft}` 廃止・`mentionEnabled` 制御・`KickedMember` 型
+- [x] API エンドポイントに `timezone`/`runHour`/`mentionEnabled` 追加（shared v0.3.2）・Web UI（両機能の設定カードにメンション通知・タイムゾーン・実行時刻を追加）・廃止プレースホルダー警告 UI（MessageTemplateEditor）
 
 > **未デプロイ**: saika develop → main release PR・web main push はユーザーの GO 待ち。
 
-### web ダッシュボード Fastify API（§10・2026-06-06 完了・本番稼働）
+### web ダッシュボード Fastify API（2026-06-06 完了・本番稼働）
 
 Bot と同一プロセスで起動する Fastify API を実装し、web ダッシュボード（`saika-dash.sonozaki.net`）の per-guild バックエンドとして本番稼働。認証は web BFF に集約し、saika は JWT 検証のみ（OAuth/refresh を持たない）。
 
@@ -490,7 +611,7 @@ Bot と同一プロセスで起動する Fastify API を実装し、web ダッ�
 
 > NOTE: パネル削除の P2025 競合修正（DB→メッセージ順）・CORS methods・テスト堅牢化等のホットフィックスを #59/#60 で対応。デプロイ知見は [web/docs/DEPLOYMENT.md](../web/docs/DEPLOYMENT.md)。
 
-### メッセージ削除機能の改善（投稿者タイプフィルタ）（§3・2026-06-04 完了・本番リリース済み）
+### メッセージ削除機能の改善（投稿者タイプフィルタ）（2026-06-04 完了・本番リリース済み）
 
 `/message-delete` に投稿者タイプフィルタ（全投稿者 / 🤖 bot のみ / 👤 人のみ / 🚪 既に居ない人〔退出済みメンバー〕のみ）を追加。**コマンド実行時（条件設定フェーズ・収集対象の絞り込み）とスキャン後（プレビュー画面・表示の絞り込み）の双方**で利用可能。退出済みメンバーのメッセージ一括削除に対応。判定ロジック `matchesAuthorType` をスキャン時・プレビュー時で共用。退出済み判定はスキャン直前に `guild.members.fetch()` で在籍メンバーID集合を一括取得（失敗時キャッシュfallback）し、各スキャン済みメッセージに `authorIsBot`/`authorIsMember` を刻む（プレビューは再フェッチ不要）。プレビューは ActionRow 5 行上限のため既存の投稿者セレクト（Row 2）にカテゴリを統合（カテゴリ⇔個別投稿者は単一選択で排他・表示の絞り込みのみで削除対象件数は不変）。当初の方式A（任意ID入力）は既存 Webhook ID 入力モーダルで代替可能なため方式B（タイプ別フィルタ）+ bot/人フィルタに集約。
 
@@ -509,14 +630,14 @@ VC が **0人→1人（最初の1人）** になった時、指定チャンネ�
 - [x] 仕様書作成: VC_AUTO_RECRUIT_SPEC.md（投稿先=固定通知チャンネル / 0→1 のみ / カスタム本文 + Embed + ボタン / 全員退出で募集終了 / 60s 連投抑制 / opt-out は将来拡張）
 - [x] 実装（DB `GuildVcAutoRecruitSettings`〔`activeInvites` jsonb〕 + migration + リポジトリ/設定サービス + イベントサービス `VcAutoRecruitService`〔投稿・募集終了・channelDelete・起動クリーンアップ〕 + `/vc-auto-recruit-settings` コマンド群 + set-message モーダル + content/Embed/ボタンビルダー + `voiceStateUpdate`/`channelDelete`/clientReady 配線 + composition root + help 追加）
 - [x] **本番リリース**: release PR #44（develop→main・2026-06-04）。命名は当初 `vc-invite`→ ユーザー指示で **VC自動募集 / `/vc-auto-recruit-settings`** に全面リネーム
-- [x] **カテゴリ allowlist 追加（§2 拡張・後追い）**: 募集は**明示的に有効化したカテゴリの VC でのみ**投稿（`enabledCategoryIds` jsonb・ルート直下は sentinel `"TOP"`）。`enable-category`/`disable-category` 追加、空＝投稿なし、`@everyone` 可視性は判定に使わず認証制サーバーのメンバー専用 VC も有効カテゴリなら投稿、カテゴリ削除で allowlist 自動掃除。全 2418 通過
+- [x] **カテゴリ allowlist 追加（後追い）**: 募集は**明示的に有効化したカテゴリの VC でのみ**投稿（`enabledCategoryIds` jsonb・ルート直下は sentinel `"TOP"`）。`enable-category`/`disable-category` 追加、空＝投稿なし、`@everyone` 可視性は判定に使わず認証制サーバーのメンバー専用 VC も有効カテゴリなら投稿、カテゴリ削除で allowlist 自動掃除。全 2418 通過
 - [x] **二重通知バグ修正（後追い）**: CreateVC 経由の参加で募集通知が2件投稿される問題を修正。原因は discord.js の `newState` がキャッシュ上のライブ参照で、VAC の `setChannel` が `newState.channelId` を破壊的に書き換えるため、`voiceStateUpdate` で VAC を先に await すると vc-auto-recruit がトリガー除外をすり抜けて生成 VC を指し、移動イベントと合わせ2件投稿されていた。ハンドラ順序を **vc-auto-recruit → VAC** に入替え、トリガー Ch を同期的に読ませて解消。全 2437 通過。release PR #49（develop→main・2026-06-04・本番デプロイ済み）
 
 > NOTE: 起動クリーンアップ・closeInvite の Discord 副作用経路はロジック実装済み（ユニットでは主要分岐を担保）。カテゴリ allowlist 拡張は別 release PR で本番反映予定。
 
-### 未承認ユーザー自動キック（§1・2026-05-31 完了・未デプロイ）
+### 未承認ユーザー自動キック（2026-05-31 完了・未デプロイ）
 
-参加から猶予日数（`graceDays` 1〜30）内に認証ロール未取得のメンバーを、事前警告（本人へ DM + 任意で通知チャンネルへキック予告）を経て日次で自動キック。判定は単一条件（`joinedAt` 起算・認証ロール未取得・Bot/管理者/オーナー/除外ロール以外）。`enabledAt` 起算下限で有効化直後の無警告一斉キックを防止し、warn-before-kick（`GuildUnverifiedKickWarn.warnedAt`）で日次チェック取りこぼし時のサイレントキックも防止。Notion 引き継ぎを一次情報源に、コマンド構成は inactive-kick（§8）に、本文可変・Embed 固定は member-log 流儀に揃えて実装。
+参加から猶予日数（`graceDays` 1〜30）内に認証ロール未取得のメンバーを、事前警告（本人へ DM + 任意で通知チャンネルへキック予告）を経て日次で自動キック。判定は単一条件（`joinedAt` 起算・認証ロール未取得・Bot/管理者/オーナー/除外ロール以外）。`enabledAt` 起算下限で有効化直後の無警告一斉キックを防止し、warn-before-kick（`GuildUnverifiedKickWarn.warnedAt`）で日次チェック取りこぼし時のサイレントキックも防止。Notion 引き継ぎを一次情報源に、コマンド構成は inactive-kick に、本文可変・Embed 固定は member-log 流儀に揃えて実装。
 
 - [x] 仕様書作成: UNVERIFIED_KICK_SPEC.md（`/unverified-kick-settings` / DM + 通知/ログ 2チャンネル分離 / 対象ロール〔通知直前付与・認証時 `guildMemberUpdate` 剥奪〕 / `enabledAt` 起算下限 / dry-run=`TEST_MODE`）
 - [x] 実装（DB `GuildUnverifiedKickSettings` + リポジトリ/サービス + `/unverified-kick-settings` コマンド群〔19 サブコマンド + exempt グループ + preview〕 + 日次チェック `addJob`〔03:00 JST・`noOverlap`・`UNVERIFIED_KICK_CRON` 上書き〕 + 警告 DM + 通知/ログ Embed〔キック予告本文も本文可変・Embed 固定でカスタム可〕 + 対象ロール付与/剥奪 + `guildMemberUpdate` ハンドラ + guildDelete 一括削除）
@@ -525,7 +646,7 @@ VC が **0人→1人（最初の1人）** になった時、指定チャンネ�
 
 > NOTE: 警告 DM 送信・通知投稿・対象ロールの通知直前付与順序・`guildMemberUpdate` 認証時剥奪はロジック実装済みだがユニットテスト未整備（Discord 副作用のため・判定ロジックは別途担保）。**未デプロイ**: 実機検証（`pnpm start` 起動 + 動作確認）と release PR（develop→main）は未実施。
 
-### 自動キック機能（非アクティブメンバー整理）（§8・2026-05-31 完了）
+### 自動キック機能（非アクティブメンバー整理）（2026-05-31 完了）
 
 一定期間テキスト/VC/リアクションで活動がないメンバーを、段階通知（1週間前・3日前）を経て日次で自動キック。誤キック防止の安全策（警告ゲート `warnStage==2` 必須・`enabledAt` 起算下限・送信成功後に warnStage 前進・除外時の猶予クリア・dry-run `TEST_MODE`）を中核に据えた。member-log の流儀（本文可変・embed 固定・DB 保存・単一波括弧）に準拠。
 
@@ -536,18 +657,18 @@ VC が **0人→1人（最初の1人）** になった時、指定チャンネ�
 
 > NOTE: 対象ロールの階層不足スキップ・guildDelete の新テーブル一括削除はロジック実装済みだがユニットテスト未整備（spec テストケース参照）。**本番リリースは本コミットの release PR（develop→main）で実施**。
 
-### VC 操作コマンド拡張 & ephemeral/public 監査（§7・2026-05-30 完了・本番デプロイ済み）
+### VC 操作コマンド拡張 & ephemeral/public 監査（2026-05-30 完了・本番デプロイ済み）
 
 VC 切断/移動コマンドの追加と、VC 操作系の出力可視性の全面整理。`/vc disconnect`・`/vc move`（個別 + VC 全員の一括、`target-member`/`target-channel` 方式）と `/afk` の target 拡張（VC 全員一括）を追加。共通の `formatActionLog` / 一括確認ダイアログ（60s）を `src/bot/shared/` に新設し、一括は「参加者全員」+ 対象メンバーのメンション一覧で表示。
 
-- [x] 仕様確定: VC_COMMAND_SPEC / AFK_SPEC のオープン項目（target 型=案A / カラー=blurple / TO=60s / 配置=src/bot/shared/）
+- [x] 仕様確定: VC_COMMAND_SPEC / AFK_SPEC のオープン項目（target 型=target-member / target-channel の2オプション方式 / カラー=blurple / TO=60s / 配置=src/bot/shared/）
 - [x] [IMPLEMENTATION_GUIDELINES.md](docs/guides/IMPLEMENTATION_GUIDELINES.md) に「コマンド設計原則（ephemeral/public）」を追加し全コマンド分類
 - [x] 実装（`/vc disconnect`・`/vc move` 個別+一括 / `/afk` target 拡張 + public 化 / `formatActionLog` + 一括確認ダイアログ）
 - [x] テスト（個別/一括・確認/キャンセル/タイムアウト・部分失敗・空VC no-op・target 競合 / formatActionLog）
 - [x] `/vc rename`・`/vc limit` を public 化し、成功メッセージに対象VCを表示
 - [x] 操作パネル（vc-panel）撤廃（全機能を `/vc`・`/afk` に一本化、VAC・VC募集の自動パネル送信を廃止）
 
-### Postgres 移行（§6・2026-05-30 完了・本番デプロイ済み）
+### Postgres 移行（2026-05-30 完了・本番デプロイ済み）
 
 SQLite → PostgreSQL のデータ層移行。コード・スキーマ・ローカル検証に加え、**本番切替まで完了**。
 
@@ -559,17 +680,17 @@ SQLite → PostgreSQL のデータ層移行。コード・スキーマ・ロー�
 - [x] [ARCHITECTURE.md](docs/guides/ARCHITECTURE.md) / [DEPLOYMENT.md](docs/guides/DEPLOYMENT.md) / [DEV_TIPS.md](docs/guides/DEV_TIPS.md) 更新
 - [x] **本番切替**: infra で Coolify マネージド PostgreSQL 17 + R2 バックアップ構築 → `/guild-settings export` → `DATABASE_URL` 切替 → release deploy → `/guild-settings import` → 検証OK。ホットフィックス2件対応済み（import の upsert 化 / reaction-role の messageId 解決）。旧 sqlite ボリュームは温存中（数週間後に削除予定）
 
-### ディレクトリ再編 + 命名整理（§5・2026-05-29 完了）
+### ディレクトリ再編 + 命名整理（2026-05-29 完了）
 
 `src/{bot,api,features,shared}/` 標準構成へ再編し、命名を `-settings` に統一。
 
-- [x] `-config` → `-settings` リネーム（全 8 コマンド・変数・ファイル・DB **モデル名**・export 形式の `config`→`settings` フィールド・ドキュメント・仕様書 `GUILD_SETTINGS_SPEC.md`）。DB **テーブル名**（`@@map` の `guild_*_configs`）は migration 回避のため据え置き、§6 でリネーム。`vc-recruit`→`instant-recruit` は実態が VC 中心のため見送り（VC募集名を維持）
+- [x] `-config` → `-settings` リネーム（全 8 コマンド・変数・ファイル・DB **モデル名**・export 形式の `config`→`settings` フィールド・ドキュメント・仕様書 `GUILD_SETTINGS_SPEC.md`）。DB **テーブル名**（`@@map` の `guild_*_configs`）は migration 回避のため据え置き、Postgres 移行でリネーム。`vc-recruit`→`instant-recruit` は実態が VC 中心のため見送り（VC募集名を維持）
 - [x] エントリポイント移動: `src/bot/main.ts` → `src/main.ts`
 - [x] `src/bot/features/<f>/` と `src/shared/features/<f>/` を `src/features/<f>/` に統合（記述的ファイル名を維持。設定リポジトリも各 `src/features/<f>/<f>SettingsRepository.ts` に分散）
 - [x] `src/shared/scheduler/` は saika 固有として `src/shared/` に維持、`src/shared/database/types/` も維持
 - [x] [ARCHITECTURE.md](docs/guides/ARCHITECTURE.md) / [IMPLEMENTATION_GUIDELINES.md](docs/guides/IMPLEMENTATION_GUIDELINES.md) を新構造で更新
 
-### shared への外出し（§4・2026-05-29 完了・本番デプロイ済み）
+### shared への外出し（2026-05-29 完了・本番デプロイ済み）
 
 「他 bot でもそのまま流用できる汎用コードのみ外出し」方針で、汎用3点（`createLogger` / `DiscordWebhookTransport` / `errors` の `BaseError` 階層）を `@ayasono/shared` に移行。`locale/*` / `utils/prisma.ts` / `errors/errorUtils.ts`・`processErrorHandler.ts` は saika 固有結合が強く残置。配布は git タグ + コミット済み dist（`shared` v0.2.3。pnpm 11.4 の HTTP tarball integrity 問題を回避するため、tarball/CI 方式から最終的にこれに確定）。
 
@@ -580,4 +701,4 @@ SQLite → PostgreSQL のデータ層移行。コード・スキーマ・ロー�
 
 > NOTE: webhook transport・customErrors の単体テストは shared 側（`shared/tests/core/`）に移設済み。saika 側の重複テストは削除済み。
 
-> 上記より前（guild-config export/import 完全対応化 §-・VC 募集 UX 改善・リアクションロール ボタン色 UI 改善・Coolify 移行 ほか）は git log を参照。
+> 上記より前（guild-config export/import 完全対応化・VC 募集 UX 改善・リアクションロール ボタン色 UI 改善・Coolify 移行 ほか）は git log を参照。

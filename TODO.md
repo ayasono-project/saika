@@ -15,33 +15,51 @@
 
 | セクション | 概要 | 残件 |
 | --- | --- | ---: |
-| 判断待ち | export/import の処遇・案D猶予日数・Guild親テーブル・bump上限値 | 4 |
+| 判断待ち | 案D猶予日数・Guild親テーブル・bump上限値 | 3 |
 | リリース | Phase 1/2 を develop → main | 1 |
 | 実装（依存なし） | Phase 3・bump クールタイム env 化 | 2 |
-| 実装（判断待ち） | 案D＋guildCreate・ポーリング化・Phase 6-2・Phase 4・Phase 6-1・Phase 5 | 6 |
+| 実装（依存あり） | 案D＋guildCreate・ポーリング化・export/import 削除・Phase 6-1・Phase 5 | 5 |
 | 棚卸し・未決 | resetAll の要否・機能単位 reset・変更履歴・findAllPending | 4 |
 | 機能改善 | メンバーログ出力先分離・メッセージ出力機能・ダッシュボード4件 | 3 |
 | ドキュメント整理（spec 廃止・guides 集約） | 設計根拠を ARCHITECTURE.md 等へ追記 | 2 |
 | Bot 一般公開準備 | `/about` 充実（LP 公開時）・Discord 認証申請（75 サーバー到達後） | 2 |
-| **合計** | | **24** |
+| **合計** | | **22** |
 
-> 次は **判断待ちの解消**（特に export/import の処遇）→ リリース → Phase 3。
+> 次は **リリース** → Phase 3（依存ゼロで最も価値が高い）。案D は猶予日数と Guild 親テーブルの判断待ち。
+
+---
+
+## 決定事項
+
+### export / import は廃止する（2026-08-19 決定）
+
+**案Dを採用し、その後 export / import を削除する。**
+
+判断の根拠:
+
+- **主用途が案Dで自動化される。** マニュアルが案内していた唯一の実用途は「Bot 除外前に export → 再招待後に import」であり、案D（退出後 N 日間データを保持し再導入で復活）がこれを自動で行う。手動の劣化版が残る形になる
+- **維持コストが実バグを生み続けている。** 機能・カラムを追加するたびに「3点セット」（entities 型 / repository マッピング / import の列挙）を手で更新する構造で、更新漏れが必ず**サイレント故障**（復元できたように見えて壊れている）になる。実際に 1-3・`lastRunDate` 非対称・export 不能バグの3件が発生
+- **使われている形跡がない。** 1-3 のバグは v2.2.0（2026-06-30）から存在し、round-trip した guild は「有効なのに投稿されない」状態で残るはずだが、本番調査（2026-08-19）で**該当0件**。export 不能バグも未報告
+
+> ⚠️ **順序が重要。案Dを先に入れてから export/import を削除する。** 逆にすると、案D が入るまでの間ユーザーが退出時の保全手段を持たない期間ができる。
+
+**「どうなったら要るか」の再検討条件**（これに該当しない限り再検討しない）:
+
+1. 自己ホストへの移行需要が出たとき（AGPL。同一 guildId なので現行実装で通る唯一のシナリオ）
+2. 案Dの猶予期間より長く Bot を外す運用が現れたとき
+3. 設定を丸ごと複製したい要望が出たとき（現行実装では guildId チェックにより不可能なので、実質は別機能の新規開発）
+
+「前どういう文面にしてたっけ」という需要は、export/import ではなく**変更履歴**（棚卸し・未決）のほうが正確かつ軽量に応える。
+
+### 案D（遅延削除）を採用する（2026-08-19 決定）
+
+`guildDelete` 時に即削除せず、猶予後に削除する。詳細はタスク 4。猶予日数と Guild 親テーブルの採否は未決（下記）。
 
 ---
 
 ## 判断待ち（着手前に決めるもの）
 
 決まらないと下流のタスクが動かせないもの。**勝手に決めないこと。**
-
-### export / import の処遇 ★最大のゲート
-
-**ブロック中**: Phase 6-2 / Phase 4 / `lastRunDate` の3タスクの生死がここで決まる。
-
-- 決まっているのは「**export だけ残す案**の棄却」のみ（復元できないバックアップは意味がない）。「両方廃止」か「両方残す」の二択
-- **廃止**なら → Phase 6-2 / Phase 4 / `lastRunDate` がまるごと消える。加えて Phase 2 で直したマニュアルの export 記述を書き直すことになる
-- **残す**なら → 既存ドリフト（3テーブル欠落・カウンタ巻き戻し・`enabledAt` の扱い未定義・merge/replace のズレ）が未修正の残件として積み上がる
-
-> 決め方の補助線: 不安なら「**どうなったら要るか**」の条件を書いておけば、保留ではなく「判断済み＝今は要らない」になり頭から降ろせる。
 
 ### 案D（遅延削除）の猶予日数
 
@@ -166,26 +184,29 @@ Phase 1 には公開Bot全体に影響する安全性修正が入っている。
 - `bumpReminderRepository.cancelByGuildAndChannel()` — **同じく呼び出しゼロ**
 - NEW-5 で新設した `cancelAllForGuild` もポーリング化で不要になりうる
 
-### 6. Phase 6-2: export/import の列挙を `satisfies` で縛る 【実装・条件付き】
+### 6. export / import の削除 【実装】
 
-**判断待ち: export/import の処遇。廃止を選ぶならこのタスクは消える。**
+**タスク 4（案D）の完了待ち。** 順序を逆にしないこと。
 
-各機能ブロックの `*Data` オブジェクトに `satisfies` を付け、エンティティ型の必須キーが全て埋まっていることを型で保証する。ランタイム専用フィールドは `RuntimeOnlyFields` という名前付き union に集約して `Omit<>` で引く。
+[決定事項](#exportimport-は廃止する2026-08-19-決定)に基づき、export / import 機能を削除する。**Bot コマンド専用機能で Web API からは使われていない**ため（2026-08-19 確認）、削除範囲はダッシュボードに波及しない。
 
-**同梱すべき既知の不整合**: `lastRunDate` は import では捨てられるのに **export には出力されている**（`guildSettingsAggregateRepository.ts` がエンティティを丸ごと代入しているため）。`RuntimeOnlyFields` を **export 側マッピングにも適用する**必要がある。
+**削除対象**
 
-**検証**: 必須フィールドを1つ意図的に削り、**コンパイルエラーになることを確認**する（確認後に戻す）。
+- [ ] コマンド: `/guild-settings export` / `import`（`guildSettingsCommand.export.ts` / `.import.ts`）とサブコマンド定義・確認ダイアログの customId
+- [ ] サービス層: `exportSettings` / `validateImportData` / `planImport` / `importSettings`
+- [ ] リポジトリ層: `getFullSettings` / `importFullSettings` / `planImportMerge`（`repositories.ts:50-53` のインターフェース含む）
+- [ ] 型: `GuildSettingsExportData` / `GuildSettingsExportSettings` / `FullGuildState` / `EXPORT_SCHEMA_VERSION`（`guildSettingsDefaults.ts` / `guildSettingsExportTypes.ts`）
+- [ ] `serializers/guildStateSerializer.ts`（`guildSettingsAggregateRepository` からのみ参照。export 専用）
+- [ ] locale キー ja/en（`import_guild_mismatch` / `import_unsupported_version` 等）
+- [ ] 対応するテスト
 
-### 7. Phase 4: エクスポート互換のバージョン分岐・方針B開示・i18n 【実装・条件付き】
+**残すもの**: `serializers/guildSettingsSerializer.ts` は `guildSettingsCoreUsecases` から使われており export とは無関係。
 
-**判断待ち: export/import の処遇。Phase 3 の完了待ち。廃止を選ぶなら消える。**
+**マニュアル**: 「設定をエクスポートする」「設定をインポートする」セクションを削除し、「⚠️ Bot をサーバーから除外する場合」を**案Dの説明に書き換える**（Phase 2 で直した export 記述はここで消える）。
 
-- [ ] `EXPORT_SCHEMA_VERSION` を 2 に上げる。**先に `validateImportData` の厳密一致を「サポート対象バージョンの集合」判定に崩すこと**（崩さないと v1 が互換処理に到達する前に全部弾かれる）
-- [ ] v1 → v2 の変換規則は Phase 3 の DB バックフィルと**同一にする**（旧 `channelId` を両カラムにコピー）
-- [ ] per-member データが export 対象外である旨を、export 実行時 / import 確認 / リセット確認の3箇所で開示
-- [ ] `GuildSettingsExportData.state?` の「v0 互換のため」というコメント（`guildSettingsDefaults.ts:42`）は実態と合っていない遺物なので修正する
+> **既知の未修正バグ（削除により解消）**: `getFullSettings` は `GuildSettings` 行が無いと即 `null` を返すため（`guildSettingsAggregateRepository.ts:93-94`）、`/guild-settings set-locale` も `set-error-channel` も実行していないギルドでは、他9機能が設定済みでも export が「設定がありません」で失敗する。**削除するため修正しない方針**だが、案D 実装までの期間は「除外前に export しようとして失敗 → 設定が無いと誤解 → そのまま Bot を外してデータ消失」という導線が残る。案Dが長引く場合は暫定修正を検討する。
 
-### 8. Phase 6-1: `deleteAllSettings` のレジストリ化 【実装・条件付き】
+### 7. Phase 6-1: `deleteAllSettings` のレジストリ化 【実装・条件付き】
 
 **判断待ち: Guild 親テーブル。カスケードを採るなら不要になる。**
 
@@ -193,13 +214,15 @@ Phase 1 には公開Bot全体に影響する安全性修正が入っている。
 
 **検証**: レジストリからモデルを1つ意図的に削り、コンパイルエラーになることを確認する。
 
-### 9. Phase 5: Phase 3-4 の差分をマニュアルに反映 【文書】
+### 8. Phase 3 の差分をマニュアルに反映 【文書】
 
-**Phase 3・Phase 4 の完了待ち。**
+**タスク 2（Phase 3）の完了待ち。**
 
 `set-notify-channel` へのリネームと `set-log-channel` の追加／両チャンネル必須である旨／同一チャンネルの兼用が可能である旨／`view` に自動無効化理由が表示される旨／冒頭の「最終更新」日付。**実装後のコードを実際に読んで確認してから書くこと。**
 
-### 10. ドキュメント整理（spec 廃止・guides 集約）
+> export/import 廃止に伴うマニュアル修正は**タスク 6 に同梱**する（別タイミングで走るため分離）。
+
+### 9. ドキュメント整理（spec 廃止・guides 集約）
 
 `docs/specs/` の全ファイルを廃止し、維持すべき設計意図・非自明な境界条件・決定経緯を guides に集約する。
 
@@ -210,7 +233,7 @@ Phase 1 には公開Bot全体に影響する安全性修正が入っている。
 - [x] README.md 更新: 機能表の `spec` 列を削除・「仕様書」セクションを削除（2026-06-29）
 - [x] TODO.md 更新: 完了済みセクション内の spec リンクを除去（2026-06-29）
 
-### 11. Bot 一般公開準備
+### 10. Bot 一般公開準備
 
 - [ ] `/about` の充実（**LP 公開時に実施**）— 公式サイト（`OFFICIAL_URL`）に加え各種リンクを追加: ダッシュボード（`DASHBOARD_URL`）/ GitHub ソース（AGPL 公開リポ）/ ユーザーマニュアル（`USER_MANUAL_URL`）。LP 完成まで現状維持
 - [ ] Discord Bot 認証申請（75 サーバー到達後）
@@ -219,11 +242,11 @@ Phase 1 には公開Bot全体に影響する安全性修正が入っている。
 - [x] `/about` コマンド（2026-06-07 実装完了）
 - [x] ディスカバリー審査通過後の日本語ローカライズ復活（2026-06-28 確認済み・commit `b32eb95`）
 
-### 12. メンバーログの join/leave 出力先分離 【機能改善】
+### 11. メンバーログの join/leave 出力先分離 【機能改善】
 
-### 13. メッセージ出力機能 【機能追加】
+### 12. メッセージ出力機能 【機能追加】
 
-### 14. ダッシュボード 【UI層・コアに影響しないので優先度低】
+### 13. ダッシュボード 【UI層・コアに影響しないので優先度低】
 
 - リアクションロール：ロール未設定で保存できる問題（バリデーション＋警告）
 - カスタムメッセージのプレビュー機能
@@ -238,7 +261,7 @@ Phase 1 には公開Bot全体に影響する安全性修正が入っている。
 
 ### `resetAll` の要否
 
-案D採用で「要る」側に傾いている（即時削除の経路がここだけになるため）。残すなら、日常設定コマンドからの隔離と、サーバー名の手入力のような強めの確認（GitHub のリポジトリ削除方式）を併せて検討する。
+**案D採用が決定したため「要る」側で確定に近い**（即時削除の経路がここだけになるため）。加えて export/import 廃止により**誤爆時の復旧手段が無くなる**ため、確認の強度がより重要になる。残すなら、日常設定コマンドからの隔離と、サーバー名の手入力のような強めの確認（GitHub のリポジトリ削除方式）を併せて検討する。
 
 > **即時削除の経路はもう1つある**: Web API の `POST /:guildId/reset-all`（Phase 1 で `purgeGuildDataUsecase` に差し替えた3経路目）。ダッシュボードからの削除をどう扱うかもセットで判断が要る。
 
@@ -291,7 +314,11 @@ Phase 1 には公開Bot全体に影響する安全性修正が入っている。
 
 - **VC自動募集のカテゴリ→チャンネル移行のバックフィル欠如** — バグではなかった（移行時に本番0件を確認済みの意図的な clean migration）
 - **バックフィル値1で救済されない残存リスク** — 杞憂だった（`meetsActiveCondition` が OR 条件のため、下限1が1つでもあれば救済される）
+- **export / import 機能そのもの** — 案Dで主用途が自動化され、維持コストがサイレント故障を生み続けているため廃止。詳細と再検討条件は「決定事項」を参照
 - **「export だけ残す」案** — 復元できないバックアップは意味がない
+- **Phase 6-2（export/import の列挙を `satisfies` で縛る）** — 縛る対象そのものが無くなるため不要
+- **Phase 4（エクスポート互換のバージョン分岐・v1→v2 変換）** — 同上
+- **`lastRunDate` の export 非対称の修正** — 同上
 - **退出時のDM通知** — サポートサーバー参加者にしか届かず、届いた人にも取れる行動がない。副次的に導入者IDの記録が不要になった
 - **彩加の全面作り直し** — 「作り直さなければ実装できないもの」が1つも出なかったのが決め手
 - **オーナーDM での自動無効化通知** — DM閉じ問題と公開Botでの体験劣化のため棄却

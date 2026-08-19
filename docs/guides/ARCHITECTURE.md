@@ -2,24 +2,18 @@
 
 > Architecture Guide - コード設計・モジュール構成・設計パターンの解説
 
-最終更新: 2026年6月16日
+最終更新: 2026年8月19日
 
 ---
 
-> **⚠️ 部分的に旧前提**
->
-> 本ドキュメントは現行コード（PostgreSQL + Bot 単一プロセス）を記述しているが、以下は**移行予定**:
->
-> - **Fastify API 層を `src/api/` に追加**し、web ダッシュボードから設定 CRUD を受け付ける（Bot と同一プロセス内で起動）
->
-> DB は **PostgreSQL（`@prisma/adapter-pg` 経由）** に移行済み（§6 完了。テーブル名は `guild_*_settings`、JSON 配列は jsonb）。ディレクトリ構成は `src/{bot,api,features,shared}/` へ再編済み（`api/` は §10 で追加予定）。プロジェクト全体方針は [infra/docs/PROJECT_ARCHITECTURE.md](../../../infra/docs/PROJECT_ARCHITECTURE.md) を参照。
+> DB は **PostgreSQL（`@prisma/adapter-pg` 経由）**（テーブル名は `guild_*_settings`、JSON 配列は jsonb）。ディレクトリ構成は `src/{bot,api,features,shared}/`。Fastify API 層（`src/api/`）は実装・本番稼働済み。プロジェクト全体方針は [infra/docs/PROJECT_ARCHITECTURE.md](../../../infra/docs/PROJECT_ARCHITECTURE.md) を参照。
 
 ---
 
 ## 概要
 
 saika は **Discord サーバー管理 Bot** です。
-Web UI は別リポジトリ（ayasono-web）に分離されており、本リポジトリは Bot プロセス本体と、web ダッシュボードから呼ばれる Fastify API サーバー（同一 Node プロセス内で起動、現在実装中）を担当します。
+Web UI は別リポジトリ（ayasono-web）に分離されており、本リポジトリは Bot プロセス本体と、web ダッシュボードから呼ばれる Fastify API サーバー（同一 Node プロセス内で起動）を担当します。
 
 ### このドキュメントのスコープ
 
@@ -143,7 +137,7 @@ intents: [
 
 ### Bot パーミッション
 
-Bot の招待時は **Administrator は要求せず、最小権限セット**を付与します。招待リンクの権限は [`INVITE_PERMISSIONS`](../../src/api/routes/bot.ts) で定義し、各機能の実 API 呼び出しに必要な個別権限のみを列挙します（ViewChannel / SendMessages / EmbedLinks / ReadMessageHistory / ManageMessages / ManageChannels / ManageRoles / MoveMembers / KickMembers / CreatePublicThreads / ManageThreads / SendMessagesInThreads / ManageGuild）。`MentionEveryone` は最小権限維持のため含めない（@everyone/@here 等の通知は飛ばないがメッセージ投稿自体は成功する）。
+Bot の招待時は **Administrator は要求せず、最小権限セット**を付与します。招待リンクの権限は [`INVITE_PERMISSIONS`](../../src/api/routes/bot.ts) で定義し、各機能の実 API 呼び出しに必要な個別権限のみを列挙します（ViewChannel / SendMessages / EmbedLinks / ReadMessageHistory / ManageMessages / ManageChannels / ManageRoles / MoveMembers / Connect / KickMembers / CreatePublicThreads / ManageThreads / SendMessagesInThreads / ManageGuild）。`MentionEveryone` は最小権限維持のため含めない（@everyone/@here 等の通知は飛ばないがメッセージ投稿自体は成功する）。
 
 > チャンネル作成時の overwrite には昇格権限ビット（ManageChannels / ManageRoles）を含めない。Administrator を持たない Bot が overwrite で昇格ビットを付与しようとすると `403 Missing Permissions` になるため、これらはギルド全体の権限で保持する。
 
@@ -158,9 +152,11 @@ Bot の招待時は **Administrator は要求せず、最小権限セット**を
 | voiceStateUpdate  | VAC（VC 自動作成）の同期処理                                 |
 | guildMemberAdd    | メンバー参加ログ通知                                         |
 | guildMemberRemove | メンバー退出ログ・退出ユーザーの記録削除                     |
+| guildMemberUpdate | 未承認自動キックの対象ロール解除の検知                       |
+| messageReactionAdd | 非アクティブ自動キックのアクティビティ記録                  |
 | channelDelete     | 削除チャンネル関連設定のクリーンアップ                       |
 | roleDelete        | 削除ロールの Bump リマインダー設定除去                       |
-| guildDelete       | Bot 退出時の全設定クリーンアップ                             |
+| guildDelete       | Bot 退出時の全設定クリーンアップ（`purgeGuildDataUsecase` 経由） |
 
 ### BotClient クラス
 
@@ -285,6 +281,11 @@ const prisma = getPrismaClient(); // null の場合あり
 | `GuildMemberLogSettings`    | メンバーログ設定                           |
 | `GuildVacSettings`          | VC 自動作成設定                            |
 | `GuildVcRecruitSettings`    | VC 募集設定                                |
+| `GuildVcAutoRecruitSettings` | VC 自動募集設定（物理テーブル名は `guild_vc_invite_settings`） |
+| `GuildInactiveKickSettings` | 非アクティブ自動キック設定（在籍階層 `tiers` を含む） |
+| `MemberActivity`          | メンバーの活動記録（最終活動時刻・警告段階・累積カウント） |
+| `GuildUnverifiedKickSettings` | 未承認ユーザー自動キック設定             |
+| `GuildUnverifiedKickWarn` | 未承認キックの警告記録（guildId + userId 複合PK） |
 | `BumpReminder`            | Bump リマインダー記録（スケジュールデータ） |
 | `StickyMessage`           | 固定メッセージ記録                         |
 | `GuildTicketSettings`       | チケット機能設定（カテゴリ・スタッフロール・パネル情報） |
@@ -310,9 +311,16 @@ BumpReminderSettingsRepository     ← Bumpリマインダー設定（IBumpRemin
 MemberLogSettingsRepository        ← メンバーログ設定（IMemberLogSettingsRepository）
 VacSettingsRepository              ← VAC設定（IVacSettingsRepository）
 VcRecruitSettingsRepository        ← VC募集設定（IVcRecruitSettingsRepository）
+VcAutoRecruitSettingsRepository    ← VC自動募集設定（IVcAutoRecruitSettingsRepository）
+InactiveKickSettingsRepository     ← 非アクティブ自動キック設定（IInactiveKickSettingsRepository）
+MemberActivityRepository           ← メンバー活動記録（IMemberActivityRepository）
+UnverifiedKickSettingsRepository   ← 未承認自動キック設定（IUnverifiedKickSettingsRepository）
+UnverifiedKickWarnRepository       ← 未承認キック警告記録（IUnverifiedKickWarnRepository）
 TicketSettingsRepository           ← チケット機能設定（IGuildTicketSettingsRepository）
 ReactionRolePanelRepository      ← リアクションロールパネル（IReactionRolePanelRepository）
 ```
+
+> `schema.prisma` には現在 `@relation` が1つも無く、**外部キー制約は存在しません**。`guildId` を持つモデルは16個あり、ギルド単位の後始末は `deleteAllSettings()` の手動列挙で担保しています（列挙漏れが過去にバグを生んでいるため、Prisma の型からレジストリを導出する構造化が TODO に起票済み）。
 
 **ランタイムデータリポジトリ（`src/features/<feature>/repositories/`）**:
 
@@ -364,6 +372,23 @@ Bot 起動
             └─ scheduledAt が未来 → setTimeout で再スケジュール
 ```
 
+リマインダーはメモリ上の `Map` に **`"guildId:serviceName"` の複合キー**で登録されます（同一ギルドで Disboard / Dissoku が独立して共存できるようにするため）。したがってギルド単位でまとめて解除する場合は、完全一致で引く `cancelReminder(guildId)` ではなく **`BumpReminderManager.cancelAllForGuild(guildId)`** を使う必要があります。前者は複合キーにヒットしません。
+
+### ギルド単位の後始末
+
+ギルドのデータを消す経路は3つあり（`/guild-settings reset-all` / `guildDelete` / Web API `POST /:guildId/reset-all`）、いずれも **`purgeGuildDataUsecase`**（`src/features/guild-settings/usecases/purgeGuildDataUsecase.ts`）に集約されています。
+
+```
+purgeGuildDataUsecase(deps, guildId)
+  ├─ 1. チケット自動削除ジョブの解除（jobScheduler.removeJob）
+  ├─ 2. Bump リマインダーの解除（cancelAllForGuild）
+  └─ 3. DB 一括削除（deleteAllSettings）
+```
+
+> **順序に意味があります。** DB 行を先に消すとインメモリタイマーが生き残って投稿が実行され、その後の `updateStatus` が P2025 で失敗してログが荒れます。**タイマー解除 → DB 削除**の順を必ず守ってください。
+
+`GuildSettingsService` は cross-feature 依存を持たない設計のため、この usecase は依存を引数で受け取り、呼び出し側が composition root のゲッターから解決します。
+
 ---
 
 ## エラーハンドリング設計
@@ -408,30 +433,30 @@ process.on('warning')            → ログ出力
 
 ---
 
-## TEST_MODE フラグ
+## BUMP_REMINDER_TEST_MODE フラグ
 
-`TEST_MODE=true` を設定すると、Bump リマインダーの待機時間が **120分 → 1分** に短縮されます。
+`BUMP_REMINDER_TEST_MODE=true` を設定すると、Bump リマインダーの待機時間が **120分 → 1分** に短縮されます。
 本番環境での動作確認や E2E テストに使用します。
 
 ```bash
 # .env
-TEST_MODE=true
+BUMP_REMINDER_TEST_MODE=true
 ```
 
 ```typescript
 // src/features/bump-reminder/constants/bumpReminderConstants.ts
 export function getReminderDelayMinutes(): number {
-  return env.TEST_MODE ? 1 : 120;
+  return env.BUMP_REMINDER_TEST_MODE ? 1 : 120;
 }
 ```
 
-> **注意**: `TEST_MODE=true` は本番環境では使用しないでください。
+> **注意**: `BUMP_REMINDER_TEST_MODE=true` は本番環境では使用しないでください。
 
 ---
 
 ## 関連ドキュメント
 
-- [DEPLOYMENT.md](DEPLOYMENT.md) - GitHub Actions デプロイフロー
+- [DEPLOYMENT.md](DEPLOYMENT.md) - Coolify デプロイフロー
 - [I18N_GUIDE.md](I18N_GUIDE.md) - 多言語対応
 - [TESTING_GUIDELINES.md](TESTING_GUIDELINES.md) - テスト方針
 - [PROJECT_ARCHITECTURE.md](../../../infra/docs/PROJECT_ARCHITECTURE.md) - プロジェクト全体構成・認証/CORS 横断方針

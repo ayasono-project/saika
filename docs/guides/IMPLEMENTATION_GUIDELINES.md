@@ -2,7 +2,7 @@
 
 > Implementation Guidelines - 実装方針とコーディング規約
 
-最終更新: 2026年5月30日
+最終更新: 2026年8月19日
 
 ---
 
@@ -344,7 +344,7 @@ async function getGuildSettings(guildId: string): Promise<GuildSettings | null> 
 **翻訳ファイル構成:**
 
 ```
-locales/{ja,en}/
+src/shared/locale/locales/{ja,en}/
 ├── common.ts              ← 共通タイトル・ラベル + 機能横断エラー
 ├── system.ts              ← 機能横断の内部ログのみ（Bot起動/シャットダウン/Web/DB共通等）
 ├── features/
@@ -518,8 +518,8 @@ disableComponentsAfterTimeout(interaction, [selectRow, buttonRow], TIMEOUT_MS);
 ### レイヤ構成
 
 - [ ] 変更責務は適切なレイヤに配置されている（`commands` に業務ロジックがない）
-- [ ] DB アクセスは `getBotXxxConfigService()` 経由になっている
-- [ ] 機能追加時は Prisma スキーマ → 型定義 → リポジトリ → ConfigService → CompositionRoot の手順を踏んでいる
+- [ ] DB アクセスは `getBotXxxSettingsService()` 経由になっている
+- [ ] 機能追加時は Prisma スキーマ → 型定義 → リポジトリ → SettingsService → CompositionRoot の手順を踏んでいる
 
 ### コメント
 

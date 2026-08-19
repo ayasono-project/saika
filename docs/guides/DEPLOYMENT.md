@@ -2,7 +2,7 @@
 
 > Coolify による saika の自動デプロイフロー
 
-最終更新: 2026年5月29日（PostgreSQL 移行）
+最終更新: 2026年8月19日
 
 ---
 
@@ -64,6 +64,13 @@ Coolify の管理画面 **Environment Variables** で設定する。サーバー
 | `LOG_LEVEL` | No | デフォルト: `info` |
 | `DISCORD_ERROR_WEBHOOK_URL` | No | エラー通知用 Discord Webhook URL |
 | `USER_MANUAL_URL` | No | ユーザーマニュアルの URL |
+| `API_ENABLED` | No | web ダッシュボード用 Fastify API を起動するか（デフォルト: 無効） |
+| `API_PORT` | No | API の待ち受けポート（デフォルト: `8080`。ホスト側 8080 は coolify-proxy が占有するため公開ポートは 8081 を使う） |
+| `WEB_ORIGIN` | No | CORS 許可オリジン（デフォルト: `http://localhost:5173`。本番はダッシュボードのドメイン） |
+| `JWT_SECRET` | API 有効時は Yes | ダッシュボード認証トークンの署名鍵 |
+| `DASHBOARD_URL` | No | `/help` に表示するダッシュボード URL |
+| `OFFICIAL_URL` | No | `/about` に表示する公式サイト URL |
+| `BUMP_REMINDER_TEST_MODE` | No | Bump リマインダーの待機を 120分 → 1分に短縮（**本番では使用しない**） |
 
 ---
 

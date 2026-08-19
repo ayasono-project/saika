@@ -21,9 +21,9 @@
 | 実装（判断待ち） | 案D＋guildCreate・ポーリング化・Phase 6-2・Phase 4・Phase 6-1・Phase 5 | 6 |
 | 棚卸し・未決 | resetAll の要否・機能単位 reset・変更履歴・findAllPending | 4 |
 | 機能改善 | メンバーログ出力先分離・メッセージ出力機能・ダッシュボード4件 | 3 |
-| ドキュメント整理（spec 廃止・guides 集約） | 設計根拠を ARCHITECTURE.md 等へ追記・spec 残骸の削除 | 3 |
+| ドキュメント整理（spec 廃止・guides 集約） | 設計根拠を ARCHITECTURE.md 等へ追記 | 2 |
 | Bot 一般公開準備 | `/about` 充実（LP 公開時）・Discord 認証申請（75 サーバー到達後） | 2 |
-| **合計** | | **25** |
+| **合計** | | **24** |
 
 > 次は **判断待ちの解消**（特に export/import の処遇）→ リリース → Phase 3。
 
@@ -205,7 +205,7 @@ Phase 1 には公開Bot全体に影響する安全性修正が入っている。
 
 - [ ] 各 spec を精査し、guides に移す価値のある情報（設計根拠・非自明な境界条件・決定経緯）を特定する
 - [ ] 特定した情報を適切なガイドに追記（ARCHITECTURE.md / IMPLEMENTATION_GUIDELINES.md 等）
-- [ ] **`docs/specs/_TEMPLATE.md` が削除されずに残っている**（2026-06-29 の記録では削除済みとされていたが実態と食い違う）。ディレクトリごと削除する
+- [x] `docs/specs/_TEMPLATE.md` とディレクトリ本体を削除（2026-08-19）— 仕様書作成テンプレートとして意図的に残されていたが、spec 廃止から約2ヶ月間一度も使われず、guides への一本化と衝突するため削除。必要になれば git history から復元できる
 - [x] `docs/specs/` の他ファイルを削除（2026-06-29）
 - [x] README.md 更新: 機能表の `spec` 列を削除・「仕様書」セクションを削除（2026-06-29）
 - [x] TODO.md 更新: 完了済みセクション内の spec リンクを除去（2026-06-29）

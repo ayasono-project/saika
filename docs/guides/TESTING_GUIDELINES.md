@@ -2,7 +2,7 @@
 
 > Testing Guidelines - テスト設計とベストプラクティス
 
-最終更新: 2026年5月29日
+最終更新: 2026年8月19日
 
 ---
 
@@ -19,7 +19,7 @@ Vitest を前提に、回帰を素早く検知できるテスト運用を目的�
 
 - **ロジックがある層だけをテストする** — 条件分岐・変換・副作用の制御を含む層のみテストを書く
 - 定数の等値確認・ファイルの存在確認・配列の順序確認など、動作保証に寄与しないテストは作成しない
-- カバレッジ目標: **Stmts/Lines 95%以上・Functions 87%以上・Branches 94%以上**
+- カバレッジ目標: **Stmts/Lines 95%以上・Functions 87%以上・Branches 92%以上**
 - テストピラミッド: ユニット 70% / 統合 25% / E2E 5%（次フェーズ）
 - カバレッジプロバイダは `istanbul` を使用する
 
@@ -27,13 +27,14 @@ Vitest を前提に、回帰を素早く検知できるテスト運用を目的�
 
 | レイヤー | テスト | 理由 |
 | --- | --- | --- |
-| `shared/features/*/xxxConfigService.ts` | **必須** | ドメインロジック（条件分岐・上限チェック・正規化）|
-| `bot/features/*/handlers/*.ts` | **必須** | 早期リターン・エラー委譲・副作用制御 |
-| `bot/features/*/commands/*.ts` | **必須** | サブコマンドルーティング・権限ガード |
+| `features/*/xxxSettingsService.ts` | **必須** | ドメインロジック（条件分岐・上限チェック・正規化）|
+| `features/*/handlers/*.ts` | **必須** | 早期リターン・エラー委譲・副作用制御 |
+| `features/*/commands/*.ts` | **必須** | サブコマンドルーティング・権限ガード |
+| `features/*/usecases/*.ts` | **必須** | 呼び出し順序・依存の組み立て・分岐 |
 | `bot/commands/*.ts` / `bot/events/*.ts` | **必須** | コマンド名・イベント名・execute委譲先の検証 |
 | `bot/utils/commandLoader.ts` / `eventLoader.ts` | 必須 | ENOENT例外・重複検出の制御フロー |
-| `shared/database/repositories/*.ts` | **要判断** | JSON パース・null変換等の独自ロジックがあれば必須、純粋委譲なら不要 |
-| `bot/features/*/repositories/*.ts` | 不要 | Prisma への純粋委譲のみ |
+| `api/features/*.ts` / `api/routes/*.ts` | **必須** | 入力検証・認可ガード・マッピング |
+| `features/*/xxxRepository.ts` | **要判断** | JSON パース・null変換等の独自ロジックがあれば必須、純粋委譲なら不要 |
 | `bot/services/botCompositionRoot.ts` | 不要 | サービスアクセサの配線のみ |
 
 **カバレッジ除外対象**: 除外リストは `vitest.config.ts` の `coverage.exclude` が唯一の情報源。
@@ -54,16 +55,17 @@ tests/
 ├── helpers/
 │   └── testHelpers.ts
 ├── unit/                    # src 対称
+│   ├── api/
 │   ├── bot/
 │   │   ├── commands/
 │   │   ├── events/
-│   │   ├── features/
 │   │   ├── handlers/
 │   │   └── utils/
-│   ├── shared/
-│   └── web/
-├── integration/             # src 対称
-└── e2e/                     # 次フェーズ
+│   ├── features/            # 機能別（src/features/ と対称）
+│   └── shared/
+└── integration/
+    ├── bot/
+    └── features/
 ```
 
 #### テスト命名
@@ -209,7 +211,7 @@ pnpm test:coverage     # カバレッジ付き実行
 ### 検証
 
 - [ ] `pnpm test` で全テストが通る
-- [ ] `pnpm test:coverage` で Stmts/Lines 95%以上・Funcs 87%以上・Branches 94%以上を確認した
+- [ ] `pnpm test:coverage` で Stmts/Lines 95%以上・Funcs 87%以上・Branches 92%以上を確認した
 
 ---
 

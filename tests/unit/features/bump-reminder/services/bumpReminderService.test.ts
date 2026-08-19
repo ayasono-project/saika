@@ -234,6 +234,137 @@ describe("shared/features/bump-reminder/manager", () => {
     await expect(manager.cancelReminder("missing-guild")).resolves.toBe(false);
   });
 
+  // 実リマインダーは常に複合キー（"guildId:serviceName"）で登録されるため、
+  // cancelReminder(guildId) の完全一致照合では 1 件もヒットしない。
+  // ギルド単位の後始末が実際に解除できることを検証する（回帰テスト）。
+  it("cancelAllForGuild はサービス別の複合キー予約をまとめて解除することを検証", async () => {
+    addOneTimeJobMock.mockImplementation(() => undefined);
+    repositoryMock.create
+      .mockResolvedValueOnce({
+        id: "rem-disboard",
+        guildId: "g-multi",
+        channelId: "ch-1",
+        messageId: null,
+        panelMessageId: null,
+        scheduledAt: new Date("2026-02-20T02:00:00.000Z"),
+        status: "pending",
+      })
+      .mockResolvedValueOnce({
+        id: "rem-dissoku",
+        guildId: "g-multi",
+        channelId: "ch-1",
+        messageId: null,
+        panelMessageId: null,
+        scheduledAt: new Date("2026-02-20T02:00:00.000Z"),
+        status: "pending",
+      });
+
+    await manager.setReminder(
+      "g-multi",
+      "ch-1",
+      undefined,
+      undefined,
+      120,
+      vi.fn(),
+      "Disboard",
+    );
+    await manager.setReminder(
+      "g-multi",
+      "ch-1",
+      undefined,
+      undefined,
+      120,
+      vi.fn(),
+      "Dissoku",
+    );
+
+    // 素の guildId ではヒットしないことを確認（これが NEW-5 の本体）
+    expect(manager.hasReminder("g-multi")).toBe(false);
+    expect(manager.hasReminder("g-multi", "Disboard")).toBe(true);
+    expect(manager.hasReminder("g-multi", "Dissoku")).toBe(true);
+
+    const cancelled = await manager.cancelAllForGuild("g-multi");
+
+    expect(cancelled).toBe(2);
+    expect(manager.hasReminder("g-multi", "Disboard")).toBe(false);
+    expect(manager.hasReminder("g-multi", "Dissoku")).toBe(false);
+  });
+
+  it("cancelAllForGuild は素の guildId キー予約も解除することを検証", async () => {
+    addOneTimeJobMock.mockImplementation(() => undefined);
+    repositoryMock.create.mockResolvedValueOnce({
+      id: "rem-bare",
+      guildId: "g-bare",
+      channelId: "ch-1",
+      messageId: null,
+      panelMessageId: null,
+      scheduledAt: new Date("2026-02-20T02:00:00.000Z"),
+      status: "pending",
+    });
+
+    await manager.setReminder(
+      "g-bare",
+      "ch-1",
+      undefined,
+      undefined,
+      120,
+      vi.fn(),
+    );
+
+    await expect(manager.cancelAllForGuild("g-bare")).resolves.toBe(1);
+    expect(manager.hasReminder("g-bare")).toBe(false);
+  });
+
+  it("cancelAllForGuild は他ギルドの予約を解除しないことを検証", async () => {
+    addOneTimeJobMock.mockImplementation(() => undefined);
+    repositoryMock.create
+      .mockResolvedValueOnce({
+        id: "rem-target",
+        guildId: "g-1",
+        channelId: "ch-1",
+        messageId: null,
+        panelMessageId: null,
+        scheduledAt: new Date("2026-02-20T02:00:00.000Z"),
+        status: "pending",
+      })
+      .mockResolvedValueOnce({
+        id: "rem-other",
+        guildId: "g-10",
+        channelId: "ch-2",
+        messageId: null,
+        panelMessageId: null,
+        scheduledAt: new Date("2026-02-20T02:00:00.000Z"),
+        status: "pending",
+      });
+
+    await manager.setReminder(
+      "g-1",
+      "ch-1",
+      undefined,
+      undefined,
+      120,
+      vi.fn(),
+      "Disboard",
+    );
+    // 前方一致で誤爆しやすい ID（"g-1" が "g-10" の接頭辞）を混ぜる
+    await manager.setReminder(
+      "g-10",
+      "ch-2",
+      undefined,
+      undefined,
+      120,
+      vi.fn(),
+      "Disboard",
+    );
+
+    await expect(manager.cancelAllForGuild("g-1")).resolves.toBe(1);
+    expect(manager.hasReminder("g-10", "Disboard")).toBe(true);
+  });
+
+  it("未登録ギルドの cancelAllForGuild は 0 を返すことを検証", async () => {
+    await expect(manager.cancelAllForGuild("missing-guild")).resolves.toBe(0);
+  });
+
   it("restorePendingReminders は重複pendingを古い順にキャンセルし、最新のみ復元することを検証", async () => {
     const now = new Date("2026-02-20T00:00:00.000Z");
     repositoryMock.findAllPending.mockResolvedValueOnce([

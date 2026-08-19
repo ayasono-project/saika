@@ -2,7 +2,7 @@
 
 > Discord Developer Portal でアプリを作成し、サーバーへ招待するまでの手順
 
-最終更新: 2026年7月4日
+最終更新: 2026年8月19日
 
 ---
 
@@ -132,7 +132,7 @@ Bot は環境変数 `DISCORD_GUILD_ID` の有無でコマンドの登録先を�
 | 設定あり | 指定ギルドのみ | 即時 | 開発・テスト |
 | 未設定 | グローバル（全サーバー） | 最大1時間 | 本番・一般公開 |
 
-一般公開時は **`DISCORD_GUILD_ID` を設定しない**（Portainer の環境変数から削除する）。
+一般公開時は **`DISCORD_GUILD_ID` を設定しない**（Coolify の Environment Variables から削除する）。
 
 ### 5-3. Bot 認証（Verification）
 
@@ -170,4 +170,4 @@ Bot がサーバーに参加したら、以下を確認する。
 
 ## 関連ドキュメント
 
-- [DEPLOYMENT.md](DEPLOYMENT.md) — GitHub Actions による自動デプロイフロー
+- [DEPLOYMENT.md](DEPLOYMENT.md) — Coolify による自動デプロイフロー

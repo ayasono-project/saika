@@ -2,7 +2,12 @@
 
 > タスク管理・進捗状況・残件リスト
 
-最終更新: 2026年7月4日
+最終更新: 2026年8月19日
+
+**優先度の基準**: ①本番のユーザーに実害が出ているか ②他のタスクをブロックしているか ③依存が無く単独で進められるか
+
+> Phase 3〜6 の詳細な設計判断は Notion「Saika バグ修正〜キック機能整理〜マニュアル修正 実行計画（2026-07-29 アーカイブ）」に残っている。本ファイルで「Phase 3」等と書いた項目の中身はそちらを参照。
+> web ダッシュボード・インフラ（VPS / Cloudflare / Coolify）は別リポジトリで管理。
 
 ---
 
@@ -10,35 +15,273 @@
 
 | セクション | 概要 | 残件 |
 | --- | --- | ---: |
-| ドキュメント整理（spec 廃止・guides 集約） | spec 削除・リンク整理済み。残: 設計根拠・非自明な判断を ARCHITECTURE.md 等へ追記 | 2 |
+| 判断待ち | 案D猶予日数・Guild親テーブル・bump上限値 | 3 |
+| リリース | Phase 1/2 を develop → main | 1 |
+| 実装（依存なし） | Phase 3・bump クールタイム env 化 | 2 |
+| 実装（依存あり） | 案D＋guildCreate・ポーリング化・export/import 削除・Phase 6-1・Phase 5 | 5 |
+| 棚卸し・未決 | resetAll の要否・機能単位 reset・変更履歴・findAllPending | 4 |
+| 機能改善 | メンバーログ出力先分離・メッセージ出力機能・ダッシュボード4件 | 3 |
+| ドキュメント整理（spec 廃止・guides 集約） | 設計根拠を ARCHITECTURE.md 等へ追記 | 2 |
 | Bot 一般公開準備 | `/about` 充実（LP 公開時）・Discord 認証申請（75 サーバー到達後） | 2 |
-| **合計** | | **4** |
+| **合計** | | **22** |
 
-> web ダッシュボード・インフラ（VPS / Cloudflare / Coolify）は別リポジトリで管理。上から優先度順（Bot 一般公開準備は低優先度）。
-> 次はドキュメント整理（guides 追記）または Bot 一般公開準備。
+> 次は **リリース** → Phase 3（依存ゼロで最も価値が高い）。案D は猶予日数と Guild 親テーブルの判断待ち。
 
 ---
 
-## タスク一覧
+## 決定事項
 
-### ドキュメント整理（spec 廃止・guides 集約）
+### export / import は廃止する（2026-08-19 決定）
 
-`docs/specs/` の全ファイルを廃止し、維持すべき設計意図・非自明な境界条件・決定経緯を guides（ARCHITECTURE.md / IMPLEMENTATION_GUIDELINES.md 等）に集約する。README / TODO の spec 参照も除去し、ドキュメント体系をコード＋guides に一本化する。
+**案Dを採用し、その後 export / import を削除する。**
 
-- [ ] 各 spec を精査し、guides に移す価値のある情報（設計根拠・非自明な境界条件・決定経緯）を特定する
+判断の根拠:
+
+- **主用途が案Dで自動化される。** マニュアルが案内していた唯一の実用途は「Bot 除外前に export → 再招待後に import」であり、案D（退出後 N 日間データを保持し再導入で復活）がこれを自動で行う。手動の劣化版が残る形になる
+- **維持コストが実バグを生み続けている。** 機能・カラムを追加するたびに「3点セット」（entities 型 / repository マッピング / import の列挙）を手で更新する構造で、更新漏れが必ず**サイレント故障**（復元できたように見えて壊れている）になる。実際に 1-3・`lastRunDate` 非対称・export 不能バグの3件が発生
+- **使われている形跡がない。** 1-3 のバグは v2.2.0（2026-06-30）から存在し、round-trip した guild は「有効なのに投稿されない」状態で残るはずだが、本番調査（2026-08-19）で**該当0件**。export 不能バグも未報告
+
+> ⚠️ **順序が重要。案Dを先に入れてから export/import を削除する。** 逆にすると、案D が入るまでの間ユーザーが退出時の保全手段を持たない期間ができる。
+
+**「どうなったら要るか」の再検討条件**（これに該当しない限り再検討しない）:
+
+1. 自己ホストへの移行需要が出たとき（AGPL。同一 guildId なので現行実装で通る唯一のシナリオ）
+2. 案Dの猶予期間より長く Bot を外す運用が現れたとき
+3. 設定を丸ごと複製したい要望が出たとき（現行実装では guildId チェックにより不可能なので、実質は別機能の新規開発）
+
+「前どういう文面にしてたっけ」という需要は、export/import ではなく**変更履歴**（棚卸し・未決）のほうが正確かつ軽量に応える。
+
+### 案D（遅延削除）を採用する（2026-08-19 決定）
+
+`guildDelete` 時に即削除せず、猶予後に削除する。詳細はタスク 4。猶予日数と Guild 親テーブルの採否は未決（下記）。
+
+---
+
+## 判断待ち（着手前に決めるもの）
+
+決まらないと下流のタスクが動かせないもの。**勝手に決めないこと。**
+
+### 案D（遅延削除）の猶予日数
+
+**ブロック中**: 案D の実装。
+
+30日 / 7日 / それ以外。
+
+- 猶予の意味は「バックアップの保持期間」ではなく「**うっかり外した人が気づいて入れ直すまでの猶予**」と確定済み
+- この根拠に立つなら**短いほうがプライバシー的に正しい**
+- **プライバシーポリシーへの保持期間明記が必須**になるため、値が決まらないと文面も書けない
+
+### Guild 親テーブル ＋ カスケードにするか
+
+**ブロック中**: 案D の実装量と、Phase 6-1 の要否。
+
+緊急性は消えており（Phase 1 で削除漏れは塞いだ）、純粋な構造改善の判断。
+
+- **利点**: Guild 行を1つ消せば全部消える → 案Dが「猶予後に Guild 行を削除」で済み実装が激減。新テーブル追加時にリレーション必須になり**同じ漏れが構造的に起きなくなる**。案D関連の保存項目（導入日時・削除予定日時）の置き場所にもなる
+- **欠点**: マイグレーションが重い（バックフィル＋FK付与）。**現状スキーマに `@relation` は1つも無く、FK制約はゼロからの導入**。孤児レコードがあると FK 作成が失敗するため、事前に本番で孤児の有無を SELECT する必要がある（Phase 1 以前の削除漏れで孤児が存在する可能性が高い）
+- **単独で着手する作業ではない。** 採用するなら案Dと1つの塊として設計する
+
+### bump リマインダー「遅すぎる通知」の上限値
+
+**ブロック中**: ポーリング化。
+
+方針は「**送る。ただし上限を設ける**」で確定済み、値だけが空欄。
+
+- 上限を設ける理由はUXではなく**事故防止**（古い pending を掘り起こして送らないため）
+- 24時間程度が妥当かという話まで出ている
+- 実装はポーリングのクエリ条件が範囲指定になるだけ（`now - 上限 < scheduledAt <= now`）
+
+---
+
+## タスク一覧（優先度順）
+
+### 1. Phase 1 / 2 の本番リリース 【リリース作業】
+
+**依存なし。最優先。** develop が main より3コミット先行（`f79d703` / `19dd72b` / `0eb4241`）で本番未反映。
+
+Phase 1 には公開Bot全体に影響する安全性修正が入っている。
+
+- `deleteAllSettings` の `guildUnverifiedKickWarn` 消し漏れ → reset-all 後の再有効化で**警告なしキックが起きうる**
+- `message_count` 系のバックフィル漏れ → **誤キックが起きうる**
+
+**やること**
+
+- [ ] develop → main のリリース PR（タイトルは `release:` プレフィックス・merge commit）← **実機検証は全項目完了。あとはこれだけ**
+- [x] バックフィル対象行数の事前 SELECT（2026-08-19 実施: 影響7行・単一ギルド・当該ギルドはキック機能無効）
+- [x] Ikoitter 側の手作業の要否確認（`warn_stage` は7件すべて0のため**手作業不要**と確定）
+- [x] 実機起動確認（テスト起動でモジュール解決・Web サーバー・スケジューラ登録まで到達）
+- [x] reset-all の実機確認（2026-08-19: エラーなく完走。`purgeGuildDataUsecase` の3ステップが composition root 経由で通ることを確認）
+- [x] VC自動募集の export → reset-all → import で `enabledChannelIds` が復元されることの実機確認（2026-08-19: VC3件が復元され、実際に募集投稿まで発火することを確認）
+
+> ⚠️ バックフィルのマイグレーションは**不可逆**。本番は起動時に `prisma migrate deploy` が走るため、**main へのマージ＝実行**。実行後は「バックフィルされた行」と「本物の活動記録」を永久に区別できない。
+
+### 2. Phase 3: キック機能のチャンネル分離・必須化・disabledReason 【実装】
+
+**依存ゼロで着手できる中で最大かつ最も価値が高い。**
+
+現状、非アクティブキックは `channelId` 1本でメンバー向け通知と管理者向けログを兼ねている。「管理者がログのつもりでプライベートchに設定 → 予告が本人に届かないままキックされる」が成立する。
+
+- [ ] `notifyChannelId` / `logChannelId` に分離（未承認側は既に分離済み。**対称化が目的**）
+- [ ] `enabled=true` に両チャンネルを必須化（DB制約ではなく実行時バリデーション）
+- [ ] `disabledReason` の追加（TypeScript の union 型 ＋ DB は素の `String`。Prisma enum は使わない）
+- [ ] `/inactive-kick-settings set-channel` → `set-notify-channel` にリネーム、`set-log-channel` を追加（**唯一の基本仕様変更・承認済み**）
+- [ ] ja/en 両方の locale キーを揃える
+
+### 3. bump クールタイムを env に外出しし、サービスごとに分ける 【実装・小】
+
+**依存なし。最小。隙間で潰せる。**
+
+- 現状 `getReminderDelayMinutes()`（`bumpReminderConstants.ts:91`）は `env.BUMP_REMINDER_TEST_MODE ? 1 : 120` で**120分がハードコード**、かつサービス名を引数に取らないため Disboard / Dissoku 共通
+- **env が持つのはクールタイムの分数だけ。サービスごとに独立して持つ**（Bot ID・コマンド名などはコード側の定数のまま）
+- 予約時に絶対時刻を確定させる現在の形（`toScheduledAt`）は**維持する** → 設定値を変えても既存の予約は繰り上がらない
+- env 名の付け方は実装時に決めてよい
+
+### 4. 案D（遅延削除）＋ guildCreate ハンドラ ＋ 導入時／再導入時の通知 【実装】
+
+**判断待ち: 猶予日数・Guild 親テーブル。**
+
+`guildDelete` 時に `deleteAllSettings()` を即実行せず、削除予約を入れて猶予後に実行する。「Botの再招待は破壊的操作ではない」というユーザーの当たり前の期待に実装を合わせる話。
+
+**セットで必要になるもの**
+
+- [ ] **guildCreate ハンドラの新設**（**現状存在しないことを確認済み**）。再導入時に予約をキャンセルしないと、生きている設定が期限後に消える
+- [ ] プライバシーポリシーへの保持期間明記
+- [ ] **導入時オンボーディングDM** — 「外した場合、設定はN日間保持されます」を含む。役割は「告知した事実を作ること」で期待値は低くていい。**凝りすぎないこと**
+- [ ] **再導入時DM** — 「設定は残っています」。**価値の重心はここ。**「◯月◯日に消えます」と実際の日時を出す
+- 送信先は **DM のみ。チャンネルには送らない**（`systemChannel` が null のサーバーで当てずっぽうのチャンネルに長文が出るため）
+- DM の宛先解決はその場で行い、**userId を永続化しない**
+
+> **DM の宛先は `guild.ownerId` で確定。** `INVITE_PERMISSIONS`（`src/api/routes/bot.ts:29`）に `ViewAuditLog` が**含まれていない**ことを 2026-08-19 に確認済みで、監査ログの BOT_ADD から導入者を特定する経路は使えない。最小権限方針を維持する以上、オーナー宛が整合する。
+
+**設計上の罠**
+
+> **案Dは「データの削除」を遅らせるが、「実行中のジョブの停止」は遅らせてはいけない。** 猶予期間中 Bot はそのギルドに居ないので、ジョブが生きていると送信に失敗してエラーログを吐き続ける。**退出時にジョブは即停止、データは猶予後に削除。**
+
+**棚卸しへの影響**: `purgeGuildDataUsecase` は reset-all 経路で**残る**（即時削除は消えないため）。案Dで変わるのは「`guildDelete` から呼ぶ経路」だけ。
+
+### 5. bump-reminder のポーリング化 【実装】
+
+**判断待ち: 遅すぎる通知の上限値。**
+
+動機はバグ修正ではなく**構造の単純化とメンテナンス性**。復元まわりは調査の結果ちゃんと作られていた。「キャンセルが2つある」構造上の問題の解消が本来の目的。
+
+**やること**: ①一定間隔で回るジョブを1本立てる ②「status=pending かつ scheduledAt <= 今」を拾う（上限は判断待ちの値で範囲指定） ③送信する ④status を sent にする
+
+**消えるもの**: メモリ上の `Map<string, ScheduledReminderRef>` / `restorePendingReminders` / `cancelScheduledReminder` / `cancelReminder` と `cancelByGuild` の使い分け
+
+**移行時に落としてはいけないもの**
+
+- 期限切れの即時実行 → クエリ条件が等価になる。楽
+- **重複の正規化**（同一 guild+service の pending を最新1件に）→ 現在はメモリ上の Map が担保している。**DB側で担保し直す必要がある。最大の移行ポイント**（`serviceName` が nullable な点に注意）
+- 遅すぎるものの扱い → 判断待ちの上限値
+- **送信失敗時の status 更新 → 新方式で新たに必要。**更新しないと永久に拾い続ける
+
+**既にある資産**: schema の `@@index([status, scheduledAt])`（確認済み）、`jobScheduler`
+
+**同時に棚卸しするデッドコード**（2026-08-19 確認）
+
+- `bumpReminderRepository.cancelByGuild()` — 本番コードからの呼び出し**ゼロ**。NEW-5 の `cancelAllForGuild` は Manager 側の別物で、これを置き換えてはいない
+- `bumpReminderRepository.cancelByGuildAndChannel()` — **同じく呼び出しゼロ**
+- NEW-5 で新設した `cancelAllForGuild` もポーリング化で不要になりうる
+
+### 6. export / import の削除 【実装】
+
+**タスク 4（案D）の完了待ち。** 順序を逆にしないこと。
+
+[決定事項](#exportimport-は廃止する2026-08-19-決定)に基づき、export / import 機能を削除する。**Bot コマンド専用機能で Web API からは使われていない**ため（2026-08-19 確認）、削除範囲はダッシュボードに波及しない。
+
+**削除対象**
+
+- [ ] コマンド: `/guild-settings export` / `import`（`guildSettingsCommand.export.ts` / `.import.ts`）とサブコマンド定義・確認ダイアログの customId
+- [ ] サービス層: `exportSettings` / `validateImportData` / `planImport` / `importSettings`
+- [ ] リポジトリ層: `getFullSettings` / `importFullSettings` / `planImportMerge`（`repositories.ts:50-53` のインターフェース含む）
+- [ ] 型: `GuildSettingsExportData` / `GuildSettingsExportSettings` / `FullGuildState` / `EXPORT_SCHEMA_VERSION`（`guildSettingsDefaults.ts` / `guildSettingsExportTypes.ts`）
+- [ ] `serializers/guildStateSerializer.ts`（`guildSettingsAggregateRepository` からのみ参照。export 専用）
+- [ ] locale キー ja/en（`import_guild_mismatch` / `import_unsupported_version` 等）
+- [ ] 対応するテスト
+
+**残すもの**: `serializers/guildSettingsSerializer.ts` は `guildSettingsCoreUsecases` から使われており export とは無関係。
+
+**マニュアル**: 「設定をエクスポートする」「設定をインポートする」セクションを削除し、「⚠️ Bot をサーバーから除外する場合」を**案Dの説明に書き換える**（Phase 2 で直した export 記述はここで消える）。
+
+> **既知の未修正バグ（削除により解消）**: `getFullSettings` は `GuildSettings` 行が無いと即 `null` を返すため（`guildSettingsAggregateRepository.ts:93-94`）、`/guild-settings set-locale` も `set-error-channel` も実行していないギルドでは、他9機能が設定済みでも export が「設定がありません」で失敗する。**削除するため修正しない方針**だが、案D 実装までの期間は「除外前に export しようとして失敗 → 設定が無いと誤解 → そのまま Bot を外してデータ消失」という導線が残る。案Dが長引く場合は暫定修正を検討する。
+
+### 7. Phase 6-1: `deleteAllSettings` のレジストリ化 【実装・条件付き】
+
+**判断待ち: Guild 親テーブル。カスケードを採るなら不要になる。**
+
+`Prisma.TypeMap` から「`guildId` スカラーを持つモデル名」の union を導出し、後始末処理をその union の `Record` として保持する。意図的に削除しないモデルは列挙から外すのではなく `{ action: "skip", reason: "..." }` のようにレジストリの値として書く（外すと網羅性チェックが無意味になる）。
+
+**検証**: レジストリからモデルを1つ意図的に削り、コンパイルエラーになることを確認する。
+
+### 8. Phase 3 の差分をマニュアルに反映 【文書】
+
+**タスク 2（Phase 3）の完了待ち。**
+
+`set-notify-channel` へのリネームと `set-log-channel` の追加／両チャンネル必須である旨／同一チャンネルの兼用が可能である旨／`view` に自動無効化理由が表示される旨／冒頭の「最終更新」日付。**実装後のコードを実際に読んで確認してから書くこと。**
+
+> export/import 廃止に伴うマニュアル修正は**タスク 6 に同梱**する（別タイミングで走るため分離）。
+
+### 9. ドキュメント整理（spec 廃止・guides 集約）
+
+`docs/specs/` の全ファイルを廃止し、維持すべき設計意図・非自明な境界条件・決定経緯を guides に集約する。
+
+- [ ] 各 spec を精査し、guides に移す価値のある情報（設計根拠・非自明な境界条件・決定経緯）を特定する（**spec は削除済みのため `git show <commit>:docs/specs/<file>` で参照する**）
 - [ ] 特定した情報を適切なガイドに追記（ARCHITECTURE.md / IMPLEMENTATION_GUIDELINES.md 等）
-- [x] `docs/specs/` ディレクトリを全削除（`_TEMPLATE.md` 含む全ファイル＋ディレクトリ本体）（2026-06-29）
+
+> 2026-08-19 の監査で guides の事実誤り16件を修正し、`purgeGuildDataUsecase` 等の直近の設計も追記済み（完了済み参照）。残るのは spec に埋もれている設計根拠の掘り起こしのみ。
+- [x] `docs/specs/_TEMPLATE.md` とディレクトリ本体を削除（2026-08-19）— 仕様書作成テンプレートとして意図的に残されていたが、spec 廃止から約2ヶ月間一度も使われず、guides への一本化と衝突するため削除。必要になれば git history から復元できる
+- [x] `docs/specs/` の他ファイルを削除（2026-06-29）
 - [x] README.md 更新: 機能表の `spec` 列を削除・「仕様書」セクションを削除（2026-06-29）
 - [x] TODO.md 更新: 完了済みセクション内の spec リンクを除去（2026-06-29）
 
-### Bot 一般公開準備
+### 10. Bot 一般公開準備
 
-- [x] ライセンスを MIT → AGPL-3.0 に変更
-- [x] help コマンドにダッシュボード URL リンク追加（`DASHBOARD_URL` env 設定時のみ「🌐 ダッシュボード」フィールド表示・2026-06-06 本番反映）
-- [x] `/about` コマンド（バージョン〔package.json 単一情報源・実行時 cwd から取得〕＋公式 URL〔ayasono LP 用 env `OFFICIAL_URL` 出し分け・未設定時は省略〕・ephemeral・2026-06-07 実装完了）
-- [ ] `/about` の充実（**LP 公開時に実施**）— ayasono プロジェクト LP 実装時に、公式サイト（`OFFICIAL_URL` env に値設定・出し分けは実装済み）に加え各種リンクを追加: ダッシュボード（`DASHBOARD_URL`）/ GitHub ソース（AGPL 公開リポ）/ ユーザーマニュアル（`USER_MANUAL_URL`）。運用ステータス（導入サーバー数・稼働時間）等は必要に応じ検討。LP 完成まで現状維持
+- [ ] `/about` の充実（**LP 公開時に実施**）— 公式サイト（`OFFICIAL_URL`）に加え各種リンクを追加: ダッシュボード（`DASHBOARD_URL`）/ GitHub ソース（AGPL 公開リポ）/ ユーザーマニュアル（`USER_MANUAL_URL`）。LP 完成まで現状維持
 - [ ] Discord Bot 認証申請（75 サーバー到達後）
-- [x] ディスカバリー審査通過後の日本語ローカライズ復活（2026-06-28 確認済み）— commit `b32eb95` で `localizations`={ ja } 復元・Developer Portal に Japanese 再追加・日本語コマンド説明が正常動作確認済み
+- [x] ライセンスを MIT → AGPL-3.0 に変更
+- [x] help コマンドにダッシュボード URL リンク追加（2026-06-06 本番反映）
+- [x] `/about` コマンド（2026-06-07 実装完了）
+- [x] ディスカバリー審査通過後の日本語ローカライズ復活（2026-06-28 確認済み・commit `b32eb95`）
+
+### 11. メンバーログの join/leave 出力先分離 【機能改善】
+
+### 12. メッセージ出力機能 【機能追加】
+
+### 13. ダッシュボード 【UI層・コアに影響しないので優先度低】
+
+- リアクションロール：ロール未設定で保存できる問題（バリデーション＋警告）
+- カスタムメッセージのプレビュー機能
+- 本文へのチャンネル挿入ボタン
+- 共通 ChannelSelect コンポーネント
+
+---
+
+## 棚卸し・未決
+
+設計判断が必要だが着手時期は未定のもの。
+
+### `resetAll` の要否
+
+**案D採用が決定したため「要る」側で確定に近い**（即時削除の経路がここだけになるため）。加えて export/import 廃止により**誤爆時の復旧手段が無くなる**ため、確認の強度がより重要になる。残すなら、日常設定コマンドからの隔離と、サーバー名の手入力のような強めの確認（GitHub のリポジトリ削除方式）を併せて検討する。
+
+> **即時削除の経路はもう1つある**: Web API の `POST /:guildId/reset-all`（Phase 1 で `purgeGuildDataUsecase` に差し替えた3経路目）。ダッシュボードからの削除をどう扱うかもセットで判断が要る。
+
+### 機能単位の reset を足すか
+
+`reset`（**`locale` と `errorChannelId` の2項目のみ**・確認済み）と `reset-all`（全消し）の間が空白で、ユーザーが小さい目的のために過剰な手段を取らされる構造 → **誤爆シナリオの温床**。`resetAll` の要否と一体で判断する。
+
+### 変更履歴を作るか
+
+動機は「前どういう文面にしてたっけ？」であり、**バックアップではなく変更履歴の需要**。有力案は `setting_change_log(guildId, feature, field, oldValue, newValue, changedBy, changedAt)` をリポジトリ層でフックし、対象を**文面フィールドだけに絞る**（7機能程度）。
+
+> ⚠️ 「JSONで吐いて後から戻せるように」を足すと軽さの根拠が全部消えて **export/import に逆戻りする**。「見えるだけ」で不便ならUIで解決する（履歴をクリックで入力欄に流し込む。保存は従来通り管理者が押す）。
+
+### `findAllPending()` の絞り込み
+
+起動時復元を「Bot が現在参加中のギルドのみ」に限定するか。Phase 1 で新規のゴミは出なくなったので緊急性なし。
+
+> **ポーリング化で `restorePendingReminders` 自体が消えるなら、この論点も一緒に消える。単独で着手しないこと。**
 
 ---
 
@@ -46,7 +289,7 @@
 
 - **Web API 認証の堅牢化（設定ミス耐性）** — 現状の認証防御は多層で機能しており**実害なし**。設定ミス時の事故耐性を上げる多層化として2点を検討: ①[jwt.ts](src/api/auth/jwt.ts) の `secretKey()` のフォールバック挙動を fail-closed 化（本番相当環境で署名鍵が未設定なら起動アサーション任せにせず `secretKey()` 自体で throw）。②[jwt.ts](src/api/auth/jwt.ts) の `jwtVerify` でトークン寿命を強制（`maxTokenAge` / `exp` 必須化）し、検証側でも有効期限を担保する。詳細な背景・脅威モデルは公開 TODO に書かず別途管理。
 - **予約募集(イベント募集)機能** — 他タスク完了後に実装可否判断。骨子: 予約時に VC + Discord Scheduled Event 作成 / RSVP・リマインダー・開始通知は Discord 標準任せ / VC 自動削除なし(投稿削除 or イベント終了ボタンで手動)/ 編集機能あり(日時・タイトル・説明)/ setup は既存 VC 募集と同構成 / VC 名変更は既存 `/vc rename` 流用。細部は実装決定時に詰める
-- **キック系ユーザーデータの削除対称性の整理（非アクティブキック／未承認キック整理）** — 非アクティブキック(`MemberActivity`)・未承認キック(`GuildUnverifiedKickWarn`)のユーザーデータについて、リセット種別ごとの削除挙動が非対称。①全設定リセット `deleteAllSettings` は `MemberActivity` を消すが `GuildUnverifiedKickWarn` を消していない（トランザクション未収載）、②未承認キックの個別リセットは warn 記録を `deleteAllByGuild` で消す、③非アクティブキックの個別リセットは `MemberActivity` を残す。`enabledAt` 起算下限・warnStage ゲート・warn-before-kick により**残存しても誤キック等の害は出ない**（孤児は verify/leave で掃除）ため緊急ではないが、「全設定リセット＝完全にまっさらに戻る」建付けに揃えるなら `deleteAllSettings` に `guildUnverifiedKickWarn.deleteMany` を追加し、個別リセットの削除有無も方針統一を検討。なお**エクスポートにユーザーデータを含めないのは現仕様維持で問題なし**（再有効化時の `enabledAt` フロアで安全・個人データ/サイズ観点でも除外が妥当）と確認済み。
+- **キック系ユーザーデータの削除対称性の整理（個別リセットの方針統一）** — ①の `deleteAllSettings` への `guildUnverifiedKickWarn.deleteMany` 追加は **2026-08-19 に実施済み**（下記完了済みセクション参照）。残る非対称は、②未承認キックの個別リセットが warn 記録を `deleteAllByGuild` で消すのに対し、③非アクティブキックの個別リセットは `MemberActivity` を残す点。個別リセットの削除有無を方針統一するか検討する。なお**エクスポートにユーザーデータを含めないのは現仕様維持で問題なし**（再有効化時の `enabledAt` フロアで安全・個人データ/サイズ観点でも除外が妥当）と確認済み。
 - **ユーザー embed 作成機能** — ユーザーが embed を作って bot 名義で投稿できる機能（Carl-bot 類似）。**詳細は後日決定**。方向性メモ: 需要あり（お知らせ/ルール/ロールパネル説明）。**管理権限必須にはしない**方針で、①作成・プレビューは誰でも自由（ephemeral/DM）②投稿は「投稿先チャンネルでのそのユーザーの送信権限」で判定（bot=ユーザーの代理・本来できる範囲を超えさせない）③`@everyone`/role メンションは Mention Everyone 権限保持時のみ許可（`allowedMentions` で抑止）④作成者 attribution + 所有権（編集/削除は作成者＋管理者）⑤運営がロール許可をカスタム可能。Web ダッシュボードも OAuth ユーザーのギルド権限で同じ②判定が可能だが、管理設定エリアとは別の一般導線が必要。コマンド版/Web 版どちらから着手するか・所有権の DB モデル等は実装決定時に詰める
 - 自動翻訳機能(DeepL API 等)
 - 投票システム(グラフ化・レポート集計で Discord 標準との差別化)
@@ -54,9 +297,80 @@
 
 ---
 
+## 未確認事項
+
+タスクに紐づかないが、コードや実機を見れば分かるもの。
+
+- 監査ログのエントリが `guildCreate` より遅れて書かれることがあるか（リトライ／待機の要否）
+- `POST /:guildId/reset-all` にフロント側の確認ダイアログがあるか（web リポジトリ側）
+- 変更履歴のフック対象となる各リポジトリの upsert 実装（member-log 以外は未確認）
+- 案Dを入れたとき、Bot が居ないギルドの設定がダッシュボードでどう見えるか
+- 退出直後のDMが本当に届かないか（未実測。退出時DMを見送ったため優先度は低い）
+- `vitest.config.ts` の `coverage.exclude` が旧パス（`src/bot/features/**`）を参照しており実質無効になっている（2026-08-19 のドキュメント監査で発見。コード側の修正が必要）
+- ja / en の翻訳キー突合を機械的に検証するテストが無い。ja だけ追加しても型・実行時とも検出されず、en 環境で日本語が出る（I18N_GUIDE に運用ルールとして明記済みだが、テスト化の余地あり）
+
+---
+
+## 取り下げ済み・やらないと決めたもの
+
+再検討時の参考用。
+
+- **VC自動募集のカテゴリ→チャンネル移行のバックフィル欠如** — バグではなかった（移行時に本番0件を確認済みの意図的な clean migration）
+- **バックフィル値1で救済されない残存リスク** — 杞憂だった（`meetsActiveCondition` が OR 条件のため、下限1が1つでもあれば救済される）
+- **export / import 機能そのもの** — 案Dで主用途が自動化され、維持コストがサイレント故障を生み続けているため廃止。詳細と再検討条件は「決定事項」を参照
+- **「export だけ残す」案** — 復元できないバックアップは意味がない
+- **Phase 6-2（export/import の列挙を `satisfies` で縛る）** — 縛る対象そのものが無くなるため不要
+- **Phase 4（エクスポート互換のバージョン分岐・v1→v2 変換）** — 同上
+- **`lastRunDate` の export 非対称の修正** — 同上
+- **退出時のDM通知** — サポートサーバー参加者にしか届かず、届いた人にも取れる行動がない。副次的に導入者IDの記録が不要になった
+- **彩加の全面作り直し** — 「作り直さなければ実装できないもの」が1つも出なかったのが決め手
+- **オーナーDM での自動無効化通知** — DM閉じ問題と公開Botでの体験劣化のため棄却
+- **どのサーバーが抜けたかの特定／導入経路の確認** — 分かっても判断が変わらない
+- **`validateImportData` の guildId 一致チェックの緩和（サーバー間移行）** — スコープ外
+- **監査ログからの導入者特定** — `ViewAuditLog` が招待権限に含まれておらず、最小権限方針を維持するため。`guild.ownerId` にフォールバックする
+
+---
+
 ## 完了済み
 
 > 詳細な作業経過は git log を参照。
+
+### docs/guides と実装の乖離修正・I18N_GUIDE 全面改訂（2026-08-19 develop merge）
+
+`docs/guides/` 全8ファイルを実装と突き合わせて監査し、事実誤り16件を修正（PR #101）。あわせて I18N_GUIDE を全面改訂（PR #102）。コード変更なし。`GIT_WORKFLOW.md` と `DEV_TIPS.md` は実装と一致していたため変更なし。
+
+影響が大きかったもの: `ARCHITECTURE.md` の `TEST_MODE` は存在しない env 変数で、記載どおり設定しても何も起きずコード例も型エラーになる状態だった（実装は `BUMP_REMINDER_TEST_MODE`）。`I18N_GUIDE` は名前空間を `commands` / `errors` / `events` の3つとしていたが実装は機能別19個で、全編のコード例が成立しない状態だった。招待権限の `Connect` は `cd3c0e5` で `DISCORD_BOT_SETUP.md` にだけ追記され、`ARCHITECTURE.md` と `USER_MANUAL.md` が取り残されていた。
+
+- [x] ARCHITECTURE.md: `TEST_MODE` → `BUMP_REMINDER_TEST_MODE`・招待権限に `Connect` 追加・API 層の「移行予定」削除・イベント表2件追加・DB テーブル5件追加・リポジトリ5件追加・`purgeGuildDataUsecase` と `cancelAllForGuild` を追記・デプロイ経路を Coolify に修正
+- [x] TESTING_GUIDELINES.md: カバレッジ閾値 Branches 94→92・レイヤ別表とテストツリーを現行構成に更新
+- [x] IMPLEMENTATION_GUIDELINES.md: locale パス修正・`ConfigService` の旧名を `SettingsService` に統一
+- [x] DEPLOYMENT.md: API 層の環境変数7件を追記
+- [x] DISCORD_BOT_SETUP.md: Portainer → Coolify・GitHub Actions → Coolify
+- [x] USER_MANUAL.md: 権限表に「接続（Connect）」を追加
+- [x] I18N_GUIDE.md: 全面改訂（翻訳関数の使い分け・ja が唯一の型基準である非対称性・キー命名規則・`logPrefixed` / `logCommand`・ロケールキャッシュ TTL・言語追加時の8箇所）
+
+### USER_MANUAL の実装との乖離修正（2026-08-19 develop merge）
+
+マニュアルと実装を照合し、乖離4件を文書側で修正（コード変更なし）。エクスポート説明の「サーバー移行」は `validateImportData` の guildId 一致チェックにより実装上不可能なため削除。エクスポート対象の設定系は実際は10項目で、VC自動募集・非アクティブ自動キック・未承認ユーザー自動キックの3件が列挙から漏れていたため追加。在籍階層の「何段階でも」は `INACTIVE_KICK_MAX_TIERS = 10` に合わせて修正。VC募集 FAQ の権限名は `hasPostPermission` の実装どおり `MANAGE_CHANNELS` に修正。
+
+- [x] エクスポート説明の「サーバー移行」記述を削除し同一サーバーでの復元である旨に修正
+- [x] エクスポート対象リストに漏れていた3機能を追加（stateful 側5項目は `FullGuildState` と一致のため変更なし）
+- [x] 階層上限を「最大10段階」「最大10件」に修正（2箇所）
+- [x] VC募集 FAQ の `MANAGE_MESSAGES` → `MANAGE_CHANNELS`（2箇所）
+- [x] `移行` の残存 grep・locale ファイルに該当文言が無いことを確認
+
+### 設定削除・インポート・キック判定の追従漏れバグ修正（2026-08-19 develop merge）
+
+「機能・カラムを追加したときの横断的な列挙の更新漏れ」に起因するバグ6件と、調査中に判明したインメモリタイマーの解除漏れ2件を修正。`deleteAllSettings` の漏れは reset-all 後の再有効化で古い `warnedAt` が「警告済み」と誤判定され警告なしキックが起きうる安全性バグ、`enabledChannelIds` の取りこぼしは export→import で「有効と表示されるのに一切投稿しない」状態が復元されるサイレント故障だった。また `cancelReminder(guildId)` は実リマインダーが常に複合キー `"guildId:serviceName"` で登録されるため完全一致照合ではヒットせず、機能別 reset のインメモリ解除が実質機能していなかったことが判明。
+
+- [x] `deleteAllSettings` に `GuildUnverifiedKickWarn` / `BumpReminder` を追加（guildId を持つ全16モデルを網羅）
+- [x] `importFullSettings` に `enabledChannelIds` を追加（export 側は出力済みで round-trip が非可逆だった）
+- [x] `purgeGuildDataUsecase` を新設し「タイマー解除 → DB 削除」の順序を保証。reset-all / guildDelete / Web API の3経路から共通で呼ぶ
+- [x] `BumpReminderManager.cancelAllForGuild` を新設（複合キーの一括解除）
+- [x] `applyGraceClear` のログキーを `log.warn_stage_reset_failed` に修正（ja/en 新設）
+- [x] `member_activities` の累積カウントをバックフィルするマイグレーション追加（`20260704070000` の適用前から在籍するメンバーの誤キックを解消）
+- [x] 本番DB事前確認: 影響7行・単一ギルド（機能無効・`warn_stage` 全て0）・export→import で壊れたギルドは0件のためアナウンス不要と確定
+- [x] テスト追加22ケース（複合キー解除の回帰・呼び出し順序・全モデル網羅・import round-trip）
 
 ### 非アクティブキック 在籍階層制導入・活動判定/アクティブ条件のティア単位化（2026-07-04 完了）
 

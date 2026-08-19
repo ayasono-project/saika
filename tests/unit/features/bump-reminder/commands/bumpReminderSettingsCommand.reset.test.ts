@@ -1,7 +1,7 @@
 // tests/unit/bot/features/bump-reminder/commands/bumpReminderSettingsCommand.reset.test.ts
 import { handleBumpReminderSettingsReset } from "@/features/bump-reminder/commands/bumpReminderSettingsCommand.reset";
 
-const cancelReminderMock = vi.fn();
+const cancelAllForGuildMock = vi.fn();
 const saveBumpReminderSettingsMock = vi.fn();
 const createSuccessEmbedMock = vi.fn(
   (description: string, opts?: { title?: string }) => ({
@@ -43,7 +43,7 @@ vi.mock("@/features/bump-reminder/bumpReminderSettingsDefaults", () => ({
 
 vi.mock("@/bot/services/botCompositionRoot", () => ({
   getBotBumpReminderManager: () => ({
-    cancelReminder: (...args: unknown[]) => cancelReminderMock(...args),
+    cancelAllForGuild: (...args: unknown[]) => cancelAllForGuildMock(...args),
   }),
   getBotBumpReminderSettingsService: () => ({
     saveBumpReminderSettings: (...args: unknown[]) =>
@@ -62,7 +62,7 @@ describe("bumpReminderSettingsCommand.reset", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     saveBumpReminderSettingsMock.mockResolvedValue(undefined);
-    cancelReminderMock.mockResolvedValue(undefined);
+    cancelAllForGuildMock.mockResolvedValue(0);
   });
 
   it("確認ダイアログを ephemeral で表示する", async () => {
@@ -122,7 +122,7 @@ describe("bumpReminderSettingsCommand.reset", () => {
       enabled: true,
       mentionUserIds: [],
     });
-    expect(cancelReminderMock).toHaveBeenCalledWith("guild-1");
+    expect(cancelAllForGuildMock).toHaveBeenCalledWith("guild-1");
     expect(updateMock).toHaveBeenCalledWith(
       expect.objectContaining({
         embeds: expect.any(Array),

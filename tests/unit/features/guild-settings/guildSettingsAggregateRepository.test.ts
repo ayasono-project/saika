@@ -675,6 +675,29 @@ describe("shared/database/repositories/guildSettingsAggregateRepository", () => 
       expect(callArgs.create.enabledCategoryIds).toEqual(["TOP"]);
     });
 
+    // enabledChannelIds は現行の対象VCチャンネル allowlist。
+    // 列挙漏れで捨てられると「有効と表示されるのに一切投稿しない」状態が復元される。
+    it("vcAutoRecruit: enabledChannelIds が復元されること", async () => {
+      const data: FullGuildSettings = {
+        locale: "ja",
+        vcAutoRecruit: {
+          enabled: true,
+          channelId: "ch-1",
+          message: "msg",
+          embedEnabled: false,
+          enabledCategoryIds: [],
+          enabledChannelIds: ["vc-1", "vc-2"],
+          activeInvites: [],
+        },
+      };
+
+      await repo.importFullSettings("g1", data);
+      const callArgs =
+        prismaTx.guildVcAutoRecruitSettings?.upsert?.mock.calls[0]?.[0];
+      expect(callArgs.create.enabledChannelIds).toEqual(["vc-1", "vc-2"]);
+      expect(callArgs.update.enabledChannelIds).toEqual(["vc-1", "vc-2"]);
+    });
+
     it("inactiveKick: enabledAt が ISO 文字列でも Date に正規化されて upsert されること", async () => {
       const data: FullGuildSettings = {
         locale: "ja",
@@ -795,6 +818,69 @@ describe("shared/database/repositories/guildSettingsAggregateRepository", () => 
         "vc-existing",
         "vc-new",
       ]);
+    });
+  });
+
+  // ── deleteAllSettings ──────────────────────────────────
+  describe("deleteAllSettings", () => {
+    // schema.prisma で guildId を持つ全モデル。
+    // ここから漏れると reset-all / Bot 退出後にゴミが残り、
+    // 再有効化時に古い状態を引き継いで誤動作する（1-1 / 1-2 の原因）。
+    const GUILD_SCOPED_MODELS = [
+      "guildSettings",
+      "bumpReminder",
+      "guildAfkSettings",
+      "guildBumpReminderSettings",
+      "guildVacSettings",
+      "guildMemberLogSettings",
+      "guildVcAutoRecruitSettings",
+      "guildInactiveKickSettings",
+      "memberActivity",
+      "guildUnverifiedKickSettings",
+      "guildUnverifiedKickWarn",
+      "guildVcRecruitSettings",
+      "stickyMessage",
+      "guildTicketSettings",
+      "ticket",
+      "guildReactionRolePanel",
+    ] as const;
+
+    it("guildId を持つ全モデルを削除対象に含めること", async () => {
+      const deleteMocks: Record<string, Mock> = {};
+      const deletePrisma: Record<string, unknown> = {
+        $transaction: vi.fn(async () => Promise.resolve()),
+      };
+      for (const model of GUILD_SCOPED_MODELS) {
+        const deleteMany = vi.fn();
+        deleteMocks[model] = deleteMany;
+        deletePrisma[model] = { deleteMany };
+      }
+
+      const deleteRepo = new GuildSettingsAggregateRepository(
+        coreRepo as never,
+        afkRepo as never,
+        bumpReminderRepo as never,
+        vacRepo as never,
+        memberLogRepo as never,
+        vcRecruitRepo as never,
+        vcAutoRecruitRepo as never,
+        inactiveKickRepo as never,
+        unverifiedKickRepo as never,
+        stickyMessageRepo as never,
+        reactionRolePanelRepo as never,
+        ticketSettingsRepo as never,
+        ticketRepo as never,
+        deletePrisma as never,
+      );
+
+      await deleteRepo.deleteAllSettings("g1");
+
+      for (const model of GUILD_SCOPED_MODELS) {
+        expect(
+          deleteMocks[model],
+          `${model} が削除対象に含まれていない`,
+        ).toHaveBeenCalledWith({ where: { guildId: "g1" } });
+      }
     });
   });
 });

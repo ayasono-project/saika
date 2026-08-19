@@ -18,9 +18,17 @@ const loggerMock = vi.hoisted(() => ({
 vi.mock("@/shared/utils/logger", () => ({ logger: loggerMock }));
 
 const deleteAllConfigMock = vi.fn();
+const findAllClosedByGuildMock = vi.fn();
+const cancelAllForGuildMock = vi.fn();
 vi.mock("@/bot/services/botCompositionRoot", () => ({
   getBotGuildSettingsService: () => ({
     deleteAllSettings: deleteAllConfigMock,
+  }),
+  getBotTicketRepository: () => ({
+    findAllClosedByGuild: findAllClosedByGuildMock,
+  }),
+  getBotBumpReminderManager: () => ({
+    cancelAllForGuild: cancelAllForGuildMock,
   }),
 }));
 
@@ -60,6 +68,8 @@ describe("bot/features/guild-settings/commands/guildSettingsCommand.resetAll", (
   // 各ケースでモック呼び出し記録をリセットする
   beforeEach(() => {
     vi.clearAllMocks();
+    findAllClosedByGuildMock.mockResolvedValue([]);
+    cancelAllForGuildMock.mockResolvedValue(0);
   });
 
   it("確認ダイアログが削除対象フィールド付きで表示されること", async () => {

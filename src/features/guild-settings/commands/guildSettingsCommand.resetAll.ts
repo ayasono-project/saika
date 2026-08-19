@@ -8,7 +8,11 @@ import {
   type ChatInputCommandInteraction,
   MessageFlags,
 } from "discord.js";
-import { getBotGuildSettingsService } from "../../../bot/services/botCompositionRoot";
+import {
+  getBotBumpReminderManager,
+  getBotGuildSettingsService,
+  getBotTicketRepository,
+} from "../../../bot/services/botCompositionRoot";
 import {
   createSuccessEmbed,
   createWarningEmbed,
@@ -23,6 +27,7 @@ import {
   CONFIRM_TIMEOUT_MS,
   GUILD_SETTINGS_CUSTOM_ID,
 } from "../constants/guildSettings.constants";
+import { purgeGuildDataUsecase } from "../usecases/purgeGuildDataUsecase";
 
 /**
  * 全機能の設定を一括リセットする
@@ -92,8 +97,15 @@ export async function handleResetAll(
   /* istanbul ignore start -- Discord.js collector callback */
   collector.on("collect", async (i) => {
     if (i.customId === GUILD_SETTINGS_CUSTOM_ID.RESET_ALL_CONFIRM) {
-      // 全設定削除
-      await getBotGuildSettingsService().deleteAllSettings(guildId);
+      // インメモリタイマーを解除してから全設定削除
+      await purgeGuildDataUsecase(
+        {
+          guildSettingsService: getBotGuildSettingsService(),
+          ticketRepository: getBotTicketRepository(),
+          bumpReminderManager: getBotBumpReminderManager(),
+        },
+        guildId,
+      );
 
       // キャッシュを即時無効化
       localeManager.invalidateLocaleCache(guildId);

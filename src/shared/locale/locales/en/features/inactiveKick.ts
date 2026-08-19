@@ -257,6 +257,8 @@ export const inactiveKick = {
     "Failed to assign marker role GuildId: {{guildId}} UserId: {{userId}}",
   "log.activity_cleanup_failed":
     "Failed to delete activity record GuildId: {{guildId}} UserId: {{userId}}",
+  "log.warn_stage_reset_failed":
+    "Failed to reset warn stage GuildId: {{guildId}} UserId: {{userId}}",
   "log.cron_override":
     "Daily-check schedule overridden (INACTIVE_KICK_CRON): {{schedule}}",
   "log.cron_invalid":

@@ -99,8 +99,8 @@ export async function handleBumpReminderSettingsReset(
         createDefaultBumpReminderSettings(),
       );
 
-      // メモリ上のタイマーをキャンセル
-      await getBotBumpReminderManager().cancelReminder(guildId);
+      // メモリ上のタイマーをキャンセル（サービス別の複合キーを含む全件）
+      await getBotBumpReminderManager().cancelAllForGuild(guildId);
 
       const successEmbed = createSuccessEmbed(
         tInteraction(locale, "bumpReminder:user-response.reset_success"),

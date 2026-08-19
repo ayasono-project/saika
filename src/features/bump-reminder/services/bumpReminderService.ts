@@ -89,6 +89,31 @@ export class BumpReminderManager {
   }
 
   /**
+   * ギルドの全リマインダーをキャンセル（インメモリ解除 + DB status 更新）
+   *
+   * 実リマインダーは常に複合キー（"guildId:serviceName"）で登録されるため、
+   * `cancelReminder(guildId)` の完全一致照合では 1 件もヒットしない。
+   * ギルド単位の後始末では必ず本メソッドを使うこと。
+   *
+   * DB 行のみを更新する `bumpReminderRepository.cancelByGuild()` とは別物。
+   * @param guildId 対象ギルドID
+   * @returns キャンセルできた件数
+   */
+  public async cancelAllForGuild(guildId: string): Promise<number> {
+    // 複合キー（"guildId:serviceName"）と素の guildId キーの両方を拾う
+    const prefix = `${guildId}:`;
+    const targetKeys = [...this.reminders.keys()].filter(
+      (key) => key === guildId || key.startsWith(prefix),
+    );
+
+    // キーをそのまま guildId として渡す（toBumpReminderKey の冪等変換で安全）
+    const results = await Promise.all(
+      targetKeys.map((key) => this.cancelReminder(key)),
+    );
+    return results.filter(Boolean).length;
+  }
+
+  /**
    * リマインダーが設定されているか確認
    * @param guildId 確認対象のギルドID
    * @param serviceName 確認対象のサービス名（未指定時は guildId のみで照合）

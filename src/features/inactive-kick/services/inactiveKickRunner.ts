@@ -151,7 +151,7 @@ async function applyGraceClear(
       await activityRepo.setWarnStage(guild.id, target.userId, WARN_STAGE.NONE);
     } catch (err) {
       logger.warn(
-        logPrefixed(LOG_PREFIX, "inactiveKick:log.marker_role_remove_failed", {
+        logPrefixed(LOG_PREFIX, "inactiveKick:log.warn_stage_reset_failed", {
           guildId: guild.id,
           userId: target.userId,
         }),

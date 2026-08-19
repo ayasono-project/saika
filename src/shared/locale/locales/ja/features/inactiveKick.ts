@@ -256,6 +256,8 @@ export const inactiveKick = {
     "対象ロールの付与に失敗 GuildId: {{guildId}} UserId: {{userId}}",
   "log.activity_cleanup_failed":
     "活動履歴の削除に失敗 GuildId: {{guildId}} UserId: {{userId}}",
+  "log.warn_stage_reset_failed":
+    "警告段階のリセットに失敗 GuildId: {{guildId}} UserId: {{userId}}",
   "log.cron_override":
     "日次チェックのスケジュールを上書き（INACTIVE_KICK_CRON）: {{schedule}}",
   "log.cron_invalid":

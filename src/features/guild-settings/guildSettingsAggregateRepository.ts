@@ -335,6 +335,8 @@ export class GuildSettingsAggregateRepository
           embedEnabled: data.vcAutoRecruit.embedEnabled,
           enabledCategoryIds: data.vcAutoRecruit
             .enabledCategoryIds as unknown as Prisma.InputJsonValue,
+          enabledChannelIds: data.vcAutoRecruit
+            .enabledChannelIds as unknown as Prisma.InputJsonValue,
           activeInvites: [] as unknown as Prisma.InputJsonValue,
         };
         await tx.guildVcAutoRecruitSettings.upsert({
@@ -506,6 +508,7 @@ export class GuildSettingsAggregateRepository
       this.prisma.guildReactionRolePanel.deleteMany({ where: { guildId } }),
       this.prisma.stickyMessage.deleteMany({ where: { guildId } }),
       this.prisma.guildBumpReminderSettings.deleteMany({ where: { guildId } }),
+      this.prisma.bumpReminder.deleteMany({ where: { guildId } }),
       this.prisma.guildAfkSettings.deleteMany({ where: { guildId } }),
       this.prisma.guildVacSettings.deleteMany({ where: { guildId } }),
       this.prisma.guildMemberLogSettings.deleteMany({ where: { guildId } }),
@@ -514,6 +517,7 @@ export class GuildSettingsAggregateRepository
       this.prisma.guildUnverifiedKickSettings.deleteMany({
         where: { guildId },
       }),
+      this.prisma.guildUnverifiedKickWarn.deleteMany({ where: { guildId } }),
       this.prisma.guildVcRecruitSettings.deleteMany({ where: { guildId } }),
       this.prisma.guildVcAutoRecruitSettings.deleteMany({ where: { guildId } }),
       this.prisma.guildSettings.deleteMany({ where: { guildId } }),

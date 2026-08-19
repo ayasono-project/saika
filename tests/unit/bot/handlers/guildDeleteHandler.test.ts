@@ -3,6 +3,7 @@
 
 const mockDeleteAllConfigs = vi.fn();
 const mockFindAllClosedByGuild = vi.fn();
+const mockCancelAllForGuild = vi.fn();
 
 vi.mock("@/shared/locale/localeManager", () => ({
   logPrefixed: (
@@ -34,6 +35,9 @@ vi.mock("@/bot/services/botCompositionRoot", () => ({
   getBotTicketRepository: () => ({
     findAllClosedByGuild: mockFindAllClosedByGuild,
   }),
+  getBotBumpReminderManager: () => ({
+    cancelAllForGuild: mockCancelAllForGuild,
+  }),
 }));
 
 import { handleGuildDelete } from "@/bot/handlers/guildDeleteHandler";
@@ -47,6 +51,7 @@ describe("bot/handlers/guildDeleteHandler", () => {
     vi.clearAllMocks();
     mockFindAllClosedByGuild.mockResolvedValue([]);
     mockDeleteAllConfigs.mockResolvedValue(undefined);
+    mockCancelAllForGuild.mockResolvedValue(0);
   });
 
   it("ギルドの全設定データを削除してログ出力すること", async () => {
@@ -74,6 +79,31 @@ describe("bot/handlers/guildDeleteHandler", () => {
       "ticket-auto-delete-ticket-1",
     );
     expect(jobScheduler.removeJob).toHaveBeenCalledTimes(1);
+  });
+
+  it("Bump リマインダーのインメモリタイマーを解除すること", async () => {
+    const guild = { id: "guild-1", name: "Test Guild" };
+
+    await handleGuildDelete(guild as never);
+
+    expect(mockCancelAllForGuild).toHaveBeenCalledWith("guild-1");
+  });
+
+  it("タイマー解除を DB 削除より先に実行すること", async () => {
+    const order: string[] = [];
+    mockCancelAllForGuild.mockImplementation(async () => {
+      order.push("cancel");
+      return 0;
+    });
+    mockDeleteAllConfigs.mockImplementation(async () => {
+      order.push("delete");
+    });
+
+    const guild = { id: "guild-1", name: "Test Guild" };
+    await handleGuildDelete(guild as never);
+
+    // 逆順だと削除済み行への updateStatus が P2025 で失敗しログが荒れる
+    expect(order).toEqual(["cancel", "delete"]);
   });
 
   it("deleteAllSettings がエラーを投げた場合はエラーログを出力すること", async () => {

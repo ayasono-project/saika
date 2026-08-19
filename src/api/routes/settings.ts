@@ -2,7 +2,12 @@
 // 機能別設定エンドポイント（/api/guilds/:guildId/<feature>）
 
 import type { FastifyPluginAsync } from "fastify";
-import { getBotGuildSettingsService } from "../../bot/services/botCompositionRoot";
+import {
+  getBotBumpReminderManager,
+  getBotGuildSettingsService,
+  getBotTicketRepository,
+} from "../../bot/services/botCompositionRoot";
+import { purgeGuildDataUsecase } from "../../features/guild-settings/usecases/purgeGuildDataUsecase";
 import { localeManager } from "../../shared/locale/localeManager";
 import { createAfkResource } from "../features/afkResource";
 import { createBumpResource } from "../features/bumpResource";
@@ -62,7 +67,14 @@ export const settingsRoutes: FastifyPluginAsync<SettingsRoutesOptions> = async (
   // 全設定リセット（このサーバーの全機能設定を初期化・/guild-settings reset-all 相当）
   fastify.post("/:guildId/reset-all", guarded, async (request) => {
     const guildId = getGuildId(request);
-    await getBotGuildSettingsService().deleteAllSettings(guildId);
+    await purgeGuildDataUsecase(
+      {
+        guildSettingsService: getBotGuildSettingsService(),
+        ticketRepository: getBotTicketRepository(),
+        bumpReminderManager: getBotBumpReminderManager(),
+      },
+      guildId,
+    );
     localeManager.invalidateLocaleCache(guildId);
     return { data: { success: true } };
   });

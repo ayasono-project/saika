@@ -226,8 +226,10 @@ Phase 1 には公開Bot全体に影響する安全性修正が入っている。
 
 `docs/specs/` の全ファイルを廃止し、維持すべき設計意図・非自明な境界条件・決定経緯を guides に集約する。
 
-- [ ] 各 spec を精査し、guides に移す価値のある情報（設計根拠・非自明な境界条件・決定経緯）を特定する
+- [ ] 各 spec を精査し、guides に移す価値のある情報（設計根拠・非自明な境界条件・決定経緯）を特定する（**spec は削除済みのため `git show <commit>:docs/specs/<file>` で参照する**）
 - [ ] 特定した情報を適切なガイドに追記（ARCHITECTURE.md / IMPLEMENTATION_GUIDELINES.md 等）
+
+> 2026-08-19 の監査で guides の事実誤り16件を修正し、`purgeGuildDataUsecase` 等の直近の設計も追記済み（完了済み参照）。残るのは spec に埋もれている設計根拠の掘り起こしのみ。
 - [x] `docs/specs/_TEMPLATE.md` とディレクトリ本体を削除（2026-08-19）— 仕様書作成テンプレートとして意図的に残されていたが、spec 廃止から約2ヶ月間一度も使われず、guides への一本化と衝突するため削除。必要になれば git history から復元できる
 - [x] `docs/specs/` の他ファイルを削除（2026-06-29）
 - [x] README.md 更新: 機能表の `spec` 列を削除・「仕様書」セクションを削除（2026-06-29）
@@ -304,7 +306,8 @@ Phase 1 には公開Bot全体に影響する安全性修正が入っている。
 - 変更履歴のフック対象となる各リポジトリの upsert 実装（member-log 以外は未確認）
 - 案Dを入れたとき、Bot が居ないギルドの設定がダッシュボードでどう見えるか
 - 退出直後のDMが本当に届かないか（未実測。退出時DMを見送ったため優先度は低い）
-- `docs/guides/ARCHITECTURE.md:146` の招待権限の列挙に `Connect` が抜けている（コードは14権限・ドキュメントは13）。他にもドリフトが無いか
+- `vitest.config.ts` の `coverage.exclude` が旧パス（`src/bot/features/**`）を参照しており実質無効になっている（2026-08-19 のドキュメント監査で発見。コード側の修正が必要）
+- ja / en の翻訳キー突合を機械的に検証するテストが無い。ja だけ追加しても型・実行時とも検出されず、en 環境で日本語が出る（I18N_GUIDE に運用ルールとして明記済みだが、テスト化の余地あり）
 
 ---
 
@@ -331,6 +334,20 @@ Phase 1 には公開Bot全体に影響する安全性修正が入っている。
 ## 完了済み
 
 > 詳細な作業経過は git log を参照。
+
+### docs/guides と実装の乖離修正・I18N_GUIDE 全面改訂（2026-08-19 develop merge）
+
+`docs/guides/` 全8ファイルを実装と突き合わせて監査し、事実誤り16件を修正（PR #101）。あわせて I18N_GUIDE を全面改訂（PR #102）。コード変更なし。`GIT_WORKFLOW.md` と `DEV_TIPS.md` は実装と一致していたため変更なし。
+
+影響が大きかったもの: `ARCHITECTURE.md` の `TEST_MODE` は存在しない env 変数で、記載どおり設定しても何も起きずコード例も型エラーになる状態だった（実装は `BUMP_REMINDER_TEST_MODE`）。`I18N_GUIDE` は名前空間を `commands` / `errors` / `events` の3つとしていたが実装は機能別19個で、全編のコード例が成立しない状態だった。招待権限の `Connect` は `cd3c0e5` で `DISCORD_BOT_SETUP.md` にだけ追記され、`ARCHITECTURE.md` と `USER_MANUAL.md` が取り残されていた。
+
+- [x] ARCHITECTURE.md: `TEST_MODE` → `BUMP_REMINDER_TEST_MODE`・招待権限に `Connect` 追加・API 層の「移行予定」削除・イベント表2件追加・DB テーブル5件追加・リポジトリ5件追加・`purgeGuildDataUsecase` と `cancelAllForGuild` を追記・デプロイ経路を Coolify に修正
+- [x] TESTING_GUIDELINES.md: カバレッジ閾値 Branches 94→92・レイヤ別表とテストツリーを現行構成に更新
+- [x] IMPLEMENTATION_GUIDELINES.md: locale パス修正・`ConfigService` の旧名を `SettingsService` に統一
+- [x] DEPLOYMENT.md: API 層の環境変数7件を追記
+- [x] DISCORD_BOT_SETUP.md: Portainer → Coolify・GitHub Actions → Coolify
+- [x] USER_MANUAL.md: 権限表に「接続（Connect）」を追加
+- [x] I18N_GUIDE.md: 全面改訂（翻訳関数の使い分け・ja が唯一の型基準である非対称性・キー命名規則・`logPrefixed` / `logCommand`・ロケールキャッシュ TTL・言語追加時の8箇所）
 
 ### USER_MANUAL の実装との乖離修正（2026-08-19 develop merge）
 

@@ -106,12 +106,12 @@ Phase 1 には公開Bot全体に影響する安全性修正が入っている。
 
 **やること**
 
-- [ ] develop → main のリリース PR（タイトルは `release:` プレフィックス・merge commit）
+- [ ] develop → main のリリース PR（タイトルは `release:` プレフィックス・merge commit）← **実機検証は全項目完了。あとはこれだけ**
 - [x] バックフィル対象行数の事前 SELECT（2026-08-19 実施: 影響7行・単一ギルド・当該ギルドはキック機能無効）
 - [x] Ikoitter 側の手作業の要否確認（`warn_stage` は7件すべて0のため**手作業不要**と確定）
 - [x] 実機起動確認（テスト起動でモジュール解決・Web サーバー・スケジューラ登録まで到達）
-- [ ] reset-all の実機確認（チケットタイマー解除＋DB削除＋Bump解除を1経路で通せる）
-- [ ] VC自動募集の export → reset-all → import で `enabledChannelIds` が復元されることの実機確認
+- [x] reset-all の実機確認（2026-08-19: エラーなく完走。`purgeGuildDataUsecase` の3ステップが composition root 経由で通ることを確認）
+- [x] VC自動募集の export → reset-all → import で `enabledChannelIds` が復元されることの実機確認（2026-08-19: VC3件が復元され、実際に募集投稿まで発火することを確認）
 
 > ⚠️ バックフィルのマイグレーションは**不可逆**。本番は起動時に `prisma migrate deploy` が走るため、**main へのマージ＝実行**。実行後は「バックフィルされた行」と「本物の活動記録」を永久に区別できない。
 

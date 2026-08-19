@@ -2,7 +2,7 @@
 
 > タスク管理・進捗状況・残件リスト
 
-最終更新: 2026年7月4日
+最終更新: 2026年8月19日
 
 ---
 
@@ -46,7 +46,7 @@
 
 - **Web API 認証の堅牢化（設定ミス耐性）** — 現状の認証防御は多層で機能しており**実害なし**。設定ミス時の事故耐性を上げる多層化として2点を検討: ①[jwt.ts](src/api/auth/jwt.ts) の `secretKey()` のフォールバック挙動を fail-closed 化（本番相当環境で署名鍵が未設定なら起動アサーション任せにせず `secretKey()` 自体で throw）。②[jwt.ts](src/api/auth/jwt.ts) の `jwtVerify` でトークン寿命を強制（`maxTokenAge` / `exp` 必須化）し、検証側でも有効期限を担保する。詳細な背景・脅威モデルは公開 TODO に書かず別途管理。
 - **予約募集(イベント募集)機能** — 他タスク完了後に実装可否判断。骨子: 予約時に VC + Discord Scheduled Event 作成 / RSVP・リマインダー・開始通知は Discord 標準任せ / VC 自動削除なし(投稿削除 or イベント終了ボタンで手動)/ 編集機能あり(日時・タイトル・説明)/ setup は既存 VC 募集と同構成 / VC 名変更は既存 `/vc rename` 流用。細部は実装決定時に詰める
-- **キック系ユーザーデータの削除対称性の整理（非アクティブキック／未承認キック整理）** — 非アクティブキック(`MemberActivity`)・未承認キック(`GuildUnverifiedKickWarn`)のユーザーデータについて、リセット種別ごとの削除挙動が非対称。①全設定リセット `deleteAllSettings` は `MemberActivity` を消すが `GuildUnverifiedKickWarn` を消していない（トランザクション未収載）、②未承認キックの個別リセットは warn 記録を `deleteAllByGuild` で消す、③非アクティブキックの個別リセットは `MemberActivity` を残す。`enabledAt` 起算下限・warnStage ゲート・warn-before-kick により**残存しても誤キック等の害は出ない**（孤児は verify/leave で掃除）ため緊急ではないが、「全設定リセット＝完全にまっさらに戻る」建付けに揃えるなら `deleteAllSettings` に `guildUnverifiedKickWarn.deleteMany` を追加し、個別リセットの削除有無も方針統一を検討。なお**エクスポートにユーザーデータを含めないのは現仕様維持で問題なし**（再有効化時の `enabledAt` フロアで安全・個人データ/サイズ観点でも除外が妥当）と確認済み。
+- **キック系ユーザーデータの削除対称性の整理（個別リセットの方針統一）** — ①の `deleteAllSettings` への `guildUnverifiedKickWarn.deleteMany` 追加は **2026-08-19 に実施済み**（下記完了済みセクション参照）。残る非対称は、②未承認キックの個別リセットが warn 記録を `deleteAllByGuild` で消すのに対し、③非アクティブキックの個別リセットは `MemberActivity` を残す点。個別リセットの削除有無を方針統一するか検討する。なお**エクスポートにユーザーデータを含めないのは現仕様維持で問題なし**（再有効化時の `enabledAt` フロアで安全・個人データ/サイズ観点でも除外が妥当）と確認済み。
 - **ユーザー embed 作成機能** — ユーザーが embed を作って bot 名義で投稿できる機能（Carl-bot 類似）。**詳細は後日決定**。方向性メモ: 需要あり（お知らせ/ルール/ロールパネル説明）。**管理権限必須にはしない**方針で、①作成・プレビューは誰でも自由（ephemeral/DM）②投稿は「投稿先チャンネルでのそのユーザーの送信権限」で判定（bot=ユーザーの代理・本来できる範囲を超えさせない）③`@everyone`/role メンションは Mention Everyone 権限保持時のみ許可（`allowedMentions` で抑止）④作成者 attribution + 所有権（編集/削除は作成者＋管理者）⑤運営がロール許可をカスタム可能。Web ダッシュボードも OAuth ユーザーのギルド権限で同じ②判定が可能だが、管理設定エリアとは別の一般導線が必要。コマンド版/Web 版どちらから着手するか・所有権の DB モデル等は実装決定時に詰める
 - 自動翻訳機能(DeepL API 等)
 - 投票システム(グラフ化・レポート集計で Discord 標準との差別化)
@@ -57,6 +57,29 @@
 ## 完了済み
 
 > 詳細な作業経過は git log を参照。
+
+### USER_MANUAL の実装との乖離修正（2026-08-19 develop merge）
+
+マニュアルと実装を照合し、乖離4件を文書側で修正（コード変更なし）。エクスポート説明の「サーバー移行」は `validateImportData` の guildId 一致チェックにより実装上不可能なため削除。エクスポート対象の設定系は実際は10項目で、VC自動募集・非アクティブ自動キック・未承認ユーザー自動キックの3件が列挙から漏れていたため追加。在籍階層の「何段階でも」は `INACTIVE_KICK_MAX_TIERS = 10` に合わせて修正。VC募集 FAQ の権限名は `hasPostPermission` の実装どおり `MANAGE_CHANNELS` に修正。
+
+- [x] エクスポート説明の「サーバー移行」記述を削除し同一サーバーでの復元である旨に修正
+- [x] エクスポート対象リストに漏れていた3機能を追加（stateful 側5項目は `FullGuildState` と一致のため変更なし）
+- [x] 階層上限を「最大10段階」「最大10件」に修正（2箇所）
+- [x] VC募集 FAQ の `MANAGE_MESSAGES` → `MANAGE_CHANNELS`（2箇所）
+- [x] `移行` の残存 grep・locale ファイルに該当文言が無いことを確認
+
+### 設定削除・インポート・キック判定の追従漏れバグ修正（2026-08-19 develop merge）
+
+「機能・カラムを追加したときの横断的な列挙の更新漏れ」に起因するバグ6件と、調査中に判明したインメモリタイマーの解除漏れ2件を修正。`deleteAllSettings` の漏れは reset-all 後の再有効化で古い `warnedAt` が「警告済み」と誤判定され警告なしキックが起きうる安全性バグ、`enabledChannelIds` の取りこぼしは export→import で「有効と表示されるのに一切投稿しない」状態が復元されるサイレント故障だった。また `cancelReminder(guildId)` は実リマインダーが常に複合キー `"guildId:serviceName"` で登録されるため完全一致照合ではヒットせず、機能別 reset のインメモリ解除が実質機能していなかったことが判明。
+
+- [x] `deleteAllSettings` に `GuildUnverifiedKickWarn` / `BumpReminder` を追加（guildId を持つ全16モデルを網羅）
+- [x] `importFullSettings` に `enabledChannelIds` を追加（export 側は出力済みで round-trip が非可逆だった）
+- [x] `purgeGuildDataUsecase` を新設し「タイマー解除 → DB 削除」の順序を保証。reset-all / guildDelete / Web API の3経路から共通で呼ぶ
+- [x] `BumpReminderManager.cancelAllForGuild` を新設（複合キーの一括解除）
+- [x] `applyGraceClear` のログキーを `log.warn_stage_reset_failed` に修正（ja/en 新設）
+- [x] `member_activities` の累積カウントをバックフィルするマイグレーション追加（`20260704070000` の適用前から在籍するメンバーの誤キックを解消）
+- [x] 本番DB事前確認: 影響7行・単一ギルド（機能無効・`warn_stage` 全て0）・export→import で壊れたギルドは0件のためアナウンス不要と確定
+- [x] テスト追加22ケース（複合キー解除の回帰・呼び出し順序・全モデル網羅・import round-trip）
 
 ### 非アクティブキック 在籍階層制導入・活動判定/アクティブ条件のティア単位化（2026-07-04 完了）
 

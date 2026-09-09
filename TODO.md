@@ -2,9 +2,25 @@
 
 > タスク管理・進捗状況・残件リスト。web ダッシュボード・インフラ（VPS / Cloudflare / Coolify）は別リポジトリで管理。
 
-最終更新: 2026年8月20日
+最終更新: 2026年9月9日
 
 **並び順の基準**: ①後続に影響するもの → ②前提の完了待ち → ③詳細が未設計 → ④単独で実装できるもの。各グループ内は変更の大きいものから。実害の有無・依存関係は各タスクの本文に書く。
+
+---
+
+## 進め方
+
+2026-09-05 決定。目標は**メンテナンスが要らない状態にすること**。そこに効くのは機能を減らすことで、掃除とリファクタは維持コストを下げるが、ゼロにはしない。
+
+```
+機能削除 → 残す機能の掃除 → リファクタ・改善 → マニュアル全面修正
+```
+
+**順序は絶対。** 消す予定の機能を掃除するのは丸ごと無駄になる。個別の掃除タスクに着手する前に、その機能を残すと決まっているかを必ず確認する。
+
+**マニュアル（`docs/guides/USER_MANUAL.md`）は最後にまとめて1回。** 削除で全体の約30%（VC募集 約320行 / 非アクティブキック 約148行 / VC操作コマンド 約54行）が落ち、掃除と改善で仕様が変わる箇所も出るため、途中で直すと二度手間になる。削除する3機能は他鯖で使われていないので、その間マニュアルが実態と食い違っても実害はない。
+
+**機能の要否は本番 DB の実測で判断した**（2026-09-05）。「他 Bot にも同じ機能がある」「Discord 標準で代替できる」は削除の根拠にしない。彩加はオールインワンが看板であり、代替可能性を根拠にすると製品コンセプトそのものを否定することになる。削除の根拠は①誰も使っていない②saika 内部で重複している③維持コストが機能価値に対して極端に高い、の3つだけ。
 
 ---
 
@@ -12,21 +28,137 @@
 
 | グループ | 残件 |
 | --- | ---: |
-| 未決事項 | 9 |
+| **機能削除** | **4** |
+| 未決事項 | 11 |
 | 後続に影響する | 5 |
-| 前提の完了待ち | 5 |
-| 詳細が未設計 | 2 |
-| 単独で実装できる | 4 |
-| **合計** | **25** |
+| 前提の完了待ち | 7 |
+| 詳細が未設計 | 3 |
+| 単独で実装できる | 6 |
+| **合計** | **36** |
 
-> **次にやること**: 未決事項を潰す。**実装より設計を先に片付ける。**
-> 特に「遅延削除の猶予日数」「Guild 親テーブル」「bump 上限値」の3件は、**決まらないと「後続に影響する」の遅延削除とポーリング化が着手できない**ボトルネック。
+> **次にやること（2026-09-09 決定・この順で1つずつ・1件＝1 PR）**
+> 機能の廃止・残機能の改善・リファクタを同時並行で考えて作業が止まったため、**設計判断に一切依存しない決定済みの作業だけ**を並べた。設計の続きはこれが終わってから戻る。
+>
+> 1. `/afk` の権限修正 ＋ `/vc` 削除（→「機能削除」）。**本番に穴が開いているので最初**
+> 2. `/bump-reminder-settings disable` の予約キャンセル漏れ（→「後続に影響する」）。1行差し替え＋テスト
+> 3. 非アクティブ自動キック機能の削除（→「機能削除」）。大きいが機械的
+> 4. VC募集機能の削除（→「機能削除」）。稼働していないので新機能を待たずに消せる
+> 5. ファイル冒頭の古いパスコメント一括修正（→「前提の完了待ち」）
+> 6. VC自動募集のカテゴリ残骸とデッドコードの撤去（→「単独で実装できる」）
+> 7. 未使用ロケールキーのうち明白な残骸 (a) の撤去（→「前提の完了待ち」。(b)(c) の仕分けは別途）
+>
+> 3・4 が 5〜7 より先なのは、消す機能を掃除しないため。
+> **止めているもの**: VAC の削除と「メンバーによる VC 作成」（実機検証2点と設計確定待ち）／未決事項「構造リファクタをどこまでやるか」「機能改善をどこまで足すか」／ロケールキーの (b)(c) 仕分け／「遅延削除の猶予日数」「Guild 親テーブル」（機能削除で対象が減ってから詰めたほうが設計が小さくなる）。
+
+---
+
+## 機能削除
+
+**最優先。掃除より先に片付ける。** 2026-09-05 に本番 DB の利用実績を実測し、削除対象を確定した。2026-09-09 に VAC を追加（新機能「メンバーによる VC 作成」で置換）。残す機能は guild-settings / afk / vc-auto-recruit / member-log / unverified-kick / ticket / sticky-message / reaction-role / bump-reminder / ping / message-delete / about / help ＋ 新機能。
+
+> **マニュアル修正は各タスクに含めない。** 削除が全部終わってから「マニュアル全面修正」で一括対応する（→「進め方」）。
+
+### 非アクティブ自動キック機能の削除 【実装・大】
+
+**依存なし。** 実測で**有効ギルド0**（2026-09-05）。自鯖でも未使用。根拠①（誰も使っていない）。
+
+削除して初めて分かった副次効果が大きい。常時フックしているイベントが4本あり、そのうち **`messageReactionAdd` の利用者はこの機能だけ**（`src/bot/events/messageReactionAdd.ts:5`）。
+
+- [ ] `src/features/inactive-kick/` 一式と `/inactive-kick-settings` コマンドを削除
+- [ ] `messageCreate` / `voiceStateUpdate` / `messageReactionAdd` / `guildMemberRemove` からフックを外す。**`messageReactionAdd` はリスナーごと削除できる**
+- [ ] `client.ts` から **`GatewayIntentBits.GuildMessageReactions` と `Partials.Reaction` を削除**（`Partials.Message` は messageDelete 系で使うので残す）。公開 Bot でインテントを1つ落とせるのは最小権限化の方針とも噛み合う
+- [ ] `clientReadyHandler` の毎時スイープジョブ登録を削除
+- [ ] migration で `guild_inactive_kick_settings` と **`member_activities`** を削除
+- [ ] shared の `InactiveKickSettings` / `InactiveKickTier` 系を削除 → publish → saika / web の参照を更新
+- [ ] web ダッシュボードの InactiveKickPage と階層編集 UI を削除（web リポジトリ側）
+- [ ] ロケール ja/en の `inactiveKick` 名前空間・help・composition root・テスト
+
+> **未使用ロケールキーは0件だった**（2026-09-05 の全機能スキャン）。最も新しく作られて最後まで手が入っていた機能で、品質の問題ではなく需要が無かっただけ。
+
+### VC募集機能の削除 【実装・大】
+
+**依存なし。** 実測で**行は自鯖の1件のみ、かつ `setups` が空**（2026-09-05）。パネルチャンネルも投稿先も存在せず、機能として稼働していない。他鯖はゼロ。根拠①。
+
+`enabled=true` になっているのは、`addSetup` が立てたフラグを**false に戻す経路が存在しない**ため（`enable`/`disable` サブコマンドが無く、teardown は `setups` から消すだけ）。さらに `vcRecruitSettingsDefaults.ts:8` のデフォルト自体が `enabled: true`。**このフラグは最初から意味を持たない。**
+
+- [ ] `src/features/vc-recruit/` **27ファイル**と `/vc-recruit-settings` コマンドを削除（`vcRecruitButton.ts` 583行 / `vcRecruitStringSelect.ts` 213行 / `vcRecruitSettingsSetup.ts` 201行 ほか）
+- [ ] 未配線のデッドコード `handleVcRecruitVoiceStateUpdate`（`vcRecruitVoiceStateUpdate.ts:20`）とその unit / integration テスト。**src のどこからも呼ばれておらずテストだけが維持している**
+- [ ] migration で `guild_vc_recruit_settings` を削除
+- [ ] ロケール ja/en の `vcRecruit` 名前空間（各128キー・うち**11キーは既に未使用**）
+- [ ] messageDelete / channelDelete ハンドラ・composition root・help・テスト
+
+> **「タイマー / スケジューラ実装の整理」から手書き `setTimeout` 2箇所（`vcRecruitButton.ts:416` / `vcRecruitStringSelect.ts:191`）が消える。**
+> 「予約募集（イベント募集）機能」構想は「setup は既存 VC 募集と同構成」を前提にしていたが、あの構想は RSVP もリマインダーも Discord Scheduled Events 任せなので、独立して作るほうが素直。**消しても構想は死なない。**
+
+### `/vc`（VC操作コマンド）の削除 ＋ `/afk` の権限修正 【実装・中・バグ】
+
+**依存なし。実害が本番に出ている。** `/vc` の削除と `/afk` の修正は同じ穴の表と裏なので1タスクにまとめる。
+
+**現状、サーバーの誰でも他人を切断・移動できる。** `/vc` に `setDefaultMemberPermissions` が無く（設定系13コマンドには全部付いている）、`executeVcCommand` にも各ユースケースにも権限チェックが無い（`vcCommand.execute.ts:43` に「管理対象チェックなしで任意のメンバー/VCを操作する」とコメントまである）。Discord は実行者の権限を見ず Bot の `MoveMembers` で実行するため、`/vc disconnect target-channel:` や `/vc move` で**通話中の VC を丸ごと吹き飛ばせる**。`/afk` も同じ穴。
+
+`rename` / `limit` は `getManagedVoiceChannel` を通るが、これは「Bot 管理下の VC に自分がいるか」の確認で権限ではない。**VAC は作成者にだけ `ManageChannels` overwrite を付けている**のに（`handleVacCreate.ts:125`）、同席していれば誰でも改名できる。VAC の権限設計を迂回している＝根拠②。
+
+- [ ] `src/features/vc-command/` 8ファイル485行と `/vc` コマンドを削除。ロケール ja/en の `vc` 名前空間・テスト・help
+- [ ] **`/afk` を「他人を動かす」専用にする**: `target-member` / `target-channel` のどちらか必須にし、`afkCommand.execute.ts:101-103` の「省略時は自分」分岐を削除。自分を AFK に飛ばすのはクライアントでチャンネルをクリックすれば済むので機能として不要
+- [ ] `afk.ts` に `setDefaultMemberPermissions(PermissionFlagsBits.MoveMembers)` を追加。**コード側ガードは足さない**（2026-09-09 訂正）。既定権限は Discord 側で実行まで止まるので穴はこれで塞がる。コード側で `MoveMembers` を強制すると、管理者が連携設定で「VC 係」ロールに委任した場合に Bot が弾いてしまい、Discord の委任機能を無効化する。設定系13コマンドの二重防御は「設定変更は委任させない」判断で、運用操作の `/afk` には当てはまらない
+- [ ] target 必須化に伴うロケール追加とテスト
+
+> **`/afk` の自分用途を消すと権限修正が単純化する。** 残すと「target 指定時だけ権限を要求する」条件分岐が必要だが、消せばコマンド単位の既定権限で足りる。
+> **メンバーに使わせたい場合**はサーバー設定 → 連携サービス → 彩加 → `/afk` でロール単位に許可する（Discord 標準）。マニュアル全面修正時に1行書く。
+> **共通ヘルパー588行（`vcBulkAction.ts` 303 / `vcActionLog.ts` 169 / `vcActionTarget.ts` 116）は `/afk` が使うので残る。** ただし利用者が1つになるため、掃除フェーズで `/afk` 側に畳めば圧縮できる。
+> `getManagedVoiceChannel` は `isCreatedVcRecruitChannel` を参照しているため、**VC募集の削除と互いに依存を減らし合う**。`isManagedVacChannel` のほうも最後の利用者がこの guard なので、VAC の削除と同時に消える。
+> **`rename` / `limit` も残さない**（2026-09-09 確定）。用途は「メンバーによる VC 作成」で建てる時に決められるようになり、以後は作成者が Discord の設定画面から変更する。
+
+### VC自動作成（VAC）の削除 【実装・大・新機能と同一リリース】
+
+**「メンバーによる VC 作成」（→「詳細が未設計」）のリリースと同時。** 自鯖が VAC を使っているため、置換前に消すと VC を建てる手段が無くなる。2026-09-09 決定。本番で VAC を有効にしているのは自鯖の1ギルドのみ。
+
+トリガー VC 方式そのものをやめる。理由は新機能の項に書いた（トリガー入室→移動が回りくどい／作成後の変更のために `/vc rename`・`limit` が要り、それが権限の穴になっていた）。
+
+**消すもの**
+
+- [ ] トリガー VC の概念一式: `vacSettingsCreateTrigger.ts` / `vacSettingsRemoveTrigger.ts` / `vacSettingsTargetResolver.ts` / `vacSettingsCommand.autocomplete.ts`、`/vac-settings` の create-trigger-vc / remove-trigger-vc / view
+- [ ] `handleVacCreate.ts` の voiceStateUpdate 起点の作成経路（トリガー判定・移動・移動失敗時の削除）
+- [ ] `guild_vac_settings.trigger_channel_ids` 列（本番1行なので clean migration 可）、shared `VacSettings.triggerChannelIds`、web `VacPage.tsx` のトリガー管理 UI、API `vacResource.ts` の契約
+- [ ] vc-auto-recruit の VAC 依存: `vcAutoRecruitService.ts:110-116` のトリガー除外、`vcAutoRecruitSettingsCommand.addChannel.ts:53-70` の候補除外、composition root の `vacSettingsService` 注入。**これを最初にやる**（`VcAutoRecruitService` がコンストラクタで `VacSettingsService` を受けているため、先に消すとコンパイルが壊れる。置き換え先は新機能の述語 `isMemberCreatedVc`）
+- [ ] guild-settings の aggregate（`guildSettingsAggregateRepository.ts:99-160,403-414` の `vac` と `state.vacCreatedChannels`）。**import は旧 export JSON の `vac` キーを許容し続ける**（テストを1本足す）
+- [ ] `isManagedVacChannel`（`/vc` 削除と同時に不要）
+- [ ] ロケール `vac` 名前空間のトリガー系キー（未使用3件 `user-response.trigger_not_found` / `embed.title.remove_error` / `embed.field.name.created_vcs` を含む）
+- [ ] `voiceStateUpdate.ts:22-25` の順序制約コメント（「VAC の setChannel が `newState` をライブ書き換えする」hazard が構造的に消える）
+
+**消さない（新機能へ移植する）**
+
+`handleVacDelete.ts`（空室削除）/ `cleanupVacOnStartup.ts:94-155`（孤立・空 VC の回収）/ `vacSettingsService.ts:167-242`（`createdChannels` 追跡 API）/ channelDelete 同期 / `GET /:guildId/vac/active`。**動いているものを捨てて書き直さない。**
+
+> 新機能側のディレクトリ名・テーブル名を `vac` から引き継ぐか改名するかは設計確定時に決める。改名するなら migration と shared publish が同時に要る。
 
 ---
 
 ## 未決事項
 
 決めないと先へ進めないもの。**勝手に決めないこと。** 各項目の「止まっているもの」が、決まると動き出す。
+
+### 構造リファクタをどこまでやるか
+
+**止まっているもの**: 掃除フェーズの作業量が確定しない
+
+残骸撤去（判断不要・一律やる）とバグ修正（判断不要・直す）とは別に、**動作を変えない構造の作り直し**をどこまでやるか。候補は「タイマー実装の統一」「`messageDeleteService.ts` 589行の分割」「`/vc` 削除後の共通ヘルパー588行を `/afk` 側へ畳む」「`vcAutoRecruitSettingsService.updatePartial` の read-modify-write（並行呼び出しで lost update の余地）」。
+
+- **A: やらない** — 動いているものは触らない。残骸撤去だけで読みやすさは十分上がる
+- **B: 絞ってやる（推し）** — タイマー実装の統一だけ。3通りの書き方が散っていて、**次に何か直すとき必ず引っかかる**ため
+- **C: 全部やる** — 本番稼働中の機能に触るリスクとテスト工数が乗る
+
+> **判断軸は「将来触る必要が出るか」。** メンテ不要化が目標なら、今後いじらないコードは汚くても維持コストを生まない。589行のサービスも、動いていて触らないなら分割する意味は薄い。
+
+### 機能改善をどこまで足すか
+
+**止まっているもの**: 掃除フェーズの作業量が確定しない ／ マニュアル全面修正の範囲
+
+**仕様が変わる＝マニュアルに影響する**ため、残骸撤去やリファクタとは性質が違う。現時点の候補は VC自動募集の誤爆デバウンス（→「単独で実装できる」）と `/ping` の ephemeral 化（現状 public 応答で誰でも公開チャンネルに結果を出せる）の2件のみで、他は点検しないと出てこない。
+
+- **A: やらない** — 現状の挙動で困っていないなら足さない
+- **B: 実害があるものだけ（推し）** — デバウンスは実際に誤爆で困っているので直す。それ以外は出てきた時に個別判断
+- **C: 気づいたものは全部** — 際限がなくなる
 
 ### 遅延削除の猶予日数
 
@@ -145,6 +277,8 @@
 
 **未決なし。** DM 通知トグル化とマニュアル反映の前提。設計判断の詳細は Notion「Saika バグ修正〜キック機能整理〜マニュアル修正 実行計画（2026-07-29 アーカイブ）」。
 
+> ⚠️ **非アクティブ自動キックの削除で前提が変わる（2026-09-05）。** 本タスクは**未承認キックとの対称化が目的**だったが、片側が消えるので目的自体を見直すこと。残るのは「非アクティブ側の `channelId` 1本問題」ではなく、未承認キック側の既存分離をそのまま使うかどうかだけになる。**着手前に必要性を再判断する。**
+
 現状、非アクティブキックは `channelId` 1本でメンバー向け通知と管理者向けログを兼ねている。「管理者がログのつもりでプライベートchに設定 → 予告が本人に届かないままキックされる」が成立する。
 
 - [ ] `notifyChannelId` / `logChannelId` に分離（未承認側は既に分離済み。**対称化が目的**）
@@ -216,9 +350,51 @@
 
 前提となるタスク・外部条件が片付けば着手できるもの。
 
+### 未使用ロケールキーの一括撤去 【実装・中】
+
+**機能削除の完了待ち。** 削除する2機能ぶん23件が先に消えるので、後にやるほど対象が減る。
+
+2026-09-05 に全名前空間をスキャンし、**未使用候補88件**を検出（代表4件を実地検証し、ロケール定義にしか存在しないことを確認済み）。全体は1000件超なので約8%。
+
+| 名前空間 | 未使用 / 全体 | 中身 |
+| --- | ---: | --- |
+| **system** | 33 / 135 | `web.*` 16件（**Web API の認証・セッションのメッセージが丸ごと**）/ `database.*` 8件（旧 DB ロギング層）/ `log_prefix.*` 7件 / `shutdown.*` 2件 |
+| **common** | 9 / 66 | `database.*` 6件（system と対）/ `validation.error_title` / `general.error_title` / `title_move_failed` |
+| vcAutoRecruit | 13 / 88 | カテゴリ系12 ＋ `log.post_failed`（→「VC自動募集のカテゴリ残骸とデッドコードの撤去」に含む） |
+| vcRecruit | 11 / 128 | 機能ごと消えるので対象外 |
+| bumpReminder | 5 / 85 | **`user-response.reminder_message_disboard` / `dissoku`**（リマインダー本文そのもの）/ `embed.description.config_view` ほか |
+| messageDelete / stickyMessage / ticket | 各 3 | |
+| vac | 3 | VAC 削除で対象外（→「VC自動作成（VAC）の削除」） |
+| afk / memberLog | 各 2 | |
+| reactionRole | 1 | |
+
+**注意: 残骸と実装漏れは見分けが要る。** 未使用キーは「消し忘れ」とは限らず、「本来使うはずが繋がっていないバグ」の可能性がある。bump-reminder のリマインダー本文2種が未使用なのは特に疑わしい。
+
+**やること**
+
+- [ ] 削除機能ぶん23件を除いた**65件**を3分類する。**(a) 残骸**（実装もマニュアル記載も無い → 撤去するだけ・判断不要）／**(b) 仕様判断**（実装は無いがマニュアルに載っている → 復活か仕様ごと廃止かを決める）／**(c) 実装漏れ**（実装は生きているのにキーが使われていない → **バグ**）
+- [ ] (b)(c) だけを一覧にして判断を仰ぐ。(a) は件数と一覧の提示のみで1件ずつ議論しない
+- [ ] (c) はバグ修正として切り出す（`system:web.*` 16件は、認証エラー応答が英語ハードコードになっていれば i18n 漏れ）
+- [ ] ja / en 両方から撤去し、テストを通す
+
+> **判定基準は `docs/guides/USER_MANUAL.md`。** specs は削除済みで、現行仕様の一次情報源はこれしかない。2026-08-19 に実装との乖離を突き合わせ済みなので基準として使える。
+> ロケールキーからは出てこない乖離（マニュアルにあるのに実装に無い）は、この作業の後に別途洗う。
+
+### ファイル冒頭の古いパスコメント一括修正 【実装・小】
+
+**機能削除の完了待ち。** 削除する3機能のファイルも対象に含まれるため、先に消せばその分減る。
+
+ディレクトリ再編（2026-05-29 完了）の追従漏れで、**196ファイル**が冒頭コメントに旧パス `// src/bot/features/...` を書いている（実際は `src/features/...`）。`src/features/` 配下のほぼ全域。
+
+- [ ] `sed` で一括置換し、typecheck / lint / test を通す
+
+> **ゼロリスクだが単独でコミットする。** 他の変更と混ぜると差分が196ファイルに埋もれてレビュー不能になる。
+
 ### キック機能の DM 通知トグル化 【実装】
 
 **キック機能のチャンネル分離の完了待ち。** 指示書: Notion「Saika キック機能 DM通知トグル化 実装計画」
+
+> ⚠️ **非アクティブ自動キックの削除で作業量が半減する（2026-09-05）。** トグル4本 → 2本。「非アクティブ側の DM 送信実装」は丸ごと不要になり、未承認側は `sendWarnDms` が実装済みなのでトグルを被せるだけになる。**着手前に指示書の前提を読み直すこと。**
 
 未承認・非アクティブの両キック機能に DM 通知の on/off トグルを追加する。事前通知のベースラインは**通知チャンネル（必須）**で、DM は**到達率ブーストの上乗せオプション**という位置づけ。**DM-only 構成は許可しない**（DM は相手の設定次第で送信行為自体が成立せず、予告の基盤にできないため）。
 
@@ -270,14 +446,31 @@
 
 **検証**: レジストリからモデルを1つ意図的に削り、コンパイルエラーになることを確認する。
 
-### キック機能のチャンネル分離の差分をマニュアルに反映 【文書】
+### マニュアル全面修正 【文書・大】
 
-**キック機能のチャンネル分離の完了待ち。**
+**機能削除・掃除・リファクタ・改善がすべて終わってから、まとめて1回**（→「進め方」）。2026-09-05 に方針変更し、それまで機能ごとに分散していたマニュアル修正タスクをここへ集約した。
 
-`set-notify-channel` へのリネームと `set-log-channel` の追加／両チャンネル必須である旨／同一チャンネルの兼用が可能である旨／`view` に自動無効化理由が表示される旨／冒頭の「最終更新」日付。**実装後のコードを実際に読んで確認してから書くこと。**
+**削除で落ちる分だけで全体（約1750行）の約30%。**
 
-> export/import 廃止に伴うマニュアル修正は**export/import 削除に同梱**する（別タイミングで走るため分離）。
-> DM トグルのマニュアル反映は**DM トグル化の「ja/en locale ・ マニュアル修正」に含まれる**ため、ここでは扱わない。
+| セクション | 行数 |
+| --- | ---: |
+| VC募集機能（376-659）＋ FAQ「VC募集機能について」（1690-1725） | 約320 |
+| 非アクティブ自動キック機能（1356-1503） | 約148 |
+| VC操作コマンド（186-239） | 約54 |
+
+**やること**
+
+- [ ] 削除3機能のセクションと FAQ 項目を落とす
+- [ ] 「機能一覧」（47-66）と「Botに必要なサーバー権限」（27-46）から該当記述を削除
+- [ ] `/afk` の変更を反映（target 必須化・自分を飛ばす用途の廃止・既定は `MoveMembers` 持ちのみ）
+- [ ] **「コマンドの利用権限を変えたい」の節を新設**（2026-09-09）。Discord の サーバー設定 → 連携サービス → 彩加 → コマンド で、ロール・メンバー・チャンネル単位に許可／拒否できることを説明する。**Bot 側の既定（`setDefaultMemberPermissions`）はこの画面では表示されず、管理者の上書きだけが表示される**点も書く。例は `/afk`（既定はモデレーター専用 → 「VC 係」ロールに `MoveMembers` を付けずに `/afk` だけ許可する手順）。設定系コマンドを特定ロールに委任する場合も同じ手順であることを添える
+- [ ] VC自動募集の変更を反映（デバウンス採用時。カテゴリ記述が残っていれば削除）
+- [ ] export / import のセクションを削除し「⚠️ Bot をサーバーから除外する場合」を**遅延削除の説明に書き換える**（→「export / import の削除」）
+- [ ] キック機能のチャンネル分離を実施した場合はその差分（`set-notify-channel` リネーム・`set-log-channel` 追加・両チャンネル必須・`view` の自動無効化理由）。**実装後のコードを実際に読んで確認してから書くこと**
+- [ ] 冒頭の「最終更新」日付を更新
+
+> **ついでに招待 URL の権限（`INVITE_PERMISSIONS`）を見直せる。** 3機能が消えて不要になる権限があるかもしれない。ただし削除完了後に何が実際に不要になったか確定してから。
+> **`/help` のコマンド一覧はコード側**なので、各削除タスクで自動的に正しくなる。マニュアルだけが遅れる形になるが、削除3機能は他鯖で使われていないため実害はない。
 
 ### Bot 一般公開準備
 
@@ -291,6 +484,82 @@
 ## 詳細が未設計
 
 着手前に設計判断が要るもの。**勝手に決めないこと。**
+
+### メンバーによる VC 作成（仮称・VAC 置換） 【機能追加・大】
+
+**VAC（トリガー VC 方式）を置き換える新機能。** 2026-09-09 決定。VAC は「トリガー VC に入ると個人 VC を作って移動させる」方式だが、①実際の用途は「好きな名前と人数制限で部屋を建てたい」で、トリガー入室→移動は回りくどい ②作成後の変更のために `/vc rename`・`/vc limit` を Bot 側に持つ必要が生じ、それが VAC の権限設計（作成者だけに `ManageChannels` overwrite）を迂回する穴になっていた。ボタン＋モーダルで**建てる時に決める**形にし、以後の変更は作成者が Discord の設定画面から行う。
+
+**固定 VC の自動募集（vc-auto-recruit）とは別機能として共存する。** 常設 VC は管理者が allowlist し 0人→1人 で自動投稿（既存）／メンバー作成 VC は建てる時に任意で募集（本機能）。メンバー作成 VC は ID が毎回新しく allowlist に入り得ないので、**二重投稿は構造的に起きない**。
+
+**設計**
+
+- パネル（管理者が `setup` でテキストチャンネルへ設置）にボタン2つ。**[VCを建てる]** → モーダル（部屋名 / 人数制限）、**[VCを建てて募集する]** → モーダル（部屋名 / 人数制限 / 募集文〔任意・空ならギルド既定文〕）。モーダルにチェックボックスは置けないので、募集の有無はボタンで分ける
+- 作成者への overwrite は **`ManageChannels` の1ビットのみ**（`type: OverwriteType.Member` を明示）。**`ManageRoles` は絶対に付けない。** overwrite の編集には `ManageRoles` が要るので、作成者は名前・人数・削除・カテゴリ移動はできても ViewChannel / Connect を deny できない
+- 募集する場合、管理者設定の投稿先へ募集文＋参加 Link ボタンを投稿。**メンション先（ロール or なし）は管理者が設定で固定**し、作成者は選べない。作成者の募集文は `allowedMentions` で **ping を全て抑止**（`@everyone` と書いても文字として出るだけ）。VC が消えたら投稿を「募集終了」に edit
+- 募集投稿の部品（content / Embed / 参加ボタン / `activeInvites` 追跡 / 募集終了 edit / 起動クリーンアップ）は vc-auto-recruit と**共有モジュールに切り出す**。同一ロジックを2箇所に置かない
+- 空室削除・`createdChannels` 追跡・起動クリーンアップ・channelDelete 同期は **VAC の既存ロジックを移植する**（→「VC自動作成（VAC）の削除」の「消さない」）
+
+**絶対条件の定義（合意済み）**
+
+- 「プライベートにできない」＝ **ViewChannel / Connect の overwrite を変更できない**。人数制限を1にする実質的な締め出しは対象外（`ManageChannels` を渡す以上、設定画面から1にできるのは Bot 側で防げない）
+- 「立てた人だけ変更できる」＝ 正確には「作成者 ＋ 元々 `ManageChannels` を持つ管理者」。overwrite は他者の権限を縮めないので、モデレーターの介入手段は残る。これは正しい挙動
+
+**トリガー方式が Discord から無償で得ていた3つのゲートが消える**（2026-09-05 の3視点批評より）: ①Connect できる人しか発火できない ②入室という物理行為が同時実行を直列化する ③作成と同時に在室するので必ず退出イベントが来る。現行コードは全部「発火が稀で直列」の前提に寄りかかっているため、以下を**前提条件として**組み込む。
+
+**必ず手当てする**
+
+| 問題 | 対処 |
+| --- | --- |
+| 押した人が VC 未接続なのが正常系。現行の「移動失敗＝VC 削除」分岐（`handleVacCreate.ts:152-167`）は流用できない | 接続中なら移動、未接続なら参加 Link ボタンを ephemeral で返す |
+| 誰も入らない VC が次回再起動まで残る（削除は退出イベント駆動のみ） | `jobScheduler.addOneTimeJob` で 2〜5分の猶予削除。発火時に空なら消すだけの冪等な形。参加検知でのキャンセルは実装しない（再起動で消えても起動クリーンアップが回収） |
+| ボタン・モーダル経路にクールダウンが無い（`flow/command.ts` にしか無い）。作成→自削除→作成を無限に回せ、ギルド単位のチャンネル作成レート制限を他機能ごと巻き込める | 既存 `CooldownManager` を `vac:create` で流用（30〜60秒）。募集投稿も同じクールダウンで兼ねる |
+| `createdChannels` が read-modify-write（`vacSettingsService.ts:167-200`）。同時作成で追跡が欠落し、誰にも回収されない VC が残る | ギルド単位で作成を直列化 ＋「追跡登録に失敗したら VC を削除」の順序にする |
+| ボタンは「パネルが見える」だけで押せ、VC 接続を禁じられた人でも部屋を建てられる。現行は overwrite 明示指定のため生成 VC がカテゴリ権限を継承しない | 押下時に作成先で ViewChannel＋Connect を検査。setup 時にカテゴリが @everyone に両方を許可していることを検証する |
+| 人数制限は文字列入力（全角数字で NaN）。名前は一意化サフィックスで100文字を超え得る | NFKC 正規化→`0〜99`、空欄＝0（無制限）。名前は trim→空なら `〇〇's Room`。**一意化は廃止**（Discord は同名 VC を許す） |
+| 上限到達・権限不足のたびに管理者通知チャンネルへ無条件送信（`handleVacCreate.ts:96-106,139`）。連打で埋められる | ギルド単位で一定時間1回に抑制。ユーザーには ephemeral で理由を返す（30013 / 50035 を ValidationError に変換） |
+| ボタン→モーダル表示は3秒制約。モーダルは開いたまま放置できるので、ボタン時点の検証が送信時に無効化しうる | 検証の正本はモーダル送信側（ユースケース内）。ボタン側は DB 読み1回の前段のみ |
+
+**募集投稿と vc-auto-recruit との共存で必ず手当てする**（2026-09-09 の2視点批評より）
+
+| 問題 | 対処 |
+| --- | --- |
+| **「メンバー作成 VC は vc-auto-recruit の対象にならない」は今どこにも強制されていない。** allowlist に入れる経路が4つ（`add-channel` の候補一覧・select ハンドラ・ダッシュボード PATCH・import）あり、どれも一時 VC の ID を弾かない。管理者が1クリックで二重投稿を作れる | 述語 `isMemberCreatedVc(guildId, channelId)` を1本作り、`handleJoin` / 候補一覧 / select のサーバー側検証 / API PATCH / import の5箇所に通す。現行の `triggerChannelIds.includes` 除外をこれに置き換える |
+| **VAC 削除は vc-auto-recruit をコンパイル時に壊す。** `VcAutoRecruitService` がコンストラクタで `VacSettingsService` を受けている（`vcAutoRecruitService.ts:53-65`） | 上の述語差し替えを**最初に**やり、vc-auto-recruit が消えたモジュールに依存する瞬間を作らない。VAC 削除は saika ＋ shared ＋ web の cross-repo チェックリストとして扱う |
+| **共有するのは Discord 側の純粋部品だけ。** `activeInvites` 追跡と DB 側を共有すると、`/vc-auto-recruit-settings reset` で本機能の投稿が孤児化する・API の reset と挙動が食い違う・web の一覧に混ざる・vc-auto-recruit 未設定ギルドで投稿が閉じられない、の4つが起きる | 共有は `formatInviteMessage` / `buildInviteEmbed` / `buildJoinComponents` / `buildEndedComponents` / 「fetch→ended に edit」の純粋関数のみ。本機能の投稿参照は `createdChannels` のエントリに `recruitPost?: {postChannelId, messageId}` として同居させ、追跡・起動クリーンアップは各機能が自前で持つ |
+| 共有ビルダーの i18n キーが `vcAutoRecruit:` 名前空間に固定（`vcAutoRecruitMessageBuilder.ts:73-125`） | join / ended / 募集 Embed のラベルを `common` へ移す（**キー名は維持し名前空間だけ変更**）か、ビルダーがラベルを引数で受ける |
+| `allowedMentions` の具体形 | 本機能は `{ parse: [], roles: [mentionRoleId] }`。`parse` が空なら本文中の `@everyone` / `@here` は `mention_everyone=false` で素の文字として描画される。vc-auto-recruit は `parse` 型なので定数は使い回さず、送信ヘルパーは呼び出し側から受け取る |
+| **管理者が設定するメンションロールが mentionable でないと通知が飛ばない。** Bot は `MentionEveryone` を持たない方針。src 内に `role.mentionable` を検査する箇所はゼロ（bump-reminder の `mentionRoleId` も同じ穴） | メンションロール設定時に `role.mentionable` を検査し、false なら警告か拒否。web のロール選択にも同じ検査 |
+| メンションロールが削除されると本文が `@deleted-role` になり続ける | `roleDelete.ts` に本機能のハンドラを追加（bump-reminder の `handleBumpReminderRoleDelete` と同型） |
+| **「募集終了」の死骸。** 建てて募集→未参加で猶予削除→また建てる、を繰り返すと投稿先に1分ごとに「募集終了」が積む。vc-auto-recruit の再投稿クールダウンは VC ID キーなので効かない | ①作成者1人＝生存 VC 1つを VAC から移植（既存 VC があれば参加リンクを返す）②**未参加削除の経路では edit ではなく投稿ごと delete**（誰も入らなかった募集を残す価値は無い）。投稿専用のクールダウンは不要 |
+| **募集終了の到達経路は3つとも channelDelete 一本に集約できる。** 猶予削除・作成者による削除・空室削除はいずれも最終的に channelDelete を受ける。voiceStateUpdate では VC 削除を検知できない（`CHANNEL_DELETE` が先で `oldState.channel` が null） | 募集終了は channelDelete ハンドラだけで行い、削除を呼ぶ側では投稿を触らない（二重実行を避ける）。起動クリーンアップは channelDelete を受けられないので自前で必要 |
+| **投稿先の送信権限は VC 作成前に検査する。** 作成→投稿失敗だと「VC だけ建って募集無し」を作成者が成功と誤認する | [VCを建てて募集する] のモーダル送信時、VC 作成前に `postChannel.permissionsFor(me)` で ViewChannel＋SendMessages（＋EmbedLinks）を検査。不足なら建てずに ephemeral で返す |
+| **起動クリーンアップ**: 移植する VAC のクリーンアップは募集投稿を閉じないので Link ボタンが永遠に生きる。かつ「空なら削除」なので、再起動直前に建てた VC（猶予ジョブは in-memory で消える）が即削除される | 本機能の起動クリーンアップ＝①死んだ・空の VC の募集投稿を close ②`createdAt` が猶予内の VC は削除せず猶予ジョブを再アーム |
+| **本機能の設定は vc-auto-recruit の `channelId` / `message` を流用しない。** あちらのプレースホルダは「最初の入室者」を指し意味が違う。ライフサイクルも別 | 別の設定行に持つ。shared 契約の更新は VAC 置換と同一リリースで |
+
+> **vc-recruit との重複について。** 批評は「削除予定の vc-recruit が本機能の約9割（パネル→モーダル→VC 作成→ロールメンション付き投稿→追跡→募集終了）を既に持つ。その上に作るか、同一リリースで消せ」と指摘した。**vc-recruit を土台にはしない**（`setups` 空・未使用ロケール13キー・UI 作り直しの残骸・`enabled` が戻らない、と腐っている）。対処は後者。ただし vc-recruit は稼働していない（`setups` 空）ので**新機能を待たずに先に消す**（→「次にやること」の 4）。VAC は自鯖が使っているため本機能と同一リリースで置き換える。これで VC 作成経路は VAC 1本 → 本機能 1本 と推移し、併存期間は生まれない。
+> **UX の穴**: [VCを建てる] で建てた後に募集したくなった人の導線が無い（vc-auto-recruit は発火しない）。ephemeral 返答に「この VC を募集する」ボタンを付けるか、「募集は [VCを建てて募集する] から」と明記するか。設計確定時に決める。
+
+**実機検証が要る2点（絶対条件に直結・実装前に）**
+
+- [ ] **最小権限 Bot（Administrator なし）で作成者への `ManageChannels` overwrite が付与できるか。** 「後は設定画面から直す」がこれに全面依存する。自鯖は Administrator 付きなので再現しない。**403 なら設計の前提が崩れる**（メモリの「VAC member ManageChannels overwrite の実機検証」と同じ機会にやる）
+- [ ] **カテゴリ移動＋権限同期でプライベートカテゴリの deny を継承させられないか。** `ManageChannels` はカテゴリ移動を許す。クライアントの「権限を同期」経路が `ManageRoles` を要求するかは文書からもコードからも確証が取れなかった。同期できるなら `channelUpdate` で Bot が戻す実装が要る
+
+**未決**
+
+- 機能名（仮称のまま）。ディレクトリ・テーブル名を `vac` から引き継ぐか改名するか
+- メンション先・既定募集文・投稿先の置き場。批評の推奨は**別行**（vc-auto-recruit の `message` はプレースホルダの意味が違い、ライフサイクルも別）。shared 型と web への影響込みで確定する
+- [VCを建てる] の後から募集したくなった人の導線（上記 UX の穴）
+- 猶予削除とクールダウンの秒数
+
+**既にある部品**
+
+- パネル / ボタン / モーダルの雛形: `ticket/handlers/ui/ticketCreateButtonHandler.ts` / `ticketCreateModalHandler.ts` / `ticketSetupModalHandler.ts`。パネルの `messageId` 解決は `reactionRoleClickHandler.ts:47-51`（customId に DB 主キーを埋めない運用ルール）
+- パネル消失の自己修復: `ticketMessageDeleteHandler.ts` / `ticketChannelDeleteHandler.ts`
+- 人数制限の範囲検証と文言: `vcLimit.ts:191-195` ＋ `vc:user-response.limit_out_of_range`（`/vc` 削除前に移植する）
+- 参考のみ・再利用しない: 削除予定 vc-recruit の `vcRecruitModal.ts:166-214`（モーダル→VC 作成の流れ）
+
+> **作業順**: 実機検証2点 → 設計確定 → 実装 → VAC 削除と同一リリース。マニュアルは「マニュアル全面修正」で一括。
+> 2026-09-05 の3視点批評の全文は一時ファイルにしか無いため、**この項目が正本**。
 
 ### メッセージ出力機能 【機能追加】
 
@@ -325,6 +594,100 @@ Bot 名義で任意のメッセージ（プレーンテキスト / embed）を�
 
 依存がなく、他のタスクにも影響しないもの。いつ着手してもよい。
 
+### VC自動募集のカテゴリ残骸とデッドコードの撤去 【実装・中・saika ＋ shared】
+
+**依存なし。** 2026-09-05 に棚卸し。チャンネル単位化（2026-06-30）で役目を終えたカテゴリ allowlist が全レイヤーに残っている。**設定する手段はもう無い**（カテゴリ系サブコマンドは廃止済み・web にもカテゴリ UI は無い）のに、ロジック・型・DB・API・ロケール・テストまで生きたまま通っている。
+
+**残っているもの（棚卸し結果）**
+
+ロジック
+
+- `vcAutoRecruitSettingsService.ts` — `addEnabledCategory` / `addEnabledCategories` / `removeEnabledCategories` は**本番コードからの呼び出しゼロ**（テストだけが維持している）。`removeEnabledCategory` は下記 channelDelete からのみ
+- `vcAutoRecruitService.ts:280-289` — `channelDelete` でカテゴリ allowlist を掃除する分岐。処理ごと不要
+- `vcAutoRecruit.constants.ts:14` — `VC_AUTO_RECRUIT_ROOT_CATEGORY = "TOP"` は**定義のみでどこからも参照されていない**
+
+データ・型
+
+- `entities.ts:155` / `vcAutoRecruitSettingsDefaults.ts`（3箇所）/ `vcAutoRecruitSettingsRepository.ts`（3箇所）/ `guildSettingsAggregateRepository.ts:336`
+- `shared/src/api/types.ts:130` — web の mock 2箇所（`mocks/data.ts` / `mocks/handlers.ts`）も追従が要る
+- `prisma/schema.prisma:94` の `enabled_category_ids` 列
+
+API
+
+- `vcAutoRecruitResource.ts:32,53` — read / patch で往復させている
+- `overviewResource.ts:39,89,187` — ダッシュボード概要が `対象カテゴリ: ${enabledCategoryIds.length}件` を表示。**設定手段が無いので実質いつも「0件」**。有効なのに0件と出るため、設定が反映されていないように読める → `enabledChannelIds` ベースの `対象チャンネル: N件` に差し替える
+
+ロケール（ja / en 両方・すべて未使用）
+
+- `user-response.categories_added_count` / `categories_removed_count` / `no_addable_categories` / `no_enabled_categories` / `category_top_label`
+- `user-response.enable_warning_no_category` — **存在しない `/vc-auto-recruit-settings add-category` を案内する文面**。実際に使われているのは `enable_warning_no_channel` のほうなので実害は無いが、残すと次に読む人が混乱する
+- `embed.field.name.categories` / `embed.field.value.categories_none` / `embed.field.value.top`
+- `ui.select.add_category_placeholder` / `ui.select.remove_category_placeholder`
+- `log.config_category_added` / `log.config_category_removed` / `log.category_removed_by_delete`
+- **カテゴリと無関係の未使用キー**: `log.post_failed`（どこからも参照されていない）
+
+テスト
+
+- `vcAutoRecruitSettingsService.test.ts:261-413` — カテゴリ操作の8ケース
+- `vcAutoRecruitService.test.ts:101,474` — channelDelete のカテゴリ掃除ケース
+
+他機能のデッドコード
+
+- `vcRecruitVoiceStateUpdate.ts:20` の `handleVcRecruitVoiceStateUpdate` — **src のどこからも呼ばれておらず、unit / integration のテストだけが維持している**（VC募集の自動削除を廃止した時の残骸。テストが生きているせいで使われているように見えるのがたち悪い）
+
+**やること**
+
+- [ ] 上記を一括で撤去し、overview のサマリーを `enabledChannelIds` ベースへ差し替える
+- [ ] shared から削除 → publish → saika / web の参照を更新
+- [ ] migration で `enabled_category_ids` 列を削除（**本番は移行時に0件であることを確認済み**・完了済みセクション参照）
+- [ ] 対応するテストを削除する
+
+**判断が要るもの**
+
+- **テーブル名 `guild_vc_invite_settings` を直すか。** `schema.prisma:98` の `@@map` が旧称 `vc-invite` のまま（リポジトリ冒頭のコメント2箇所も同じ名前を書いている）。カテゴリ列削除の migration を打つなら**同じ migration でリネームまで済ませられる**ので、やるならこのタイミング
+- **命名ドリフトを直すか。** `SUBCOMMAND.SET_CHANNEL`（値は `set-post-channel`）/ ファイル名 `vcAutoRecruitSettingsCommand.setChannel.ts` / ロケールキー `log.config_set_channel`。**ロケールのキー名リネームは影響範囲が別**なので、やるなら明示的に切り出す
+
+> **VC自動募集の誤爆抑制より先に着手する。** 対象が `vcAutoRecruitService` / `vcAutoRecruitSettingsService` / repository / API resource と丸ごと重なるため、別々にやると同じファイルを二度開いて二度レビューすることになる。
+
+### VC自動募集の誤爆抑制（入室デバウンス ＋ 同一人物の復活） 【実装・中】
+
+> **対象は管理者が allowlist した常設 VC のみ**（2026-09-09 整理）。メンバーが「メンバーによる VC 作成」で建てた VC は ID が毎回新しく allowlist に入らないので本機能の対象外で、募集は建てる時の任意選択に委ねる。
+
+**依存なし。** 現状は 0人→1人 になった瞬間に投稿するため、**チャンネルを間違えて入って即抜けた場合**や、**誰かが抜けた直後に「まだ人がいる」と思って入った場合**にも通知が飛び、ping だけが残る。既存の連投抑制（`repostCooldown` / `VC_AUTO_RECRUIT_REPOST_COOLDOWN_MS = 60_000`）は投稿**後**の抑制なので、この誤爆は素通りする。さらにクールダウンが実際に効くのは「全員退出 → 60秒以内に入り直し」だけで、そのとき直前に募集終了へ差し替わっているため、**VC に人がいるのに「募集終了」のまま**という嘘の表示が残る。
+
+**方針: 投稿は遅らせる／終了は遅らせない。** 非対称でよい。投稿が20秒遅れても誰も損しないが、終了を遅らせると空 VC を指す「🔊 VCに参加」ボタンが生き残り、上記の誤爆を機能側から作ることになる。
+
+| | 挙動 |
+| --- | --- |
+| 入室デバウンス | 20秒 |
+| 募集終了 | 即時（現行どおり） |
+| 復活・同一人物の入り直し | 5分以内（ping なし） |
+| 別人の入室 | 特別扱いしない（通常の 0人→1人 経路） |
+| 連投抑制クールダウン | 廃止 |
+
+**復活は同一人物だけに効かせる。** 同じ人の入り直しは通話の継続であり、接続断・端末切り替え・短い離席がここに入る。ping を重ねる価値が薄いので、元メッセージを復活させて済ませる。窓は5分（音声接続の復帰は数十秒〜2分程度、離席も5分あれば収まる。10分空くなら実質別セッションで ping し直す価値がある）。
+
+**別人の入室に復活を使ってはいけない。** 別人は新しい通話の開始なので、古いメッセージを edit で蘇らせると**投稿時刻が古いままチャンネルの下に埋もれ、その人は誰にも気づかれない**。通常どおり 0人→1人 → 20秒デバウンス → 新規投稿に流す。分岐が減り処理も一本道になる。
+
+**やること**
+
+- [ ] **0人→1人 で即投稿せず、20秒後に再判定してから投稿する**（`vcAutoRecruitService.handleJoin`）。タイマーは `jobScheduler.addOneTimeJob`（jobId = prefix + voiceChannelId・同 ID 置換がそのままデバウンスになる）
+- [ ] **発火時にチャンネルを `guild.channels.fetch` で取り直してから在室判定する。** `newState.channel` はキャッシュの生参照で、握ったまま20秒後に `members` を読むと信用できない（二重通知バグと同じ罠）。あわせて enabled / 投稿先 / allowlist / 在室人間 >= 1 を再判定する
+- [ ] 空室化・`channelDelete` で保留中のタイマーを解除する
+- [ ] 募集終了時に **ref ＋ 開始者 userId ＋ クローズ時刻**を「直近クローズ」として10分保持する（`TtlMap`）
+- [ ] **復活**: デバウンス通過時に直近クローズが残っていれば、**同一人物なら10分以内・別人なら60秒以内**を条件に、新規送信ではなく**元メッセージを edit で募集中へ戻し**、`activeInvites` に戻す。edit は通知を発生させないので入り直しで ping が二重にならない。0人→1人 が起点なので比較対象の人物は一意に決まる。content / Embed は作り直す（開始者が別人に変わっている場合があるため）
+- [ ] 窓を外れていれば通常どおり新規投稿する（残っている直近クローズのエントリは破棄）
+- [ ] `repostCooldown` / `VC_AUTO_RECRUIT_REPOST_COOLDOWN_MS` を削除する（役割は復活に吸収される）
+- [ ] テスト（fake timers）: デバウンス中に退出 → 投稿されない / 滞在継続 → 投稿される / 同一人物が10分以内に入り直し → 復活（新規送信されない）/ 同一人物が10分経過後 → 新規投稿 / 別人が60秒以内に入室 → 復活 / 別人が60秒経過後に入室 → 新規投稿。既存の「連投抑制」ケースは復活ケースへ置き換える
+
+**判断済み・補足**
+
+- **濫用耐性は上がる。** 同一人物が出入りを繰り返して ping を稼ごうとしても、同一 VC・同一人物では「クローズから10分 ＋ 20秒滞在」が必要で実質10分20秒に1回。別人が絡む場合でも80秒に1回。廃止する60秒クールダウンより強い。`@everyone` を実ピングさせる機能なので確認しておくこと
+- **同一人物の窓を長く取る代償**として、5分後に戻ってきた場合に復活したメッセージが他の投稿に埋もれて実質見えないケースがある（その人は募集し直せない）。ping を重ねるよりマシという判断。長すぎると感じたら数値を下げるだけでよい
+- **再起動耐性は持たせない。** デバウンスと直近クローズはプロセス内のみで消えるが、`cleanupVcAutoRecruitOnStartup` が空 VC の募集を閉じるため自己修復する。DB へ永続化して起動時に復元すると、稼働中の全 VC へ通知が飛ぶ事故のほうが怖い
+- **秒数は定数で持つ。** ギルド設定化は運用の反応を見てから判断する（shared のバージョン上げ・migration・`/vc-auto-recruit-settings`・web ダッシュボード UI へ波及するため今回はやらない）
+- 「タイマー / スケジューラ実装の整理」と同じ `addOneTimeJob` を使う。デバウンス用途の warn 抑止オプションが入ったら合わせて寄せる
+
 ### タイマー / スケジューラ実装の整理 【実装・小〜中・リファクタ】
 
 **依存なし。** 2026-08-20 に棚卸し。時間で動くコードが `jobScheduler` と生 `setTimeout` に散っており、同じ「キー付きタイマー」を3通りの書き方で持っている。
@@ -337,12 +700,13 @@ Bot 名義で任意のメッセージ（プレーンテキスト / embed）を�
 | デバウンス | 生 `setTimeout` ＋ module-level Map | スティッキー再送（`stickyMessageResendService.ts`） |
 | TTL 付きエントリ | 生 `setTimeout` ＋ 二重 Map | `cooldownManager.ts` / `shared/utils/ttlMap.ts` |
 | UI タイムアウト | 共通関数（13箇所で使用） | `bot/shared/disableComponentsAfterTimeout.ts` |
-| UI タイムアウト | **手書き `setTimeout`** | `vcRecruitButton.ts:416` / `vcRecruitStringSelect.ts:191` |
+| UI タイムアウト | **手書き `setTimeout`** | `vcRecruitButton.ts:416` / `vcRecruitStringSelect.ts:191` ← **VC募集の削除で消える** |
 | フェーズ中断 | `setTimeout` ＋ `AbortController` | message-delete（性質が違うので対象外） |
 
 **やること**
 
-- [ ] **vc-recruit の手書き無効化2箇所を `disableComponentsAfterTimeout` に寄せる。** 手書きになっている理由は共通関数の引数型が `ChatInputCommandInteraction` 固定で `ButtonInteraction` / `StringSelectMenuInteraction` を渡せないため。`editReply` を持つ interaction 型へ広げれば統合できる
+- [x] ~~**vc-recruit の手書き無効化2箇所を `disableComponentsAfterTimeout` に寄せる。**~~ → **VC募集機能の削除で不要になった**（2026-09-05）。共通関数の引数型を `ButtonInteraction` / `StringSelectMenuInteraction` へ広げる話も、他に手書き箇所が無くなるため保留
+- [ ] **`jobScheduler.stopAll()` を graceful shutdown に接続する。** 定義とテストだけがあり本番から呼ばれていない（`main.ts` の shutdown は `apiServer.close()` → `client.shutdown()` → `prisma.$disconnect()` のみ）。全ジョブが `unref()` 済みなのでプロセス終了は妨げないが、**シャットダウン中にジョブが発火しうる**
 - [ ] **スティッキー再送のデバウンスを `jobScheduler.addOneTimeJob` へ寄せる。** `addOneTimeJob` は同 ID を `replaceExistingJob` で置き換えるので、デバウンスそのものになる。ただし置換のたびに `system:scheduler.job_exists` の warn が出るため、**デバウンス用途で warn を抑止するオプションを先に足すこと**（無いまま寄せるとログが荒れる）
 
 **判断が要るもの**
@@ -385,7 +749,7 @@ Bot 名義で任意のメッセージ（プレーンテキスト / embed）を�
 
 - **Web API 認証の堅牢化（設定ミス耐性）** — 現状の認証防御は多層で機能しており**実害なし**。設定ミス時の事故耐性を上げる多層化として2点を検討: ①[jwt.ts](src/api/auth/jwt.ts) の `secretKey()` のフォールバック挙動を fail-closed 化（本番相当環境で署名鍵が未設定なら起動アサーション任せにせず `secretKey()` 自体で throw）。②[jwt.ts](src/api/auth/jwt.ts) の `jwtVerify` でトークン寿命を強制（`maxTokenAge` / `exp` 必須化）し、検証側でも有効期限を担保する。詳細な背景・脅威モデルは公開 TODO に書かず別途管理。
 - **予約募集(イベント募集)機能** — 他タスク完了後に実装可否判断。骨子: 予約時に VC + Discord Scheduled Event 作成 / RSVP・リマインダー・開始通知は Discord 標準任せ / VC 自動削除なし(投稿削除 or イベント終了ボタンで手動)/ 編集機能あり(日時・タイトル・説明)/ setup は既存 VC 募集と同構成 / VC 名変更は既存 `/vc rename` 流用。細部は実装決定時に詰める
-- **キック系ユーザーデータの削除対称性の整理（個別リセットの方針統一）** — ①の `deleteAllSettings` への `guildUnverifiedKickWarn.deleteMany` 追加は **2026-08-19 に実施済み**（下記完了済みセクション参照）。残る非対称は、②未承認キックの個別リセットが warn 記録を `deleteAllByGuild` で消すのに対し、③非アクティブキックの個別リセットは `MemberActivity` を残す点。個別リセットの削除有無を方針統一するか検討する。なお**エクスポートにユーザーデータを含めないのは現仕様維持で問題なし**（再有効化時の `enabledAt` フロアで安全・個人データ/サイズ観点でも除外が妥当）と確認済み。
+- ~~**キック系ユーザーデータの削除対称性の整理（個別リセットの方針統一）**~~ — **非アクティブ自動キックの削除で論点ごと消える**（2026-09-05）。非対称の原因だった `MemberActivity` がテーブルごと無くなるため。以下は経緯として残す。①の `deleteAllSettings` への `guildUnverifiedKickWarn.deleteMany` 追加は **2026-08-19 に実施済み**（下記完了済みセクション参照）。残っていた非対称は、②未承認キックの個別リセットが warn 記録を `deleteAllByGuild` で消すのに対し、③非アクティブキックの個別リセットは `MemberActivity` を残す点だった。なお**エクスポートにユーザーデータを含めないのは現仕様維持で問題なし**（再有効化時の `enabledAt` フロアで安全・個人データ/サイズ観点でも除外が妥当）と確認済み。
 - **ユーザー embed 作成機能** — ユーザーが embed を作って bot 名義で投稿できる機能（Carl-bot 類似）。**詳細は後日決定**。方向性メモ: 需要あり（お知らせ/ルール/ロールパネル説明）。**管理権限必須にはしない**方針で、①作成・プレビューは誰でも自由（ephemeral/DM）②投稿は「投稿先チャンネルでのそのユーザーの送信権限」で判定（bot=ユーザーの代理・本来できる範囲を超えさせない）③`@everyone`/role メンションは Mention Everyone 権限保持時のみ許可（`allowedMentions` で抑止）④作成者 attribution + 所有権（編集/削除は作成者＋管理者）⑤運営がロール許可をカスタム可能。Web ダッシュボードも OAuth ユーザーのギルド権限で同じ②判定が可能だが、管理設定エリアとは別の一般導線が必要。コマンド版/Web 版どちらから着手するか・所有権の DB モデル等は実装決定時に詰める
 - 自動翻訳機能(DeepL API 等)
 - 投票システム(グラフ化・レポート集計で Discord 標準との差別化)

@@ -5,6 +5,7 @@ import {
   ChannelType,
   ChatInputCommandInteraction,
   InteractionContextType,
+  PermissionFlagsBits,
 } from "discord.js";
 import { executeAfkCommand } from "../../features/afk/commands/afkCommand.execute";
 import { getCommandLocalizations } from "../../shared/locale/commandLocalizations";
@@ -28,7 +29,10 @@ const AFK_I18N_KEYS = {
 } as const;
 
 /**
- * AFKコマンド（ユーザー / VC全員の移動）
+ * AFKコマンド（他メンバー / VC全員のAFKチャンネルへの移動）
+ *
+ * 他メンバーを動かす操作のみを提供するため、既定の実行権限を MoveMembers に絞る。
+ * コード側での権限再チェックは行わない（管理者が連携サービス設定でロールへ委任できる余地を残すため）。
  */
 export const afkCommand: Command = {
   data: (() => {
@@ -51,6 +55,7 @@ export const afkCommand: Command = {
       .setDescription(cmdDesc.base)
       .setDescriptionLocalizations(cmdDesc.localizations)
       .setContexts(InteractionContextType.Guild)
+      .setDefaultMemberPermissions(PermissionFlagsBits.MoveMembers)
       .addUserOption((option) =>
         option
           .setName(AFK_COMMAND.OPTION.TARGET_MEMBER)

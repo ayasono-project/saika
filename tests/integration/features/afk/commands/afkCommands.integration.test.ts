@@ -234,7 +234,7 @@ describe("AFK Commands Integration", () => {
         .executeAfkCommand;
     }
 
-    it("設定済みの場合にユーザーをAFKチャンネルに移動できること", async () => {
+    it("対象メンバーの移動結果を public（ephemeral フラグなし）で返すこと", async () => {
       const handler = await loadAfkHandler();
 
       mockGetAfkSettings.mockResolvedValue({
@@ -246,8 +246,9 @@ describe("AFK Commands Integration", () => {
       const { interaction, replyMock, fetchMemberMock, fetchChannelMock } =
         createInteraction();
 
-      // ユーザーオプション未指定 → 自分自身
-      (interaction.options.getUser as Mock).mockReturnValue(null);
+      (interaction.options.getUser as Mock).mockReturnValue({
+        id: "target-user",
+      });
 
       // メンバーがVCに参加中
       fetchMemberMock.mockResolvedValue({
@@ -275,7 +276,41 @@ describe("AFK Commands Integration", () => {
       expect(replyArg.flags).toBeUndefined();
     });
 
-    it("対象ユーザーを指定して移動できること", async () => {
+    it("target-member を省略した場合は ValidationError になり、移動も応答も行われないこと", async () => {
+      const handler = await loadAfkHandler();
+
+      mockGetAfkSettings.mockResolvedValue({
+        enabled: true,
+        channelId: "vc-afk-1",
+      });
+
+      const setChannelMock = vi.fn().mockResolvedValue(undefined);
+      const { interaction, replyMock, fetchMemberMock, fetchChannelMock } =
+        createInteraction();
+
+      // target-member / target-channel ともに未指定
+      (interaction.options.getUser as Mock).mockReturnValue(null);
+      (interaction.options.getChannel as Mock).mockReturnValue(null);
+
+      fetchMemberMock.mockResolvedValue({
+        voice: {
+          channel: { id: "current-vc" },
+          setChannel: setChannelMock,
+        },
+      });
+      fetchChannelMock.mockResolvedValue({
+        id: "vc-afk-1",
+        type: ChannelType.GuildVoice,
+      });
+
+      await expect(handler(interaction as never)).rejects.toThrow(
+        ValidationError,
+      );
+      expect(setChannelMock).not.toHaveBeenCalled();
+      expect(replyMock).not.toHaveBeenCalled();
+    });
+
+    it("target-member に指定したメンバーを解決して移動すること", async () => {
       const handler = await loadAfkHandler();
 
       mockGetAfkSettings.mockResolvedValue({
@@ -348,6 +383,10 @@ describe("AFK Commands Integration", () => {
 
       const { interaction, fetchMemberMock, fetchChannelMock } =
         createInteraction();
+      // target 未指定で早期に弾かれないよう対象メンバーを指定する
+      (interaction.options.getUser as Mock).mockReturnValue({
+        id: "target-user",
+      });
       // AFK チャンネルは存在する（メンバーの VC 未参加を検証するため）
       fetchChannelMock.mockResolvedValue({
         id: "vc-afk-1",
@@ -411,7 +450,7 @@ describe("AFK Commands Integration", () => {
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
   describe("統合シナリオ: 設定→利用の一連のフロー", () => {
-    it("afk-settings set-channel で設定後、/afk でユーザーを移動できること", async () => {
+    it("afk-settings set-channel で設定後、/afk で対象メンバーを移動できること", async () => {
       const configHandler = (
         await import("@/features/afk/commands/afkSettingsCommand.execute")
       ).executeAfkSettingsCommand;
@@ -433,7 +472,7 @@ describe("AFK Commands Integration", () => {
       await configHandler(configInteraction as never);
       expect(mockSetAfkChannel).toHaveBeenCalledWith("guild-1", "vc-afk-1");
 
-      // Phase 2: ユーザーが /afk で自分を移動
+      // Phase 2: MoveMembers 保持者が /afk で他メンバーを移動
       mockGetAfkSettings.mockResolvedValue({
         enabled: true,
         channelId: "vc-afk-1",
@@ -446,6 +485,10 @@ describe("AFK Commands Integration", () => {
         fetchMemberMock,
         fetchChannelMock,
       } = createInteraction();
+
+      (afkInteraction.options.getUser as Mock).mockReturnValue({
+        id: "target-user",
+      });
 
       fetchMemberMock.mockResolvedValue({
         voice: {

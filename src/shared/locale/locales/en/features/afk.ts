@@ -4,7 +4,7 @@
 export const afk = {
   // ── Command definitions ──────────────────────
   "afk.description": "Move user to AFK channel",
-  "afk.target-member.description": "Member to move (default: yourself)",
+  "afk.target-member.description": "Member to move",
   "afk.target-channel.description":
     "VC whose members will all be moved to the AFK channel",
   "afk-settings.description": "Configure AFK feature (requires Manage Server)",

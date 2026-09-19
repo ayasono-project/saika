@@ -19,7 +19,7 @@ export interface BotRoutesOptions {
  * - message-delete / sticky-message / vc-recruit パネル: ManageMessages
  * - ticket / vac / vc-recruit / vc-auto-recruit（チャンネル作成・編集・overwrite）: ManageChannels
  * - vac / afk（メンバー移動）: MoveMembers / Connect（移動先VCへの接続権限が別途必要）
- * - unverified-kick / inactive-kick: KickMembers
+ * - unverified-kick: KickMembers
  * - vc-recruit（自動スレッド作成 / 募集スレッド削除 / 募集スレッドへの @everyone 送信 overwrite 付与）: CreatePublicThreads / ManageThreads / SendMessagesInThreads
  * - member-log（招待元トラッキング = guild.invites.fetch）: ManageGuild
  *

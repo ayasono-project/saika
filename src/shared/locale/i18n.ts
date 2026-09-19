@@ -31,7 +31,6 @@ export const I18N_NAMESPACES = [
   "vcAutoRecruit",
   "messageDelete",
   "memberLog",
-  "inactiveKick",
   "unverifiedKick",
   "reactionRole",
   "stickyMessage",

@@ -9,12 +9,9 @@ import type {
   BumpReminderMentionUsersClearResult,
 } from "./bumpReminderTypes";
 import type {
-  ActivityTrigger,
   AfkSettings,
   BumpReminderSettings,
   GuildSettings,
-  InactiveKickSettings,
-  MemberActivity,
   MemberLogSettings,
   UnverifiedKickSettings,
   VacSettings,
@@ -72,7 +69,6 @@ export interface FullGuildSettings {
   memberLog?: MemberLogSettings;
   vcRecruit?: VcRecruitSettings;
   vcAutoRecruit?: VcAutoRecruitSettings;
-  inactiveKick?: InactiveKickSettings;
   unverifiedKick?: UnverifiedKickSettings;
   /** stateful データ（チケット設定 / open チケット / スティッキー / リアクションロールパネル / VAC 作成済み VC） */
   state?: FullGuildState;
@@ -140,21 +136,6 @@ export interface IVcAutoRecruitSettingsRepository {
   ): Promise<void>;
 }
 
-export interface IInactiveKickSettingsRepository {
-  getInactiveKickSettings(
-    guildId: string,
-  ): Promise<InactiveKickSettings | null>;
-  updateInactiveKickSettings(
-    guildId: string,
-    inactiveKickSettings: InactiveKickSettings,
-  ): Promise<void>;
-  /** 有効な全ギルドの設定を取得（日次チェック用） */
-  getAllEnabled(): Promise<Array<InactiveKickSettings & { guildId: string }>>;
-  /** 最終実行日を更新する（スイープ重複防止） */
-  updateLastRunDate(guildId: string, date: string): Promise<void>;
-  deleteInactiveKickSettings(guildId: string): Promise<void>;
-}
-
 export interface IUnverifiedKickSettingsRepository {
   getUnverifiedKickSettings(
     guildId: string,
@@ -187,31 +168,6 @@ export interface IUnverifiedKickWarnRepository {
   deleteWarned(guildId: string, userIds: string[]): Promise<void>;
   /** ギルドの全警告記録を削除する（機能リセット/再有効化時のフレッシュスタート） */
   deleteAllByGuild(guildId: string): Promise<void>;
-}
-
-export interface IMemberActivityRepository {
-  /**
-   * 活動を記録（upsert で lastActivityAt 更新・warnStage は指定時のみ更新）。
-   * `trigger` に対応する累積カウント（messageCount/voiceCount/reactionCount）も +1 する。
-   */
-  recordActivity(
-    guildId: string,
-    userId: string,
-    lastActivityAt: Date,
-    trigger: ActivityTrigger,
-    warnStage?: number,
-  ): Promise<void>;
-  /** warnStage のみ更新（通知送信成功後の前進用） */
-  setWarnStage(
-    guildId: string,
-    userId: string,
-    warnStage: number,
-  ): Promise<void>;
-  getActivity(guildId: string, userId: string): Promise<MemberActivity | null>;
-  /** ギルドの全活動履歴を取得（日次チェック・preview 用） */
-  findByGuild(guildId: string): Promise<MemberActivity[]>;
-  deleteActivity(guildId: string, userId: string): Promise<void>;
-  deleteByGuild(guildId: string): Promise<void>;
 }
 
 export interface IVcRecruitSettingsRepository {

@@ -5,7 +5,6 @@ import { guildMemberRemoveEvent } from "@/bot/events/guildMemberRemove";
 
 const handleGuildMemberRemoveMock = vi.fn();
 const handleBumpReminderMemberRemoveMock = vi.fn();
-const handleInactiveKickMemberRemoveMock = vi.fn();
 
 vi.mock("@/features/member-log/handlers/guildMemberRemoveHandler", () => ({
   handleGuildMemberRemove: (...args: unknown[]) =>
@@ -19,11 +18,6 @@ vi.mock(
       handleBumpReminderMemberRemoveMock(...args),
   }),
 );
-
-vi.mock("@/features/inactive-kick/handlers/activityEventHandlers", () => ({
-  handleInactiveKickMemberRemove: (...args: unknown[]) =>
-    handleInactiveKickMemberRemoveMock(...args),
-}));
 
 // guildMemberRemove イベントのメタデータと委譲を検証
 describe("bot/events/guildMemberRemove", () => {
@@ -47,6 +41,5 @@ describe("bot/events/guildMemberRemove", () => {
 
     expect(handleGuildMemberRemoveMock).toHaveBeenCalledWith(member);
     expect(handleBumpReminderMemberRemoveMock).toHaveBeenCalledWith(member);
-    expect(handleInactiveKickMemberRemoveMock).toHaveBeenCalledWith(member);
   });
 });

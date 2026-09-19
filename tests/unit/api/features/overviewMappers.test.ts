@@ -24,8 +24,6 @@ const BASE: OverviewInputs = {
   bumpMentionRoleId: null,
   ticketCount: 0,
   reactionRoleCount: 0,
-  inactiveKickEnabled: false,
-  inactiveKickTierCount: 1,
   unverifiedKickEnabled: false,
   unverifiedKickVerifiedRoleId: null,
 };
@@ -50,7 +48,6 @@ describe("toFeatureStatuses", () => {
       "bump",
       "tickets",
       "reaction-roles",
-      "inactive-kick",
       "unverified-kick",
     ]);
   });
@@ -80,12 +77,9 @@ describe("toFeatureStatuses", () => {
     ).toBe("パネル: 1件");
   });
 
-  it("要約に件数・階層数を反映する", () => {
+  it("要約に件数を反映する", () => {
     expect(statusFor("vac", { ...BASE, vacTriggerCount: 3 }).summary).toBe(
       "トリガー: 3チャンネル",
     );
-    expect(
-      statusFor("inactive-kick", { ...BASE, inactiveKickTierCount: 3 }).summary,
-    ).toBe("在籍階層: 3件");
   });
 });

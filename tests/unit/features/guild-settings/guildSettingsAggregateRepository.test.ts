@@ -36,10 +36,6 @@ describe("shared/database/repositories/guildSettingsAggregateRepository", () => 
     getVcAutoRecruitSettings: Mock;
     updateVcAutoRecruitSettings: Mock;
   };
-  let inactiveKickRepo: {
-    getInactiveKickSettings: Mock;
-    updateInactiveKickSettings: Mock;
-  };
   let unverifiedKickRepo: {
     getUnverifiedKickSettings: Mock;
     updateUnverifiedKickSettings: Mock;
@@ -75,10 +71,6 @@ describe("shared/database/repositories/guildSettingsAggregateRepository", () => 
       getVcAutoRecruitSettings: vi.fn(),
       updateVcAutoRecruitSettings: vi.fn(),
     };
-    inactiveKickRepo = {
-      getInactiveKickSettings: vi.fn(),
-      updateInactiveKickSettings: vi.fn(),
-    };
     unverifiedKickRepo = {
       getUnverifiedKickSettings: vi.fn(),
       updateUnverifiedKickSettings: vi.fn(),
@@ -95,7 +87,6 @@ describe("shared/database/repositories/guildSettingsAggregateRepository", () => 
       guildMemberLogSettings: { upsert: vi.fn() },
       guildVcRecruitSettings: { upsert: vi.fn() },
       guildVcAutoRecruitSettings: { upsert: vi.fn() },
-      guildInactiveKickSettings: { upsert: vi.fn() },
       guildUnverifiedKickSettings: { upsert: vi.fn() },
       guildVacSettings: { upsert: vi.fn(), findUnique: vi.fn() },
       guildTicketSettings: { findUnique: vi.fn(), create: vi.fn() },
@@ -121,7 +112,6 @@ describe("shared/database/repositories/guildSettingsAggregateRepository", () => 
       memberLogRepo as never,
       vcRecruitRepo as never,
       vcAutoRecruitRepo as never,
-      inactiveKickRepo as never,
       unverifiedKickRepo as never,
       stickyMessageRepo as never,
       reactionRolePanelRepo as never,
@@ -356,7 +346,7 @@ describe("shared/database/repositories/guildSettingsAggregateRepository", () => 
       expect(result?.vcRecruit?.setups[0]?.createdVoiceChannelIds).toEqual([]);
     });
 
-    it("vcAutoRecruit / inactiveKick / unverifiedKick を設定系に含めること（activeInvites は除外）", async () => {
+    it("vcAutoRecruit / unverifiedKick を設定系に含めること（activeInvites は除外）", async () => {
       coreRepo.getSettings.mockResolvedValue({ guildId: "g1", locale: "ja" });
       afkRepo.getAfkSettings.mockResolvedValue(null);
       bumpReminderRepo.getBumpReminderSettings.mockResolvedValue(null);
@@ -380,13 +370,6 @@ describe("shared/database/repositories/guildSettingsAggregateRepository", () => 
         ],
       });
       const enabledAt = new Date("2026-01-01T00:00:00.000Z");
-      inactiveKickRepo.getInactiveKickSettings.mockResolvedValue({
-        enabled: true,
-        enabledAt,
-        tiers: [{ tenureDays: 0, thresholdDays: 30 }],
-        whitelistRoleIds: ["r-1"],
-        whitelistUserIds: ["u-1"],
-      });
       unverifiedKickRepo.getUnverifiedKickSettings.mockResolvedValue({
         enabled: true,
         enabledAt,
@@ -405,7 +388,6 @@ describe("shared/database/repositories/guildSettingsAggregateRepository", () => 
         "TOP",
         "cat-1",
       ]);
-      expect(result?.inactiveKick?.enabledAt).toBe(enabledAt);
       expect(result?.unverifiedKick?.exemptRoleIds).toEqual(["r-2"]);
     });
   });
@@ -698,68 +680,6 @@ describe("shared/database/repositories/guildSettingsAggregateRepository", () => 
       expect(callArgs.update.enabledChannelIds).toEqual(["vc-1", "vc-2"]);
     });
 
-    it("inactiveKick: enabledAt が ISO 文字列でも Date に正規化されて upsert されること", async () => {
-      const data: FullGuildSettings = {
-        locale: "ja",
-        inactiveKick: {
-          enabled: true,
-          // export JSON 経由では enabledAt は ISO 文字列になる
-          enabledAt: "2026-01-01T00:00:00.000Z" as unknown as Date,
-          tiers: [
-            {
-              tenureDays: 0,
-              thresholdDays: 30,
-              trackMessage: true,
-              trackVoice: true,
-              trackReaction: true,
-            },
-          ],
-          whitelistRoleIds: ["r-1"],
-          whitelistUserIds: ["u-1"],
-          timezone: "Asia/Tokyo",
-          runHour: 4,
-          mentionEnabled: true,
-        },
-      };
-
-      await repo.importFullSettings("g1", data);
-      const callArgs =
-        prismaTx.guildInactiveKickSettings?.upsert?.mock.calls[0]?.[0];
-      expect(callArgs.create.enabledAt).toBeInstanceOf(Date);
-      expect((callArgs.create.enabledAt as Date).toISOString()).toBe(
-        "2026-01-01T00:00:00.000Z",
-      );
-      expect(callArgs.update.whitelistRoleIds).toEqual(["r-1"]);
-    });
-
-    it("inactiveKick: enabledAt 未設定なら null で書き込まれること", async () => {
-      const data: FullGuildSettings = {
-        locale: "ja",
-        inactiveKick: {
-          enabled: false,
-          tiers: [
-            {
-              tenureDays: 0,
-              thresholdDays: 30,
-              trackMessage: true,
-              trackVoice: true,
-              trackReaction: true,
-            },
-          ],
-          whitelistRoleIds: [],
-          whitelistUserIds: [],
-          timezone: "Asia/Tokyo",
-          runHour: 4,
-          mentionEnabled: true,
-        },
-      };
-
-      await repo.importFullSettings("g1", data);
-      const callArgs =
-        prismaTx.guildInactiveKickSettings?.upsert?.mock.calls[0]?.[0];
-      expect(callArgs.create.enabledAt).toBeNull();
-    });
-
     it("unverifiedKick: warnDays 未設定は null・enabledAt は Date 正規化されること", async () => {
       const data: FullGuildSettings = {
         locale: "ja",
@@ -834,8 +754,6 @@ describe("shared/database/repositories/guildSettingsAggregateRepository", () => 
       "guildVacSettings",
       "guildMemberLogSettings",
       "guildVcAutoRecruitSettings",
-      "guildInactiveKickSettings",
-      "memberActivity",
       "guildUnverifiedKickSettings",
       "guildUnverifiedKickWarn",
       "guildVcRecruitSettings",
@@ -864,7 +782,6 @@ describe("shared/database/repositories/guildSettingsAggregateRepository", () => 
         memberLogRepo as never,
         vcRecruitRepo as never,
         vcAutoRecruitRepo as never,
-        inactiveKickRepo as never,
         unverifiedKickRepo as never,
         stickyMessageRepo as never,
         reactionRolePanelRepo as never,

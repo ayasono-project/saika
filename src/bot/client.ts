@@ -24,11 +24,9 @@ export class BotClient extends Client {
         GatewayIntentBits.GuildMessages,
         GatewayIntentBits.GuildMembers,
         GatewayIntentBits.GuildVoiceStates,
-        // 非アクティブ自動キックのリアクション活動記録に使用
-        GatewayIntentBits.GuildMessageReactions,
       ],
-      // 未キャッシュメッセージへのリアクションも受信する（非アクティブ自動キック）
-      partials: [Partials.Message, Partials.Reaction],
+      // 未キャッシュメッセージの削除イベントも受信する（メッセージ削除系）
+      partials: [Partials.Message],
     });
 
     // 実行時レジストリ（コマンド）とクールダウン管理を初期化

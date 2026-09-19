@@ -56,13 +56,8 @@ describe("bot/client", () => {
     expect(client.options.intents.has(GatewayIntentBits.GuildVoiceStates)).toBe(
       true,
     );
-    // 非アクティブ自動キックのリアクション活動記録に使用
-    expect(
-      client.options.intents.has(GatewayIntentBits.GuildMessageReactions),
-    ).toBe(true);
-    // 未キャッシュメッセージへのリアクション取得用の Partials
+    // 未キャッシュメッセージの削除イベント取得用の Partials
     expect(client.options.partials).toContain(Partials.Message);
-    expect(client.options.partials).toContain(Partials.Reaction);
   });
 
   it("createBotClient が初期化完了ログを出力することを確認", () => {

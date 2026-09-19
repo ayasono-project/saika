@@ -1,12 +1,8 @@
 // tests/unit/api/features/kickMappers.test.ts
-// vc-auto-recruit / inactive-kick / unverified-kick マッパー（純粋関数）のユニットテスト
+// vc-auto-recruit / unverified-kick マッパー（純粋関数）のユニットテスト
 
 import type { Guild as DiscordGuild } from "discord.js";
 import { describe, expect, it } from "vitest";
-import {
-  applyInactiveKickPatch,
-  toContractInactiveKick,
-} from "@/api/features/inactiveKickResource";
 import {
   applyUnverifiedKickPatch,
   toContractUnverifiedKick,
@@ -87,95 +83,6 @@ describe("vc-auto-recruit マッパー", () => {
       channelName: "募集",
     });
     expect(typeof inv.startedLabel).toBe("string");
-  });
-});
-
-describe("inactive-kick マッパー", () => {
-  const TIER = {
-    tenureDays: 0,
-    thresholdDays: 30,
-    trackMessage: true,
-    trackVoice: true,
-    trackReaction: true,
-  };
-
-  it("toContract は未設定を null/空文字にする", () => {
-    expect(
-      toContractInactiveKick({
-        enabled: false,
-        tiers: [TIER],
-        whitelistRoleIds: [],
-        whitelistUserIds: [],
-        timezone: "Asia/Tokyo",
-        runHour: 4,
-        mentionEnabled: true,
-      }),
-    ).toEqual({
-      enabled: false,
-      tiers: [TIER],
-      channelId: null,
-      markerRoleId: null,
-      weekWarnMessage: "",
-      finalWarnMessage: "",
-      kickMessage: "",
-      whitelistRoleIds: [],
-      whitelistUserIds: [],
-      mentionEnabled: true,
-      timezone: "Asia/Tokyo",
-      runHour: 4,
-    });
-  });
-
-  it("有効化時は enabledAt を now にする", () => {
-    const cur = {
-      enabled: false,
-      tiers: [TIER],
-      whitelistRoleIds: [],
-      whitelistUserIds: [],
-      timezone: "Asia/Tokyo",
-      runHour: 4,
-      mentionEnabled: true,
-    };
-    const next = applyInactiveKickPatch(cur, { enabled: true }, NOW);
-    expect(next.enabled).toBe(true);
-    expect(next.enabledAt).toBe(NOW);
-  });
-
-  it("無効化では enabledAt を維持する", () => {
-    const prev = new Date("2026-01-01T00:00:00Z");
-    const cur = {
-      enabled: true,
-      enabledAt: prev,
-      tiers: [TIER],
-      whitelistRoleIds: [],
-      whitelistUserIds: [],
-      timezone: "Asia/Tokyo",
-      runHour: 4,
-      mentionEnabled: true,
-    };
-    const next = applyInactiveKickPatch(cur, { enabled: false }, NOW);
-    expect(next.enabled).toBe(false);
-    expect(next.enabledAt).toBe(prev);
-  });
-
-  it("空文字メッセージはクリア扱い・whitelist は置換", () => {
-    const cur = {
-      enabled: false,
-      tiers: [TIER],
-      weekWarnMessage: "w",
-      whitelistRoleIds: ["r1"],
-      whitelistUserIds: [],
-      timezone: "Asia/Tokyo",
-      runHour: 4,
-      mentionEnabled: true,
-    };
-    const next = applyInactiveKickPatch(
-      cur,
-      { weekWarnMessage: "", whitelistRoleIds: ["r2", "r3"] },
-      NOW,
-    );
-    expect(next.weekWarnMessage).toBeUndefined();
-    expect(next.whitelistRoleIds).toEqual(["r2", "r3"]);
   });
 });
 

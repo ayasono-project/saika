@@ -15,6 +15,8 @@ const STATUS_TO_CODE: Record<number, ApiErrorCode> = {
   403: "FORBIDDEN",
   404: "NOT_FOUND",
   409: "CONFLICT",
+  // 本文が bodyLimit を超えた場合。契約に専用コードが無いため入力不正として扱う
+  413: "VALIDATION_ERROR",
   429: "RATE_LIMITED",
 };
 

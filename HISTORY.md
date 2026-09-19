@@ -92,6 +92,23 @@ VAC を残す判断（→「VAC（トリガー VC 方式）は残し、募集は
 
 > 詳細な作業経過は git log を参照。
 
+### `/vc`（VC操作コマンド）の削除（2026-09-20 develop merge）
+
+権限の穴を修正ではなく削除で塞いだ（判断は→「決定事項」）。`/vc` に `setDefaultMemberPermissions` が無く、実行側の権限チェックも無かったため、サーバーの誰でも他人を切断・移動でき、`target-channel` を指定すれば通話中の VC を丸ごと吹き飛ばせた。
+
+**本番リリースはこの時点ではしていない。** `/afk` の権限修正・レート制限の恒久対応と合わせて1本の release PR で出す（→ TODO.md「本番リリース」）。
+
+- [x] `src/features/vc-command/` 8ファイルと `/vc` コマンド、テスト10ファイルを削除
+- [x] ロケールの `vc` 名前空間を廃止。共通ヘルパー3ファイルと `/afk` が参照し続ける `action-log.*` / `bulk-confirm.*` / `user-response.*` などは **キー名を変えずに `afk` 名前空間へ移設**した。名前空間は19個から18個に
+- [x] `isManagedVacChannel`（`vacSettingsService.ts`）を削除。最後の利用者が `getManagedVoiceChannel` だった
+- [x] 到達不能になったコードを撤去。`VcActionType` を `"afk"` だけに絞り、`disconnect` / `move` の分岐・絵文字・i18n キーを削除
+- [x] `/vc` 専用だった `reason` オプションの受け渡しを削除。入力経路が無くなり常に未指定になるため、結果 Embed の「理由」フィールドとそのキー2件も落とした
+- [x] `afk` 名前空間に残っていた未使用キー3件（`user-response.moved` / `member_not_found` / `user_not_in_voice`）を削除。移設してくる `member_not_found` と名前が衝突したため、同時に解消した
+- [x] help・README・`DISCORD_BOT_SETUP.md`・`IMPLEMENTATION_GUIDELINES.md`・`I18N_GUIDE.md`・招待権限のコメントを追従
+
+> **共通ヘルパー3ファイル（`vcBulkAction.ts` / `vcActionLog.ts` / `vcActionTarget.ts`）は残した。** `/afk` が使い続けるため。利用者が1つになったので `/afk` 側へ畳む整理はできるが、ファイル名の変更や統合は掃除フェーズで行う。`VcActionType` が単一メンバーの union になっているのはその名残。
+> **結果 Embed から「理由」フィールドが消える。** `/vc disconnect` / `/vc move` の `reason` オプションからしか値が入らなかったため、残すと常に「指定なし」を表示し続けることになる。マニュアルへの反映は「マニュアル全面修正」でまとめて行う。
+
 ### Web API のレート制限すり抜けの恒久対応（2026-09-20 develop merge）
 
 `server.ts` が `trustProxy: true` だったため、`request.ip` が `X-Forwarded-For` の最左、つまり攻撃者が送った値になり、誰でもレート制限（300回/分）をすり抜けられた。本番の `/health` に偽のヘッダを付けて3回叩き、残り回数が 299 のまま減らないことで実在を確認した。あわせて `@fastify/rate-limit` 11.1.0 の IPv6 アドレス回転によるすり抜け（CVE-2026-15144・CVSS 7.3）も塞いだ。データ漏えい・認証破りではないので hotfix にはしていない。

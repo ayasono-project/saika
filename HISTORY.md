@@ -51,6 +51,17 @@
 
 > 撤回した設計の全文は `git show 06a28cc:TODO.md` の「メンバーによる VC 作成」「VC自動作成（VAC）の削除」を参照。
 
+### `/vc`（VC操作コマンド）は修正せず削除する（2026-09-17 決定・2026-09-09 の根拠を差し替え）
+
+権限の穴（`setDefaultMemberPermissions` も権限チェックも無く、誰でも他人を切断・移動できる）を修正で塞ぐ道は採らず、全サブコマンドを削除する。
+
+- **`move` / `disconnect` に Bot 側の代替は用意しない。** `MoveMembers` を持つ管理者は Discord クライアントから直接できる。`/afk` は AFK チャンネルへの移動専用なので `/vc move` の代わりにはならない。**逆向きは成立する**（`/vc move target-member: to:AFKチャンネル` が `/afk` を完全に代替するため、`/afk` 単独で main へ出しても穴は塞がらない）
+- **`rename` / `limit` も残さない。** 通るのは `getManagedVoiceChannel` だけで、これは「Bot 管理下の VC に自分がいるか」の確認であって権限ではない。**VAC は作成者にだけ `ManageChannels` overwrite を付けている**のに（`handleVacCreate.ts:125`）、同席していれば誰でも改名できる。VAC の権限設計を迂回している＝削除の根拠②（saika 内部で重複）
+- **`rename` / `limit` には代替がある。** 作成者は `ManageChannels` overwrite により Discord の設定画面から名前・人数を変えられる。同席しているだけの人は変えられなくなるが、それが VAC の権限設計どおり
+- **`disconnect` にだけ代替が無い。** 切断には `MoveMembers` が要り `ManageChannels` overwrite では足りないため、部屋の作成者が同席者を切断する手段は無くなる。管理者に頼む運用になる
+
+VAC を残す判断（→「VAC（トリガー VC 方式）は残し、募集は vc-auto-recruit に寄せる」）はこの削除を前提にしている。
+
 ---
 
 ## 取り下げ済み・やらないと決めたもの

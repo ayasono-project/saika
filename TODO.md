@@ -10,20 +10,20 @@
 
 ## 進め方
 
-2026-09-05 決定・2026-09-18 に順序の原則を機能単位へ改めた。目標は**メンテナンスが要らない状態にすること**。そこに効くのは機能を減らすことで、掃除とリファクタは維持コストを下げるが、ゼロにはしない。
+2026-09-05 決定・2026-09-18 に順序の原則を機能単位へ改めた。目標は**メンテナンスが要らない状態にすること**。効くのは機能を減らすことで、掃除とリファクタは維持コストを下げるがゼロにはしない。
 
 ```
 機能ごとに: 残すか決める → 削除 or（掃除 → リファクタ・改善）
 全体:       決めた作業を「いま着手できる」の順に1件ずつ → 最後にマニュアル全面修正
 ```
 
-**守る順序は機能単位。** 消す予定の機能を掃除・改善するのは丸ごと無駄になるので、着手前に「その機能を残すか」が決まっていることを必ず確認する。残す機能の中では掃除を改善より先にやる（同じファイルを二度開かない）。**機能をまたぐ順序は固定しない。** 本番の穴・告知済みの変更・同じモジュールをまとめて触る、を優先して「いま着手できる」に並べる。2026-09-18 に vc-auto-recruit の掃除と改善を非アクティブキックの削除より前に置いたのはこのため。
+**守る順序は機能単位。** 消す予定の機能を掃除・改善するのは丸ごと無駄なので、着手前に「その機能を残すか」が決まっているか必ず確認する。残す機能の中では掃除を改善より先にやる（同じファイルを二度開かない）。**機能をまたぐ順序は固定しない。** 本番の穴・告知済みの変更・同じモジュールをまとめて触る、を優先して「いま着手できる」に並べる（2026-09-18 に vc-auto-recruit の掃除と改善を非アクティブキックの削除より前に置いたのがこの例）。
 
-**マニュアル（`docs/guides/USER_MANUAL.md`）は最後にまとめて1回。** 削除で全体の約30%（VC募集 約320行 / 非アクティブキック 約148行 / VC操作コマンド 約54行）が落ち、掃除と改善で仕様が変わる箇所も出るため、途中で直すと二度手間になる。削除する3機能は他鯖で使われていないので、その間マニュアルが実態と食い違っても実害はない。
+**マニュアル（`docs/guides/USER_MANUAL.md`）は最後にまとめて1回。** 削除で全体の約30%が落ち（内訳は「マニュアル全面修正」）、掃除と改善でも仕様が変わるため、途中で直すと二度手間になる。削除する3機能は他鯖で使われていないので、その間マニュアルが実態と食い違っても実害はない。
 
-**機能の要否は本番 DB の実測で判断した**（2026-09-05）。「他 Bot にも同じ機能がある」「Discord 標準で代替できる」は削除の根拠にしない。彩加はオールインワンが看板であり、代替可能性を根拠にすると製品コンセプトそのものを否定することになる。削除の根拠は①誰も使っていない②saika 内部で重複している③維持コストが機能価値に対して極端に高い、の3つだけ。
+**機能の要否は本番 DB の実測で判断し、2026-09-05 に削除対象を確定した。**「他 Bot にも同じ機能がある」「Discord 標準で代替できる」は削除の根拠にしない。彩加はオールインワンが看板で、代替可能性を根拠にすると製品コンセプトの否定になる。削除の根拠は①誰も使っていない②saika 内部で重複している③維持コストが機能価値に対して極端に高い、の3つだけ。2026-09-09 に VAC を削除対象へ追加したが 2026-09-17 に撤回（→ HISTORY.md「決定事項」）。
 
-**機能削除は掃除より先に片付ける。** 2026-09-05 に本番 DB の利用実績を実測して削除対象を確定した。2026-09-09 に VAC を追加したが 2026-09-17 に撤回（→ HISTORY.md「決定事項」）。**残す機能**は guild-settings / afk / vac / vc-auto-recruit / member-log / unverified-kick / ticket / sticky-message / reaction-role / bump-reminder / ping / message-delete / about / help。
+**残す機能**: guild-settings / afk / vac / vc-auto-recruit / member-log / unverified-kick / ticket / sticky-message / reaction-role / bump-reminder / ping / message-delete / about / help
 
 ---
 
@@ -36,11 +36,11 @@
 | 未決（判断が要る） | 11 |
 | **合計** | **37** |
 
-> **着手順は「いま着手できる」の並び順そのもの**（1件＝1 PR）。2026-09-20 にこの形へ変えた。以前はここに番号付きの「次にやること」を別に持っていたが、タスクが1件動くたびに本体・サマリー・リストの3箇所を直す必要があり、番号も挿入のたびにずれるため廃止した。
+> **着手順は「いま着手できる」の並び順そのもの**（1件＝1 PR）。番号付きの「次にやること」は 2026-09-20 に廃止。1件動くたびに本体・サマリー・リストの3箇所を直すことになり、番号も挿入のたびにずれるため。
 >
-> **シルバーウィーク（2026-09-19〜23）のメンテとして自鯖に告知する分**（2026-09-18 草案）: `/vc` 削除と「VC自動募集の誤爆抑制」。「VAC 作成 VC の募集ボタン」は告知に含めない。
+> **シルバーウィーク（2026-09-19〜23）のメンテとして自鯖に告知する分**（2026-09-18 草案）: `/vc` 削除と「VC自動募集の誤爆抑制」。「VAC 作成 VC の募集ボタン」は含めない。
 >
-> **止めているもの**: 未決「構造リファクタをどこまでやるか」「機能改善をどこまで足すか」／ロケールキーの (b)(c) 仕分け／「遅延削除の猶予日数」「Guild 親テーブル」（機能削除で対象が減ってから詰めたほうが設計が小さくなる）。VAC の削除と「メンバーによる VC 作成」は 2026-09-17 に取り下げ（→ HISTORY.md「決定事項」）。
+> **止めているもの**: 未決の「構造リファクタをどこまでやるか」「機能改善をどこまで足すか」／ロケールキーの (b)(c) 仕分け／「遅延削除の猶予日数」「Guild 親テーブル」（機能削除で対象が減ってから詰めるほうが設計が小さくなる）。
 
 ---
 
@@ -48,66 +48,64 @@
 
 依存なし。上から順に1件ずつ着手する（1件＝1 PR）。並び順が実行順を兼ねるので、順番を変えたいときはこのセクション内で移動する。
 
-### `/vc`（VC操作コマンド）の削除 【実装・中・バグ】
+### `/vc`（VC操作コマンド）の削除 【実装・中】
 
-**依存なし。実害が本番に出ている。** 対だった `/afk` の権限修正は 2026-09-20 に develop へ先行マージ済み（→ HISTORY.md「完了済み」）。**本番の穴はこちらを出すまで塞がらない。** `/vc move target-member: to:AFKチャンネル` で `/afk` と同じ操作が完全に代替できるため、`/afk` 単独で main へ出しても利得がない。**両方を1本の release PR でまとめて main へ出す。**
+**依存なし。実害が本番に出ている。** 対だった `/afk` の権限修正は 2026-09-20 に develop へ先行マージ済み（→ HISTORY.md「完了済み」）。`/vc move target-member: to:AFKチャンネル` が `/afk` を完全に代替するため、**`/afk` 単独で main へ出しても本番の穴は塞がらない。両方を1本の release PR でまとめて main へ出す。**
 
-**現状、サーバーの誰でも他人を切断・移動できる。** `/vc` に `setDefaultMemberPermissions` が無く（設定系13コマンドには全部付いている）、`executeVcCommand` にも各ユースケースにも権限チェックが無い（`vcCommand.execute.ts:43` に「管理対象チェックなしで任意のメンバー/VCを操作する」とコメントまである）。Discord は実行者の権限を見ず Bot の `MoveMembers` で実行するため、`/vc disconnect target-channel:` や `/vc move` で**通話中の VC を丸ごと吹き飛ばせる**。
-
-`rename` / `limit` は `getManagedVoiceChannel` を通るが、これは「Bot 管理下の VC に自分がいるか」の確認で権限ではない。**VAC は作成者にだけ `ManageChannels` overwrite を付けている**のに（`handleVacCreate.ts:125`）、同席していれば誰でも改名できる。VAC の権限設計を迂回している＝根拠②。
+**現状、サーバーの誰でも他人を切断・移動できる。** `/vc` に `setDefaultMemberPermissions` が無く、`executeVcCommand` にも各ユースケースにも権限チェックが無い（`vcCommand.execute.ts:43` に「管理対象チェックなしで任意のメンバー/VCを操作する」とコメントまである）。Discord は実行者の権限を見ず Bot の `MoveMembers` で実行するため、`/vc disconnect target-channel:` や `/vc move` で**通話中の VC を丸ごと吹き飛ばせる**。
 
 - [ ] `src/features/vc-command/` 8ファイル485行と `/vc` コマンドを削除。テスト・help
 - [ ] ロケール ja/en の `vc` 名前空間。**丸ごと消すと `/afk` が壊れる。** 共通ヘルパー3ファイルと `/afk` が `action-log.*` / `bulk-confirm.*` / `user-response.*` を参照し続けるため、**残す分を `afk` 名前空間へ移してから** `vc` を消す
 - [ ] `isManagedVacChannel`（`vacSettingsService.ts`）を削除。最後の利用者が `getManagedVoiceChannel` なので `/vc` 削除と同時に消える
 
-> **共通ヘルパー588行（`vcBulkAction.ts` 303 / `vcActionLog.ts` 169 / `vcActionTarget.ts` 116）は `/afk` が使うので残る。** ただし利用者が1つになるため、掃除フェーズで `/afk` 側に畳めば圧縮できる。
+> **共通ヘルパー588行（`vcBulkAction.ts` 303 / `vcActionLog.ts` 169 / `vcActionTarget.ts` 116）は `/afk` が使うので残る。** 利用者が1つになるため、掃除フェーズで `/afk` 側に畳めば圧縮できる。
 > `getManagedVoiceChannel` は `isCreatedVcRecruitChannel` を参照しているため、**VC募集の削除と互いに依存を減らし合う**。
-> **`rename` / `limit` も残さない**（2026-09-09 確定・2026-09-17 に根拠を差し替え）。VAC は作成者に `ManageChannels` overwrite を付けているので、作成者は Discord の設定画面から名前・人数を変えられる。同席しているだけの人は変えられなくなるが、それが VAC の権限設計どおり。
-> **`disconnect` を消すと、部屋の作成者が同席者を切断する手段が無くなる**（Discord の切断には `MoveMembers` が要り、`ManageChannels` overwrite では足りない）。管理者に頼む運用になる。マニュアル全面修正時に1行書く。
+> **`rename` / `limit` も残さない**（2026-09-09 確定・2026-09-17 に根拠を差し替え）。唯一通る `getManagedVoiceChannel` は権限チェックではなく、VAC の権限設計を迂回している＝根拠②。理由と代替手段は HISTORY.md「決定事項」。
+> **`disconnect` を消すと、部屋の作成者が同席者を切断する手段が無くなる**（切断には `MoveMembers` が要り、`ManageChannels` overwrite では足りない）。管理者に頼む運用になる。マニュアル全面修正時に1行書く。
 
 ### 非アクティブ自動キック機能の削除 【実装・大】
 
 **依存なし。** 実測で**有効ギルド0**（2026-09-05）。自鯖でも未使用。根拠①（誰も使っていない）。
 
-削除して初めて分かった副次効果が大きい。常時フックしているイベントが4本あり、そのうち **`messageReactionAdd` の利用者はこの機能だけ**（`src/bot/events/messageReactionAdd.ts:5`）。
+常時フックしているイベントが4本あり、そのうち **`messageReactionAdd` の利用者はこの機能だけ**（`src/bot/events/messageReactionAdd.ts:5`）。
 
 - [ ] `src/features/inactive-kick/` 一式と `/inactive-kick-settings` コマンドを削除
 - [ ] `messageCreate` / `voiceStateUpdate` / `messageReactionAdd` / `guildMemberRemove` からフックを外す。**`messageReactionAdd` はリスナーごと削除できる**
-- [ ] `client.ts` から **`GatewayIntentBits.GuildMessageReactions` と `Partials.Reaction` を削除**（`Partials.Message` は messageDelete 系で使うので残す）。公開 Bot でインテントを1つ落とせるのは最小権限化の方針とも噛み合う
+- [ ] `client.ts` から **`GatewayIntentBits.GuildMessageReactions` と `Partials.Reaction` を削除**（`Partials.Message` は messageDelete 系で使うので残す）。公開 Bot のインテントを1つ落とせるのは最小権限化とも噛み合う
 - [ ] `clientReadyHandler` の毎時スイープジョブ登録を削除
 - [ ] migration で `guild_inactive_kick_settings` と **`member_activities`** を削除
 - [ ] shared の `InactiveKickSettings` / `InactiveKickTier` 系を削除 → publish → saika / web の参照を更新
 - [ ] web ダッシュボードの InactiveKickPage と階層編集 UI を削除（web リポジトリ側）
 - [ ] ロケール ja/en の `inactiveKick` 名前空間・help・composition root・テスト
 
-> **未使用ロケールキーは0件だった**（2026-09-05 の全機能スキャン）。最も新しく作られて最後まで手が入っていた機能で、品質の問題ではなく需要が無かっただけ。
+> **未使用ロケールキーは0件だった**（2026-09-05 の全機能スキャン）。最も新しく作られ最後まで手が入っていた機能で、品質の問題ではなく需要が無かっただけ。
 
 ### VC募集機能の削除 【実装・大】
 
-**依存なし。** 実測で**行は自鯖の1件のみ、かつ `setups` が空**（2026-09-05）。パネルチャンネルも投稿先も存在せず、機能として稼働していない。他鯖はゼロ。根拠①。
+**依存なし。** 実測で**行は自鯖の1件のみ、かつ `setups` が空**（2026-09-05）。パネルも投稿先も存在せず稼働していない。他鯖はゼロ。根拠①。
 
-`enabled=true` になっているのは、`addSetup` が立てたフラグを**false に戻す経路が存在しない**ため（`enable`/`disable` サブコマンドが無く、teardown は `setups` から消すだけ）。さらに `vcRecruitSettingsDefaults.ts:8` のデフォルト自体が `enabled: true`。**このフラグは最初から意味を持たない。**
+`enabled=true` になっているのは、`addSetup` が立てたフラグを**false に戻す経路が存在しない**ため（`enable`/`disable` サブコマンドが無く、teardown は `setups` から消すだけ）。デフォルト自体も `enabled: true`（`vcRecruitSettingsDefaults.ts:8`）。**このフラグは最初から意味を持たない。**
 
 - [ ] `src/features/vc-recruit/` **27ファイル**と `/vc-recruit-settings` コマンドを削除（`vcRecruitButton.ts` 583行 / `vcRecruitStringSelect.ts` 213行 / `vcRecruitSettingsSetup.ts` 201行 ほか）
-- [ ] 未配線のデッドコード `handleVcRecruitVoiceStateUpdate`（`vcRecruitVoiceStateUpdate.ts:20`）とその unit / integration テスト。**src のどこからも呼ばれておらずテストだけが維持している**
+- [ ] 未配線のデッドコード `handleVcRecruitVoiceStateUpdate`（`vcRecruitVoiceStateUpdate.ts:20`）とその unit / integration テスト。**src のどこからも呼ばれておらずテストだけが維持している**（自動削除を廃止した時の残骸）
 - [ ] migration で `guild_vc_recruit_settings` を削除
 - [ ] ロケール ja/en の `vcRecruit` 名前空間（各128キー・うち**11キーは既に未使用**）
 - [ ] messageDelete / channelDelete ハンドラ・composition root・help・テスト
 
 > **「タイマー / スケジューラ実装の整理」から手書き `setTimeout` 2箇所（`vcRecruitButton.ts:416` / `vcRecruitStringSelect.ts:191`）が消える。**
-> 「予約募集（イベント募集）機能」構想は「setup は既存 VC 募集と同構成」を前提にしていたが、あの構想は RSVP もリマインダーも Discord Scheduled Events 任せなので、独立して作るほうが素直。**消しても構想は死なない。**
+> 「予約募集（イベント募集）機能」構想はこの setup を流用する前提だったが、2026-09-20 にその前提ごと破棄した（→「機能拡張アイデア」）。**消しても構想は死なない。** RSVP もリマインダーも Discord Scheduled Events 任せなので、作るなら独立して作るほうが素直。
 
 ### VC自動募集のカテゴリ残骸とデッドコードの撤去 【実装・中・saika ＋ shared】
 
-**依存なし。** 2026-09-05 に棚卸し。チャンネル単位化（2026-06-30）で役目を終えたカテゴリ allowlist が全レイヤーに残っている。**設定する手段はもう無い**（カテゴリ系サブコマンドは廃止済み・web にもカテゴリ UI は無い）のに、ロジック・型・DB・API・ロケール・テストまで生きたまま通っている。
+**依存なし。** 2026-09-05 に棚卸し。チャンネル単位化（2026-06-30）で役目を終えたカテゴリ allowlist が全レイヤーに残っている。**設定する手段はもう無い**（カテゴリ系サブコマンド廃止済み・web にも UI 無し）のに、ロジック・型・DB・API・ロケール・テストが生きている。
 
-**残っているもの（棚卸し結果）**
+**残っているもの**
 
 ロジック
 
-- `vcAutoRecruitSettingsService.ts` — `addEnabledCategory` / `addEnabledCategories` / `removeEnabledCategories` は**本番コードからの呼び出しゼロ**（テストだけが維持している）。`removeEnabledCategory` は下記 channelDelete からのみ
+- `vcAutoRecruitSettingsService.ts` — `addEnabledCategory` / `addEnabledCategories` / `removeEnabledCategories` は**本番からの呼び出しゼロ**（テストだけが維持）。`removeEnabledCategory` は下記 channelDelete からのみ
 - `vcAutoRecruitService.ts:280-289` — `channelDelete` でカテゴリ allowlist を掃除する分岐。処理ごと不要
-- `vcAutoRecruit.constants.ts:14` — `VC_AUTO_RECRUIT_ROOT_CATEGORY = "TOP"` は**定義のみでどこからも参照されていない**
+- `vcAutoRecruit.constants.ts:14` — `VC_AUTO_RECRUIT_ROOT_CATEGORY = "TOP"` は**定義のみで未参照**
 
 データ・型
 
@@ -118,12 +116,12 @@
 API
 
 - `vcAutoRecruitResource.ts:32,53` — read / patch で往復させている
-- `overviewResource.ts:39,89,187` — ダッシュボード概要が `対象カテゴリ: ${enabledCategoryIds.length}件` を表示。**設定手段が無いので実質いつも「0件」**。有効なのに0件と出るため、設定が反映されていないように読める → `enabledChannelIds` ベースの `対象チャンネル: N件` に差し替える
+- `overviewResource.ts:39,89,187` — 概要が `対象カテゴリ: ${enabledCategoryIds.length}件` を表示。**設定手段が無いので常に「0件」**で、有効なのに未反映に見える
 
 ロケール（ja / en 両方・すべて未使用）
 
 - `user-response.categories_added_count` / `categories_removed_count` / `no_addable_categories` / `no_enabled_categories` / `category_top_label`
-- `user-response.enable_warning_no_category` — **存在しない `/vc-auto-recruit-settings add-category` を案内する文面**。実際に使われているのは `enable_warning_no_channel` のほうなので実害は無いが、残すと次に読む人が混乱する
+- `user-response.enable_warning_no_category` — **存在しない `/vc-auto-recruit-settings add-category` を案内する文面**。使われているのは `enable_warning_no_channel` なので実害は無いが、残すと読む人が混乱する
 - `embed.field.name.categories` / `embed.field.value.categories_none` / `embed.field.value.top`
 - `ui.select.add_category_placeholder` / `ui.select.remove_category_placeholder`
 - `log.config_category_added` / `log.config_category_removed` / `log.category_removed_by_delete`
@@ -136,36 +134,29 @@ API
 
 他機能のデッドコード
 
-- `vcRecruitVoiceStateUpdate.ts:20` の `handleVcRecruitVoiceStateUpdate` — **src のどこからも呼ばれておらず、unit / integration のテストだけが維持している**（VC募集の自動削除を廃止した時の残骸。テストが生きているせいで使われているように見えるのがたち悪い）
+- `vcRecruitVoiceStateUpdate.ts:20` の `handleVcRecruitVoiceStateUpdate` — 同じ棚卸しで検出。撤去は「VC募集機能の削除」に含む
 
 **やること**
 
-- [ ] 上記を一括で撤去し、overview のサマリーを `enabledChannelIds` ベースへ差し替える
+- [ ] 上記を一括で撤去し、overview のサマリーを `enabledChannelIds` ベースの `対象チャンネル: N件` へ差し替える
 - [ ] shared から削除 → publish → saika / web の参照を更新
 - [ ] migration で `enabled_category_ids` 列を削除（**本番は移行時に0件であることを確認済み**・HISTORY.md「完了済み」参照）
 - [ ] 対応するテストを削除する
 
 **判断が要るもの**
 
-- **テーブル名 `guild_vc_invite_settings` を直すか。** `schema.prisma:98` の `@@map` が旧称 `vc-invite` のまま（リポジトリ冒頭のコメント2箇所も同じ名前を書いている）。カテゴリ列削除の migration を打つなら**同じ migration でリネームまで済ませられる**ので、やるならこのタイミング
+- **テーブル名 `guild_vc_invite_settings` を直すか。** `schema.prisma:98` の `@@map` が旧称 `vc-invite` のまま（リポジトリ冒頭のコメント2箇所も同じ）。カテゴリ列削除と**同じ migration でリネームまで済ませられる**ので、やるならこのタイミング
 - **命名ドリフトを直すか。** `SUBCOMMAND.SET_CHANNEL`（値は `set-post-channel`）/ ファイル名 `vcAutoRecruitSettingsCommand.setChannel.ts` / ロケールキー `log.config_set_channel`。**ロケールのキー名リネームは影響範囲が別**なので、やるなら明示的に切り出す
 
 > **VC自動募集の誤爆抑制より先に着手する。** 対象が `vcAutoRecruitService` / `vcAutoRecruitSettingsService` / repository / API resource と丸ごと重なるため、別々にやると同じファイルを二度開いて二度レビューすることになる。
 
 ### VC自動募集の誤爆抑制（入室デバウンス） 【実装・小〜中】
 
-> **対象は管理者が allowlist した常設 VC のみ。** VAC が建てた VC は ID が毎回新しく allowlist に入らないので対象外で、募集は「VAC 作成 VC の募集ボタン」に委ねる。
+> **対象は管理者が allowlist した常設 VC のみ。** VAC が建てた VC は allowlist に入らないため対象外で、募集は「VAC 作成 VC の募集ボタン」に委ねる。
 
-**依存なし。** シルバーウィークのメンテとして自鯖に告知する（2026-09-18）。現状は 0人→1人 になった瞬間に投稿するため、**チャンネルを間違えて入って即抜けた場合**や、**誰かが抜けた直後に「まだ人がいる」と思って入った場合**にも通知が飛び、ping だけが残る。既存の連投抑制（`repostCooldown` / `VC_AUTO_RECRUIT_REPOST_COOLDOWN_MS = 60_000`）は投稿**後**の抑制なので、この誤爆は素通りする。さらにクールダウンが実際に効くのは「全員退出 → 60秒以内に入り直し」だけで、そのとき直前に募集終了へ差し替わっているため、**VC に人がいるのに「募集終了」のまま**という嘘の表示が残る。
+**依存なし。** シルバーウィークのメンテとして自鯖に告知する（2026-09-18）。現状は 0人→1人 の瞬間に投稿するため、**間違えて入って即抜けた**時や**誰かが抜けた直後に「まだ人がいる」と思って入った**時にも通知が飛び、ping だけが残る。既存の連投抑制（`repostCooldown` / `VC_AUTO_RECRUIT_REPOST_COOLDOWN_MS = 60_000`）は投稿**後**の抑制なので素通りする。しかも実際に効くのは「全員退出 → 60秒以内に入り直し」だけで、その時は直前に募集終了へ差し替わっているため、**VC に人がいるのに「募集終了」のまま**という嘘の表示が残る。
 
-**方針: 投稿は遅らせる／終了は遅らせない。** 非対称でよい。投稿が20秒遅れても誰も損しないが、終了を遅らせると空 VC を指す「🔊 VCに参加」ボタンが生き残り、上記の誤爆を機能側から作ることになる。
-
-| | 挙動 |
-| --- | --- |
-| 入室デバウンス | 20秒 |
-| 募集終了 | 即時（現行どおり） |
-| 連投抑制クールダウン | 廃止（嘘の「募集終了」の原因） |
-| 入り直し | 特別扱いしない（0人→1人 → 20秒 → 新規投稿） |
+**方針: 投稿は遅らせる／終了は遅らせない。** 入室デバウンス20秒／募集終了は即時（現行どおり）／連投抑制クールダウンは廃止（嘘の「募集終了」の原因）／入り直しも特別扱いしない（0人→1人 → 20秒 → 新規投稿）。投稿が20秒遅れても誰も損しないが、終了まで遅らせると空 VC を指す「🔊 VCに参加」ボタンが生き残り、上記の誤爆を機能側から作ることになる。
 
 **やること**
 
@@ -177,14 +168,14 @@ API
 
 **判断済み・補足**
 
-- **「復活」は見送り（2026-09-17・YAGNI）。** 09-09 の設計は、募集終了時に直近クローズ（ref ＋ 開始者 ＋ 時刻）を10分保持し、同一人物の入り直しなら元投稿を edit で募集中へ戻して ping を重ねない、というもの。デバウンスだけだと**再接続や短い離席で ping が二重になる**のと、同一 VC で ping を稼ぐ濫用の下限が60秒から20秒に下がる。どちらも実際に困ってから足す。`@everyone` を実ピングさせる機能なので、告知後の反応は見ておく
-- **再起動耐性は持たせない。** デバウンスはプロセス内のみで消えるが、`cleanupVcAutoRecruitOnStartup` が空 VC の募集を閉じるため自己修復する。DB へ永続化して起動時に復元すると、稼働中の全 VC へ通知が飛ぶ事故のほうが怖い
-- **秒数は定数で持つ。** ギルド設定化は運用の反応を見てから判断する（shared のバージョン上げ・migration・`/vc-auto-recruit-settings`・web ダッシュボード UI へ波及するため今回はやらない）
-- 「タイマー / スケジューラ実装の整理」と同じ `addOneTimeJob` を使う。デバウンス用途の warn 抑止オプションが入ったら合わせて寄せる
+- **「復活」は見送り（2026-09-17・YAGNI）。** 09-09 の設計は、募集終了時に直近クローズ（ref ＋ 開始者 ＋ 時刻）を10分保持し、同一人物の入り直しなら元投稿を edit で募集中へ戻して ping を重ねない、というもの。デバウンスだけだと**再接続や短い離席で ping が二重になる**のと、同一 VC で ping を稼ぐ濫用の下限が60秒から20秒に下がるが、どちらも実際に困ってから足す。`@everyone` を実ピングさせる機能なので、告知後の反応は見ておく
+- **再起動耐性は持たせない。** デバウンスはプロセス内のみで消えるが、`cleanupVcAutoRecruitOnStartup` が空 VC の募集を閉じるので自己修復する。DB へ永続化して起動時に復元すると、稼働中の全 VC へ通知が飛ぶ事故のほうが怖い
+- **秒数は定数で持つ。** ギルド設定化は運用の反応を見てから（shared のバージョン上げ・migration・`/vc-auto-recruit-settings`・web UI へ波及するため今回はやらない）
+- デバウンス用途の warn 抑止オプション（→「タイマー / スケジューラ実装の整理」）が入ったら合わせて寄せる
 
 ### VAC 作成 VC の募集ボタン（vc-auto-recruit の拡張） 【機能追加・小】
 
-**依存なし。** 2026-09-17 決定（→ HISTORY.md「決定事項」）。「カテゴリ残骸の撤去」「誤爆抑制」の後、同じサービスが温かいうちにやる。詳細設計は着手直前で足りる（以下で全部）。
+**依存なし。** 2026-09-17 決定（→ HISTORY.md「決定事項」）。「カテゴリ残骸の撤去」「誤爆抑制」の後、同じサービスが温かいうちにやる。設計は以下で全部。
 
 VAC が建てた VC は ID が毎回新しく allowlist に入らないので、vc-auto-recruit の自動投稿は発火しない。代わりに VC のチャット欄にボタンを置き、押した時だけ既存の募集投稿を1回叩く。募集終了は「追跡中の募集があれば enabled や allowlist に関係なく実行」（`vcAutoRecruitService.ts:219-240`）、channelDelete 同期・起動クリーンアップも既存なので、**投稿の発火以外は全部既存が面倒を見る**。
 
@@ -202,16 +193,16 @@ VAC が建てた VC は ID が毎回新しく allowlist に入らないので、
 
 **依存なし。着手前に本番 DB の実測が要る。** 2026-09-18 決定。DM 通知トグル化と「メンバーログ: Bot の除外 ＋ 彩加によるキックの退出ログ抑止」の前提。
 
-**現状はサイレントキックが成立する。** `enable` は認証ロールと Bot の `KickMembers` しか見ておらず（`unverifiedKickSettingsCommand.simple.ts:289-311`）、`logChannelId` 未設定でも有効化できる。日次実行は「チャンネルが不正なら当該通知のみスキップ・キックは継続」の設計（`unverifiedKickRunner.ts:509`）なので、ログチャンネルが無いギルドではキックまとめがどこにも出ず、誰が消えたか記録が残らない。メンバーログが有効でも「退出」としか見えない。
+**現状はサイレントキックが成立する。** `enable` は認証ロールと Bot の `KickMembers` しか見ないため（`unverifiedKickSettingsCommand.simple.ts:289-311`）`logChannelId` 未設定でも有効化でき、日次実行は「チャンネルが不正なら当該通知のみスキップ・キックは継続」の設計（`unverifiedKickRunner.ts:509`）。ログチャンネルが無いギルドではキックまとめがどこにも出ず、メンバーログが有効でも「退出」としか見えない。
 
-**通知チャンネルは任意のまま。** 予告 DM は通知チャンネルと無関係に必ず送る設計（`unverifiedKickRunner.ts:577-579`）で、メンバー側のベースラインは既にある。「DM だけでいい」サーバーの選択も残す。ただし「DM 通知トグル化」で DM を切れるようにする時は、その時点で通知チャンネルも必須にする（DM-only 禁止の原則はあちらに書いてある）。
+**通知チャンネルは任意のまま。** 予告 DM は通知チャンネルと無関係に必ず送る設計で（`unverifiedKickRunner.ts:577-579`）メンバー側のベースラインは既にあり、「DM だけでいい」サーバーの選択も残す。ただし「DM 通知トグル化」で DM を切れるようにする時点で通知チャンネルも必須にする（DM-only 禁止の原則はあちら）。
 
 **やること**（既存の実行時無効化 `disableAndNotify` → `disableInvalid` を流用するので小さい）
 
 - [ ] **本番 DB で「enabled かつ `logChannelId` が null」の件数を実測する。** 0 なら誰にも見えない変更。いくつかあれば、その鯖は次回の日次実行で通知付きで止まるのでリリースノートに1行要る
 - [ ] `enable` 時に `logChannelId` 未設定なら ValidationError（認証ロール未設定と同じ扱い）
 - [ ] 日次実行時にログチャンネルが解決できなければ、認証ロール消失などと同じ `disableAndNotify` で無効化する。既存ギルドは次回実行で自動的にこの経路に乗るので migration も `disabledReason` の永続化も要らない
-- [ ] **無効化通知のフォールバック。** `disableAndNotify` は今ログチャンネルにしか送らず（`unverifiedKickRunner.ts:416-417`）、ログチャンネルが無い時は黙って止まる。guild-settings のエラーチャンネル（`notifyWarnChannel`）→ システムチャンネルの順で落とす。既存の「認証ロール消失で無効化」にも同じ穴があるので一緒に塞がる
+- [ ] **無効化通知のフォールバック。** `disableAndNotify` は今ログチャンネルにしか送らず（`unverifiedKickRunner.ts:416-417`）、無い時は黙って止まる。guild-settings のエラーチャンネル（`notifyWarnChannel`）→ システムチャンネルの順で落とす。既存の「認証ロール消失で無効化」にも同じ穴があるので一緒に塞がる
 - [ ] `clear-log-channel` は有効中なら拒否して「先に disable」と返す
 - [ ] web の PATCH で `enabled=true` の検証を揃える
 - [ ] ja/en ロケール・テスト
@@ -220,7 +211,7 @@ VAC が建てた VC は ID が毎回新しく allowlist に入らないので、
 
 ### タイマー / スケジューラ実装の整理 【実装・小〜中・リファクタ】
 
-**依存なし。** 2026-08-20 に棚卸し。時間で動くコードが `jobScheduler` と生 `setTimeout` に散っており、同じ「キー付きタイマー」を3通りの書き方で持っている。
+**依存なし。** 2026-08-20 に棚卸し。時間で動くコードが `jobScheduler` と生 `setTimeout` に散り、同じ「キー付きタイマー」を3通りの書き方で持っている。
 
 | 用途 | 実装 | 場所 |
 | --- | --- | --- |
@@ -235,31 +226,29 @@ VAC が建てた VC は ID が毎回新しく allowlist に入らないので、
 
 **やること**
 
-- [x] ~~**vc-recruit の手書き無効化2箇所を `disableComponentsAfterTimeout` に寄せる。**~~ → **VC募集機能の削除で不要になった**（2026-09-05）。共通関数の引数型を `ButtonInteraction` / `StringSelectMenuInteraction` へ広げる話も、他に手書き箇所が無くなるため保留
-- [ ] **`jobScheduler.stopAll()` を graceful shutdown に接続する。** 定義とテストだけがあり本番から呼ばれていない（`main.ts` の shutdown は `apiServer.close()` → `client.shutdown()` → `prisma.$disconnect()` のみ）。全ジョブが `unref()` 済みなのでプロセス終了は妨げないが、**シャットダウン中にジョブが発火しうる**
-- [ ] **スティッキー再送のデバウンスを `jobScheduler.addOneTimeJob` へ寄せる。** `addOneTimeJob` は同 ID を `replaceExistingJob` で置き換えるので、デバウンスそのものになる。ただし置換のたびに `system:scheduler.job_exists` の warn が出るため、**デバウンス用途で warn を抑止するオプションを先に足すこと**（無いまま寄せるとログが荒れる）
+- [x] ~~**vc-recruit の手書き無効化2箇所を `disableComponentsAfterTimeout` に寄せる。**~~ → **VC募集機能の削除で不要**（2026-09-05）。共通関数の引数型を `ButtonInteraction` / `StringSelectMenuInteraction` へ広げる話も、他に手書き箇所が無くなるため保留
+- [ ] **`jobScheduler.stopAll()` を graceful shutdown に接続する。** 定義とテストだけで本番から呼ばれていない（`main.ts` の shutdown は `apiServer.close()` → `client.shutdown()` → `prisma.$disconnect()` のみ）。全ジョブが `unref()` 済みなのでプロセス終了は妨げないが、**シャットダウン中にジョブが発火しうる**
+- [ ] **スティッキー再送のデバウンスを `jobScheduler.addOneTimeJob` へ寄せる。** 同 ID を `replaceExistingJob` で置き換えるのでデバウンスそのものになる。ただし置換のたびに `system:scheduler.job_exists` の warn が出るため、**デバウンス用途で warn を抑止するオプションを先に足すこと**（無いまま寄せるとログが荒れる）
 
 **判断が要るもの**
 
-- **bump-reminder の独自 Map 廃止はポーリング化に含める。** Map が持っているのは `jobId` と `reminderId` だけで、`jobId` は `toBumpReminderJobId(guildId, serviceName)` で決定的に再計算でき、`reminderId` は DB から引ける。**チケット自動削除は実際にこの形（決定的 jobId のみ・Map なし）で成立している。** ポーリング化を待たずに ticket 方式へ寄せることもできるが、二重作業を避けるためポーリング化の一部として扱う
+- **bump-reminder の独自 Map 廃止はポーリング化に含める**（→「bump-reminder のポーリング化」）。Map が持つのは `jobId` と `reminderId` だけで、`jobId` は `toBumpReminderJobId(guildId, serviceName)` で決定的に再計算でき、`reminderId` は DB から引ける。**チケット自動削除は実際にこの形（決定的 jobId のみ・Map なし）で成立している。** 先に ticket 方式へ寄せることもできるが、二重作業を避けるためポーリング化の一部として扱う
 - **`cooldownManager` と `TtlMap` の統合は見送り寄り。** どちらも「キー付き TTL エントリ」だが、`cooldownManager` は `commandName × userId` の二段 Map ＋ `expiresAt` 一致チェック（古いタイマーによる誤削除防止）を持ち、`TtlMap` に押し込むと機能が落ちる。やるなら `TtlMap` 側の拡張になるので**別タスク**
 
 ### `/bump-reminder-settings disable` が予約をキャンセルできていない 【実装・小・バグ】
 
 **依存なし。最小。** 2026-08-20 の棚卸しで発見（既存の記載なし）。
 
-> **要件は「disable したら予約が消えること」であって、`cancelAllForGuild` に差し替えることではない。** 実装手段はポーリング化の前後で変わるが、要件は変わらない（下記）。
+> **要件は「disable したら予約が消えること」**であって、`cancelAllForGuild` に差し替えることではない。実装手段はポーリング化の前後で変わるが、要件は変わらない（下記 ⚠️）。
 
-`handleBumpReminderSettingsDisable`（`src/features/bump-reminder/commands/bumpReminderSettingsCommand.disable.ts:29`）が `cancelReminder(guildId)` を呼んでいるが、実リマインダーは常に複合キー `"guildId:serviceName"` で登録される（`scheduleBumpReminder` は `serviceName` を必須引数で受け取る）。`toBumpReminderKey(guildId, undefined)` は素の `guildId` を返すため**完全一致照合が1件もヒットせず、タイマーが解除されない**。
-
-`f79d703` で reset 系3経路（reset-all / guildDelete / Web API）は `cancelAllForGuild` に差し替えたが、**disable だけ取り残されている。** `cancelAllForGuild` の JSDoc は「ギルド単位の後始末では必ず本メソッドを使うこと」と明記しており、それに違反している唯一の呼び出し元。
+`handleBumpReminderSettingsDisable`（`src/features/bump-reminder/commands/bumpReminderSettingsCommand.disable.ts:29`）が `cancelReminder(guildId)` を呼んでいるが、実リマインダーは常に複合キー `"guildId:serviceName"` で登録される（`scheduleBumpReminder` は `serviceName` を必須引数で受け取る）。`toBumpReminderKey(guildId, undefined)` は素の `guildId` を返すため**完全一致照合が1件もヒットせず、タイマーが解除されない**。`f79d703` で reset 系3経路（reset-all / guildDelete / Web API）は `cancelAllForGuild` に差し替えたが、**disable だけ取り残されている。** 「ギルド単位の後始末では必ず本メソッドを使うこと」と明記した `cancelAllForGuild` の JSDoc に違反している唯一の呼び出し元。
 
 **影響範囲**: 送信直前に `sendBumpReminder` が最新設定を再取得して `enabled=false` なら抑止するため、**無効化したまま誤送信されることはない**。実害が出るのは **disable → 予定時刻より前に enable し直した場合**で、解除されなかった旧タイマーがそのまま発火し、無効化前の bump に対するリマインダーが送られる。
 
 - [ ] `cancelReminder(guildId)` → `cancelAllForGuild(guildId)` に差し替え（`cancelAllForGuild` はメモリ解除と DB の `status=cancelled` を両方やるので、これ1本で足りる）
 - [ ] 回帰テストは **「disable 後にそのギルドの pending が残っていないこと」** を見る（メモリ上の Map を直接覗かない。ポーリング化で Map ごと消えてもテストが生き残る形にする）
 
-> ⚠️ **ポーリング化しても自動的には消えないバグ。** 消えるのは*メカニズム*（複合キー照合のすれ違い）だけで、*要件*は残る。ポーリング後は「`status=pending` かつ `scheduledAt <= now`」で拾う形になるため、**disable が pending 行を cancelled にしなければ、disable → 予定時刻前に enable で同じ症状が再現する。** その DB 側キャンセルこそ `bumpReminderRepository.cancelByGuild()` で、いま「デッドコードだから消す」候補に入っているもの。**ポーリング化の棚卸しで消すと決める前に、この経路の受け皿になるかを必ず確認すること。**
+> ⚠️ **ポーリング化しても自動的には消えないバグ。** 消えるのは*メカニズム*（複合キー照合のすれ違い）だけ。ポーリング後は「`status=pending` かつ `scheduledAt <= now`」で拾う形になるため、**disable が pending 行を cancelled にしなければ、disable → 予定時刻前に enable で同じ症状が再現する。** その DB 側キャンセルこそ `bumpReminderRepository.cancelByGuild()` で、ポーリング化タスクで「デッドコードだから消す」候補に入っているもの。**消すと決める前に、この経路の受け皿になるかを必ず確認すること。**
 
 ### Bot ステータスをサーバー参加・退出時に更新する 【実装・小】
 
@@ -270,8 +259,8 @@ VAC が建てた VC は ID が毎回新しく allowlist に入らないので、
 - [ ] ギルド参加時にプレゼンスを更新する
 - [ ] ギルド退出時にプレゼンスを更新する
 
-> **退出時データの遅延削除と実装が重なる。** 遅延削除も `guildCreate` ハンドラの新設を必要とするため、**先に着手したほうがハンドラを作り、もう一方はそこに乗せる**。二重に作らないこと。
-> `applyBotPresence` は `clientReadyHandler.ts` 内のプライベート関数なので、外から呼ぶには export するか共通モジュールへ切り出す必要がある。
+> **退出時データの遅延削除と実装が重なる。** あちらも `guildCreate` ハンドラの新設を必要とするため、**先に着手したほうがハンドラを作り、もう一方はそこに乗せる**（二重に作らない）。
+> `applyBotPresence` は `clientReadyHandler.ts` 内のプライベート関数なので、外から呼ぶには export するか共通モジュールへ切り出す。
 
 ### bump クールタイムを env に外出しし、サービスごとに分ける 【実装・小】
 
@@ -284,17 +273,16 @@ VAC が建てた VC は ID が毎回新しく allowlist に入らないので、
 
 ### ドキュメント整理（spec 廃止・guides 集約）
 
-`docs/specs/` の全ファイルを廃止し、維持すべき設計意図・非自明な境界条件・決定経緯を guides に集約する。
+`docs/specs/` を廃止し、維持すべき設計意図・非自明な境界条件・決定経緯を guides へ集約する。
 
-- [ ] 各 spec を精査し、guides に移す価値のある情報（設計根拠・非自明な境界条件・決定経緯）を特定する（**spec は削除済みのため `git show <commit>:docs/specs/<file>` で参照する**）
+- [ ] 各 spec を精査し、guides に移す価値のある情報を特定する（**spec は削除済みのため `git show <commit>:docs/specs/<file>` で参照する**）
 - [ ] 特定した情報を適切なガイドに追記（ARCHITECTURE.md / IMPLEMENTATION_GUIDELINES.md 等）
 
-> 2026-08-19 の監査で guides の事実誤り16件を修正し、`purgeGuildDataUsecase` 等の直近の設計も追記済み（HISTORY.md「完了済み」参照）。残るのは spec に埋もれている設計根拠の掘り起こしのみ。
-> `docs/specs/` の削除自体は完了済み（HISTORY.md「完了済み」参照）。
+> `docs/specs/` の削除と、2026-08-19 の監査による guides の事実誤り16件修正・`purgeGuildDataUsecase` 等の直近設計の追記は完了済み（HISTORY.md「完了済み」参照）。残るのは spec に埋もれている設計根拠の掘り起こしのみ。
 
 ### ダッシュボード 【UI層・web リポジトリ】
 
-**詳細と実装範囲は [web/TODO.md](../web/TODO.md) 側に記載する**（web リポジトリ単独で完結し、saika のコアには影響しないため）。ここは索引。
+**索引のみ。詳細と実装範囲は [web/TODO.md](../web/TODO.md) 側**（web 単独で完結し saika のコアに影響しないため）。
 
 - リアクションロール：ロール未設定で保存できる問題（バリデーション＋警告）
 - カスタムメッセージのプレビュー機能
@@ -311,62 +299,73 @@ VAC が建てた VC は ID が毎回新しく allowlist に入らないので、
 
 **機能削除の完了待ち。** 削除する2機能ぶん23件が先に消えるので、後にやるほど対象が減る。
 
-2026-09-05 に全名前空間をスキャンし、**未使用候補88件**を検出（代表4件を実地検証し、ロケール定義にしか存在しないことを確認済み）。全体は1000件超なので約8%。
+2026-09-05 に全名前空間をスキャンし**未使用候補88件**（全体1000件超の約8%）を検出。代表4件はロケール定義にしか存在しないことを実地検証済み。
 
 | 名前空間 | 未使用 / 全体 | 中身 |
 | --- | ---: | --- |
-| **system** | 33 / 135 | `web.*` 16件（**Web API の認証・セッションのメッセージが丸ごと**）/ `database.*` 8件（旧 DB ロギング層）/ `log_prefix.*` 7件 / `shutdown.*` 2件 |
+| **system** | 33 / 135 | `web.*` 16件（**Web API の認証・セッションが丸ごと**）/ `database.*` 8件（旧 DB ロギング層）/ `log_prefix.*` 7件 / `shutdown.*` 2件 |
 | **common** | 9 / 66 | `database.*` 6件（system と対）/ `validation.error_title` / `general.error_title` / `title_move_failed` |
-| vcAutoRecruit | 13 / 88 | カテゴリ系12 ＋ `log.post_failed`（→「VC自動募集のカテゴリ残骸とデッドコードの撤去」に含む） |
+| vcAutoRecruit | 13 / 88 | カテゴリ系12 ＋ `log.post_failed`（→「VC自動募集のカテゴリ残骸とデッドコードの撤去」） |
 | vcRecruit | 11 / 128 | 機能ごと消えるので対象外 |
-| bumpReminder | 5 / 85 | **`user-response.reminder_message_disboard` / `dissoku`**（リマインダー本文そのもの）/ `embed.description.config_view` ほか |
+| bumpReminder | 5 / 85 | **`user-response.reminder_message_disboard` / `dissoku`**（リマインダー本文）/ `embed.description.config_view` ほか |
 | messageDelete / stickyMessage / ticket | 各 3 | |
 | vac | 3 | トリガー設定系の残骸（`user-response.trigger_not_found` / `embed.title.remove_error` / `embed.field.name.created_vcs`）。VAC は残すので (a) として撤去 |
 | afk / memberLog | 各 2 | |
 | reactionRole | 1 | |
 
-**注意: 残骸と実装漏れは見分けが要る。** 未使用キーは「消し忘れ」とは限らず、「本来使うはずが繋がっていないバグ」の可能性がある。bump-reminder のリマインダー本文2種が未使用なのは特に疑わしい。
+**注意: 残骸と実装漏れは見分けが要る。** 未使用＝消し忘れとは限らず、繋がっていないバグ（下記 (c)）の可能性がある。bump-reminder のリマインダー本文2種は特に疑わしい。
 
 **やること**
 
-- [ ] 削除機能ぶん23件を除いた**65件**を3分類する。**(a) 残骸**（実装もマニュアル記載も無い → 撤去するだけ・判断不要）／**(b) 仕様判断**（実装は無いがマニュアルに載っている → 復活か仕様ごと廃止かを決める）／**(c) 実装漏れ**（実装は生きているのにキーが使われていない → **バグ**）
+- [ ] 削除機能ぶん23件を除く**65件**を3分類する。**(a) 残骸**（実装もマニュアル記載も無い → 撤去するだけ）／**(b) 仕様判断**（実装は無いがマニュアルに載っている → 復活か仕様ごと廃止か）／**(c) 実装漏れ**（実装は生きているのにキーが未使用 → **バグ**）
 - [ ] (b)(c) だけを一覧にして判断を仰ぐ。(a) は件数と一覧の提示のみで1件ずつ議論しない
-- [ ] (c) はバグ修正として切り出す（`system:web.*` 16件は、認証エラー応答が英語ハードコードになっていれば i18n 漏れ）
+- [ ] (c) はバグ修正として切り出す（`system:web.*` 16件は、認証エラー応答が英語ハードコードなら i18n 漏れ）
 - [ ] ja / en 両方から撤去し、テストを通す
 
-> **判定基準は `docs/guides/USER_MANUAL.md`。** specs は削除済みで、現行仕様の一次情報源はこれしかない。2026-08-19 に実装との乖離を突き合わせ済みなので基準として使える。
-> ロケールキーからは出てこない乖離（マニュアルにあるのに実装に無い）は、この作業の後に別途洗う。
+> **判定基準は `docs/guides/USER_MANUAL.md`。** specs 削除済みで現行仕様の一次情報源はこれだけ。2026-08-19 に実装との乖離を突き合わせ済み。
+> マニュアルにあるのに実装に無い乖離は、この作業の後に別途洗う。
 
-### ファイル冒頭の古いパスコメント一括修正 【実装・小】
+### ファイル冒頭のパスコメントを廃止する 【実装・小】
 
-**機能削除の完了待ち。** 削除する3機能のファイルも対象に含まれるため、先に消せばその分減る。
+**機能削除の完了待ち。** 削除する3機能のファイルも対象なので、先に消せばその分減る。
 
-ディレクトリ再編（2026-05-29 完了）の追従漏れで、**196ファイル**が冒頭コメントに旧パス `// src/bot/features/...` を書いている（実際は `src/features/...`）。`src/features/` 配下のほぼ全域。
+**直すのではなく消す**（2026-09-20 決定）。ディレクトリ再編（2026-05-29 完了）の追従漏れで **802ファイル中439件、55%が実際の位置と違うパス**を書いている。4か月直らないのは移動のたびに人が手で追従させる仕組みしか無いためで、直しても再発する。パスはエディタのタブ・パンくず・ファイルツリーが常に正確に出すので、ファイル内に持つ価値がない。
 
-- [ ] `sed` で一括置換し、typecheck / lint / test を通す
+**2行目の説明行は残す。** 移動しても腐らず、開いた瞬間に役割が分かる。実装ガイドラインの規約も「ファイル先頭で**何のファイルか**を明記する」で、パスはコード例に含まれているだけ。
 
-> **ゼロリスクだが単独でコミットする。** 他の変更と混ぜると差分が196ファイルに埋もれてレビュー不能になる。
+```ts
+// src/features/foo/fooService.ts      ← 消す（位置とずれる）
+// Foo機能の業務ロジックを担当するサービス  ← 残す
+```
+
+- [ ] `sed` で1行目のパスコメントを一括削除し、typecheck / lint / test を通す
+- [ ] **説明行を持たない269ファイル**（大半がテスト）は冒頭コメントごと消える。テストは `describe` が対象を書いているので二重
+- [ ] `IMPLEMENTATION_GUIDELINES.md` のコード例からパス行を削る
+- [ ] `TESTING_GUIDELINES.md` のコメント規約表からファイル先頭の行を削る（現状 `// tests/path/to/file.test.ts` を必須と明記）
+
+> **ゼロリスクだが単独でコミットする。** 他の変更と混ぜると差分が800ファイルに埋もれてレビュー不能になる。
+> 実測値は `pnpm` 環境で全 `.ts` の1行目を走査したもの（2026-09-20）。
 
 ### パッケージ更新 【保守・中】
 
-**掃除の完了待ち。** 消す予定のコードを型エラー修正やテスト移行の対象にするのは丸ごと無駄になるため（→「進め方」）、機能削除とデッドコード撤去が終わってから着手する。2026-09-20 に棚卸し。
+**掃除の完了待ち。** 消す予定のコードを型エラー修正やテスト移行の対象にするのは丸ごと無駄（→「進め方」）。機能削除とデッドコード撤去の後。2026-09-20 に棚卸し。
 
 **掃除を待つ理由があるのは2件だけ。**
 
-- [ ] **vitest 4 → 5 ＋ @vitest/coverage-istanbul 4 → 5**（必ず同時）。vitest 5 は coverage の include/exclude をプロジェクトルート相対の厳密マッチに変える。`vitest.config.ts` の `src/bot/features/**` 系は該当ディレクトリが存在せず既に死んでいるため、厳密マッチ化でカバレッジの分母が動く。3機能の削除も同じ閾値を動かすので、先に上げると閾値調整が2回発生し、同一 PR に混ぜると閾値割れの原因を切り分けられない
-- [ ] **typescript 6 → 7**。TS 7 が削除した `baseUrl` / `target:es5` / `moduleResolution:node10` はどれも未使用で、`erasableSyntaxOnly` と `isolatedDeclarations` は「TS 7 対応」として有効化済み。移行コストは残っておらず、比例するのは新規に出る型エラーの修正だけ。急ぐ理由が無いので掃除の後でよい
+- [ ] **vitest 4 → 5 ＋ @vitest/coverage-istanbul 4 → 5**（必ず同時）。vitest 5 は coverage の include/exclude をプロジェクトルート相対の厳密マッチに変える。`vitest.config.ts` の `src/bot/features/**` 系は該当ディレクトリが無く既に死んでいるので、厳密マッチ化で分母が動く。3機能の削除も同じ閾値を動かすため、先に上げると閾値調整が2回発生し、同一 PR に混ぜると閾値割れの原因を切り分けられない
+- [ ] **typescript 6 → 7**。TS 7 が削除した `baseUrl` / `target:es5` / `moduleResolution:node10` はどれも未使用、`erasableSyntaxOnly` と `isolatedDeclarations` は「TS 7 対応」として有効化済み。残るコストは新規に出る型エラーの修正だけで、急ぐ理由も無いので掃除の後でよい
 
 **掃除を待っても作業量が変わらないもの**（掃除と1ファイルも重ならない。掃除の途中で入れてよい）
 
-- [ ] ランタイムの minor / patch を1 PR（fastify / prisma 3点は必ず同時 / discord.js / pg / jose / i18next / zod / node-cron / @fastify/cookie / @fastify/cors）。discord.js 14.27.0 は undici の厳密固定を緩めるので `pnpm audit` のノイズが減る。prisma 系は Dockerfile 内で `prisma generate` が走るため `docker build` ＋ `docker run` の実機検証が要る
-- [ ] dev 依存を1 PR（biome / commitlint 2点 / lint-staged / tsx / @types/pg）。Dockerfile の runner が `--prod` で落とすので本番イメージは1バイトも変わらない。biome は `biome.json` が `"recommended": false` で有効ルールを明示列挙しているため、パッチ更新で新ルールが既存コードに発火しない
-- [ ] **`@types/node` を 25 系から 24 系（24.13.6）へ引き下げる。** Node 25 は 2026-06-01 に EOL で、実行環境は Node 24 LTS（`node:24-slim` / `engines >=24`）。型定義だけ死んだ系列を指している。26 に上げると逆に Node 24 に無い API の型が通る
-- [ ] dotenv 17 → 18（単独 PR）。削除されたのは `node -r` プリロードと .env.vault で、使っている `"dotenv/config"` サブパスは v18 にも残る。使用箇所は `env.ts` と `prisma.config.ts` の2ファイルのみ。major かつランタイムなので他と混ぜない。**着手前に CHANGELOG を1度確認する**（未検証）
+- [ ] ランタイムの minor / patch を1 PR（fastify / prisma 3点は必ず同時 / discord.js / pg / jose / i18next / zod / node-cron / @fastify/cookie / @fastify/cors）。discord.js 14.27.0 は undici の厳密固定を緩め `pnpm audit` のノイズが減る。prisma 系は Dockerfile 内で `prisma generate` が走るので `docker build` ＋ `docker run` の実機検証が要る
+- [ ] dev 依存を1 PR（biome / commitlint 2点 / lint-staged / tsx / @types/pg）。Dockerfile の runner が `--prod` で落とすので本番イメージは1バイトも変わらない。biome は `biome.json` が `"recommended": false` で有効ルールを明示列挙しており、パッチ更新で新ルールが既存コードに発火しない
+- [ ] **`@types/node` を 25 系から 24 系（24.13.6）へ引き下げる。** Node 25 は 2026-06-01 に EOL、実行環境は Node 24 LTS（`node:24-slim` / `engines >=24`）で、型定義だけ死んだ系列を指している。26 に上げると逆に Node 24 に無い API の型が通る
+- [ ] dotenv 17 → 18（単独 PR）。削除されたのは `node -r` プリロードと .env.vault で、使っている `"dotenv/config"` サブパスは v18 にも残る。使用箇所は `env.ts` と `prisma.config.ts` の2ファイル。major かつランタイムなので他と混ぜない。**着手前に CHANGELOG を1度確認する**（未検証）
 
 **期日が外部で決まるもの**
 
-- [ ] **Node 24 → 26**。26 の LTS 入りは **2026-10-28**。それまでは上げない。上げるときは `.node-version`（CI 2ワークフローと mise が参照）・Dockerfile の2箇所・`engines`・`@types/node` を1つの PR でまとめ、`docker build` ＋ `docker run` でフル起動まで確認する
-- [ ] **prisma 8**。現在の最新は `8.0.0-rc.15` で RC。本番稼働中の Bot に RC は入れない。GA は2026年10月予定。上げるときは `prisma` / `@prisma/client` / `@prisma/adapter-pg` を必ず3点同時に
+- [ ] **Node 24 → 26**。26 の LTS 入りは **2026-10-28** で、それまで上げない。`.node-version`（CI 2ワークフローと mise が参照）・Dockerfile の2箇所・`engines`・`@types/node` を1 PR にまとめ、`docker build` ＋ `docker run` でフル起動まで確認する
+- [ ] **prisma 8**。最新は `8.0.0-rc.15` で RC。本番稼働中の Bot に RC は入れない。GA は2026年10月予定。`prisma` / `@prisma/client` / `@prisma/adapter-pg` を必ず3点同時に
 
 > **Coolify のビルドは1本ずつ。** develop に複数 PR を積んでも、main へのリリースは1回にまとめる。
 > **`@fastify/rate-limit` の CVE 対応はこのタスクに含めない。** 脆弱性なので掃除を待たず、版上げとレート制限キーの修正をまとめた別タスクとして扱う（2026-09-20 時点で起票待ち・着手順を要判断）。
@@ -375,30 +374,30 @@ VAC が建てた VC は ID が毎回新しく allowlist に入らないので、
 
 **未決**: 猶予日数 ／ Guild 親テーブル（→「未決（判断が要る）」）。**決まるまで着手できない。**
 
-`guildDelete` 時に `deleteAllSettings()` を即実行せず、削除予約を入れて猶予後に実行する。「Botの再招待は破壊的操作ではない」というユーザーの当たり前の期待に実装を合わせる話。
+`guildDelete` 時に `deleteAllSettings()` を即実行せず、削除予約を入れて猶予後に実行する。「Botの再招待は破壊的操作ではない」というユーザーの期待に実装を合わせる。
 
 **セットで必要になるもの**
 
 - [ ] **guildCreate ハンドラの新設**（**現状存在しないことを確認済み**）。再導入時に予約をキャンセルしないと、生きている設定が期限後に消える
 - [ ] プライバシーポリシーへの保持期間明記
-- [ ] **導入時オンボーディングDM** — 「外した場合、設定はN日間保持されます」を含む。役割は「告知した事実を作ること」で期待値は低くていい。**凝りすぎないこと**
+- [ ] **導入時オンボーディングDM** — 「外した場合、設定はN日間保持されます」を含む。役割は告知した事実を作ることで、期待値は低くていい。**凝りすぎないこと**
 - [ ] **再導入時DM** — 「設定は残っています」。**価値の重心はここ。**「◯月◯日に消えます」と実際の日時を出す
 - 送信先は **DM のみ。チャンネルには送らない**（`systemChannel` が null のサーバーで当てずっぽうのチャンネルに長文が出るため）
 - DM の宛先解決はその場で行い、**userId を永続化しない**
 
-> **DM の宛先は `guild.ownerId` で確定。** `INVITE_PERMISSIONS`（`src/api/routes/bot.ts:29`）に `ViewAuditLog` が**含まれていない**ことを 2026-08-19 に確認済みで、監査ログの BOT_ADD から導入者を特定する経路は使えない。最小権限方針を維持する以上、オーナー宛が整合する。
+> **DM の宛先は `guild.ownerId` で確定。** `INVITE_PERMISSIONS`（`src/api/routes/bot.ts:29`）に `ViewAuditLog` が**無い**ことを 2026-08-19 に確認済みで、監査ログの BOT_ADD から導入者は特定できない。最小権限方針を維持する以上オーナー宛が整合する。
 
 **設計上の罠**
 
-> **遅延削除は「データの削除」を遅らせるが、「実行中のジョブの停止」は遅らせてはいけない。** 猶予期間中 Bot はそのギルドに居ないので、ジョブが生きていると送信に失敗してエラーログを吐き続ける。**退出時にジョブは即停止、データは猶予後に削除。**
+> **遅延削除は「データの削除」を遅らせるが、「実行中のジョブの停止」は遅らせてはいけない。** 猶予期間中 Bot はそのギルドに居ないので、ジョブが生きているとエラーログを吐き続ける。**退出時にジョブは即停止、データは猶予後に削除。**
 
-**棚卸しへの影響**: `purgeGuildDataUsecase` は reset-all 経路で**残る**（即時削除は消えないため）。遅延削除で変わるのは「`guildDelete` から呼ぶ経路」だけ。
+**棚卸しへの影響**: `purgeGuildDataUsecase` は reset-all 経路で**残る**（即時削除は消えない）。変わるのは「`guildDelete` から呼ぶ経路」だけ。
 
 ### export / import の削除 【実装】
 
 **退出時データの遅延削除の完了待ち。** 順序を逆にしないこと。
 
-[決定事項](#exportimport-は廃止する2026-08-19-決定)に基づき、export / import 機能を削除する。**Bot コマンド専用機能で Web API からは使われていない**ため（2026-08-19 確認）、削除範囲はダッシュボードに波及しない。
+[決定事項](#exportimport-は廃止する2026-08-19-決定)に基づき削除する。**Bot コマンド専用で Web API からは使われていない**ため（2026-08-19 確認）、ダッシュボードには波及しない。
 
 **削除対象**
 
@@ -412,33 +411,33 @@ VAC が建てた VC は ID が毎回新しく allowlist に入らないので、
 
 **残すもの**: `serializers/guildSettingsSerializer.ts` は `guildSettingsCoreUsecases` から使われており export とは無関係。
 
-**マニュアル**: 「設定をエクスポートする」「設定をインポートする」セクションを削除し、「⚠️ Bot をサーバーから除外する場合」を**遅延削除の説明に書き換える**（ドキュメント修正で直した export 記述はここで消える）。
+**マニュアル**: 「設定をエクスポートする」「設定をインポートする」の削除と「⚠️ Bot をサーバーから除外する場合」の**遅延削除の説明への書き換え**は「マニュアル全面修正」でまとめて行う（ドキュメント修正で直した export 記述はここで消える）。
 
-> **既知の未修正バグ（削除により解消）**: `getFullSettings` は `GuildSettings` 行が無いと即 `null` を返すため（`guildSettingsAggregateRepository.ts:93-94`）、`/guild-settings set-locale` も `set-error-channel` も実行していないギルドでは、他9機能が設定済みでも export が「設定がありません」で失敗する。**削除するため修正しない方針**だが、遅延削除の実装までの期間は「除外前に export しようとして失敗 → 設定が無いと誤解 → そのまま Bot を外してデータ消失」という導線が残る。遅延削除が長引く場合は暫定修正を検討する。
+> **既知の未修正バグ（削除により解消）**: `getFullSettings` は `GuildSettings` 行が無いと即 `null` を返すため（`guildSettingsAggregateRepository.ts:93-94`）、`/guild-settings set-locale` も `set-error-channel` も未実行のギルドでは、他9機能が設定済みでも export が「設定がありません」で失敗する。**削除するため修正しない方針**だが、遅延削除までは「除外前に export 失敗 → 設定が無いと誤解 → そのまま Bot を外してデータ消失」の導線が残る。長引く場合は暫定修正を検討。
 
 ### キック機能の DM 通知トグル化 【実装】
 
 **未承認キックのログチャンネル必須化の完了待ち。** 指示書: Notion「Saika キック機能 DM通知トグル化 実装計画」
 
-> ⚠️ **非アクティブ自動キックの削除で作業量が半減する（2026-09-05）。** トグル4本 → 2本。「非アクティブ側の DM 送信実装」は丸ごと不要になり、未承認側は `sendWarnDms` が実装済みなのでトグルを被せるだけになる。**着手前に指示書の前提を読み直すこと。**
+> ⚠️ **非アクティブ自動キックの削除で作業量が半減する（2026-09-05）。** トグル4本 → 2本。「非アクティブ側の DM 送信実装」は丸ごと不要になり、未承認側は `sendWarnDms` が実装済みなのでトグルを被せるだけ。**着手前に指示書の前提を読み直すこと。**
 
-未承認・非アクティブの両キック機能に DM 通知の on/off トグルを追加する。事前通知のベースラインは**通知チャンネル（必須）**で、DM は**到達率ブーストの上乗せオプション**という位置づけ。**DM-only 構成は許可しない**（DM は相手の設定次第で送信行為自体が成立せず、予告の基盤にできないため）。
+未承認・非アクティブの両キック機能に DM 通知の on/off トグルを追加する。事前通知のベースラインは**通知チャンネル（必須）**、DM は**到達率ブーストの上乗せオプション**。**DM-only 構成は許可しない**（DM は相手の設定次第で送信行為自体が成立せず、予告の基盤にできないため）。
 
 > ⚠️ **着手前に前提を必ず確認すること。** 指示書は「`enabled=true` に `notifyChannelId` / `logChannelId` の両方必須」を前提としているが、必須化タスク（2026-09-18）で必須にするのは**ログチャンネルだけ**。通知チャンネルの必須化は**本タスクに含める**。**通知チャンネル必須のバリデーションが無いまま DM トグルを入れると、通知チャンネル未設定 + DM オフで「誰にも予告が届かないままキックされる」構成が作れてしまう。**
 
 **この順に上から実装する**（1つ = 1 PR）
 
 - [ ] **トグル4本の追加**（警告 DM / キック時 DM × 未承認 / 非アクティブ）。**デフォルトは現状の振る舞いを再現する値**にする（未承認の警告 DM のみ true、他3本は false）。非アクティブ側を true にすると**アップデートした瞬間に既存サーバーで突然 DM が飛び始める**ため厳禁
-- [ ] **非アクティブ側の DM 送信実装**（未承認側は `sendWarnDms` が実装済みでトグルを被せるだけ。非アクティブ側は新規）。**逐次 `for...await` を踏襲し `Promise.all` の一斉送信は禁止**
+- [ ] **非アクティブ側の DM 送信実装**（未承認側は `sendWarnDms` 済みでトグルを被せるだけ、非アクティブ側は新規）。**逐次 `for...await` を踏襲し `Promise.all` の一斉送信は禁止**
 - [ ] **DM 不達まとめログ**（logChannel へ日次集約 Embed）。現状 `catch(() => {})` で失敗を握りつぶしており**不達情報がコード上に存在しない**ため、収集する形に変えるところから
 - [ ] **ja/en locale ・ マニュアル修正**
 
 **落としてはいけない原則**
 
-- **「送信試行 = 警告済み」**（DM の成否ではなく試行で警告済みを立てる）。未承認側は既にこの方針で実装済みで、非アクティブ側に踏襲するだけ。**不達を検知できるようになっても変えないこと**（DM 拒否がキック回避策になる）
+- **「送信試行 = 警告済み」**（DM の成否ではなく試行で警告済みを立てる）。**不達を検知できるようになっても変えないこと**（DM 拒否がキック回避策になる）
 - 警告は**到達保証ではなくベストエフォート**。長い猶予期間が本来のセーフティネットで、警告は補助
 
-> **export/import 削除との順序に注意。** 指示書は「エクスポートの3点セットを必ず更新」「バージョン互換を保て」と指示しているが、**export/import 削除が先に完了していればこの作業は丸ごと不要**になる。着手時点でどちらが済んでいるかを確認すること。
+> **export/import 削除との順序に注意。** 指示書は「エクスポートの3点セットを必ず更新」「バージョン互換を保て」と指示しているが、**export/import 削除が先に完了していればこの作業は丸ごと不要**。着手時点でどちらが済んでいるかを確認すること。
 
 **未決**: DM 設計の詰め残し4件（→「未決（判断が要る）」）。前提が済んでも、これが決まらないと実装に入れない。
 
@@ -450,7 +449,7 @@ VAC が建てた VC は ID が毎回新しく allowlist に入らないので、
 
 - [ ] `guildMemberAddHandler.ts` / `guildMemberRemoveHandler.ts` の冒頭で `member.user.bot` ならスキップ
 
-> 今は Bot の参加・退出も全部出る。招待リンクは Bot が使わないので「不明」か同時に入った人間の招待を誤って拾い、アカウント年齢・滞在期間も Bot には意味が無い。Bot の追加・削除は管理者しかできず Discord の監査ログにも残る。トグルにすると DB 列・shared・web UI・サブコマンド・ロケールが要るので**2行のスキップで済ませる**。欲しいサーバーが出たらその時にトグルを足す。他サーバーの挙動も変わるのでマニュアルとリリースノートに1行書く。
+> 今は Bot の参加・退出も全部出る。招待リンクは Bot が使わないので「不明」か同時に入った人間の招待を誤って拾い、アカウント年齢・滞在期間も Bot には無意味。Bot の追加・削除は管理者しかできず Discord の監査ログにも残る。トグルにすると DB 列・shared・web UI・サブコマンド・ロケールが要るので**2行のスキップで済ませる**。欲しいサーバーが出たら足す。他サーバーの挙動も変わるのでマニュアルとリリースノートに1行書く。
 
 **彩加によるキックの退出ログ抑止**
 
@@ -459,24 +458,24 @@ VAC が建てた VC は ID が毎回新しく allowlist に入らないので、
 - [ ] メンバーログの退出ハンドラは載っていればスキップする
 - [ ] テスト: 未承認キックで退出 Embed が出ない／通常退出では出る／60秒過ぎたら通常どおり
 
-> 今は `member.kick()` のあと guildMemberRemove が来て、メンバーログの退出 Embed と未承認キックのキックまとめが両方出る。必須化でキックまとめが必ずログチャンネルに出るようになるので、退出 Embed 側を黙らせて1回にする。**必須化より先に入れる場合は「ログチャンネルが解決できた時だけ登録する」の条件が要る**（無いと、ログチャンネル未設定のサーバーでキックがどこにも残らない）。
+> 今は `member.kick()` のあと guildMemberRemove が来て、退出 Embed とキックまとめが両方出る。必須化でキックまとめが必ずログチャンネルに出るようになるので、退出 Embed 側を黙らせて1回にする。**必須化より先に入れる場合は「ログチャンネルが解決できた時だけ登録する」条件が要る**（無いと、ログチャンネル未設定のサーバーでキックがどこにも残らない）。
 
 ### bump-reminder のポーリング化 【実装】
 
 **未決**: 遅すぎる通知の上限値（→「未決（判断が要る）」）。**決まるまで着手できない。**
 
-動機はバグ修正ではなく**構造の単純化とメンテナンス性**。復元まわりは調査の結果ちゃんと作られていた。「キャンセルが2つある」構造上の問題の解消が本来の目的。
+動機はバグ修正ではなく**構造の単純化とメンテナンス性**。復元まわりは調査の結果ちゃんと作られており、本来の目的は「キャンセルが2つある」構造上の問題の解消。
 
 **やること**: ①一定間隔で回るジョブを1本立てる ②「status=pending かつ scheduledAt <= 今」を拾う（上限は未決事項で決める値で範囲指定） ③送信する ④status を sent にする
 
 **消えるもの**: メモリ上の `Map<string, ScheduledReminderRef>` / `restorePendingReminders` / `cancelScheduledReminder` / `cancelReminder` と `cancelByGuild` の使い分け
 
-> **独自 Map の廃止は「タイマー / スケジューラ実装の整理」から切り出してここに寄せている。** bump-reminder だけが `jobScheduler` に独自 Map を重ねており、チケット自動削除は決定的 jobId のみで同じことを実現できている。ポーリング化を採らない判断になった場合でも、**ticket 方式へ寄せるだけで Map は消せる**（その場合は整理タスク側へ戻す）。
+> **独自 Map の廃止は「タイマー / スケジューラ実装の整理」から切り出してここに寄せた。** bump-reminder だけが `jobScheduler` に独自 Map を重ねており、チケット自動削除は決定的 jobId のみで同じことを実現できている。ポーリング化を採らない判断になっても**ticket 方式へ寄せるだけで Map は消せる**（その場合は整理タスク側へ戻す）。
 
 **移行時に落としてはいけないもの**
 
 - 期限切れの即時実行 → クエリ条件が等価になる。楽
-- **重複の正規化**（同一 guild+service の pending を最新1件に）→ 現在はメモリ上の Map が担保している。**DB側で担保し直す必要がある。最大の移行ポイント**（`serviceName` が nullable な点に注意）
+- **重複の正規化**（同一 guild+service の pending を最新1件に）→ 現在はメモリ上の Map が担保。**DB側で担保し直すのが最大の移行ポイント**（`serviceName` が nullable な点に注意）
 - 遅すぎるものの扱い → 未決事項の上限値
 - **送信失敗時の status 更新 → 新方式で新たに必要。**更新しないと永久に拾い続ける
 - **disable / reset で予約をキャンセルすること** → メモリ解除が無くなる分、DB 側で `pending` → `cancelled` にしないと「無効化 → 予定時刻前に再有効化」で古い予約が発火する。「`/bump-reminder-settings disable` が予約をキャンセルできていない」を参照
@@ -485,7 +484,7 @@ VAC が建てた VC は ID が毎回新しく allowlist に入らないので、
 
 **同時に棚卸しするデッドコード**（2026-08-19 確認）
 
-- `bumpReminderRepository.cancelByGuild()` — 本番コードからの呼び出し**ゼロ**。`BumpReminderManager.cancelAllForGuild` は Manager 側の別物で、これを置き換えてはいない。⚠️ **ただしポーリング化後の disable / reset は「DB の pending を cancelled にする」ことが必要になり、それはこのメソッドそのもの。消す前に受け皿の要否を判断すること**
+- `bumpReminderRepository.cancelByGuild()` — 本番コードからの呼び出し**ゼロ**。`BumpReminderManager.cancelAllForGuild` は Manager 側の別物で、これを置き換えてはいない。⚠️ **ただし上記の「DB 側で pending を cancelled にする」受け皿がこのメソッドそのもの。消す前に要否を判断すること**
 - `bumpReminderRepository.cancelByGuildAndChannel()` — **同じく呼び出しゼロ**
 - 追従漏れバグ修正で新設した `cancelAllForGuild` もポーリング化で不要になりうる
 
@@ -496,7 +495,7 @@ Bot 名義で任意のメッセージ（プレーンテキスト / embed）を�
 **既にある資産**
 
 - Bot 側のモーダル入力は前例多数（`stickyMessageSet` / `reactionRoleSettingsSetup` / `vcAutoRecruitSettingsCommand.setMessage` 等）
-- web 側は `components/embed/EmbedEditor.tsx` / `EmbedPreview.tsx` が既にあり、sticky / tickets / reaction-roles の3ページで使用中。**embed 編集 UI は流用できる**
+- web 側は `components/embed/EmbedEditor.tsx` / `EmbedPreview.tsx` が sticky / tickets / reaction-roles の3ページで使用中。**embed 編集 UI は流用できる**
 
 **未決**: 設計4件（→「未決（判断が要る）」）。決まるまで作業範囲を切れない。
 
@@ -526,7 +525,7 @@ Bot 名義で任意のメッセージ（プレーンテキスト / embed）を�
 
 ### マニュアル全面修正 【文書・大】
 
-**機能削除・掃除・リファクタ・改善がすべて終わってから、まとめて1回**（→「進め方」）。2026-09-05 に方針変更し、それまで機能ごとに分散していたマニュアル修正タスクをここへ集約した。
+**機能削除・掃除・リファクタ・改善がすべて終わってから、まとめて1回**（→「進め方」）。2026-09-05 に機能ごとのマニュアル修正タスクをここへ集約した。
 
 **削除で落ちる分だけで全体（約1750行）の約30%。**
 
@@ -541,14 +540,14 @@ Bot 名義で任意のメッセージ（プレーンテキスト / embed）を�
 - [ ] 削除3機能のセクションと FAQ 項目を落とす
 - [ ] 「機能一覧」（47-66）と「Botに必要なサーバー権限」（27-46）から該当記述を削除
 - [ ] `/afk` の変更を反映（target 必須化・自分を飛ばす用途の廃止・既定は `MoveMembers` 持ちのみ）。`/vc` 削除で部屋の作成者が同席者を切断できなくなる点（管理者に依頼）も書く
-- [ ] **「コマンドの利用権限を変えたい」の節を新設**（2026-09-09）。Discord の サーバー設定 → 連携サービス → 彩加 → コマンド で、ロール・メンバー・チャンネル単位に許可／拒否できることを説明する。**Bot 側の既定（`setDefaultMemberPermissions`）はこの画面では表示されず、管理者の上書きだけが表示される**点も書く。例は `/afk`（既定はモデレーター専用 → 「VC 係」ロールに `MoveMembers` を付けずに `/afk` だけ許可する手順）。設定系コマンドを特定ロールに委任する場合も同じ手順であることを添える
+- [ ] **「コマンドの利用権限を変えたい」の節を新設**（2026-09-09）。Discord の サーバー設定 → 連携サービス → 彩加 → コマンド でロール・メンバー・チャンネル単位に許可／拒否できることと、**Bot 側の既定（`setDefaultMemberPermissions`）はこの画面には表示されず、管理者の上書きだけが表示される**点を書く。例は `/afk`（既定はモデレーター専用 → 「VC 係」ロールに `MoveMembers` を付けずに `/afk` だけ許可する手順）。設定系コマンドを特定ロールに委任する場合も同じ手順であることを添える
 - [ ] VC自動募集の変更を反映（入室デバウンス・VAC 作成 VC の募集ボタン。カテゴリ記述が残っていれば削除）
 - [ ] export / import のセクションを削除し「⚠️ Bot をサーバーから除外する場合」を**遅延削除の説明に書き換える**（→「export / import の削除」）
 - [ ] 未承認キックのログチャンネル必須化を実施した場合はその差分（`enable` にログチャンネル必須・有効中の `clear-log-channel` 拒否・未設定時の自動無効化と通知先）。メンバーログの Bot 除外とキック時の退出ログ抑止も反映。**実装後のコードを実際に読んで確認してから書くこと**
 - [ ] 冒頭の「最終更新」日付を更新
 
-> **ついでに招待 URL の権限（`INVITE_PERMISSIONS`）を見直せる。** 3機能が消えて不要になる権限があるかもしれない。ただし削除完了後に何が実際に不要になったか確定してから。
-> **`/help` のコマンド一覧はコード側**なので、各削除タスクで自動的に正しくなる。マニュアルだけが遅れる形になるが、削除3機能は他鯖で使われていないため実害はない。
+> **ついでに招待 URL の権限（`INVITE_PERMISSIONS`）を見直せる。** 3機能が消えて不要になる権限があるかもしれない。ただし削除完了後に何が不要になったか確定してから。
+> **`/help` のコマンド一覧はコード側**なので各削除タスクで自動的に正しくなる。マニュアルだけ遅れるが、削除3機能は他鯖で使われていないため実害はない。
 
 ### Bot 一般公開準備
 
@@ -567,19 +566,19 @@ Bot 名義で任意のメッセージ（プレーンテキスト / embed）を�
 
 **止まっているもの**: 掃除フェーズの作業量が確定しない
 
-残骸撤去（判断不要・一律やる）とバグ修正（判断不要・直す）とは別に、**動作を変えない構造の作り直し**をどこまでやるか。候補は「タイマー実装の統一」「`messageDeleteService.ts` 589行の分割」「`/vc` 削除後の共通ヘルパー588行を `/afk` 側へ畳む」「`vcAutoRecruitSettingsService.updatePartial` の read-modify-write（並行呼び出しで lost update の余地）」。
+残骸撤去とバグ修正（どちらも判断不要）とは別に、**動作を変えない構造の作り直し**をどこまでやるか。候補は「タイマー実装の統一」「`messageDeleteService.ts` 589行の分割」「`/vc` 削除後の共通ヘルパー588行を `/afk` 側へ畳む」「`vcAutoRecruitSettingsService.updatePartial` の read-modify-write（並行呼び出しで lost update の余地）」。
 
 - **A: やらない** — 動いているものは触らない。残骸撤去だけで読みやすさは十分上がる
-- **B: 絞ってやる（推し）** — タイマー実装の統一だけ。3通りの書き方が散っていて、**次に何か直すとき必ず引っかかる**ため
+- **B: 絞ってやる（推し）** — タイマー実装の統一だけ。3通りの書き方が散っており、**次に何か直すとき必ず引っかかる**
 - **C: 全部やる** — 本番稼働中の機能に触るリスクとテスト工数が乗る
 
-> **判断軸は「将来触る必要が出るか」。** メンテ不要化が目標なら、今後いじらないコードは汚くても維持コストを生まない。589行のサービスも、動いていて触らないなら分割する意味は薄い。
+> **判断軸は「将来触る必要が出るか」。** メンテ不要化が目標なら、今後いじらないコードは汚くても維持コストを生まない。589行のサービスも、触らないなら分割の意味は薄い。
 
 ### 機能改善をどこまで足すか
 
 **止まっているもの**: 掃除フェーズの作業量が確定しない ／ マニュアル全面修正の範囲
 
-**仕様が変わる＝マニュアルに影響する**ため、残骸撤去やリファクタとは性質が違う。候補は5件。うち4件は 2026-09-17〜18 に個別に「やる」と決めて「いま着手できる」に入れた: VC自動募集の誤爆デバウンス／VAC 作成 VC の募集ボタン／メンバーログの Bot 除外／彩加によるキックの退出ログ抑止。残る未決は `/ping` の ephemeral 化（現状 public 応答で誰でも公開チャンネルに結果を出せる）と、今後出てくるものをどう扱うかの方針だけ。
+**仕様が変わる＝マニュアルに影響する**ため、残骸撤去やリファクタとは性質が違う。候補5件のうち4件は 2026-09-17〜18 に「やる」と決めて「いま着手できる」へ入れた: VC自動募集の誤爆デバウンス／VAC 作成 VC の募集ボタン／メンバーログの Bot 除外／彩加によるキックの退出ログ抑止。残る未決は `/ping` の ephemeral 化（現状は public 応答で誰でも公開チャンネルに結果を出せる）と、今後出てくるものの扱い方針だけ。
 
 - **A: やらない** — 現状の挙動で困っていないなら足さない
 - **B: 実害か明確な需要があるものだけ（推し・実績上もこれ）** — 上の4件はいずれも実害（誤爆・二重ログ）か自鯖の需要（募集ボタン・Bot 除外）で決めた。それ以外は出てきた時に個別判断
@@ -591,18 +590,17 @@ Bot 名義で任意のメッセージ（プレーンテキスト / embed）を�
 
 30日 / 7日 / それ以外。
 
-- 猶予の意味は「バックアップの保持期間」ではなく「**うっかり外した人が気づいて入れ直すまでの猶予**」と確定済み
-- この根拠に立つなら**短いほうがプライバシー的に正しい**
-- **プライバシーポリシーへの保持期間明記が必須**になるため、値が決まらないと文面も書けない
+- 猶予の意味は「バックアップの保持期間」ではなく「**うっかり外した人が気づいて入れ直すまでの猶予**」と確定済み。この根拠に立つなら**短いほうがプライバシー的に正しい**
+- **プライバシーポリシーへの保持期間明記が必須**なので、値が決まらないと文面も書けない
 
 ### Guild 親テーブル ＋ カスケードにするか
 
 **止まっているもの**: 退出時データの遅延削除（実装量が変わる）／ `deleteAllSettings` のレジストリ化（採用すると不要になる）
 
-緊急性は消えており（追従漏れバグ修正で削除漏れは塞いだ）、純粋な構造改善の判断。
+追従漏れバグ修正で削除漏れは塞いだため緊急性は消えており、純粋な構造改善の判断。
 
 - **利点**: Guild 行を1つ消せば全部消える → 遅延削除が「猶予後に Guild 行を削除」で済み実装が激減。新テーブル追加時にリレーション必須になり**同じ漏れが構造的に起きなくなる**。遅延削除関連の保存項目（導入日時・削除予定日時）の置き場所にもなる
-- **欠点**: マイグレーションが重い（バックフィル＋FK付与）。**現状スキーマに `@relation` は1つも無く、FK制約はゼロからの導入**。孤児レコードがあると FK 作成が失敗するため、事前に本番で孤児の有無を SELECT する必要がある（追従漏れバグ修正より前の削除漏れで孤児が存在する可能性が高い）
+- **欠点**: マイグレーションが重い（バックフィル＋FK付与）。**現状スキーマに `@relation` は1つも無く、FK制約はゼロからの導入**。孤児レコードがあると FK 作成が失敗するので、事前に本番で孤児の有無を SELECT する（追従漏れバグ修正より前の削除漏れで孤児が存在する可能性が高い）
 - **単独で着手する作業ではない。** 採用するなら遅延削除と1つの塊として設計する
 
 ### bump リマインダー「遅すぎる通知」の上限値
@@ -612,15 +610,15 @@ Bot 名義で任意のメッセージ（プレーンテキスト / embed）を�
 方針は「**送る。ただし上限を設ける**」で確定済み、値だけが空欄。
 
 - 上限を設ける理由はUXではなく**事故防止**（古い pending を掘り起こして送らないため）
-- 24時間程度が妥当かという話まで出ている
+- 24時間程度が妥当かという話が出ている
 - 実装はポーリングのクエリ条件が範囲指定になるだけ（`now - 上限 < scheduledAt <= now`）
 
 ### メッセージ出力機能の設計
 
 **止まっているもの**: メッセージ出力機能（作業範囲を切れない）
 
-- **機能拡張アイデアの「ユーザー embed 作成機能」との関係。** あちらは一般ユーザー向けで「投稿先チャンネルでのそのユーザーの送信権限で判定」という権限委譲設計が本体。こちらは管理者向けのお知らせ投稿。**別機能として並べるか、1つに統合するかを先に決める**（統合するなら権限判定の設計はあちら側が一次情報源）
-- 投稿後の**編集・再送**を持つか（持つなら投稿メッセージの所有権を DB に持つ必要がある）
+- **機能拡張アイデアの「ユーザー embed 作成機能」との関係。** あちらは一般ユーザー向けで「投稿先チャンネルでのそのユーザーの送信権限で判定」という権限委譲設計が本体、こちらは管理者向けのお知らせ投稿。**別機能として並べるか1つに統合するかを先に決める**（統合するなら権限判定の設計はあちら側が一次情報源）
+- 投稿後の**編集・再送**を持つか（持つなら投稿メッセージの所有権を DB に持つ）
 - `@everyone` / role メンションの扱い（`allowedMentions` での抑止と、Mention Everyone 権限保持時のみ許可するか）
 - ダッシュボードからの投稿を **OAuth ユーザーのギルド権限でどう判定するか**（現状の Web API は `guildId ∈ jwt.guilds` の粒度しか見ていない）
 
@@ -628,16 +626,16 @@ Bot 名義で任意のメッセージ（プレーンテキスト / embed）を�
 
 **止まっているもの**: メンバーログの join/leave 出力先分離
 
-- **A: `joinChannelId` / `leaveChannelId` へ分割**（既存 `channelId` を両方にバックフィルして廃止）。設定が常に明示的になるが、片方だけ使いたいときも2つ埋める必要がある
+- **A: `joinChannelId` / `leaveChannelId` へ分割**（既存 `channelId` を両方にバックフィルして廃止）。設定が常に明示的になるが、片方だけ使いたいときも2つ埋めることになる
 - **B: `channelId` を既定値として残し、`joinChannelId` / `leaveChannelId` を任意の上書きとして追加**。既存ギルドは無変更で済み、分けたい人だけ設定する
 
-> キック機能の `notifyChannelId` / `logChannelId` と**同じ形にする必然性はない**。あちらは「宛先が違う2種類の通知」の分離、こちらは「同じ用途のイベント別出力先」で、性質が異なる。
+> キック機能の `notifyChannelId` / `logChannelId` と**同じ形にする必然性はない**。あちらは「宛先が違う2種類の通知」の分離、こちらは「同じ用途のイベント別出力先」で性質が異なる。
 
 ### DM 通知トグル化の詰め残し
 
 **止まっているもの**: キック機能の DM 通知トグル化（未承認キックのログチャンネル必須化の完了後）
 
-1. 非アクティブ側 DM のテンプレート設計 — DM 専用テンプレートを新設するか、既存の `weekWarnMessage` / `finalWarnMessage` / `kickMessage` を流用するか（未承認側は `dmTemplate` と `notifyTemplate` を別々に持っている）
+1. 非アクティブ側 DM のテンプレート — 専用テンプレートを新設するか、既存の `weekWarnMessage` / `finalWarnMessage` / `kickMessage` を流用するか（未承認側は `dmTemplate` と `notifyTemplate` を別々に持っている）
 2. 不達として扱う範囲 — Discord API エラー 50007（DM 閉鎖）のみか、全ての送信失敗か
 3. soft warning を入れるか — DM 有効かつ通知チャンネルが一般メンバー非公開の場合に警告を出すか（**不要寄り・未確定**）
 4. 不達0人のときにもまとめログを出すか
@@ -646,10 +644,10 @@ Bot 名義で任意のメッセージ（プレーンテキスト / embed）を�
 
 **止まっているもの**: なし（着手時期未定）
 
-`reset`（**`locale` と `errorChannelId` の2項目のみ**・確認済み）と `reset-all`（全消し）の間が空白で、ユーザーが小さい目的のために過剰な手段を取らされる構造 → **誤爆シナリオの温床**。両者は一体で判断する。
+`reset`（**`locale` と `errorChannelId` の2項目のみ**・確認済み）と `reset-all`（全消し）の間が空白で、小さい目的のために過剰な手段を取らされる構造 → **誤爆シナリオの温床**。両者は一体で判断する。
 
 - **遅延削除の採用が決定したため `resetAll` は「要る」側で確定に近い**（即時削除の経路がここだけになるため）
-- export/import 廃止により**誤爆時の復旧手段が無くなる**ため、確認の強度がより重要になる。残すなら、日常設定コマンドからの隔離と、サーバー名の手入力のような強めの確認（GitHub のリポジトリ削除方式）を併せて検討する
+- export/import 廃止で**誤爆時の復旧手段が無くなる**ため、確認の強度がより重要になる。残すなら、日常設定コマンドからの隔離と、サーバー名の手入力のような強めの確認（GitHub のリポジトリ削除方式）を併せて検討する
 
 > **即時削除の経路はもう1つある**: Web API の `POST /:guildId/reset-all`（追従漏れバグ修正で `purgeGuildDataUsecase` に差し替えた3経路目）。ダッシュボードからの削除をどう扱うかもセットで判断が要る。
 
@@ -657,7 +655,7 @@ Bot 名義で任意のメッセージ（プレーンテキスト / embed）を�
 
 **止まっているもの**: なし（着手時期未定）
 
-動機は「前どういう文面にしてたっけ？」であり、**バックアップではなく変更履歴の需要**。有力案は `setting_change_log(guildId, feature, field, oldValue, newValue, changedBy, changedAt)` をリポジトリ層でフックし、対象を**文面フィールドだけに絞る**（7機能程度）。
+動機は「前どういう文面にしてたっけ？」で、**バックアップではなく変更履歴の需要**。有力案は `setting_change_log(guildId, feature, field, oldValue, newValue, changedBy, changedAt)` をリポジトリ層でフックし、対象を**文面フィールドだけに絞る**（7機能程度）。
 
 > ⚠️ 「JSONで吐いて後から戻せるように」を足すと軽さの根拠が全部消えて **export/import に逆戻りする**。「見えるだけ」で不便ならUIで解決する（履歴をクリックで入力欄に流し込む。保存は従来通り管理者が押す）。
 
@@ -673,13 +671,13 @@ Bot 名義で任意のメッセージ（プレーンテキスト / embed）を�
 
 ## 機能拡張アイデア
 
-- **Web API 認証の堅牢化（設定ミス耐性）** — 現状の認証防御は多層で機能しており**実害なし**。設定ミス時の事故耐性を上げる多層化として2点を検討: ①[jwt.ts](src/api/auth/jwt.ts) の `secretKey()` のフォールバック挙動を fail-closed 化（本番相当環境で署名鍵が未設定なら起動アサーション任せにせず `secretKey()` 自体で throw）。②[jwt.ts](src/api/auth/jwt.ts) の `jwtVerify` でトークン寿命を強制（`maxTokenAge` / `exp` 必須化）し、検証側でも有効期限を担保する。詳細な背景・脅威モデルは公開 TODO に書かず別途管理。
-- **予約募集(イベント募集)機能** — 他タスク完了後に実装可否判断。骨子: 予約時に VC + Discord Scheduled Event 作成 / RSVP・リマインダー・開始通知は Discord 標準任せ / VC 自動削除なし(投稿削除 or イベント終了ボタンで手動)/ 編集機能あり(日時・タイトル・説明)/ setup は既存 VC 募集と同構成 / VC 名変更は既存 `/vc rename` 流用。細部は実装決定時に詰める
-- ~~**キック系ユーザーデータの削除対称性の整理（個別リセットの方針統一）**~~ — **非アクティブ自動キックの削除で論点ごと消える**（2026-09-05）。非対称の原因だった `MemberActivity` がテーブルごと無くなるため。以下は経緯として残す。①の `deleteAllSettings` への `guildUnverifiedKickWarn.deleteMany` 追加は **2026-08-19 に実施済み**（HISTORY.md「完了済み」参照）。残っていた非対称は、②未承認キックの個別リセットが warn 記録を `deleteAllByGuild` で消すのに対し、③非アクティブキックの個別リセットは `MemberActivity` を残す点だった。なお**エクスポートにユーザーデータを含めないのは現仕様維持で問題なし**（再有効化時の `enabledAt` フロアで安全・個人データ/サイズ観点でも除外が妥当）と確認済み。
-- **ユーザー embed 作成機能** — ユーザーが embed を作って bot 名義で投稿できる機能（Carl-bot 類似）。**詳細は後日決定**。方向性メモ: 需要あり（お知らせ/ルール/ロールパネル説明）。**管理権限必須にはしない**方針で、①作成・プレビューは誰でも自由（ephemeral/DM）②投稿は「投稿先チャンネルでのそのユーザーの送信権限」で判定（bot=ユーザーの代理・本来できる範囲を超えさせない）③`@everyone`/role メンションは Mention Everyone 権限保持時のみ許可（`allowedMentions` で抑止）④作成者 attribution + 所有権（編集/削除は作成者＋管理者）⑤運営がロール許可をカスタム可能。Web ダッシュボードも OAuth ユーザーのギルド権限で同じ②判定が可能だが、管理設定エリアとは別の一般導線が必要。コマンド版/Web 版どちらから着手するか・所有権の DB モデル等は実装決定時に詰める
-- 自動翻訳機能(DeepL API 等)
-- 投票システム(グラフ化・レポート集計で Discord 標準との差別化)
-- メトリクス収集 / アラート設定(運用規模拡大時)
+- **Web API 認証の堅牢化（設定ミス耐性）** — 現状の多層防御は機能しており**実害なし**。設定ミス時の事故耐性を上げる2点: ①[jwt.ts](src/api/auth/jwt.ts) の `secretKey()` を fail-closed 化（本番相当環境で署名鍵が未設定なら起動アサーション任せにせず `secretKey()` 自体で throw）②同ファイルの `jwtVerify` でトークン寿命を強制し、検証側でも有効期限を担保する（`maxTokenAge` / `exp` 必須化）。背景・脅威モデルは公開 TODO に書かず別途管理
+- **予約募集（イベント募集）機能** — **現状ほぼ実装予定なし。** 核だけ残す: 予約時に VC ＋ Discord Scheduled Event を作り、RSVP・リマインダー・開始通知は Discord 標準に任せる。旧骨子は `/vc rename` 流用と「setup は既存 VC 募集と同構成」を前提にしていたが、どちらも削除予定なので 2026-09-20 に破棄した。必要になった時点で詳細を一から詰める
+- ~~**キック系ユーザーデータの削除対称性の整理（個別リセットの方針統一）**~~ — **非アクティブ自動キックの削除で論点ごと消える**（2026-09-05）。非対称の原因だった `MemberActivity` がテーブルごと無くなるため。残っていた非対称は「未承認キックの個別リセットが warn 記録を `deleteAllByGuild` で消すのに、非アクティブキックの個別リセットは `MemberActivity` を残す」点（`deleteAllSettings` への `guildUnverifiedKickWarn.deleteMany` 追加は 2026-08-19 に実施済み・HISTORY.md「完了済み」参照）。**エクスポートにユーザーデータを含めないのは現仕様維持で問題なし**（再有効化時の `enabledAt` フロアで安全・個人データ/サイズ観点でも除外が妥当）と確認済み
+- **ユーザー embed 作成機能** — ユーザーが embed を作って bot 名義で投稿できる機能（Carl-bot 類似）。需要あり（お知らせ/ルール/ロールパネル説明）。**管理権限必須にはしない**方針で、①作成・プレビューは誰でも自由（ephemeral/DM）②投稿は「投稿先チャンネルでのそのユーザーの送信権限」で判定（bot＝ユーザーの代理・本来できる範囲を超えさせない）③`@everyone`/role メンションは Mention Everyone 権限保持時のみ許可（`allowedMentions` で抑止）④作成者 attribution ＋ 所有権（編集/削除は作成者＋管理者）⑤運営がロール許可をカスタム可能。Web ダッシュボードも OAuth ユーザーのギルド権限で同じ②判定が可能だが、管理設定エリアとは別の一般導線が要る。**詳細は後日決定**（コマンド版/Web 版どちらから着手するか・所有権の DB モデル等）
+- 自動翻訳機能（DeepL API 等）
+- 投票システム（グラフ化・レポート集計で Discord 標準との差別化）
+- メトリクス収集 / アラート設定（運用規模拡大時）
 
 ---
 
@@ -691,9 +689,9 @@ Bot 名義で任意のメッセージ（プレーンテキスト / embed）を�
 - `POST /:guildId/reset-all` にフロント側の確認ダイアログがあるか（web リポジトリ側）
 - 変更履歴のフック対象となる各リポジトリの upsert 実装（member-log 以外は未確認）
 - 遅延削除を入れたとき、Bot が居ないギルドの設定がダッシュボードでどう見えるか
-- 退出直後のDMが本当に届かないか（未実測。退出時DMを見送ったため優先度は低い）
-- `vitest.config.ts` の `coverage.exclude` が旧パス（`src/bot/features/**`）を参照しており実質無効になっている（2026-08-19 のドキュメント監査で発見。コード側の修正が必要）
-- ja / en の翻訳キー突合を機械的に検証するテストが無い。ja だけ追加しても型・実行時とも検出されず、en 環境で日本語が出る（I18N_GUIDE に運用ルールとして明記済みだが、テスト化の余地あり）
+- 退出直後の DM が本当に届かないか（未実測。退出時 DM を見送ったため優先度は低い）
+- `vitest.config.ts` の `coverage.exclude` が旧パス（`src/bot/features/**`）を参照しており実質無効。コード側の修正が要る（2026-08-19 のドキュメント監査で発見・→「パッケージ更新」の vitest 5 で分母が動く）
+- ja / en の翻訳キー突合を機械的に検証するテストが無い。ja だけ追加しても型・実行時とも検出されず、en 環境で日本語が出る（I18N_GUIDE に運用ルールとして明記済み・テスト化の余地あり）
 
 ---
 

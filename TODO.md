@@ -31,10 +31,10 @@
 
 | 区分 | 残件 |
 | --- | ---: |
-| いま着手できる | 14 |
+| いま着手できる | 13 |
 | 完了待ち | 13 |
 | 未決（判断が要る） | 11 |
-| **合計** | **38** |
+| **合計** | **37** |
 
 > **着手順は「いま着手できる」の並び順そのもの**（1件＝1 PR）。番号付きの「次にやること」は 2026-09-20 に廃止。1件動くたびに本体・サマリー・リストの3箇所を直すことになり、番号も挿入のたびにずれるため。
 >
@@ -57,32 +57,12 @@
 - [ ] `src/features/vc-command/` 8ファイル485行と `/vc` コマンドを削除。テスト・help
 - [ ] ロケール ja/en の `vc` 名前空間。**丸ごと消すと `/afk` が壊れる。** 共通ヘルパー3ファイルと `/afk` が `action-log.*` / `bulk-confirm.*` / `user-response.*` を参照し続けるため、**残す分を `afk` 名前空間へ移してから** `vc` を消す
 - [ ] `isManagedVacChannel`（`vacSettingsService.ts`）を削除。最後の利用者が `getManagedVoiceChannel` なので `/vc` 削除と同時に消える
+- [ ] **release 後**、同じ release に載るレート制限の修正を本番で確かめる。偽の `X-Forwarded-For` で `/health` を3回叩いて残り回数が 299・298・297 と減ること、別の回線から同時に叩いて残り回数がそれぞれ独立に減ること（手順は DEPLOYMENT.md「Web API の到達経路」）。信頼範囲を外していると全員が同じ枠に入るが、エラーにならず黙って劣化するので、この確認は省かない
 
 > **共通ヘルパー588行（`vcBulkAction.ts` 303 / `vcActionLog.ts` 169 / `vcActionTarget.ts` 116）は `/afk` が使うので残る。** 利用者が1つになるため、掃除フェーズで `/afk` 側に畳めば圧縮できる。
 > `getManagedVoiceChannel` は `isCreatedVcRecruitChannel` を参照しているため、**VC募集の削除と互いに依存を減らし合う**。
 > **`rename` / `limit` も残さない**（2026-09-09 確定・2026-09-17 に根拠を差し替え）。唯一通る `getManagedVoiceChannel` は権限チェックではなく、VAC の権限設計を迂回している＝根拠②。理由と代替手段は HISTORY.md「決定事項」。
 > **`disconnect` を消すと、部屋の作成者が同席者を切断する手段が無くなる**（切断には `MoveMembers` が要り、`ManageChannels` overwrite では足りない）。管理者に頼む運用になる。マニュアル全面修正時に1行書く。
-
-### Web API のレート制限すり抜けの恒久対応 【実装・中・セキュリティ】
-
-**着手前に VPS で接続元を実測する**（信頼範囲がこれで決まる）。2026-09-20 に調査・検証済み。
-
-**現状、誰でもレート制限（300回/分）をすり抜けられる。** `server.ts:61` が `trustProxy: true` のため、fastify は `X-Forwarded-For` のチェーンを一切切り詰めず、`request.ip` はその**最左＝攻撃者が送った値**になる。Cloudflare は既存の `X-Forwarded-For` を上書きせず末尾に追記するので、ヘッダを毎回変えるだけで別の枠として数えられる。加えて `@fastify/rate-limit` 11.1.0 には IPv6 アドレスの回転ですり抜ける CVE-2026-15144（CVSS 7.3・11.2.0 で修正）がある。認証が要るルートも認証の前に本文を最大1MiB 読むうえ、API は Bot と同じプロセスなので、負荷は全サーバーの Bot 応答に響く。データ漏えい・認証破りではないので hotfix にはしない。
-
-**場当たりの修正はしない**（2026-09-20 方針）。レート制限の鍵だけ `CF-Connecting-IP` に差し替える案は、`request.ip` の汚染を残し、将来 `request.ip` を使った箇所で同じ穴を踏むので採らない。
-
-経路（ドキュメントで確定・Tunnel の実設定は Cloudflare 側でリポジトリからは未確認）: Cloudflare → Tunnel → cloudflared（host ネットワーク）→ `127.0.0.1:8081` → docker-proxy → saika コンテナ。Traefik は通らない。cloudflared は `X-Forwarded-For` に触れないので、末尾には常に Cloudflare が付けた本物のクライアント IP が来る。
-
-- [ ] **実測**: 公開ポートでコンテナを特定し（`docker ps --filter publish=8081 --format '{{.Names}}'`。Coolify は名前に UUID を付けるので `saika` では引けない）、`docker inspect <名前> --format '{{json .NetworkSettings.Networks}}'` でゲートウェイと所属ネットワーク、`docker exec <名前> cat /proc/net/tcp` で実際の接続元を見る。秘密情報は出ない。Cloudflare の Managed Transforms「Remove visitor IP headers」がオフであることも確認する（オンだと全員が同じ枠になる）
-- [ ] `trustProxy` を**アドレス範囲の定数**にする（`constants.ts` に新設し、経路と理由をコメントに残す）。候補は Coolify の既定プール `["loopback", "10.0.0.0/8"]` だが根拠が弱いので実測値で決める。狭いほど同じネットワークの他コンテナからの偽装に強いが、ネットワークが作り直されると外れる
-- [ ] `@fastify/rate-limit` を `^11.2.0` へ。`ipv6Subnet` は既定の64のまま。既存の `{max, timeWindow}` だけの設定に破壊的変更は無い
-- [ ] 回帰テストを `tests/unit/api/server.test.ts` に追加（`app.inject()` の `remoteAddress` と `x-forwarded-for` で叩く）: ①信頼済みの中継から来た偽 `X-Forwarded-For` で `request.ip` が汚染されない ②信頼範囲外からの `X-Forwarded-For` は無視される ③ヘッダを変えて叩いても同じ枠に入る ④別のクライアントは別の枠 ⑤同じ /64 の IPv6 は同じ枠。**`true`・中継数指定・範囲の不足・11.1.0 のどれに戻しても、いずれかのケースが落ちる**組み合わせにする。期待値は `RATE_LIMIT.max` から計算する
-- [ ] `ARCHITECTURE.md:240` の「本番は `trustProxy`」を、信頼範囲と「クライアント IP は `request.ip` だけを使い、`X-Forwarded-For` / `CF-Connecting-IP` を直接読まない」規約に書き換える。`DEPLOYMENT.md` の構成図に API の到達経路と「経路を変えたら信頼範囲を見直す」を足す
-- [ ] **本番に出した後**、別の回線から同時に叩いて残数がそれぞれ独立に減ることを確かめる。信頼範囲を外していると全員が同じ枠に入るが、全体で300回/分を超えない限りエラーにならず黙って劣化するため
-
-> **採らない案と理由**: ①**中継数での指定** — 直前の中継のアドレスを確かめないので、経路が縮むと黙って偽装可能になる。fastify 5.12.1 以降では数値指定が黙って「誰も信頼しない」になる。②**環境変数化** — Coolify の画面から `true` に戻せてしまいテストで守れない。③**`CF-Connecting-IP` の併用** — IP の取得口が2つになり、どちらが正しいかがまた割れる。④**`keyGenerator` の差し替え** — 11.2.0 の IPv6 正規化が自動では効かなくなり、手で呼び続ける義務が増える。
-> **リリースは `/vc` 削除と同じ release PR で出す。** develop には `/afk` の修正が載っており、単独で出すと `/afk` まで本番に出るため。
-> **範囲外（別途扱う）**: web リポの BFF も `trustProxy: true`（今は IP を使う箇所が無い）／`bodyLimit` 未設定（既定の1MiB）／`ARCHITECTURE.md` のミドルウェア順の記述が実装と違う（同じ行を書き換えるので直すかは着手時に確認）／cloudflared は latest タグ運用なので、更新時に偽ヘッダで叩く確認手順を残すと再発の保険になる。
 
 ### 非アクティブ自動キック機能の削除 【実装・大】
 
@@ -389,7 +369,7 @@ VAC が建てた VC は ID が毎回新しく allowlist に入らないので、
 - [ ] **prisma 8**。最新は `8.0.0-rc.15` で RC。本番稼働中の Bot に RC は入れない。GA は2026年10月予定。`prisma` / `@prisma/client` / `@prisma/adapter-pg` を必ず3点同時に
 
 > **Coolify のビルドは1本ずつ。** develop に複数 PR を積んでも、main へのリリースは1回にまとめる。
-> **`@fastify/rate-limit` はこのタスクに含めない。** 脆弱性なので掃除を待たず、`trustProxy` の修正とまとめて「Web API のレート制限すり抜けの恒久対応」で上げる。
+> **`@fastify/rate-limit` は 2026-09-20 に 11.2.0 へ上げ済み**（→ HISTORY.md「Web API のレート制限すり抜けの恒久対応」）。このタスクの対象外。
 
 ### 退出時データの遅延削除 ＋ guildCreate ハンドラ ＋ 導入時／再導入時の通知 【実装】
 

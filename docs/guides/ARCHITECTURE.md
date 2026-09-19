@@ -2,7 +2,7 @@
 
 > Architecture Guide - コード設計・モジュール構成・設計パターンの解説
 
-最終更新: 2026年8月19日
+最終更新: 2026年9月20日
 
 ---
 
@@ -87,7 +87,7 @@ src/
 │   # 例外: guild-settings は guildCore/guildSettingsAggregate リポジトリ + persistence/serializers/usecases を内包
 │
 ├── api/                       # Fastify API 層（web ダッシュボード用・Bot と同一プロセスで起動）
-│   ├── server.ts              #   buildApiServer/startApiServer（cookie→認証 decorate→cors→rate-limit→routes）
+│   ├── server.ts              #   buildApiServer/startApiServer（cookie→cors→rate-limit→routes。認証は decorate）
 │   ├── auth/                  #   JWT 検証（authenticate）・guildId 認可（guildAccess）。発行/refresh は持たない
 │   ├── routes/                #   ルート定義（guilds / settings / sticky / reactionRoles / tickets / bot）
 │   ├── features/<f>Resource.ts #  domain↔contract マッパー + create*Resource（純粋関数）
@@ -237,7 +237,9 @@ interface Command {
 | `src/features/<f>` | Bot 層と共有する設定サービス・リポジトリ（Discord 非依存） |
 | `lib/` | `httpError`（`ApiHttpError` + `toErrorResponse`）/ `discordMappers` / `time`（date-fns ja）/ `request` |
 
-サーバー構築は `server.ts` の `buildApiServer`（テストは `app.inject()` で直接叩ける）。ミドルウェア順は cookie → 認証 decorate → cors → rate-limit → `apiRoutes`(`/api`)。本番は `trustProxy`（Cloudflare/Coolify 配下）。
+サーバー構築は `server.ts` の `buildApiServer`（テストは `app.inject()` で直接叩ける）。プラグインの登録順は cookie → cors → rate-limit → `apiRoutes`(`/api`) で、リクエストのフックもこの順に走る。認証（`authenticate` / `requireGuildAccess`）はミドルウェアではなく `decorate` で生やし、各ルートが `preHandler` として使う。
+
+`trustProxy` は `true` ではなく、**信頼する直前ホップのアドレス範囲**（`src/api/constants.ts` の `TRUSTED_PROXY_RANGES`）で指定する。`true` だと `X-Forwarded-For` の最左、つまり攻撃者が送った値が `request.ip` になり、レート制限をすり抜けられる。範囲の根拠と経路は [DEPLOYMENT.md](DEPLOYMENT.md#web-api-の到達経路) を参照。**クライアント IP は `request.ip` だけを使い、`X-Forwarded-For` / `CF-Connecting-IP` を直接読まない**（取得口を1つに保つ）。この挙動は `tests/unit/api/server.test.ts` の回帰テストで固定している。
 
 ### エンドポイント概要
 

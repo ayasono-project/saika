@@ -4,7 +4,7 @@
 export const afk = {
   // ── コマンド定義 ─────────────────────────────
   "afk.description": "AFKチャンネルにユーザーを移動",
-  "afk.target-member.description": "移動するメンバー（省略で自分）",
+  "afk.target-member.description": "移動するメンバー",
   "afk.target-channel.description": "全員をAFKチャンネルに移動する対象VC",
   "afk-settings.description": "AFK機能の設定（サーバー管理権限が必要）",
   "afk-settings.set-channel.description": "AFKチャンネルを設定",

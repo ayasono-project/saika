@@ -1,5 +1,5 @@
 // src/features/afk/commands/afkCommand.execute.ts
-// afk コマンド実行処理（個別移動 + VC全員の一括移動）
+// afk コマンド実行処理（対象メンバーの個別移動 + VC全員の一括移動）
 
 import { ValidationError } from "@ayasono/shared/core";
 import { ChannelType, type ChatInputCommandInteraction } from "discord.js";
@@ -31,6 +31,7 @@ const AFK_I18N_KEYS = {
   ERROR_GUILD_ONLY: COMMON_I18N_KEYS.GUILD_ONLY,
   ERROR_NOT_CONFIGURED: "afk:user-response.not_configured",
   ERROR_CHANNEL_NOT_FOUND: "afk:user-response.channel_not_found",
+  ERROR_TARGET_REQUIRED: "vc:user-response.target_required",
   ERROR_TARGET_IS_AFK: "afk:user-response.target_is_afk",
   LOG_MOVED: "afk:log.moved",
 } as const;
@@ -71,6 +72,13 @@ export async function executeAfkCommand(
     AFK_OPTION.TARGET_CHANNEL,
   );
 
+  // 対象は必須。自分の離席はミュート等で足りるため、省略時に実行者自身を飛ばす扱いは持たない
+  if (target.kind === "none") {
+    throw new ValidationError(
+      tInteraction(interaction.locale, AFK_I18N_KEYS.ERROR_TARGET_REQUIRED),
+    );
+  }
+
   // target=channel: 確認ダイアログ経由で対象VC全員をAFKチャンネルへ一括移動
   if (target.kind === "channel") {
     // 対象VCがAFKチャンネル自身なら no-op エラー
@@ -98,9 +106,8 @@ export async function executeAfkCommand(
     return;
   }
 
-  // target=member または省略（自分）: 個別移動
-  const targetUserId =
-    target.kind === "member" ? target.userId : interaction.user.id;
+  // target=member: 指定メンバーを個別移動
+  const targetUserId = target.userId;
   const member = await fetchMemberInVoice(interaction, targetUserId);
 
   await member.voice.setChannel(

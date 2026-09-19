@@ -1,5 +1,7 @@
 // tests/unit/bot/commands/afk.test.ts
 
+import { PermissionFlagsBits } from "discord.js";
+
 const executeAfkCommandMock = vi.fn();
 const handleCommandErrorMock = vi.fn();
 
@@ -20,7 +22,7 @@ vi.mock("@/bot/errors/interactionErrorHandler", () => ({
 
 import { afkCommand } from "@/bot/commands/afk";
 
-// afkCommand ラッパーの execute 委譲とエラーハンドリングを検証
+// afkCommand ラッパーのコマンド定義・execute 委譲・エラーハンドリングを検証
 describe("bot/commands/afk", () => {
   // 各ケースでモック呼び出し記録をリセットする
   beforeEach(() => {
@@ -49,5 +51,11 @@ describe("bot/commands/afk", () => {
 
   it("コマンド名が afk であること", () => {
     expect(afkCommand.data.name).toBe("afk");
+  });
+
+  it("既定の実行権限が MoveMembers であること（他メンバーを動かす操作を一般メンバーに開放しない）", () => {
+    expect(afkCommand.data.toJSON().default_member_permissions).toBe(
+      PermissionFlagsBits.MoveMembers.toString(),
+    );
   });
 });

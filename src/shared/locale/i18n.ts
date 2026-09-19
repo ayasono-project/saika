@@ -28,7 +28,6 @@ export const I18N_NAMESPACES = [
   "afk",
   "bumpReminder",
   "vac",
-  "vc",
   "vcAutoRecruit",
   "messageDelete",
   "memberLog",

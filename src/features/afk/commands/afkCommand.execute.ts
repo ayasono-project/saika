@@ -31,7 +31,7 @@ const AFK_I18N_KEYS = {
   ERROR_GUILD_ONLY: COMMON_I18N_KEYS.GUILD_ONLY,
   ERROR_NOT_CONFIGURED: "afk:user-response.not_configured",
   ERROR_CHANNEL_NOT_FOUND: "afk:user-response.channel_not_found",
-  ERROR_TARGET_REQUIRED: "vc:user-response.target_required",
+  ERROR_TARGET_REQUIRED: "afk:user-response.target_required",
   ERROR_TARGET_IS_AFK: "afk:user-response.target_is_afk",
   LOG_MOVED: "afk:log.moved",
 } as const;

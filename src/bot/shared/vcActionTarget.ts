@@ -1,5 +1,5 @@
 // src/bot/shared/vcActionTarget.ts
-// /vc disconnect・/vc move・/afk の target（member / channel）解決と対象VC検証の共通ヘルパー
+// /afk の target（member / channel）解決と対象VC検証のヘルパー
 
 import { ValidationError } from "@ayasono/shared/core";
 import {
@@ -36,7 +36,7 @@ export function resolveVcActionTarget(
   // メンバーとVCの同時指定は許可しない
   if (targetUser && targetChannel) {
     throw new ValidationError(
-      tInteraction(interaction.locale, "vc:user-response.target_conflict"),
+      tInteraction(interaction.locale, "afk:user-response.target_conflict"),
     );
   }
 
@@ -47,7 +47,7 @@ export function resolveVcActionTarget(
   if (targetChannel) {
     if (targetChannel.type !== ChannelType.GuildVoice) {
       throw new ValidationError(
-        tInteraction(interaction.locale, "vc:user-response.target_not_voice"),
+        tInteraction(interaction.locale, "afk:user-response.target_not_voice"),
       );
     }
     return { kind: "channel", channelId: targetChannel.id };
@@ -72,14 +72,14 @@ export async function fetchNonEmptyVoiceChannel(
 
   if (!channel || channel.type !== ChannelType.GuildVoice) {
     throw new ValidationError(
-      tInteraction(interaction.locale, "vc:user-response.target_not_voice"),
+      tInteraction(interaction.locale, "afk:user-response.target_not_voice"),
     );
   }
 
   // コマンド受付時点で対象VCが空ならエラー（実行時点の再検証は別途実施）
   if (channel.members.size === 0) {
     throw new ValidationError(
-      tInteraction(interaction.locale, "vc:user-response.channel_empty"),
+      tInteraction(interaction.locale, "afk:user-response.channel_empty"),
     );
   }
 
@@ -102,13 +102,13 @@ export async function fetchMemberInVoice(
 
   if (!member) {
     throw new ValidationError(
-      tInteraction(interaction.locale, "vc:user-response.member_not_found"),
+      tInteraction(interaction.locale, "afk:user-response.member_not_found"),
     );
   }
 
   if (!member.voice.channel) {
     throw new ValidationError(
-      tInteraction(interaction.locale, "vc:user-response.target_not_in_voice"),
+      tInteraction(interaction.locale, "afk:user-response.target_not_in_voice"),
     );
   }
 

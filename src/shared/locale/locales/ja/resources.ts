@@ -17,7 +17,6 @@ import {
   ticket,
   unverifiedKick,
   vac,
-  vc,
   vcAutoRecruit,
   vcRecruit,
 } from "./features";
@@ -32,7 +31,6 @@ export const ja: {
   afk: typeof afk;
   bumpReminder: typeof bumpReminder;
   vac: typeof vac;
-  vc: typeof vc;
   vcAutoRecruit: typeof vcAutoRecruit;
   messageDelete: typeof messageDelete;
   memberLog: typeof memberLog;
@@ -52,7 +50,6 @@ export const ja: {
   afk,
   bumpReminder,
   vac,
-  vc,
   vcAutoRecruit,
   messageDelete,
   memberLog,

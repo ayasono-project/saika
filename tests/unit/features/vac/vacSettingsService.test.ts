@@ -234,40 +234,6 @@ describe("shared/features/vac/vacSettingsService", () => {
   });
 
   // ──────────────────────────────────────────────────────────
-  // isManagedVacChannel
-  // ──────────────────────────────────────────────────────────
-
-  it("管理対象に含まれる VC ID の場合は true を返すこと", async () => {
-    const repository = createRepositoryMock();
-    repository.getVacSettings.mockResolvedValue(
-      makeConfig({ createdChannels: [makeChannel("vc-1")] }),
-    );
-    const service = new VacSettingsService(repository);
-
-    await expect(service.isManagedVacChannel("g1", "vc-1")).resolves.toBe(true);
-  });
-
-  it("管理対象に含まれない VC ID の場合は false を返すこと", async () => {
-    const repository = createRepositoryMock();
-    repository.getVacSettings.mockResolvedValue(makeConfig());
-    const service = new VacSettingsService(repository);
-
-    await expect(service.isManagedVacChannel("g1", "vc-x")).resolves.toBe(
-      false,
-    );
-  });
-
-  it("設定が未登録（null）の場合は false を返すこと", async () => {
-    const repository = createRepositoryMock();
-    repository.getVacSettings.mockResolvedValue(null);
-    const service = new VacSettingsService(repository);
-
-    await expect(service.isManagedVacChannel("g1", "vc-1")).resolves.toBe(
-      false,
-    );
-  });
-
-  // ──────────────────────────────────────────────────────────
   // createVacSettingsService ファクトリ関数
   // ──────────────────────────────────────────────────────────
 

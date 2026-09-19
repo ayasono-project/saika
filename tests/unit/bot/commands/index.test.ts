@@ -80,7 +80,6 @@ const KNOWN_COMMAND_NAMES = [
   "sticky-message",
   "ticket",
   "ticket-settings",
-  "vc",
   "vac-settings",
   "vc-recruit-settings",
   "ping",

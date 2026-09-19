@@ -132,6 +132,7 @@ pnpm lint:fix         # Biome自動修正
 ### ガイド
 
 - [TODO](TODO.md) - タスク管理・残件リスト
+- [HISTORY](HISTORY.md) - 決定事項・取り下げ済み・完了済みの記録
 - [アーキテクチャガイド](docs/guides/ARCHITECTURE.md) - 全体設計方針・依存方向・責務境界
 - [Discord Bot セットアップ](docs/guides/DISCORD_BOT_SETUP.md) - Discord Developer Portal でのアプリ作成・サーバー招待手順
 - [デプロイガイド](docs/guides/DEPLOYMENT.md) - GitHub Actions による自動デプロイフロー詳細

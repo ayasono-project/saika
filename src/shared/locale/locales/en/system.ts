@@ -51,6 +51,8 @@ export const system = {
   "bot.commands.registering": "Registering {{count}} commands...",
   "bot.commands.registered": "Commands registered",
   "bot.commands.command_registered": "  ✓ /{{name}}",
+  "bot.commands.global_cleared":
+    "Cleared global commands because this is a development environment",
   "bot.events.registering": "Registering {{count}} events...",
   "bot.events.registered": "Events registered",
   "bot.startup.error": "Error during bot startup:",

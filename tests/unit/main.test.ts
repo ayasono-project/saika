@@ -4,6 +4,7 @@ import type { Mock, MockInstance } from "vitest";
 // bot/main の起動フロー（コマンド登録・イベント登録・エラー終了）を副作用隔離で検証
 type BootOptions = {
   guildId?: string;
+  nodeEnv?: "development" | "production" | "test";
   restPutReject?: boolean;
   connectReject?: boolean;
 };
@@ -67,6 +68,7 @@ const mutableMocks = vi.hoisted(() => ({
     applicationCommands: Mock;
   },
   guildId: undefined as string | undefined,
+  nodeEnv: "test" as "development" | "production" | "test",
 }));
 
 // vi.resetModules()後もコンストラクタとして動作するよう、
@@ -101,7 +103,13 @@ vi.mock("@/shared/config/env", () => ({
       DISCORD_TOKEN: "test-token",
       DISCORD_APP_ID: "123456",
       DISCORD_GUILD_ID: mutableMocks.guildId,
+      NODE_ENV: mutableMocks.nodeEnv,
     };
+  },
+  NODE_ENV: {
+    DEVELOPMENT: "development",
+    PRODUCTION: "production",
+    TEST: "test",
   },
 }));
 
@@ -234,6 +242,7 @@ async function bootMain(options: BootOptions = {}): Promise<BootResult> {
   mutableMocks.registerBotEvents = registerBotEvents;
   mutableMocks.routes = routes;
   mutableMocks.guildId = options.guildId;
+  mutableMocks.nodeEnv = options.nodeEnv ?? "test";
 
   const processExitSpy = vi
     .spyOn(process, "exit")
@@ -296,6 +305,30 @@ describe("bot/main", () => {
       body: [{ name: "ping" }],
     });
     expect(boot.processExitSpy).not.toHaveBeenCalled();
+  });
+
+  it("開発環境でギルド登録した場合はグローバル側が空で上書きされることを確認", async () => {
+    const boot = await bootMain({
+      guildId: "guild-1",
+      nodeEnv: "development",
+    });
+
+    expect(boot.client.rest.put).toHaveBeenCalledWith("guild-route", {
+      body: [{ name: "ping" }],
+    });
+    expect(boot.client.rest.put).toHaveBeenCalledWith("global-route", {
+      body: [],
+    });
+  });
+
+  it("開発環境以外でギルド登録した場合はグローバル側に触れないことを確認", async () => {
+    const boot = await bootMain({
+      guildId: "guild-1",
+      nodeEnv: "production",
+    });
+
+    expect(boot.client.rest.put).toHaveBeenCalledTimes(1);
+    expect(boot.routes.applicationCommands).not.toHaveBeenCalled();
   });
 
   it("起動 try ブロック内で失敗した場合はエラーログを出力して終了することを確認", async () => {

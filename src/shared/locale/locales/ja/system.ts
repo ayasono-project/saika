@@ -52,6 +52,8 @@ export const system = {
   "bot.commands.registering": "{{count}}個のコマンドを登録しています...",
   "bot.commands.registered": "コマンド登録完了",
   "bot.commands.command_registered": "  ✓ /{{name}}",
+  "bot.commands.global_cleared":
+    "開発環境のためグローバルコマンドを空にしました（残骸の掃除）",
   "bot.events.registering": "{{count}}個のイベントを登録しています...",
   "bot.events.registered": "イベント登録完了",
   "bot.startup.error": "起動中にエラーが発生しました:",

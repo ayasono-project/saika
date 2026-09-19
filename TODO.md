@@ -48,21 +48,18 @@
 
 依存なし。上から順に1件ずつ着手する（1件＝1 PR）。並び順が実行順を兼ねるので、順番を変えたいときはこのセクション内で移動する。
 
-### `/vc`（VC操作コマンド）の削除 【実装・中】
+### 本番リリース（`/afk` 権限修正 ＋ `/vc` 削除 ＋ レート制限） 【リリース】
 
-**依存なし。実害が本番に出ている。** 対だった `/afk` の権限修正は 2026-09-20 に develop へ先行マージ済み（→ HISTORY.md「完了済み」）。`/vc move target-member: to:AFKチャンネル` が `/afk` を完全に代替するため、**`/afk` 単独で main へ出しても本番の穴は塞がらない。両方を1本の release PR でまとめて main へ出す。**
+**develop に3件そろったので出せる。** 2026-09-20 に `/afk` の権限修正・レート制限の恒久対応・`/vc` 削除を develop へマージ済み（→ HISTORY.md「完了済み」）。**`/afk` は単独で出さないと決めていた**ので、この3件をまとめて1本の release PR で main へ出す。
 
-**現状、サーバーの誰でも他人を切断・移動できる。** `/vc` に `setDefaultMemberPermissions` が無く、`executeVcCommand` にも各ユースケースにも権限チェックが無い（`vcCommand.execute.ts:43` に「管理対象チェックなしで任意のメンバー/VCを操作する」とコメントまである）。Discord は実行者の権限を見ず Bot の `MoveMembers` で実行するため、`/vc disconnect target-channel:` や `/vc move` で**通話中の VC を丸ごと吹き飛ばせる**。
+- [ ] `docker build` ＋ `docker run` でフル起動を確認する。`@fastify/rate-limit` の版上げで lock が変わっているため（CLAUDE.md §3）
+- [ ] develop → main の release PR（`release:` プレフィックス・merge commit・auto-merge）
+- [ ] Coolify のデプロイ成功と Bot の正常起動を確認する
+- [ ] **レート制限の実地確認。** 偽の `X-Forwarded-For` で `/health` を3回叩き、残り回数が 299・298・297 と減ること。別の回線から同時に叩き、残り回数がそれぞれ独立に減ること（手順は `DEPLOYMENT.md`「Web API の到達経路」）。信頼範囲を外していると全員が同じ枠に入るが、全体で上限を超えるまでエラーにならず黙って劣化するため、この確認は省かない
+- [ ] `/afk` の実地確認。権限を持たないメンバーのコマンド一覧に出ないこと、対象を省略するとエラーになること、`/vc` がコマンド一覧から消えていること
+- [ ] 自鯖への告知（シルバーウィークのメンテとして 2026-09-18 に草案）。`/afk` が「他メンバーを動かす」専用になり既定で `MoveMembers` が要ること、`/vc` が無くなること、メンバーに使わせたい場合は連携サービス設定でロールに許可できることを書く
 
-- [ ] `src/features/vc-command/` 8ファイル485行と `/vc` コマンドを削除。テスト・help
-- [ ] ロケール ja/en の `vc` 名前空間。**丸ごと消すと `/afk` が壊れる。** 共通ヘルパー3ファイルと `/afk` が `action-log.*` / `bulk-confirm.*` / `user-response.*` を参照し続けるため、**残す分を `afk` 名前空間へ移してから** `vc` を消す
-- [ ] `isManagedVacChannel`（`vacSettingsService.ts`）を削除。最後の利用者が `getManagedVoiceChannel` なので `/vc` 削除と同時に消える
-- [ ] **release 後**、同じ release に載るレート制限の修正を本番で確かめる。偽の `X-Forwarded-For` で `/health` を3回叩いて残り回数が 299・298・297 と減ること、別の回線から同時に叩いて残り回数がそれぞれ独立に減ること（手順は DEPLOYMENT.md「Web API の到達経路」）。信頼範囲を外していると全員が同じ枠に入るが、エラーにならず黙って劣化するので、この確認は省かない
-
-> **共通ヘルパー588行（`vcBulkAction.ts` 303 / `vcActionLog.ts` 169 / `vcActionTarget.ts` 116）は `/afk` が使うので残る。** 利用者が1つになるため、掃除フェーズで `/afk` 側に畳めば圧縮できる。
-> `getManagedVoiceChannel` は `isCreatedVcRecruitChannel` を参照しているため、**VC募集の削除と互いに依存を減らし合う**。
-> **`rename` / `limit` も残さない**（2026-09-09 確定・2026-09-17 に根拠を差し替え）。唯一通る `getManagedVoiceChannel` は権限チェックではなく、VAC の権限設計を迂回している＝根拠②。理由と代替手段は HISTORY.md「決定事項」。
-> **`disconnect` を消すと、部屋の作成者が同席者を切断する手段が無くなる**（切断には `MoveMembers` が要り、`ManageChannels` overwrite では足りない）。管理者に頼む運用になる。マニュアル全面修正時に1行書く。
+> **`/vc` の `disconnect` を消したことで、部屋の作成者が同席者を切断する手段が無くなる。** 管理者に頼む運用になるので、告知に1行入れる。マニュアルへの反映は「マニュアル全面修正」でまとめて行う。
 
 ### 非アクティブ自動キック機能の削除 【実装・大】
 

@@ -2,7 +2,7 @@
 
 > 多言語対応の実装ガイド — 翻訳の取得・キーの追加・命名規則
 
-最終更新: 2026年8月19日
+最終更新: 2026年9月20日
 
 ---
 
@@ -68,13 +68,13 @@ import { getGuildTranslator } from "../../shared/locale/helpers";
 
 ## 名前空間
 
-キーは `"名前空間:キー"` の形式で指定します。名前空間は **19個**あり、`src/shared/locale/i18n.ts` の `I18N_NAMESPACES` が定義元です。
+キーは `"名前空間:キー"` の形式で指定します。名前空間は **18個**あり、`src/shared/locale/i18n.ts` の `I18N_NAMESPACES` が定義元です。
 
 | 分類 | 名前空間 |
 | --- | --- |
 | 横断 | `common`（デフォルト）/ `system` |
 | 汎用コマンド | `about` / `ping` / `help` |
-| 機能別 | `afk` / `bumpReminder` / `vac` / `vc` / `vcAutoRecruit` / `messageDelete` / `memberLog` / `inactiveKick` / `unverifiedKick` / `reactionRole` / `stickyMessage` / `ticket` / `vcRecruit` / `guildSettings` |
+| 機能別 | `afk` / `bumpReminder` / `vac` / `vcAutoRecruit` / `messageDelete` / `memberLog` / `inactiveKick` / `unverifiedKick` / `reactionRole` / `stickyMessage` / `ticket` / `vcRecruit` / `guildSettings` |
 
 - `common`: 共通ラベル・タイトル・機能横断のエラー文言
 - `system`: 機能横断の内部ログ（Bot 起動/終了・DB・Web など）
@@ -100,7 +100,7 @@ src/shared/locale/
     │   ├── system.ts
     │   ├── resources.ts
     │   └── features/
-    │       ├── index.ts     ← 17機能の re-export
+    │       ├── index.ts     ← 16機能の re-export
     │       ├── afk.ts
     │       ├── bumpReminder.ts
     │       └── ...
@@ -224,8 +224,8 @@ logPrefixed(
   "command",
 );
 
-// [/vc move] ...
-logCommand("/vc move", "vc:log.move_executed", { guildId, userId });
+// [/afk] ...
+logCommand("/afk", "afk:log.bulk_executed", { guildId, action, channelId, count, failures });
 ```
 
 - `logPrefixed(prefixKey, messageKey, params?, sub?)` → `[プレフィックス] メッセージ`（`sub` 指定時は `[プレフィックス:sub]`）
@@ -269,7 +269,7 @@ localeManager.invalidateLocaleCache(guildId);
 `ja` / `en` 以外を追加する場合、以下をすべて更新します。**1つでも漏れると実行時に落ちるか、その言語だけ翻訳されません。**
 
 1. `i18n.ts` の `SUPPORTED_LOCALES`
-2. `locales/<新locale>/` 一式（`common.ts` / `system.ts` / `features/*` 17ファイル + `index.ts` / `resources.ts`）
+2. `locales/<新locale>/` 一式（`common.ts` / `system.ts` / `features/*` 16ファイル + `index.ts` / `resources.ts`）
 3. `locales/resources.ts` への登録
 4. `localeManager.ts` の `resources` リテラル
 5. `localeManager.ts` の `tInteraction` と `helpers.ts` の `getInteractionTranslator` の言語判定分岐

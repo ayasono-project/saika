@@ -92,6 +92,26 @@ VAC を残す判断（→「VAC（トリガー VC 方式）は残し、募集は
 
 > 詳細な作業経過は git log を参照。
 
+### 非アクティブ自動キック機能の削除（2026-09-20 develop merge）
+
+実測で**有効ギルド0**（2026-09-05）。自鯖でも未使用で、削除の根拠①（誰も使っていない）に該当する。saika だけで42ファイル・約8,000行が消え、参照していた配線・API・ロケール・テストも合わせて整理した。
+
+**本番リリースはこの時点ではしていない。** 掃除が終わってからまとめて出す。
+
+- [x] `src/features/inactive-kick/` 一式と `/inactive-kick-settings` コマンド、テストを削除
+- [x] `messageCreate` / `voiceStateUpdate` / `guildMemberRemove` からフックを外し、**`messageReactionAdd` はリスナーごと削除**（利用者がこの機能だけだった）
+- [x] **`client.ts` から `GuildMessageReactions` インテントと `Partials.Reaction` を削除。** 公開 Bot の要求インテントを1つ減らせた。`Partials.Message` はメッセージ削除系で使うので残す
+- [x] `clientReadyHandler` の毎時スイープ登録、composition root、モーダル3本・セレクト2本の配線を除去
+- [x] API の `inactiveKickResource` とルート登録、概要 API の該当カードを削除
+- [x] ロケールの `inactiveKick` 名前空間（18→17）、help、`system.ts` のログ接頭辞
+- [x] `guild-settings` の export / import・アグリゲートリポジトリ・型定義から除去
+- [x] migration で `guild_inactive_kick_settings` と `member_activities` を削除
+- [x] web ダッシュボードの `InactiveKickPage`（539行）・ルート・ナビ・モックを削除
+- [x] shared から `InactiveKickSettings` / `InactiveKickTier` を削除し **v2.0.0** として publish。saika / web の参照も更新
+
+> **shared をメジャーに上げた理由**（2026-09-20 決定）。公開 API の削除は破壊的変更で、セマンティックバージョニングではメジャーを上げる。`v1.1.0` と `v1.2.0` も実際には破壊的変更だったが minor で出しており、同じ誤りを3度目にしないための判断。利用者は saika と web だけで、どちらもタグを固定して同時に更新するためコストはゼロ。将来 Dependabot / Renovate を入れたとき、メジャーとマイナーで扱いを分けられる利点もある。
+> **テーブルも同時に削除した。** 有効ギルド0で機能ごと廃止するため、残しても使い道がない。
+
 ### `/vc`（VC操作コマンド）の削除（2026-09-20 develop merge）
 
 権限の穴を修正ではなく削除で塞いだ（判断は→「決定事項」）。`/vc` に `setDefaultMemberPermissions` が無く、実行側の権限チェックも無かったため、サーバーの誰でも他人を切断・移動でき、`target-channel` を指定すれば通話中の VC を丸ごと吹き飛ばせた。

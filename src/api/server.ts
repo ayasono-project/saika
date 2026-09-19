@@ -11,13 +11,18 @@ import { logPrefixed, tDefault } from "../shared/locale/localeManager";
 import { logger } from "../shared/utils/logger";
 import { createAuthenticate } from "./auth/authenticate";
 import { createRequireGuildAccess } from "./auth/guildAccess";
-import { RATE_LIMIT } from "./constants";
+import {
+  BODY_LIMIT_BYTES,
+  RATE_LIMIT,
+  TRUSTED_PROXY_RANGES,
+} from "./constants";
 import { toErrorResponse } from "./lib/httpError";
 import { apiRoutes } from "./routes/index";
 import type { ApiServerDeps } from "./types";
 
 /** /ready で 503 を返す HTTP ステータス */
 const SERVICE_UNAVAILABLE = 503;
+/** 未定義ルートに返す HTTP ステータス */
 const HTTP_NOT_FOUND = 404;
 
 /**
@@ -36,6 +41,7 @@ function assertProductionConfig(): void {
 
 /**
  * 依存（DB・Discord クライアント）の準備状況を確認する。
+ * @param deps 確認対象の Discord クライアントと Prisma
  * @returns DB 疎通かつ Discord クライアントが ready なら true
  */
 async function checkReady(deps: ApiServerDeps): Promise<boolean> {
@@ -52,13 +58,19 @@ async function checkReady(deps: ApiServerDeps): Promise<boolean> {
  * テストでは `app.inject()` でこのインスタンスを直接叩ける。
  *
  * @param deps Discord クライアントと Prisma を注入
+ * @returns 構築済みの Fastify インスタンス（listen 前）
  */
 export async function buildApiServer(
   deps: ApiServerDeps,
 ): Promise<FastifyInstance> {
   // ロギングは winston に一本化するため Fastify 内蔵 logger は無効化。
-  // Cloudflare/Coolify のリバースプロキシ配下のため trustProxy を有効化。
-  const app = Fastify({ logger: false, trustProxy: true });
+  // X-Forwarded-For は直前ホップが信頼範囲内のときだけ辿る（true にすると request.ip が
+  // 攻撃者の送った値になり、レート制限をすり抜けられる。理由は TRUSTED_PROXY_RANGES）。
+  const app = Fastify({
+    logger: false,
+    trustProxy: [...TRUSTED_PROXY_RANGES],
+    bodyLimit: BODY_LIMIT_BYTES,
+  });
 
   // Cookie（web BFF が発行したセッション JWT の読み取りに使用）
   await app.register(cookie);

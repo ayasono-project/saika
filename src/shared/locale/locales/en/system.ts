@@ -8,7 +8,6 @@ export const system = {
   "log_prefix.bump_reminder": "BumpReminder",
   "log_prefix.sticky_message": "StickyMessage",
   "log_prefix.member_log": "MemberLog",
-  "log_prefix.inactive_kick": "InactiveKick",
   "log_prefix.unverified_kick": "UnverifiedKick",
   "log_prefix.vac": "VAC",
   "log_prefix.vc_recruit": "VcRecruit",

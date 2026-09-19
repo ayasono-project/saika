@@ -9,7 +9,6 @@ import type {
   IGuildCoreRepository,
   IGuildSettingsAggregateRepository,
   IGuildTicketSettingsRepository,
-  IInactiveKickSettingsRepository,
   IMemberLogSettingsRepository,
   ImportMergePlan,
   IReactionRolePanelRepository,
@@ -46,7 +45,6 @@ export class GuildSettingsAggregateRepository
   private readonly memberLogRepo: IMemberLogSettingsRepository;
   private readonly vcRecruitRepo: IVcRecruitSettingsRepository;
   private readonly vcAutoRecruitRepo: IVcAutoRecruitSettingsRepository;
-  private readonly inactiveKickRepo: IInactiveKickSettingsRepository;
   private readonly unverifiedKickRepo: IUnverifiedKickSettingsRepository;
   private readonly stickyMessageRepo: IStickyMessageRepository;
   private readonly reactionRolePanelRepo: IReactionRolePanelRepository;
@@ -62,7 +60,6 @@ export class GuildSettingsAggregateRepository
     memberLogRepo: IMemberLogSettingsRepository,
     vcRecruitRepo: IVcRecruitSettingsRepository,
     vcAutoRecruitRepo: IVcAutoRecruitSettingsRepository,
-    inactiveKickRepo: IInactiveKickSettingsRepository,
     unverifiedKickRepo: IUnverifiedKickSettingsRepository,
     stickyMessageRepo: IStickyMessageRepository,
     reactionRolePanelRepo: IReactionRolePanelRepository,
@@ -77,7 +74,6 @@ export class GuildSettingsAggregateRepository
     this.memberLogRepo = memberLogRepo;
     this.vcRecruitRepo = vcRecruitRepo;
     this.vcAutoRecruitRepo = vcAutoRecruitRepo;
-    this.inactiveKickRepo = inactiveKickRepo;
     this.unverifiedKickRepo = unverifiedKickRepo;
     this.stickyMessageRepo = stickyMessageRepo;
     this.reactionRolePanelRepo = reactionRolePanelRepo;
@@ -100,7 +96,6 @@ export class GuildSettingsAggregateRepository
       memberLog,
       vcRecruit,
       vcAutoRecruit,
-      inactiveKick,
       unverifiedKick,
       ticketSettings,
       openTickets,
@@ -113,7 +108,6 @@ export class GuildSettingsAggregateRepository
       this.memberLogRepo.getMemberLogSettings(guildId),
       this.vcRecruitRepo.getVcRecruitSettings(guildId),
       this.vcAutoRecruitRepo.getVcAutoRecruitSettings(guildId),
-      this.inactiveKickRepo.getInactiveKickSettings(guildId),
       this.unverifiedKickRepo.getUnverifiedKickSettings(guildId),
       this.ticketSettingsRepo.findAllByGuild(guildId),
       this.ticketRepo.findAllOpenByGuild(guildId),
@@ -149,7 +143,6 @@ export class GuildSettingsAggregateRepository
       // activeInvites は投稿中募集のランタイム参照のため export 対象外
       result.vcAutoRecruit = { ...vcAutoRecruit, activeInvites: [] };
     }
-    if (inactiveKick) result.inactiveKick = inactiveKick;
     if (unverifiedKick) result.unverifiedKick = unverifiedKick;
 
     result.state = {
@@ -346,32 +339,6 @@ export class GuildSettingsAggregateRepository
         });
       }
 
-      if (data.inactiveKick) {
-        // enabledAt は export JSON で ISO 文字列化されるため import 時に Date へ正規化する
-        const inactiveKickData = {
-          enabled: data.inactiveKick.enabled,
-          enabledAt: data.inactiveKick.enabledAt
-            ? new Date(data.inactiveKick.enabledAt)
-            : null,
-          channelId: data.inactiveKick.channelId ?? null,
-          tiers: data.inactiveKick.tiers as unknown as Prisma.InputJsonValue,
-          weekWarnMessage: data.inactiveKick.weekWarnMessage ?? null,
-          finalWarnMessage: data.inactiveKick.finalWarnMessage ?? null,
-          kickMessage: data.inactiveKick.kickMessage ?? null,
-          markerRoleId: data.inactiveKick.markerRoleId ?? null,
-          whitelistRoleIds: data.inactiveKick.whitelistRoleIds,
-          whitelistUserIds: data.inactiveKick.whitelistUserIds,
-          timezone: data.inactiveKick.timezone,
-          runHour: data.inactiveKick.runHour,
-          mentionEnabled: data.inactiveKick.mentionEnabled,
-        };
-        await tx.guildInactiveKickSettings.upsert({
-          where: { guildId },
-          create: { guildId, ...inactiveKickData },
-          update: inactiveKickData,
-        });
-      }
-
       if (data.unverifiedKick) {
         // enabledAt は export JSON で ISO 文字列化されるため import 時に Date へ正規化する
         const unverifiedKickData = {
@@ -512,8 +479,6 @@ export class GuildSettingsAggregateRepository
       this.prisma.guildAfkSettings.deleteMany({ where: { guildId } }),
       this.prisma.guildVacSettings.deleteMany({ where: { guildId } }),
       this.prisma.guildMemberLogSettings.deleteMany({ where: { guildId } }),
-      this.prisma.guildInactiveKickSettings.deleteMany({ where: { guildId } }),
-      this.prisma.memberActivity.deleteMany({ where: { guildId } }),
       this.prisma.guildUnverifiedKickSettings.deleteMany({
         where: { guildId },
       }),

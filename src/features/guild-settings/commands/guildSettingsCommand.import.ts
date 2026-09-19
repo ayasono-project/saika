@@ -238,7 +238,6 @@ function buildSettingsSummary(data: GuildSettingsExportData): string {
   items.push(`memberLog: ${c.memberLog ? "○" : "—"}`);
   items.push(`vcRecruit: ${c.vcRecruit ? "○" : "—"}`);
   items.push(`vcAutoRecruit: ${c.vcAutoRecruit ? "○" : "—"}`);
-  items.push(`inactiveKick: ${c.inactiveKick ? "○" : "—"}`);
   items.push(`unverifiedKick: ${c.unverifiedKick ? "○" : "—"}`);
   return items.join(" / ");
 }
@@ -283,23 +282,6 @@ function checkMissingResources(
     !guild.channels.cache.has(c.vcAutoRecruit.channelId)
   ) {
     missing.push(c.vcAutoRecruit.channelId);
-  }
-  if (c.inactiveKick) {
-    if (
-      c.inactiveKick.channelId &&
-      !guild.channels.cache.has(c.inactiveKick.channelId)
-    ) {
-      missing.push(c.inactiveKick.channelId);
-    }
-    if (
-      c.inactiveKick.markerRoleId &&
-      !guild.roles.cache.has(c.inactiveKick.markerRoleId)
-    ) {
-      missing.push(c.inactiveKick.markerRoleId);
-    }
-    for (const roleId of c.inactiveKick.whitelistRoleIds) {
-      if (!guild.roles.cache.has(roleId)) missing.push(roleId);
-    }
   }
   if (c.unverifiedKick) {
     if (

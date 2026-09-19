@@ -5,7 +5,6 @@ import { messageCreateEvent } from "@/bot/events/messageCreate";
 
 const handleBumpMessageCreateMock = vi.fn();
 const handleStickyMessageCreateMock = vi.fn();
-const handleInactiveKickMessageActivityMock = vi.fn();
 
 vi.mock("@/features/bump-reminder/handlers/bumpMessageCreateHandler", () => ({
   handleBumpMessageCreate: (...args: unknown[]) =>
@@ -19,11 +18,6 @@ vi.mock(
       handleStickyMessageCreateMock(...args),
   }),
 );
-
-vi.mock("@/features/inactive-kick/handlers/activityEventHandlers", () => ({
-  handleInactiveKickMessageActivity: (...args: unknown[]) =>
-    handleInactiveKickMessageActivityMock(...args),
-}));
 
 describe("bot/events/messageCreate", () => {
   beforeEach(() => {
@@ -49,13 +43,5 @@ describe("bot/events/messageCreate", () => {
     await messageCreateEvent.execute(message as never);
 
     expect(handleStickyMessageCreateMock).toHaveBeenCalledWith(message);
-  });
-
-  it("メッセージが handleInactiveKickMessageActivity へ委譲されることを確認", async () => {
-    const message = { content: "hi" };
-
-    await messageCreateEvent.execute(message as never);
-
-    expect(handleInactiveKickMessageActivityMock).toHaveBeenCalledWith(message);
   });
 });

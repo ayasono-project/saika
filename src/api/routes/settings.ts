@@ -12,7 +12,6 @@ import { localeManager } from "../../shared/locale/localeManager";
 import { createAfkResource } from "../features/afkResource";
 import { createBumpResource } from "../features/bumpResource";
 import { createConfigResource } from "../features/configResource";
-import { createInactiveKickResource } from "../features/inactiveKickResource";
 import { createMemberLogResource } from "../features/memberLogResource";
 import { createUnverifiedKickResource } from "../features/unverifiedKickResource";
 import { createVacResource, listActiveVacs } from "../features/vacResource";
@@ -46,7 +45,6 @@ export const settingsRoutes: FastifyPluginAsync<SettingsRoutesOptions> = async (
   registerSettingsResource(fastify, createMemberLogResource(deps.prisma));
   registerSettingsResource(fastify, createBumpResource());
   registerSettingsResource(fastify, createVcAutoRecruitResource(deps.prisma));
-  registerSettingsResource(fastify, createInactiveKickResource(deps.prisma));
   registerSettingsResource(fastify, createUnverifiedKickResource(deps.prisma));
   registerSettingsResource(fastify, createVcRecruitResource(deps));
 

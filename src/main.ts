@@ -13,7 +13,7 @@ import { registerBotEvents } from "./bot/services/botEventRegistration";
 import type { Command } from "./bot/types/discord";
 import { loadCommands } from "./bot/utils/commandLoader";
 import { loadEvents } from "./bot/utils/eventLoader";
-import { env } from "./shared/config/env";
+import { env, NODE_ENV } from "./shared/config/env";
 import {
   setupGlobalErrorHandlers,
   setupGracefulShutdown,
@@ -132,6 +132,23 @@ async function startBot() {
         },
       );
       logRegisteredCommands(commands, COMMAND_REGISTRATION_SCOPE.GUILD);
+
+      // 使っていないグローバル側を空にする。一括 PUT は指定したスコープしか
+      // 置き換えないため、過去に DISCORD_GUILD_ID 未設定で起動したときの登録が
+      // 残り続け、ソースから消したコマンドが開発サーバーのサジェストに出てしまう。
+      // 本番（グローバル登録）で誤って DISCORD_GUILD_ID を設定した場合に
+      // 本番のコマンドを消さないよう、開発環境に限定する。
+      if (env.NODE_ENV === NODE_ENV.DEVELOPMENT) {
+        await client.rest.put(Routes.applicationCommands(env.DISCORD_APP_ID), {
+          body: [],
+        });
+        logger.info(
+          logPrefixed(
+            "system:log_prefix.bot",
+            "system:bot.commands.global_cleared",
+          ),
+        );
+      }
     } else {
       // グローバルコマンドとして登録（本番用）
       await client.rest.put(Routes.applicationCommands(env.DISCORD_APP_ID), {

@@ -240,21 +240,6 @@ export class VacSettingsService {
       }),
     );
   }
-
-  /**
-   * 指定VCがVAC管理下か判定する
-   */
-  async isManagedVacChannel(
-    guildId: string,
-    voiceChannelId: string,
-  ): Promise<boolean> {
-    // 管理対象判定のみ必要なため、設定取得して presence を確認
-    const config = await this.guildSettingsRepository.getVacSettings(guildId);
-    if (!config) {
-      return false;
-    }
-    return hasCreatedChannel(config, voiceChannelId);
-  }
 }
 
 /**

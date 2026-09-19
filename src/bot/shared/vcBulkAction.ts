@@ -1,5 +1,5 @@
 // src/bot/shared/vcBulkAction.ts
-// /vc disconnect・/vc move・/afk の一括操作（target=channel）で共有する確認ダイアログ・実行処理・ボタンハンドラ
+// /afk の一括操作（target=channel）の確認ダイアログ・実行処理・ボタンハンドラ
 
 import {
   ActionRowBuilder,
@@ -41,9 +41,7 @@ export const VC_BULK_CONFIRM: {
 
 /** 確認ダイアログ説明文に差し込む操作ラベルの i18n キー */
 const BULK_ACTION_LABEL_KEYS = {
-  disconnect: "vc:bulk-confirm.action.disconnect",
-  move: "vc:bulk-confirm.action.move",
-  afk: "vc:bulk-confirm.action.afk",
+  afk: "afk:bulk-confirm.action.afk",
 } as const;
 
 /** 一括操作の確認待ちセッション */
@@ -58,10 +56,8 @@ export interface BulkActionSession {
   locale: string;
   /** 対象VCチャンネルID */
   sourceChannelId: string;
-  /** 移動先VCチャンネルID（move / afk のみ） */
+  /** 移動先VCチャンネルID（AFKチャンネル） */
   destinationChannelId?: string;
-  /** ユーザー指定の理由（任意） */
-  reason?: string;
 }
 
 // コマンド受付（interaction.id）と確認待ちセッションを紐づける短命ストア
@@ -88,17 +84,17 @@ export async function presentBulkConfirm(
   );
   const description = tInteraction(
     session.locale,
-    "vc:bulk-confirm.description",
+    "afk:bulk-confirm.description",
     {
       channelId: session.sourceChannelId,
       action: actionLabel,
     },
   );
-  const title = tInteraction(session.locale, "vc:bulk-confirm.title");
+  const title = tInteraction(session.locale, "afk:bulk-confirm.title");
 
   const fields: { name: string; value: string; inline?: boolean }[] = [
     {
-      name: tInteraction(session.locale, "vc:bulk-confirm.field.target"),
+      name: tInteraction(session.locale, "afk:bulk-confirm.field.target"),
       value: formatMentionList(session.locale, memberIds),
       inline: false,
     },
@@ -106,7 +102,7 @@ export async function presentBulkConfirm(
   // 移動系は移動先を確認フィールドに表示する
   if (session.destinationChannelId) {
     fields.push({
-      name: tInteraction(session.locale, "vc:bulk-confirm.field.destination"),
+      name: tInteraction(session.locale, "afk:bulk-confirm.field.destination"),
       value: `<#${session.destinationChannelId}>`,
       inline: true,
     });
@@ -116,7 +112,7 @@ export async function presentBulkConfirm(
 
   const confirmButton = new ButtonBuilder()
     .setCustomId(`${VC_BULK_CONFIRM.CONFIRM_PREFIX}${interaction.id}`)
-    .setLabel(tInteraction(session.locale, "vc:ui.button.bulk_execute"))
+    .setLabel(tInteraction(session.locale, "afk:ui.button.bulk_execute"))
     .setStyle(ButtonStyle.Danger);
   const cancelButton = new ButtonBuilder()
     .setCustomId(`${VC_BULK_CONFIRM.CANCEL_PREFIX}${interaction.id}`)
@@ -157,7 +153,7 @@ async function executeBulkVcAction(
   const members = [...sourceChannel.members.values()];
   const targetUserIds = members.map((m) => m.id);
 
-  // 移動系は移動先VCを解決する。消えていた場合は全件失敗扱い
+  // 移動先VCを解決する。消えていた場合は全件失敗扱い
   let destinationChannel: VoiceChannel | null = null;
   if (session.destinationChannelId) {
     const dest = await guild.channels
@@ -169,19 +165,13 @@ async function executeBulkVcAction(
     destinationChannel = dest;
   }
 
-  const auditReason = resolveAuditReason(
-    session.action,
-    session.locale,
-    session.reason,
-  );
+  const auditReason = resolveAuditReason(session.action, session.locale);
 
   // 一部メンバーで失敗しても残りは続行し、失敗内訳を記録する
   const failureUserIds: string[] = [];
   for (const member of members) {
     try {
-      if (session.action === "disconnect") {
-        await member.voice.disconnect(auditReason);
-      } else if (destinationChannel) {
+      if (destinationChannel) {
         await member.voice.setChannel(destinationChannel, auditReason);
       }
     } catch {
@@ -261,7 +251,7 @@ export const vcBulkActionButtonHandler: ButtonHandler = {
           createWarningEmbed(
             tInteraction(
               interaction.locale,
-              "vc:user-response.channel_empty_now",
+              "afk:user-response.channel_empty_now",
             ),
             {
               title: tInteraction(interaction.locale, "common:title_not_in_vc"),
@@ -284,14 +274,11 @@ export const vcBulkActionButtonHandler: ButtonHandler = {
       targetUserIds,
       failureUserIds,
       destinationChannelId: session.destinationChannelId,
-      reason: session.reason,
     });
     await interaction.followUp({ embeds: [logEmbed] });
 
-    const commandName =
-      session.action === "afk" ? "/afk" : `/vc ${session.action}`;
     logger.info(
-      logCommand(commandName, "vc:log.bulk_executed", {
+      logCommand("/afk", "afk:log.bulk_executed", {
         guildId: session.guildId,
         action: session.action,
         channelId: session.sourceChannelId,

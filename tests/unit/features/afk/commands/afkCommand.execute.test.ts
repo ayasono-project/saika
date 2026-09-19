@@ -170,7 +170,7 @@ describe("features/afk/commands/afkCommand.execute", () => {
     const interaction = createInteraction();
 
     await expect(executeAfkCommand(interaction as never)).rejects.toThrow(
-      "vc:user-response.target_required",
+      "afk:user-response.target_required",
     );
     expect(interaction.guild.members.fetch).not.toHaveBeenCalled();
     expect(interaction.setChannelMock).not.toHaveBeenCalled();
@@ -214,7 +214,7 @@ describe("features/afk/commands/afkCommand.execute", () => {
       executeAfkCommand(interaction as never),
     ).rejects.toBeInstanceOf(ValidationError);
     await expect(executeAfkCommand(interaction as never)).rejects.toThrow(
-      "vc:user-response.member_not_found",
+      "afk:user-response.member_not_found",
     );
   });
 
@@ -228,7 +228,7 @@ describe("features/afk/commands/afkCommand.execute", () => {
       executeAfkCommand(interaction as never),
     ).rejects.toBeInstanceOf(ValidationError);
     await expect(executeAfkCommand(interaction as never)).rejects.toThrow(
-      "vc:user-response.target_not_in_voice",
+      "afk:user-response.target_not_in_voice",
     );
   });
 

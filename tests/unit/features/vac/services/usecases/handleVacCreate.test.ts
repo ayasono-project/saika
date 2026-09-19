@@ -59,7 +59,6 @@ function createRepositoryMock(): Mocked<VacSettingsService> {
     removeTriggerChannel: vi.fn(),
     addCreatedVacChannel: vi.fn(),
     removeCreatedVacChannel: vi.fn(),
-    isManagedVacChannel: vi.fn(),
   } as unknown as Mocked<VacSettingsService>;
 }
 

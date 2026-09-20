@@ -1,4 +1,3 @@
-// src/bot/features/bump-reminder/commands/bumpReminderSettingsCommand.removeUsers.ts
 // bump-reminder-settings remove-mention-users 実行処理
 
 import { ValidationError } from "@ayasono/shared/core";

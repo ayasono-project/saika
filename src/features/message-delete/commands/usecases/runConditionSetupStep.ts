@@ -1,4 +1,3 @@
-// src/bot/features/message-delete/commands/usecases/runConditionSetupStep.ts
 // 条件設定フェーズ: UserSelectMenu / ChannelSelectMenu でユーザー・チャンネルを選択
 
 import {

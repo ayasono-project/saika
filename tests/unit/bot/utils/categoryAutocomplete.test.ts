@@ -1,5 +1,3 @@
-// tests/unit/bot/utils/categoryAutocomplete.test.ts
-
 import { ChannelType } from "discord.js";
 import { respondCategoryAutocomplete } from "@/bot/utils/categoryAutocomplete";
 
@@ -31,7 +29,7 @@ const SUBCOMMANDS = ["setup", "teardown"] as const;
 const OPTS = {
   commandName: COMMAND,
   subcommands: SUBCOMMANDS,
-  topLocaleKey: "vcRecruit:vc-recruit-settings.setup.category.top" as const,
+  topLocaleKey: "vac:vac-settings.remove-trigger-vc.category.top" as const,
   topValue: "TOP",
 };
 

@@ -1,4 +1,3 @@
-// src/bot/handlers/interactionCreate/ui/selectMenus.ts
 // セレクトメニューハンドラのレジストリ
 
 import {
@@ -31,9 +30,6 @@ import { ticketViewSelectHandler } from "../../../../features/ticket/handlers/ui
 import { unverifiedKickExemptRemoveSelectHandler } from "../../../../features/unverified-kick/handlers/ui/unverifiedKickExemptRemoveSelectHandler";
 import { vcAutoRecruitAddChannelSelectHandler } from "../../../../features/vc-auto-recruit/handlers/ui/vcAutoRecruitAddChannelSelectHandler";
 import { vcAutoRecruitRemoveChannelSelectHandler } from "../../../../features/vc-auto-recruit/handlers/ui/vcAutoRecruitRemoveChannelSelectHandler";
-import { vcRecruitAddRoleSelectHandler } from "../../../../features/vc-recruit/handlers/ui/vcRecruitAddRoleSelectHandler";
-import { vcRecruitRemoveRoleSelectHandler } from "../../../../features/vc-recruit/handlers/ui/vcRecruitRemoveRoleSelectHandler";
-import { vcRecruitStringSelectHandler } from "../../../../features/vc-recruit/handlers/ui/vcRecruitStringSelect";
 import type {
   RoleSelectHandler,
   StringSelectHandler,
@@ -54,7 +50,6 @@ export const roleSelectHandlers: RoleSelectHandler[] = [
   // チケット set-roles / add-roles / remove-roles のロール選択を処理
   ticketRoleSelectHandler,
   // VC募集 add-role のロール選択を処理
-  vcRecruitAddRoleSelectHandler,
 ];
 
 export const stringSelectHandlers: StringSelectHandler[] = [
@@ -87,9 +82,7 @@ export const stringSelectHandlers: StringSelectHandler[] = [
   // sticky-message view コマンドのチャンネル選択を処理
   stickyMessageViewSelectHandler,
   // VC募集のメンション/VC選択を処理
-  vcRecruitStringSelectHandler,
   // VC募集 remove-role のロール選択を処理
-  vcRecruitRemoveRoleSelectHandler,
   // チケット teardown のカテゴリ選択を処理
   ticketTeardownSelectHandler,
   // チケット view のカテゴリ選択を処理

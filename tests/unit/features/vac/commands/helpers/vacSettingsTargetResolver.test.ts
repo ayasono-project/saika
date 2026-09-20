@@ -1,5 +1,3 @@
-// tests/unit/bot/features/vac/commands/helpers/vacSettingsTargetResolver.test.ts
-
 import { ChannelType } from "discord.js";
 import {
   findTriggerChannelByCategory,

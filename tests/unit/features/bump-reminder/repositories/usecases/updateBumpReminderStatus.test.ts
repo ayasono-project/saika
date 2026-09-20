@@ -1,4 +1,3 @@
-// tests/unit/bot/features/bump-reminder/repositories/usecases/updateBumpReminderStatus.test.ts
 import { BUMP_REMINDER_STATUS } from "@/features/bump-reminder/constants/bumpReminderConstants";
 import {
   cancelPendingByGuildAndChannelUseCase,

@@ -1,5 +1,3 @@
-// tests/unit/bot/features/message-delete/commands/usecases/runConditionSetupStep.test.ts
-
 import { ComponentType } from "discord.js";
 import type { Mock } from "vitest";
 

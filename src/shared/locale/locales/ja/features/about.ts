@@ -1,4 +1,3 @@
-// src/shared/locale/locales/ja/features/about.ts
 // About機能の翻訳リソース
 
 export const about = {
@@ -12,6 +11,10 @@ export const about = {
   "embed.field.name.version": "バージョン",
   "embed.field.name.official": "🔗 公式サイト",
   "embed.field.value.official": "{{url}}",
+  "embed.field.name.manual": "📚 使い方",
+  "embed.field.value.manual": "{{url}}",
+  "embed.field.name.dashboard": "🌐 ダッシュボード",
+  "embed.field.value.dashboard": "ブラウザから各機能を設定できます: {{url}}",
 } as const;
 
 export type AboutTranslations = typeof about;

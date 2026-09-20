@@ -1,4 +1,3 @@
-// src/bot/services/botPresence.ts
 // Bot のプレゼンス（稼働サーバー数の表示）を適用する
 
 import { ActivityType, type Client, PresenceUpdateStatus } from "discord.js";

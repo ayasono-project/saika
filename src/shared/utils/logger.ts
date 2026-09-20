@@ -1,4 +1,3 @@
-// src/shared/utils/logger.ts
 // ロガー設定（@ayasono/shared/core の createLogger を saika 設定で wiring する）
 
 import { createLogger, DiscordWebhookTransport } from "@ayasono/shared/core";

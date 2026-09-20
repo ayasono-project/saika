@@ -1,4 +1,3 @@
-// src/features/unverified-kick/services/unverifiedKickEligibility.ts
 // 未承認ユーザー自動キックの判定ロジック（純関数・日次チェックと preview で共有）
 
 import { differenceInDays } from "date-fns";

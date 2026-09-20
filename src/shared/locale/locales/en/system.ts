@@ -1,4 +1,3 @@
-// src/shared/locale/locales/en/system.ts
 // Cross-feature system message translations (English)
 
 export const system = {
@@ -10,7 +9,6 @@ export const system = {
   "log_prefix.member_log": "MemberLog",
   "log_prefix.unverified_kick": "UnverifiedKick",
   "log_prefix.vac": "VAC",
-  "log_prefix.vc_recruit": "VcRecruit",
   "log_prefix.vc_auto_recruit": "VcAutoRecruit",
   "log_prefix.msg_del": "MsgDel",
   "log_prefix.afk": "AFK",
@@ -18,14 +16,7 @@ export const system = {
   "log_prefix.cooldown": "Cooldown",
   "log_prefix.scheduler": "Scheduler",
   "log_prefix.web": "Web",
-  "log_prefix.json": "JSON",
   "log_prefix.interaction_create": "interactionCreate",
-  "log_prefix.guild_member_add": "guildMemberAdd",
-  "log_prefix.guild_member_remove": "guildMemberRemove",
-  "log_prefix.message_create": "messageCreate",
-  "log_prefix.message_delete": "messageDelete",
-  "log_prefix.voice_state_update": "voiceStateUpdate",
-  "log_prefix.channel_delete": "channelDelete",
   "log_prefix.guild_create": "guildCreate",
   "log_prefix.guild_delete": "guildDelete",
   "log_prefix.ready": "ready",
@@ -112,20 +103,9 @@ export const system = {
     "{{signal}} received, but shutdown is already in progress.",
   "shutdown.cleanup_complete": "Cleanup completed",
   "shutdown.cleanup_failed": "Error during cleanup:",
-  "shutdown.gracefully": "Shutting down gracefully...",
-  "shutdown.sigterm": "Received SIGTERM, shutting down...",
 
   // Database operation logs (GuildSettings generic only)
   "database.prisma_not_available": "Prisma client is not available",
-  "database.get_config_log": "Failed to get config GuildId: {{guildId}}",
-  "database.save_config_log": "Failed to save config GuildId: {{guildId}}",
-  "database.saved_config": "Config saved GuildId: {{guildId}}",
-  "database.update_config_log": "Failed to update config GuildId: {{guildId}}",
-  "database.updated_config": "Config updated GuildId: {{guildId}}",
-  "database.delete_config_log": "Failed to delete config GuildId: {{guildId}}",
-  "database.deleted_config": "Config deleted GuildId: {{guildId}}",
-  "database.check_existence_log":
-    "Failed to check existence GuildId: {{guildId}}",
 
   // Bot startup event logs
   "ready.bot_ready": "✅ Bot is ready! Logged in as {{tag}}",
@@ -151,31 +131,9 @@ export const system = {
 
   // Web server
   "web.server_started": "Started URL: {{url}}",
-  "web.startup_error": "Startup error:",
-  "web.unhandled_rejection": "Unhandled Promise rejection:",
-  "web.uncaught_exception": "Uncaught exception:",
-  "web.startup_failed": "Startup failed:",
   "web.api_error": "API Error:",
   "web.internal_server_error": "Internal Server Error",
-  "web.auth_unauthorized":
-    "[Auth] Unauthorized request Method: {{method}} URL: {{url}}",
-  "web.auth_invalid_token":
-    "[Auth] Invalid token Method: {{method}} URL: {{url}}",
-  "web.auth_unauthorized_error": "Unauthorized",
-  "web.auth_forbidden_error": "Forbidden",
-  "web.auth_header_required":
-    "Authorization: Bearer <api-key> header is required",
-  "web.auth_invalid_token_message": "Invalid token",
   "web.auth_session_required": "Login is required.",
-  "web.auth_no_session_cookie":
-    "[Auth] No session cookie Method: {{method}} URL: {{url}}",
-  "web.discord_user_fetch_error": "[OAuth] Discord user fetch error:",
-  "web.discord_api_error": "Failed to communicate with Discord.",
-  "web.session_refresh_failed":
-    "[Session] Token refresh failed SessionId: {{sessionId}} UserId: {{userId}}",
-  "web.session_cleanup":
-    "[Session] Cleaned up expired sessions Count: {{count}}",
-  "web.session_cleanup_error": "[Session] Cleanup error:",
   "web.guild_id_required": "Guild ID is required.",
   "web.channel_id_required": "Channel ID is required.",
   "web.category_id_required": "Category ID is required.",

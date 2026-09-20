@@ -1,5 +1,3 @@
-// tests/unit/bot/features/reaction-role/services/reactionRolePanelBuilder.test.ts
-
 import type {
   ActionRowBuilder,
   APIButtonComponentWithCustomId,

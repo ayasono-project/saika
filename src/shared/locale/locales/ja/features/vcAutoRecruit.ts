@@ -1,4 +1,3 @@
-// src/shared/locale/locales/ja/features/vcAutoRecruit.ts
 // VC自動募集機能の翻訳リソース
 
 export const vcAutoRecruit = {
@@ -42,17 +41,6 @@ export const vcAutoRecruit = {
     "⚠️ VC自動募集の投稿先チャンネルが削除されました。\n設定をリセットしたので、`/vc-auto-recruit-settings set-post-channel` で再設定してください。",
   "user-response.reset_success": "VC自動募集設定をリセットしました。",
   "user-response.reset_cancelled": "リセットをキャンセルしました。",
-  "user-response.categories_added_count":
-    "{{count}} 件のカテゴリを募集対象に追加しました。",
-  "user-response.categories_removed_count":
-    "{{count}} 件のカテゴリを募集対象から解除しました。",
-  "user-response.no_addable_categories":
-    "追加できるカテゴリがありません。すべて登録済みです。",
-  "user-response.no_enabled_categories":
-    "解除できる募集対象カテゴリがありません。",
-  "user-response.enable_warning_no_category":
-    "有効化しましたが、有効カテゴリが未設定のため投稿されません。`/vc-auto-recruit-settings add-category` でカテゴリを追加してください。",
-  "user-response.category_top_label": "TOP（カテゴリなし）",
   "user-response.channels_added_count":
     "{{count}} 件のVCチャンネルを募集対象に追加しました。\n{{channels}}",
   "user-response.channels_removed_count":
@@ -76,9 +64,6 @@ export const vcAutoRecruit = {
   "embed.field.name.channel": "投稿先チャンネル",
   "embed.field.name.embed": "Embed",
   "embed.field.name.message": "カスタムメッセージ",
-  "embed.field.name.categories": "有効カテゴリ",
-  "embed.field.value.categories_none": "未設定（どこにも投稿されません）",
-  "embed.field.value.top": "TOP（カテゴリなし）",
   "embed.field.name.channels": "有効チャンネル",
   "embed.field.value.channels_none": "未設定（どこにも投稿されません）",
 
@@ -100,9 +85,6 @@ export const vcAutoRecruit = {
   "ui.modal.set_message_label": "募集メッセージ",
   "ui.modal.set_message_placeholder":
     "{userMention}, {userName}, {channelMention}, {channelName}, {serverName} を使用可（最大500文字）",
-  "ui.select.add_category_placeholder": "追加するカテゴリを選択（複数選択可）",
-  "ui.select.remove_category_placeholder":
-    "解除するカテゴリを選択（複数選択可）",
   "ui.select.add_channel_placeholder":
     "追加するVCチャンネルを選択（複数選択可）",
   "ui.select.remove_channel_placeholder":
@@ -113,15 +95,12 @@ export const vcAutoRecruit = {
   // ── ログ ─────────────────────────────────────
   "log.invite_sent":
     "募集メッセージを送信 GuildId: {{guildId}} ChannelId: {{channelId}} UserId: {{userId}}",
-  "log.invite_skipped_cooldown":
-    "連投抑制により募集投稿をスキップ GuildId: {{guildId}} VoiceChannelId: {{voiceChannelId}}",
   "log.invite_closed":
     "VCが空になり募集終了に変更 GuildId: {{guildId}} VoiceChannelId: {{voiceChannelId}} MessageId: {{messageId}}",
   "log.invite_close_failed":
     "募集終了への編集に失敗 GuildId: {{guildId}} MessageId: {{messageId}}",
   "log.startup_cleanup_done":
     "起動クリーンアップ完了 募集終了 {{closed}} 件・除去 {{removed}} 件",
-  "log.post_failed": "募集メッセージ送信失敗 GuildId: {{guildId}}",
   "log.channel_not_found":
     "投稿先チャンネルが見つかりません。 GuildId: {{guildId}} ChannelId: {{channelId}}",
   "log.channel_deleted_config_cleared":
@@ -132,12 +111,6 @@ export const vcAutoRecruit = {
   "log.config_disabled": "無効化 GuildId: {{guildId}}",
   "log.config_message_set": "募集メッセージ設定 GuildId: {{guildId}}",
   "log.config_message_cleared": "募集メッセージ削除 GuildId: {{guildId}}",
-  "log.config_category_added":
-    "募集対象カテゴリ追加 GuildId: {{guildId}} CategoryId: {{categoryId}}",
-  "log.config_category_removed":
-    "募集対象カテゴリ解除 GuildId: {{guildId}} CategoryId: {{categoryId}}",
-  "log.category_removed_by_delete":
-    "削除されたカテゴリを有効カテゴリから除外 GuildId: {{guildId}} CategoryId: {{categoryId}}",
   "log.config_channel_added":
     "募集対象チャンネル追加 GuildId: {{guildId}} ChannelId: {{channelId}}",
   "log.config_channel_removed":

@@ -1,4 +1,3 @@
-// src/bot/features/message-delete/commands/usecases/runDeleteExecution.ts
 // 削除実行フェーズ
 
 import { type MessageComponentInteraction } from "discord.js";

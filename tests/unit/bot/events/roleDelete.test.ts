@@ -1,5 +1,3 @@
-// tests/unit/bot/events/roleDelete.test.ts
-
 import { Events } from "discord.js";
 import { roleDeleteEvent } from "@/bot/events/roleDelete";
 

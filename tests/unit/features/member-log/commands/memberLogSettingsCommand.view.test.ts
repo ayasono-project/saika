@@ -1,5 +1,3 @@
-// tests/unit/bot/features/member-log/commands/memberLogSettingsCommand.view.test.ts
-
 import { ValidationError } from "@ayasono/shared/core";
 import { handleMemberLogSettingsView } from "@/features/member-log/commands/memberLogSettingsCommand.view";
 

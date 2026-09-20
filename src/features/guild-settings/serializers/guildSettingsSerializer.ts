@@ -1,4 +1,3 @@
-// src/shared/database/repositories/serializers/guildSettingsSerializer.ts
 // GuildSettings の serializer / deserializer
 
 import type { GuildSettings } from "../../../shared/database/types";

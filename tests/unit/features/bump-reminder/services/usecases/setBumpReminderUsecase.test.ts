@@ -1,4 +1,3 @@
-// tests/unit/bot/features/bump-reminder/services/usecases/setBumpReminderUsecase.test.ts
 import { setBumpReminderUsecase } from "@/features/bump-reminder/services/usecases/setBumpReminderUsecase";
 
 const toBumpReminderJobIdMock = vi.fn();

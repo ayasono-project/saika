@@ -1,4 +1,3 @@
-// src/bot/features/bump-reminder/repositories/usecases/deleteBumpReminder.ts
 // Bumpリマインダー削除ユースケース
 
 import type { PrismaClient } from "@prisma/client";

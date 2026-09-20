@@ -1,4 +1,3 @@
-// tests/unit/api/auth/authenticate.test.ts
 // 認証 preHandler のユニットテスト（Cookie のセッション JWT 検証）。
 
 import type { FastifyReply, FastifyRequest } from "fastify";

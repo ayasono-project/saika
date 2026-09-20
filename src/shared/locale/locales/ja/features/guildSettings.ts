@@ -1,4 +1,3 @@
-// src/shared/locale/locales/ja/features/guildSettings.ts
 // ギルド設定機能の翻訳リソース
 
 export const guildSettings = {

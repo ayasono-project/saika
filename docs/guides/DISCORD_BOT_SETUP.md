@@ -75,15 +75,12 @@
 | メッセージを送信 | Send Messages | 共通（コマンド応答） |
 | 埋め込みリンク | Embed Links | 共通（embed 送信） |
 | メッセージ履歴を読む | Read Message History | 共通 |
-| メッセージの管理 | Manage Messages | message-delete / sticky / vc-recruit |
-| チャンネルの管理 | Manage Channels | ticket / vac / vc-recruit / vc-auto-recruit|
+| メッセージの管理 | Manage Messages | message-delete / sticky |
+| チャンネルの管理 | Manage Channels | ticket / vac / vc-auto-recruit |
 | ロールの管理 | Manage Roles | ticket / reaction-role / kick 系マーカーロール |
 | メンバーを移動 | Move Members | vac / afk |
 | 接続 | Connect | vac / afk（移動先VCへの接続。Move Members だけでは移動不可） |
-| メンバーをキック | Kick Members | unverified-kick / inactive-kick |
-| 公開スレッドの作成 | Create Public Threads | vc-recruit（自動スレッド） |
-| スレッドの管理 | Manage Threads | vc-recruit（募集スレッド削除） |
-| スレッドでメッセージを送信 | Send Messages in Threads | vc-recruit（募集スレッドの overwrite 付与） |
+| メンバーをキック | Kick Members | unverified-kick |
 | サーバー管理 | Manage Server | member-log（招待元トラッキング） |
 
 > **最小権限の方針**: 彩加は Administrator を要求しない。上記は各機能が実際に呼び出す Discord API に必要な個別権限のみ。チャンネル単位の上書き（overwrite）で Bot の権限を制限すると一部機能が動かなくなる点に注意。

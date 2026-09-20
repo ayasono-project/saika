@@ -1,4 +1,3 @@
-// src/shared/locale/locales/en/features/reactionRole.ts
 // Reaction role feature English translations
 
 export const reactionRole = {
@@ -113,8 +112,6 @@ export const reactionRole = {
     "button removed GuildId: {{guildId}} PanelId: {{panelId}} ButtonId: {{buttonId}}",
   "log.button_edited":
     "button edited GuildId: {{guildId}} PanelId: {{panelId}} ButtonId: {{buttonId}}",
-  "log.database_panel_saved":
-    "panel config saved GuildId: {{guildId}} PanelId: {{panelId}}",
   "log.database_panel_save_failed":
     "failed to save panel config GuildId: {{guildId}} PanelId: {{panelId}}",
   "log.database_panel_find_failed":

@@ -1,4 +1,3 @@
-// src/bot/features/vac/services/vacService.ts
 // VAC機能のビジネスロジックサービス
 
 import { type Channel, ChannelType, type VoiceState } from "discord.js";

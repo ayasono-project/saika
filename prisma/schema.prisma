@@ -91,11 +91,10 @@ model GuildVcAutoRecruitSettings {
   channelId          String? @map("channel_id")
   message            String?
   embedEnabled       Boolean @default(true) @map("embed_enabled")
-  enabledCategoryIds Json    @default("[]") @map("enabled_category_ids") // jsonb: string[]（ルートは "TOP"）・移行期間中保持
   enabledChannelIds  Json    @default("[]") @map("enabled_channel_ids") // jsonb: string[]（VC チャンネル ID allowlist）
   activeInvites      Json    @default("[]") @map("active_invites") // jsonb: VcAutoRecruitRef[]
 
-  @@map("guild_vc_invite_settings")
+  @@map("guild_vc_auto_recruit_settings")
 }
 
 // 未承認ユーザー自動キック設定
@@ -130,16 +129,6 @@ model GuildUnverifiedKickWarn {
   @@id([guildId, userId])
   @@index([guildId])
   @@map("guild_unverified_kick_warns")
-}
-
-// VC募集設定
-model GuildVcRecruitSettings {
-  guildId        String  @id @map("guild_id")
-  enabled        Boolean @default(false)
-  mentionRoleIds Json    @default("[]") @map("mention_role_ids") // jsonb: string[]
-  setups         Json    @default("[]")                          // jsonb: VcRecruitSetup[]
-
-  @@map("guild_vc_recruit_settings")
 }
 
 // Sticky Message (スティッキーメッセージ)

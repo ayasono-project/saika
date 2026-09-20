@@ -243,7 +243,7 @@ interface Command {
 
 ### エンドポイント概要
 
-機能別設定 9 種（config / afk / vac / member-log / bump / vc-recruit / vc-auto-recruit / inactive-kick / unverified-kick）の CRUD、コレクション 3 種（sticky / reaction-role / ticket・パネル投稿副作用つき）、ギルド概要（overview）・Discord リソース（channels / roles / members）・`GET /api/bot`・`GET /api/guilds/joined`・全設定リセット `POST /api/guilds/:id/reset-all`。
+機能別設定 7 種（config / afk / vac / member-log / bump / vc-auto-recruit / unverified-kick）の CRUD、コレクション 3 種（sticky / reaction-role / ticket・パネル投稿副作用つき）、ギルド概要（overview）・Discord リソース（channels / roles / members）・`GET /api/bot`・`GET /api/guilds/joined`・全設定リセット `POST /api/guilds/:id/reset-all`。
 
 ### 関連環境変数
 
@@ -282,10 +282,7 @@ const prisma = getPrismaClient(); // null の場合あり
 | `GuildBumpReminderSettings` | Bump リマインダー設定                      |
 | `GuildMemberLogSettings`    | メンバーログ設定                           |
 | `GuildVacSettings`          | VC 自動作成設定                            |
-| `GuildVcRecruitSettings`    | VC 募集設定                                |
-| `GuildVcAutoRecruitSettings` | VC 自動募集設定（物理テーブル名は `guild_vc_invite_settings`） |
-| `GuildInactiveKickSettings` | 非アクティブ自動キック設定（在籍階層 `tiers` を含む） |
-| `MemberActivity`          | メンバーの活動記録（最終活動時刻・警告段階・累積カウント） |
+| `GuildVcAutoRecruitSettings` | VC 自動募集設定                            |
 | `GuildUnverifiedKickSettings` | 未承認ユーザー自動キック設定             |
 | `GuildUnverifiedKickWarn` | 未承認キックの警告記録（guildId + userId 複合PK） |
 | `BumpReminder`            | Bump リマインダー記録（スケジュールデータ） |
@@ -312,17 +309,14 @@ AfkSettingsRepository              ← AFK設定（IAfkSettingsRepository）
 BumpReminderSettingsRepository     ← Bumpリマインダー設定（IBumpReminderSettingsRepository）
 MemberLogSettingsRepository        ← メンバーログ設定（IMemberLogSettingsRepository）
 VacSettingsRepository              ← VAC設定（IVacSettingsRepository）
-VcRecruitSettingsRepository        ← VC募集設定（IVcRecruitSettingsRepository）
 VcAutoRecruitSettingsRepository    ← VC自動募集設定（IVcAutoRecruitSettingsRepository）
-InactiveKickSettingsRepository     ← 非アクティブ自動キック設定（IInactiveKickSettingsRepository）
-MemberActivityRepository           ← メンバー活動記録（IMemberActivityRepository）
 UnverifiedKickSettingsRepository   ← 未承認自動キック設定（IUnverifiedKickSettingsRepository）
 UnverifiedKickWarnRepository       ← 未承認キック警告記録（IUnverifiedKickWarnRepository）
 TicketSettingsRepository           ← チケット機能設定（IGuildTicketSettingsRepository）
 ReactionRolePanelRepository      ← リアクションロールパネル（IReactionRolePanelRepository）
 ```
 
-> `schema.prisma` には現在 `@relation` が1つも無く、**外部キー制約は存在しません**。`guildId` を持つモデルは16個あり、ギルド単位の後始末は `deleteAllSettings()` の手動列挙で担保しています（列挙漏れが過去にバグを生んでいるため、Prisma の型からレジストリを導出する構造化が TODO に起票済み）。
+> `schema.prisma` には現在 `@relation` が1つも無く、**外部キー制約は存在しません**。`guildId` を持つモデルは13個あり、ギルド単位の後始末は `deleteAllSettings()` の手動列挙で担保しています（列挙漏れが過去にバグを生んでいるため、Prisma の型からレジストリを導出する構造化が TODO に起票済み）。
 
 **ランタイムデータリポジトリ（`src/features/<feature>/repositories/`）**:
 
@@ -332,7 +326,6 @@ ReactionRolePanelRepository      ← リアクションロールパネル（IRea
 BumpReminderRepository   ← BumpReminder テーブルの CRUD
 StickyMessageRepository  ← StickyMessage テーブルの CRUD
 TicketRepository         ← Ticket テーブルの CRUD
-VcRecruitRepository      ← VcRecruit の作成済みチャンネル管理
 ```
 
 ### Composition Root と DI

@@ -1,5 +1,3 @@
-// tests/unit/bot/features/sticky-message/services/stickyMessageResendService.test.ts
-
 import type { TextChannel } from "discord.js";
 
 const buildPayloadMock = vi.fn(() => ({ content: "sticky content" }));

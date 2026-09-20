@@ -1,4 +1,3 @@
-// src/shared/locale/helpers.ts
 // ローカライゼーション関連のヘルパー関数
 
 import { type ParseKeys } from "i18next";

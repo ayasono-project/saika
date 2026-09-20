@@ -1,4 +1,3 @@
-// src/features/vac/vacSettingsRepository.ts
 // VAC設定リポジトリ（guild_vac_settings テーブル）
 
 import { Prisma, type PrismaClient } from "@prisma/client";

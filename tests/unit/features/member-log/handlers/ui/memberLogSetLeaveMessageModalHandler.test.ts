@@ -1,5 +1,3 @@
-// tests/unit/bot/features/member-log/handlers/ui/memberLogSetLeaveMessageModalHandler.test.ts
-
 import { MessageFlags } from "discord.js";
 import { MEMBER_LOG_SETTINGS_COMMAND } from "@/features/member-log/commands/memberLogSettingsCommand.constants";
 import { memberLogSetLeaveMessageModalHandler } from "@/features/member-log/handlers/ui/memberLogSetLeaveMessageModalHandler";

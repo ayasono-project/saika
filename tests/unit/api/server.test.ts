@@ -1,4 +1,3 @@
-// tests/unit/api/server.test.ts
 // Fastify API スキャフォールドの統合的ユニットテスト（app.inject 利用）
 
 import type { PrismaClient } from "@prisma/client";

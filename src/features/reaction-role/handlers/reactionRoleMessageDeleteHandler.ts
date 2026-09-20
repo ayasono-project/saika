@@ -1,4 +1,3 @@
-// src/bot/features/reaction-role/handlers/reactionRoleMessageDeleteHandler.ts
 // パネルメッセージ削除検知ハンドラ
 
 import type { Message, PartialMessage } from "discord.js";

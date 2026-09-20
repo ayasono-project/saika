@@ -1,4 +1,3 @@
-// src/bot/features/bump-reminder/repositories/usecases/cleanupBumpReminders.ts
 // Bumpリマインダーの期限超過データ削除ユースケース
 
 import type { PrismaClient } from "@prisma/client";

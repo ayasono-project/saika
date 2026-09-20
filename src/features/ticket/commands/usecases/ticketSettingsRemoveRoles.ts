@@ -1,4 +1,3 @@
-// src/bot/features/ticket/commands/usecases/ticketSettingsRemoveRoles.ts
 // チケットスタッフロール削除処理
 
 import {

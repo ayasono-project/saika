@@ -1,4 +1,3 @@
-// src/features/vc-auto-recruit/commands/vcAutoRecruitSettingsCommand.addChannel.ts
 // vc-auto-recruit-settings add-channel 実行処理
 // 未登録の VC チャンネルを複数選択メニューで提示し、選択時に一括で募集対象へ追加する（選択応答は select ハンドラ）
 

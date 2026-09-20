@@ -1,4 +1,3 @@
-// src/shared/locale/locales/en/common.ts
 // Common translations (English)
 
 export const common = {
@@ -41,16 +40,7 @@ export const common = {
   title_config_error: "Configuration Error",
 
   // Cross-feature errors (absorbed from errors.ts)
-  // Database errors
-  "database.get_config_failed": "Failed to get config",
-  "database.save_config_failed": "Failed to save config",
-  "database.update_config_failed": "Failed to update config",
-  "database.delete_config_failed": "Failed to delete config",
-  "database.check_existence_failed": "Failed to check existence",
-  "database.unknown_error": "unknown error",
-
   // Validation errors
-  "validation.error_title": "Invalid Input",
   "validation.guild_only": "This command can only be used within a server",
   "validation.invalid_subcommand": "Invalid subcommand",
 
@@ -62,7 +52,6 @@ export const common = {
   "interaction.timeout": "Operation timed out.",
 
   // General errors
-  "general.error_title": "Error",
   "general.unexpected_production":
     "An unexpected error occurred. Please try again later.",
   "general.unexpected_with_message": "Error: {{message}}",

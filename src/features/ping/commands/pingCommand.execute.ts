@@ -1,4 +1,3 @@
-// src/bot/features/ping/commands/pingCommand.execute.ts
 // ping コマンド実行処理
 
 import type { ChatInputCommandInteraction } from "discord.js";

@@ -1,5 +1,3 @@
-// tests/unit/features/about/commands/aboutCommand.execute.test.ts
-
 import { EmbedBuilder, MessageFlags } from "discord.js";
 
 vi.mock("@/shared/locale/localeManager", () => ({
@@ -9,6 +7,8 @@ vi.mock("@/shared/locale/localeManager", () => ({
 vi.mock("@/shared/config/env", () => ({
   env: {
     OFFICIAL_URL: undefined,
+    USER_MANUAL_URL: undefined,
+    DASHBOARD_URL: undefined,
   },
 }));
 
@@ -30,7 +30,14 @@ function createInteraction() {
 describe("features/about/commands/aboutCommand.execute", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    (env as { OFFICIAL_URL?: string }).OFFICIAL_URL = undefined;
+    const mutable = env as {
+      OFFICIAL_URL?: string;
+      USER_MANUAL_URL?: string;
+      DASHBOARD_URL?: string;
+    };
+    mutable.OFFICIAL_URL = undefined;
+    mutable.USER_MANUAL_URL = undefined;
+    mutable.DASHBOARD_URL = undefined;
   });
 
   it("ephemeral で Embed を返信すること", async () => {
@@ -96,6 +103,55 @@ describe("features/about/commands/aboutCommand.execute", () => {
       "about:embed.field.value.official",
       { url: "https://example.com" },
     );
+  });
+
+  it("USER_MANUAL_URL 設定時はマニュアルフィールドを追加すること", async () => {
+    (env as { USER_MANUAL_URL?: string }).USER_MANUAL_URL =
+      "https://example.com/manual";
+    const interaction = createInteraction();
+
+    await executeAboutCommand(interaction as never);
+
+    const call = interaction.reply.mock.calls[0]![0] as {
+      embeds: EmbedBuilder[];
+    };
+    const fields = call.embeds[0]!.data.fields!;
+    expect(fields.some((f) => f.name === "about:embed.field.name.manual")).toBe(
+      true,
+    );
+    expect(tInteraction).toHaveBeenCalledWith(
+      "ja",
+      "about:embed.field.value.manual",
+      { url: "https://example.com/manual" },
+    );
+  });
+
+  it("DASHBOARD_URL 設定時はダッシュボードフィールドを追加すること", async () => {
+    (env as { DASHBOARD_URL?: string }).DASHBOARD_URL =
+      "https://example.com/dash";
+    const interaction = createInteraction();
+
+    await executeAboutCommand(interaction as never);
+
+    const call = interaction.reply.mock.calls[0]![0] as {
+      embeds: EmbedBuilder[];
+    };
+    const fields = call.embeds[0]!.data.fields!;
+    expect(
+      fields.some((f) => f.name === "about:embed.field.name.dashboard"),
+    ).toBe(true);
+  });
+
+  it("URL が未設定なら死にリンクのフィールドを出さないこと", async () => {
+    const interaction = createInteraction();
+
+    await executeAboutCommand(interaction as never);
+
+    const call = interaction.reply.mock.calls[0]![0] as {
+      embeds: EmbedBuilder[];
+    };
+    // バージョンのみ（公式サイト・マニュアル・ダッシュボードはいずれも未設定）
+    expect(call.embeds[0]!.data.fields!).toHaveLength(1);
   });
 
   it("interaction の locale が tInteraction に渡されること", async () => {

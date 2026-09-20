@@ -1,4 +1,3 @@
-// src/bot/features/ticket/handlers/ui/ticketRoleSelectHandler.ts
 // スタッフロール設定（set/add/remove）ロール選択ハンドラ
 
 import { MessageFlags, type RoleSelectMenuInteraction } from "discord.js";

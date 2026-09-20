@@ -1,4 +1,3 @@
-// src/features/unverified-kick/commands/unverifiedKickSettingsCommand.markerRole.ts
 // unverified-kick-settings の対象ロール系サブコマンド（set-marker-role / clear-marker-role）
 
 import { ValidationError } from "@ayasono/shared/core";

@@ -1,4 +1,3 @@
-// tests/unit/api/auth/jwt.test.ts
 // セッション JWT 検証（jose）のユニットテスト。署名・発行は web BFF が担当するため検証のみ。
 
 import { SignJWT } from "jose";

@@ -1,4 +1,3 @@
-// tests/integration/bot/events/interactionCreate.routing.integration.test.ts
 import type { Mock } from "vitest";
 import { handleInteractionError } from "@/bot/errors/interactionErrorHandler";
 import { interactionCreateEvent } from "@/bot/events/interactionCreate";

@@ -1,4 +1,3 @@
-// src/bot/features/guild-settings/commands/guildSettingsCommand.view.ts
 // guild-settings view サブコマンド実行処理（単一ページ表示）
 
 import { type ChatInputCommandInteraction, MessageFlags } from "discord.js";

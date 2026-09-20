@@ -1,4 +1,3 @@
-// src/bot/features/ticket/handlers/ui/ticketTeardownButtonHandler.ts
 // teardown フローの確認・キャンセル・全選択ボタンハンドラ
 
 import type { ButtonInteraction } from "discord.js";

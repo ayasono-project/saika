@@ -1,4 +1,3 @@
-// src/bot/features/member-log/commands/memberLogSettingsCommand.reset.ts
 // member-log-settings reset 実行処理
 
 import {

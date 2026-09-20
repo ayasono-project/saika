@@ -1,4 +1,3 @@
-// src/bot/features/member-log/commands/memberLogSettingsCommand.execute.ts
 // member-log-settings コマンドのルーター
 
 import { ValidationError } from "@ayasono/shared/core";

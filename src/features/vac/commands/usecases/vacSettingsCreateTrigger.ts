@@ -1,4 +1,3 @@
-// src/bot/features/vac/commands/usecases/vacSettingsCreateTrigger.ts
 // vac-settings create-trigger-vc のユースケース処理
 
 import { ValidationError } from "@ayasono/shared/core";

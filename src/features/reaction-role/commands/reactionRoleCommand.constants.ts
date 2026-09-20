@@ -1,4 +1,3 @@
-// src/features/reaction-role/commands/reactionRoleCommand.constants.ts
 // リアクションロール機能のコマンド定数
 
 export const REACTION_ROLE_SETTINGS_COMMAND = {

@@ -1,4 +1,3 @@
-// src/bot/shared/vcBulkAction.ts
 // /afk の一括操作（target=channel）の確認ダイアログ・実行処理・ボタンハンドラ
 
 import {

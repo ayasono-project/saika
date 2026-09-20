@@ -1,5 +1,3 @@
-// tests/unit/bot/features/reaction-role/commands/reactionRoleSettingsCommand.execute.test.ts
-
 import { ValidationError } from "@ayasono/shared/core";
 import { REACTION_ROLE_SETTINGS_COMMAND } from "@/features/reaction-role/commands/reactionRoleCommand.constants";
 import { executeReactionRoleSettingsCommand } from "@/features/reaction-role/commands/reactionRoleSettingsCommand.execute";

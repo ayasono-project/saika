@@ -1,4 +1,3 @@
-// src/bot/features/bump-reminder/commands/bumpReminderSettingsCommand.execute.ts
 // bump-reminder-settings コマンドのルーター
 
 import { ValidationError } from "@ayasono/shared/core";

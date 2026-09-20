@@ -1,4 +1,3 @@
-// src/bot/features/guild-settings/constants/guildSettings.constants.ts
 // ギルド設定機能の定数定義
 
 /** reset / reset-all / import 確認ダイアログのタイムアウト（ms） */

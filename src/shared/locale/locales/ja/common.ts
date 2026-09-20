@@ -1,4 +1,3 @@
-// src/shared/locale/locales/ja/common.ts
 // 共通の翻訳リソース
 
 export const common = {
@@ -41,16 +40,7 @@ export const common = {
   title_config_error: "設定エラー",
 
   // 機能横断エラー（旧 errors.ts から吸収）
-  // データベースエラー
-  "database.get_config_failed": "設定の取得に失敗しました。",
-  "database.save_config_failed": "設定の保存に失敗しました。",
-  "database.update_config_failed": "設定の更新に失敗しました。",
-  "database.delete_config_failed": "設定の削除に失敗しました。",
-  "database.check_existence_failed": "存在確認に失敗しました。",
-  "database.unknown_error": "不明なエラー",
-
   // バリデーションエラー
-  "validation.error_title": "入力エラー",
   "validation.guild_only": "このコマンドはサーバー内でのみ使用できます。",
   "validation.invalid_subcommand": "無効なサブコマンドです。",
 
@@ -62,7 +52,6 @@ export const common = {
   "interaction.timeout": "操作がタイムアウトしました。",
 
   // 一般的なエラー
-  "general.error_title": "エラー",
   "general.unexpected_production":
     "予期しないエラーが発生しました。後ほど再度お試しください。",
   "general.unexpected_with_message": "エラー: {{message}}",

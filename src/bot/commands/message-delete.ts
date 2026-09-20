@@ -1,4 +1,3 @@
-// src/bot/commands/message-delete.ts
 // /message-delete コマンド定義
 
 import { InteractionContextType, PermissionFlagsBits } from "discord.js";

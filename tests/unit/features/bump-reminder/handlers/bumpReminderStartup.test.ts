@@ -1,4 +1,3 @@
-// tests/unit/bot/features/bump-reminder/handlers/bumpReminderStartup.test.ts
 import { restoreBumpRemindersOnStartup } from "@/features/bump-reminder/handlers/bumpReminderStartup";
 
 const getBotBumpReminderSettingsServiceMock = vi.fn();

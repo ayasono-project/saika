@@ -1,4 +1,3 @@
-// tests/integration/bot/features/vac/services/vacService.integration.test.ts
 /**
  * VacService Integration Tests
  * VacService → 実ユースケース（create/delete/cleanup）の統合テスト

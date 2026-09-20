@@ -74,7 +74,7 @@ import { getGuildTranslator } from "../../shared/locale/helpers";
 | --- | --- |
 | 横断 | `common`（デフォルト）/ `system` |
 | 汎用コマンド | `about` / `ping` / `help` |
-| 機能別 | `afk` / `bumpReminder` / `vac` / `vcAutoRecruit` / `messageDelete` / `memberLog` / `inactiveKick` / `unverifiedKick` / `reactionRole` / `stickyMessage` / `ticket` / `vcRecruit` / `guildSettings` |
+| 機能別 | `afk` / `bumpReminder` / `vac` / `vcAutoRecruit` / `messageDelete` / `memberLog` / `inactiveKick` / `unverifiedKick` / `reactionRole` / `stickyMessage` / `ticket` / `guildSettings` |
 
 - `common`: 共通ラベル・タイトル・機能横断のエラー文言
 - `system`: 機能横断の内部ログ（Bot 起動/終了・DB・Web など）

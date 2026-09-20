@@ -1,4 +1,3 @@
-// tests/unit/api/features/kickMappers.test.ts
 // vc-auto-recruit / unverified-kick マッパー（純粋関数）のユニットテスト
 
 import type { Guild as DiscordGuild } from "discord.js";
@@ -23,7 +22,6 @@ describe("vc-auto-recruit マッパー", () => {
         channelId: undefined,
         message: undefined,
         embedEnabled: true,
-        enabledCategoryIds: ["cat1"],
         enabledChannelIds: ["ch1"],
         activeInvites: [],
       }),
@@ -32,7 +30,6 @@ describe("vc-auto-recruit マッパー", () => {
       channelId: null,
       message: "",
       embedEnabled: true,
-      enabledCategoryIds: ["cat1"],
       enabledChannelIds: ["ch1"],
     });
   });
@@ -43,7 +40,6 @@ describe("vc-auto-recruit マッパー", () => {
       channelId: undefined,
       message: undefined,
       embedEnabled: true,
-      enabledCategoryIds: [],
       enabledChannelIds: [],
       activeInvites: [
         {

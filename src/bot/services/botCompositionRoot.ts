@@ -1,4 +1,3 @@
-// src/bot/services/botCompositionRoot.ts
 // Bot層の依存解決を集約する Composition Root
 
 import type { PrismaClient } from "@prisma/client";
@@ -43,10 +42,6 @@ import { getVcAutoRecruitService } from "../../features/vc-auto-recruit/services
 import { getVcAutoRecruitSettingsRepository } from "../../features/vc-auto-recruit/vcAutoRecruitSettingsRepository";
 import type { VcAutoRecruitSettingsService } from "../../features/vc-auto-recruit/vcAutoRecruitSettingsService";
 import { createVcAutoRecruitSettingsService } from "../../features/vc-auto-recruit/vcAutoRecruitSettingsService";
-import type { IVcRecruitRepository } from "../../features/vc-recruit/repositories/vcRecruitRepository";
-import { createVcRecruitRepository } from "../../features/vc-recruit/repositories/vcRecruitRepository";
-import { getVcRecruitSettingsRepository } from "../../features/vc-recruit/vcRecruitSettingsRepository";
-import { createVcRecruitSettingsService } from "../../features/vc-recruit/vcRecruitSettingsService";
 import type {
   ITicketRepository,
   IUnverifiedKickWarnRepository,
@@ -74,7 +69,6 @@ export interface BotServices {
   ticketSettingsService: TicketSettingsService;
   ticketRepository: ITicketRepository;
   reactionRolePanelSettingsService: ReactionRolePanelSettingsService;
-  vcRecruitRepository: IVcRecruitRepository;
 }
 
 // ---------------------------------------------------------------------------
@@ -219,17 +213,6 @@ export const getBotTicketRepository: () => ITicketRepository =
 export const setBotTicketRepository: (value: ITicketRepository) => void =
   _ticketRepositoryAccessor[1];
 
-const _vcRecruitRepositoryAccessor =
-  createBotServiceAccessor<IVcRecruitRepository>("VcRecruitRepository");
-export const getBotVcRecruitRepository: () => IVcRecruitRepository =
-  _vcRecruitRepositoryAccessor[0];
-export const setBotVcRecruitRepository: (value: IVcRecruitRepository) => void =
-  _vcRecruitRepositoryAccessor[1];
-
-/** getBotVcRecruitRepository のエイリアス（config 操作用途で意図を明示する） */
-export const getBotVcRecruitSettingsService: () => IVcRecruitRepository =
-  _vcRecruitRepositoryAccessor[0];
-
 // ---------------------------------------------------------------------------
 // Composition Root initializer
 // ---------------------------------------------------------------------------
@@ -249,7 +232,6 @@ export function initializeBotCompositionRoot(
   const memberLogRepo = getMemberLogSettingsRepository(prisma);
   const unverifiedKickRepo = getUnverifiedKickSettingsRepository(prisma);
   const unverifiedKickWarnRepo = getUnverifiedKickWarnRepository(prisma);
-  const vcRecruitSettingsRepo = getVcRecruitSettingsRepository(prisma);
   const stickyMessageRepository = getStickyMessageRepository(prisma);
   const reactionRolePanelRepository = getReactionRolePanelRepository(prisma);
   const ticketSettingsRepository = getTicketSettingsRepository(prisma);
@@ -262,7 +244,6 @@ export function initializeBotCompositionRoot(
     bumpReminderSettingsRepo,
     vacRepo,
     memberLogRepo,
-    vcRecruitSettingsRepo,
     vcAutoRecruitRepo,
     unverifiedKickRepo,
     stickyMessageRepository,
@@ -341,15 +322,6 @@ export function initializeBotCompositionRoot(
     createReactionRolePanelSettingsService(reactionRolePanelRepository);
   setBotReactionRolePanelSettingsService(reactionRolePanelSettingsService);
 
-  // VcRecruit
-  const vcRecruitSettingsService = createVcRecruitSettingsService(
-    vcRecruitSettingsRepo,
-  );
-  const vcRecruitRepository = createVcRecruitRepository(
-    vcRecruitSettingsService,
-  );
-  setBotVcRecruitRepository(vcRecruitRepository);
-
   return {
     guildSettingsService,
     bumpReminderSettingsService,
@@ -366,6 +338,5 @@ export function initializeBotCompositionRoot(
     ticketSettingsService,
     ticketRepository,
     reactionRolePanelSettingsService,
-    vcRecruitRepository,
   };
 }

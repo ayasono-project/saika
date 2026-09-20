@@ -1,4 +1,3 @@
-// src/shared/features/member-log/memberLogSettingsService.ts
 // メンバーログ設定サービス実装（Repositoryパターン準拠）
 
 import type {

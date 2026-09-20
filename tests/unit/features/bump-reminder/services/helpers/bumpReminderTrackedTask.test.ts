@@ -1,4 +1,3 @@
-// tests/unit/bot/features/bump-reminder/services/helpers/bumpReminderTrackedTask.test.ts
 import { BUMP_REMINDER_STATUS } from "@/features/bump-reminder/constants/bumpReminderConstants";
 import { createTrackedReminderTask } from "@/features/bump-reminder/services/helpers/bumpReminderTrackedTask";
 

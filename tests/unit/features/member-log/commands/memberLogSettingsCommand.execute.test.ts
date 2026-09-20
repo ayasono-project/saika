@@ -1,5 +1,3 @@
-// tests/unit/bot/features/member-log/commands/memberLogSettingsCommand.execute.test.ts
-
 import { ValidationError } from "@ayasono/shared/core";
 import { handleCommandError } from "@/bot/errors/interactionErrorHandler";
 import { MEMBER_LOG_SETTINGS_COMMAND } from "@/features/member-log/commands/memberLogSettingsCommand.constants";

@@ -1,4 +1,3 @@
-// tests/unit/bot/handlers/guildDeleteHandler.test.ts
 // guildDelete ハンドラのテスト
 
 const mockDeleteAllConfigs = vi.fn();

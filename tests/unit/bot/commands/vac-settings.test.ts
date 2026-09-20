@@ -1,4 +1,3 @@
-// tests/unit/bot/commands/vac-settings.test.ts
 import type {
   AutocompleteInteraction,
   ChatInputCommandInteraction,

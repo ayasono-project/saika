@@ -1,4 +1,3 @@
-// src/bot/features/sticky-message/handlers/ui/stickyMessageRemoveSelectHandler.ts
 // sticky-message remove コマンドが送信した StringSelectMenu の選択応答を処理する
 
 import { type StringSelectMenuInteraction } from "discord.js";

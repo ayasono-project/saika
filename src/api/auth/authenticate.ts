@@ -1,4 +1,3 @@
-// src/api/auth/authenticate.ts
 // セッション JWT を検証する preHandler（保護ルートに適用）。
 // web BFF が発行した Cookie の JWT を検証するのみで、Discord・refresh には触れない。
 

@@ -1,4 +1,3 @@
-// tests/unit/bot/features/reaction-role/handlers/ui/reactionRoleClickHandler.test.ts
 // リアクションロールパネルボタンクリックハンドラのテスト
 
 const mockConfigService = {

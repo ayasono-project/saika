@@ -1,4 +1,3 @@
-// src/bot/features/bump-reminder/handlers/usecases/sendBumpReminder.ts
 // スケジュール到達時のBumpリマインダー送信ユースケース
 
 import type { Client } from "discord.js";

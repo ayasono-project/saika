@@ -1,4 +1,3 @@
-// tests/unit/bot/events/index.test.ts
 // eventLoader が events/ ディレクトリを自動スキャンして
 // 有効な BotEvent オブジェクトのみを返すことを検証する
 

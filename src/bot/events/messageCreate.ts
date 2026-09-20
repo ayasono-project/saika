@@ -1,4 +1,3 @@
-// src/bot/events/messageCreate.ts
 // メッセージ作成イベント - Bump検知・スティッキーメッセージ処理
 
 import { Events } from "discord.js";

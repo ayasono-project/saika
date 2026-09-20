@@ -1,4 +1,3 @@
-// src/features/vc-auto-recruit/commands/vcAutoRecruitSettingsCommand.execute.ts
 // vc-auto-recruit-settings コマンドのルーター
 
 import { ValidationError } from "@ayasono/shared/core";

@@ -1,4 +1,3 @@
-// tests/unit/bot/features/message-delete/commands/messageDeleteCommand.execute.test.ts
 // executeMessageDeleteCommand の単体テスト
 // - エラー系: 全分岐カバー（権限・バリデーション・ロック）
 // - 正常系: スキャン → プレビュー確認 → 最終確認 → 削除完了 の1本道

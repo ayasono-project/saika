@@ -1,4 +1,3 @@
-// src/shared/locale/locales/ja/features/help.ts
 // Help機能の翻訳リソース
 
 export const help = {
@@ -12,9 +11,9 @@ export const help = {
   "embed.field.name.config": "⚙️ 設定（管理者）",
   "embed.field.name.action": "🛠️ 操作",
   "embed.field.value.basic":
-    "`/ping` — Bot の応答速度を確認\n`/help` — このヘルプを表示",
+    "`/ping` — Bot の応答速度を確認\n`/help` — このヘルプを表示\n`/about` — Bot の情報（バージョン・リンク）",
   "embed.field.value.config":
-    "`/guild-settings` — ギルド全体の設定\n`/afk-settings` — AFK の設定\n`/vac-settings` — VC自動作成の設定\n`/vc-recruit-settings` — VC募集の設定\n`/vc-auto-recruit-settings` — VC自動募集の設定\n`/sticky-message` — メッセージ固定の設定\n`/member-log-settings` — メンバーログの設定\n`/bump-reminder-settings` — Bumpリマインダーの設定\n`/ticket-settings` — チケットシステムの設定\n`/reaction-role-settings` — リアクションロールの設定\n`/unverified-kick-settings` — 未承認ユーザー自動キックの設定",
+    "`/guild-settings` — ギルド全体の設定\n`/afk-settings` — AFK の設定\n`/vac-settings` — VC自動作成の設定\n`/vc-auto-recruit-settings` — VC自動募集の設定\n`/sticky-message` — メッセージ固定の設定\n`/member-log-settings` — メンバーログの設定\n`/bump-reminder-settings` — Bumpリマインダーの設定\n`/ticket-settings` — チケットシステムの設定\n`/reaction-role-settings` — リアクションロールの設定\n`/unverified-kick-settings` — 未承認ユーザー自動キックの設定",
   "embed.field.value.action":
     "`/afk` — 他メンバーを AFK チャンネルへ移動\n`/message-delete` — メッセージを一括削除\n`/ticket` — チケットの操作（クローズ・オープン・削除）",
   "embed.field.name.dashboard": "🌐 ダッシュボード",

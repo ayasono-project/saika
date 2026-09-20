@@ -1,4 +1,3 @@
-// src/bot/events/guildMemberAdd.ts
 // メンバー参加イベント（メンバーログ）
 
 import { Events } from "discord.js";

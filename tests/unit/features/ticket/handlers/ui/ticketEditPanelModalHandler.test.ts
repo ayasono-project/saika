@@ -1,5 +1,3 @@
-// tests/unit/bot/features/ticket/handlers/ui/ticketEditPanelModalHandler.test.ts
-
 import { ticketEditPanelModalHandler } from "@/features/ticket/handlers/ui/ticketEditPanelModalHandler";
 
 vi.mock("@/shared/locale/localeManager", () => ({

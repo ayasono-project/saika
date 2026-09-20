@@ -1,5 +1,3 @@
-// tests/integration/bot/events/interactionCreate.command.integration.test.ts
-
 import type { ChatInputCommandInteraction } from "discord.js";
 import type { Mock } from "vitest";
 import { pingCommand } from "@/bot/commands/ping";

@@ -1,4 +1,3 @@
-// src/bot/shared/vcActionTarget.ts
 // /afk の target（member / channel）解決と対象VC検証のヘルパー
 
 import { ValidationError } from "@ayasono/shared/core";

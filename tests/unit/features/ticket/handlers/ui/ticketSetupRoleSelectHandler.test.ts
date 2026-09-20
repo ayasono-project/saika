@@ -1,5 +1,3 @@
-// tests/unit/bot/features/ticket/handlers/ui/ticketSetupRoleSelectHandler.test.ts
-
 import { ticketSetupRoleSelectHandler } from "@/features/ticket/handlers/ui/ticketSetupRoleSelectHandler";
 
 vi.mock("@/shared/locale/localeManager", () => ({

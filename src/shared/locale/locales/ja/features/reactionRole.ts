@@ -1,4 +1,3 @@
-// src/shared/locale/locales/ja/features/reactionRole.ts
 // リアクションロール機能の日本語翻訳
 
 export const reactionRole = {
@@ -117,8 +116,6 @@ export const reactionRole = {
     "ボタン削除 GuildId: {{guildId}} PanelId: {{panelId}} ButtonId: {{buttonId}}",
   "log.button_edited":
     "ボタン編集 GuildId: {{guildId}} PanelId: {{panelId}} ButtonId: {{buttonId}}",
-  "log.database_panel_saved":
-    "パネル設定を保存 GuildId: {{guildId}} PanelId: {{panelId}}",
   "log.database_panel_save_failed":
     "パネル設定保存に失敗 GuildId: {{guildId}} PanelId: {{panelId}}",
   "log.database_panel_find_failed":

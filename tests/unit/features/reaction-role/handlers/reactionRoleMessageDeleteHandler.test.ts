@@ -1,4 +1,3 @@
-// tests/unit/bot/features/reaction-role/handlers/reactionRoleMessageDeleteHandler.test.ts
 // リアクションロールパネルメッセージ削除検知ハンドラのテスト
 
 const mockConfigService = {

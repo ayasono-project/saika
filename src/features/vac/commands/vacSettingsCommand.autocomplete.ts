@@ -1,4 +1,3 @@
-// src/bot/features/vac/commands/vacSettingsCommand.autocomplete.ts
 // VAC 設定コマンドの autocomplete 処理
 
 import { AutocompleteInteraction } from "discord.js";

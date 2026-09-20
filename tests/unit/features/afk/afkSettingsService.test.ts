@@ -1,4 +1,3 @@
-// tests/unit/shared/features/afk/afkSettingsService.test.ts
 // AfkSettingsService クラスのメソッド動作・シングルトンキャッシュ挙動・モジュールレベル関数 API を検証するグループ
 describe("shared/features/afk/afkSettingsService", () => {
   const createRepositoryMock = () => ({

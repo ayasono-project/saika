@@ -1,4 +1,3 @@
-// src/bot/features/message-delete/commands/messageDeleteCommand.execute.ts
 // /message-delete コマンド実行処理
 
 import {

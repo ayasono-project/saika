@@ -1,4 +1,3 @@
-// src/bot/features/ticket/commands/ticketCommand.execute.ts
 // チケットコマンド実行処理
 
 import { ValidationError } from "@ayasono/shared/core";

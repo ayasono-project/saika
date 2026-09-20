@@ -1,5 +1,3 @@
-// tests/unit/bot/handlers/clientReadyHandler.test.ts
-
 import { ActivityType, Events, PresenceUpdateStatus } from "discord.js";
 import { handleClientReady } from "@/bot/handlers/clientReadyHandler";
 

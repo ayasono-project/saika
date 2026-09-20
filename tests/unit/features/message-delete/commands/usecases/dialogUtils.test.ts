@@ -1,4 +1,3 @@
-// tests/unit/bot/features/message-delete/commands/usecases/dialogUtils.test.ts
 // dialogUtils の単体テスト（applyModalFilterValue・MODAL_FILTER_CONFIG）
 
 import type { Mock } from "vitest";

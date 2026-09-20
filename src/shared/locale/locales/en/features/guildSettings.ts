@@ -1,4 +1,3 @@
-// src/shared/locale/locales/en/features/guildSettings.ts
 // Guild config feature translations (English)
 
 export const guildSettings = {

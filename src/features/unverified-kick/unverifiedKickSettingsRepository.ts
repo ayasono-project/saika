@@ -1,4 +1,3 @@
-// src/features/unverified-kick/unverifiedKickSettingsRepository.ts
 // 未承認ユーザー自動キック設定リポジトリ（guild_unverified_kick_settings テーブル）
 
 import type { PrismaClient } from "@prisma/client";

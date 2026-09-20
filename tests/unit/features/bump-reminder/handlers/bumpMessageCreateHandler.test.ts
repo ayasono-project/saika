@@ -1,4 +1,3 @@
-// tests/unit/bot/features/bump-reminder/handlers/bumpMessageCreateHandler.test.ts
 import { handleBumpMessageCreate } from "@/features/bump-reminder/handlers/bumpMessageCreateHandler";
 
 const resolveBumpServiceMock = vi.fn();

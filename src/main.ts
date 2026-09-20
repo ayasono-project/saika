@@ -1,4 +1,3 @@
-// src/main.ts
 // Discord Bot エントリーポイント
 
 import { PrismaPg } from "@prisma/adapter-pg";

@@ -1,4 +1,3 @@
-// tests/unit/bot/features/bump-reminder/handlers/sendBumpReminder.test.ts
 import { BUMP_SERVICES } from "@/features/bump-reminder/constants/bumpReminderConstants";
 import { sendBumpReminder } from "@/features/bump-reminder/handlers/usecases/sendBumpReminder";
 

@@ -1,5 +1,3 @@
-// tests/unit/shared/database/repositories/memberLogSettingsRepository.test.ts
-
 import type { Mock } from "vitest";
 
 function createPrismaMock() {

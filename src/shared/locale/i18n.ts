@@ -1,4 +1,3 @@
-// src/shared/locale/i18n.ts
 // i18next設定ファイル
 
 import type { i18n as I18nInstance, ParseKeys } from "i18next";
@@ -35,7 +34,6 @@ export const I18N_NAMESPACES = [
   "reactionRole",
   "stickyMessage",
   "ticket",
-  "vcRecruit",
   "guildSettings",
 ] as const;
 

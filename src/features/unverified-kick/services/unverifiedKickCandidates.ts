@@ -1,4 +1,3 @@
-// src/features/unverified-kick/services/unverifiedKickCandidates.ts
 // メンバー集合からキック/事前警告/対象ロール掃除の対象を区分する（純関数・日次チェックと preview で共有）
 
 import {

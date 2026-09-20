@@ -1,4 +1,3 @@
-// src/bot/features/bump-reminder/services/helpers/bumpReminderScheduleHelper.ts
 // bump-reminder のメモリスケジュール管理ヘルパー
 
 import { jobScheduler } from "../../../../shared/scheduler/jobScheduler";

@@ -1,4 +1,3 @@
-// tests/unit/bot/services/botEventRegistration.test.ts
 import { registerBotEvents } from "@/bot/services/botEventRegistration";
 
 const loggerInfoMock = vi.fn();

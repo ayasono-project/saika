@@ -1,4 +1,3 @@
-// tests/unit/bot/features/guild-settings/commands/guildSettingsCommand.execute.test.ts
 import type { ChatInputCommandInteraction } from "discord.js";
 
 vi.mock("@/shared/locale/localeManager", () => ({

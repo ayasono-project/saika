@@ -1,5 +1,3 @@
-// tests/unit/shared/utils/serviceFactory.test.ts
-
 import {
   createBotServiceAccessor,
   createServiceGetter,

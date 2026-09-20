@@ -1,4 +1,3 @@
-// tests/integration/bot/features/afk/commands/afkCommands.integration.test.ts
 /**
  * AFK Commands Integration Tests
  * afkCommand / afkSettingsCommand の統合テスト

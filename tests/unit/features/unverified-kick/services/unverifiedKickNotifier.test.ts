@@ -1,5 +1,3 @@
-// tests/unit/features/unverified-kick/services/unverifiedKickNotifier.test.ts
-
 import type {
   CandidateBuckets,
   CategorizedCandidate,

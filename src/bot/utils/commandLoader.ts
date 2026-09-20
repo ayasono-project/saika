@@ -1,4 +1,3 @@
-// src/bot/utils/commandLoader.ts
 // commands/ ディレクトリを自動スキャンしてコマンドを動的ロードする
 
 import { readdirSync } from "fs";

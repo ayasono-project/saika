@@ -1,4 +1,3 @@
-// src/api/features/overviewResource.ts
 // ギルド概要（GET /api/guilds/:guildId）— ギルドサマリー + 機能別ステータス集計。
 
 import type {
@@ -12,7 +11,6 @@ import {
   getBotReactionRolePanelSettingsService,
   getBotStickyMessageSettingsService,
   getBotTicketSettingsService,
-  getBotVcRecruitSettingsService,
 } from "../../bot/services/botCompositionRoot";
 import { tDefault } from "../../shared/locale/localeManager";
 import { ApiHttpError } from "../lib/httpError";
@@ -32,10 +30,8 @@ export interface OverviewInputs {
   afkChannelId: string | null;
   vacEnabled: boolean;
   vacTriggerCount: number;
-  vcRecruitEnabled: boolean;
-  vcRecruitSetupCount: number;
   vcAutoRecruitEnabled: boolean;
-  vcAutoRecruitCategoryCount: number;
+  vcAutoRecruitChannelCount: number;
   stickyCount: number;
   memberLogEnabled: boolean;
   memberLogChannelId: string | null;
@@ -76,14 +72,9 @@ export function toFeatureStatuses(input: OverviewInputs): FeatureStatus[] {
       summary: `トリガー: ${input.vacTriggerCount}チャンネル`,
     },
     {
-      key: "vc-recruit",
-      state: toggle(input.vcRecruitEnabled),
-      summary: `セットアップ: ${input.vcRecruitSetupCount}件`,
-    },
-    {
       key: "vc-auto-recruit",
       state: toggle(input.vcAutoRecruitEnabled),
-      summary: `対象カテゴリ: ${input.vcAutoRecruitCategoryCount}件`,
+      summary: `対象チャンネル: ${input.vcAutoRecruitChannelCount}件`,
     },
     {
       key: "sticky",
@@ -147,7 +138,6 @@ async function collectInputs(
     bump,
     vcAuto,
     unverified,
-    vcRecruit,
     sticky,
     tickets,
     reactionRoles,
@@ -159,7 +149,6 @@ async function collectInputs(
     createBumpResource().read(guildId),
     createVcAutoRecruitResource(prisma).read(guildId),
     createUnverifiedKickResource(prisma).read(guildId),
-    getBotVcRecruitSettingsService().getVcRecruitSettingsOrDefault(guildId),
     getBotStickyMessageSettingsService().findAllByGuild(guildId),
     getBotTicketSettingsService().findAllByGuild(guildId),
     getBotReactionRolePanelSettingsService().findAllByGuild(guildId),
@@ -171,10 +160,8 @@ async function collectInputs(
     afkChannelId: afk.channelId,
     vacEnabled: vac.enabled,
     vacTriggerCount: vac.triggerChannelIds.length,
-    vcRecruitEnabled: vcRecruit.enabled,
-    vcRecruitSetupCount: vcRecruit.setups.length,
     vcAutoRecruitEnabled: vcAuto.enabled,
-    vcAutoRecruitCategoryCount: vcAuto.enabledCategoryIds.length,
+    vcAutoRecruitChannelCount: vcAuto.enabledChannelIds.length,
     stickyCount: sticky.length,
     memberLogEnabled: memberLog.enabled,
     memberLogChannelId: memberLog.channelId,

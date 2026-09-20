@@ -1,4 +1,3 @@
-// src/shared/scheduler/jobScheduler.ts
 // タイマー処理（node-cron + setTimeout）
 
 import cron, { type ScheduledTask } from "node-cron";
@@ -27,16 +26,20 @@ export class JobScheduler {
   /**
    * 同IDの既存ジョブ（cron・one-time いずれも）を停止して置き換える（多重実行を防止）
    * @param id ジョブID
+   * @param quiet 置き換えを正常系として扱い warn を出さない（デバウンス用途）
    */
-  private replaceExistingJob(id: string): void {
+  private replaceExistingJob(id: string, quiet = false): void {
     if (this.jobs.has(id) || this.oneTimeJobs.has(id)) {
-      logger.warn(
-        logPrefixed(
-          "system:log_prefix.scheduler",
-          "system:scheduler.job_exists",
-          { jobId: id },
-        ),
-      );
+      // デバウンスでは置き換えが設計どおりの動作なので警告しない
+      if (!quiet) {
+        logger.warn(
+          logPrefixed(
+            "system:log_prefix.scheduler",
+            "system:scheduler.job_exists",
+            { jobId: id },
+          ),
+        );
+      }
       this.removeJob(id);
     }
   }
@@ -129,14 +132,16 @@ export class JobScheduler {
    * @param id ジョブID
    * @param delayMs 実行までの遅延時間（ミリ秒）。0以下の場合は即時実行
    * @param task 実行するタスク
+   * @param options quiet を立てると同ID置換時の warn を抑止する（デバウンス用途）
    */
   public addOneTimeJob(
     id: string,
     delayMs: number,
     task: () => Promise<void> | void,
+    options?: { quiet?: boolean },
   ): void {
     // 既存の同IDジョブをキャンセル
-    this.replaceExistingJob(id);
+    this.replaceExistingJob(id, options?.quiet ?? false);
 
     // 負数遅延は0に丸めて即時実行扱いにする
     const safeDelay = Math.max(0, delayMs);

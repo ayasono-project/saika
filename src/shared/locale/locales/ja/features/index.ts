@@ -1,4 +1,3 @@
-// src/shared/locale/locales/ja/features/index.ts
 // 全機能翻訳のre-export
 
 export { about } from "./about";
@@ -15,4 +14,3 @@ export { ticket } from "./ticket";
 export { unverifiedKick } from "./unverifiedKick";
 export { vac } from "./vac";
 export { vcAutoRecruit } from "./vcAutoRecruit";
-export { vcRecruit } from "./vcRecruit";

@@ -1,4 +1,3 @@
-// src/bot/features/bump-reminder/handlers/usecases/scheduleBumpReminder.ts
 // Bumpリマインダー予約登録ユースケース
 
 import type { Client } from "discord.js";

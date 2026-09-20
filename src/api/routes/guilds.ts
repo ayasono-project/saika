@@ -1,4 +1,3 @@
-// src/api/routes/guilds.ts
 // ギルド/Discord リソースエンドポイント（/api/guilds 配下）
 
 import type { Channel as ContractChannel } from "@ayasono/shared/api";

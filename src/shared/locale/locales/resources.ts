@@ -1,4 +1,3 @@
-// src/shared/locale/locales/resources.ts
 // すべての翻訳リソースのエクスポート
 
 import { en } from "./en/resources";

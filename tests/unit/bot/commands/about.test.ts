@@ -1,5 +1,3 @@
-// tests/unit/bot/commands/about.test.ts
-
 const executeAboutCommandMock = vi.fn();
 const handleCommandErrorMock = vi.fn();
 

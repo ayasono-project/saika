@@ -1,4 +1,3 @@
-// src/shared/locale/locales/en/features/vcAutoRecruit.ts
 // VC auto recruit feature translations (English)
 
 export const vcAutoRecruit = {
@@ -44,17 +43,6 @@ export const vcAutoRecruit = {
     "⚠️ The VC auto recruit notification channel has been deleted.\nSettings have been reset. Please reconfigure with `/vc-auto-recruit-settings set-post-channel`.",
   "user-response.reset_success": "VC auto recruit settings have been reset.",
   "user-response.reset_cancelled": "Reset has been cancelled.",
-  "user-response.categories_added_count":
-    "Added {{count}} categories to the recruit targets.",
-  "user-response.categories_removed_count":
-    "Removed {{count}} categories from the recruit targets.",
-  "user-response.no_addable_categories":
-    "There are no categories to add. All categories are already registered.",
-  "user-response.no_enabled_categories":
-    "There are no recruit target categories to remove.",
-  "user-response.enable_warning_no_category":
-    "Enabled, but no category is enabled so nothing will be posted. Add one with /vc-auto-recruit-settings add-category.",
-  "user-response.category_top_label": "TOP (no category)",
   "user-response.channels_added_count":
     "Added {{count}} VC channel(s) to recruit targets.\n{{channels}}",
   "user-response.channels_removed_count":
@@ -77,9 +65,6 @@ export const vcAutoRecruit = {
   "embed.field.name.channel": "Notification Channel",
   "embed.field.name.embed": "Embed",
   "embed.field.name.message": "Custom Message",
-  "embed.field.name.categories": "Enabled Categories",
-  "embed.field.value.categories_none": "Not set (nothing will be posted)",
-  "embed.field.value.top": "TOP (no category)",
   "embed.field.name.channels": "Enabled Channels",
   "embed.field.value.channels_none": "Not set (nothing will be posted)",
 
@@ -101,10 +86,6 @@ export const vcAutoRecruit = {
   "ui.modal.set_message_label": "Recruit message",
   "ui.modal.set_message_placeholder":
     "Supports {userMention}, {userName}, {channelMention}, {channelName}, {serverName} (max 500 characters)",
-  "ui.select.add_category_placeholder":
-    "Select categories to add (multiple allowed)",
-  "ui.select.remove_category_placeholder":
-    "Select categories to remove (multiple allowed)",
   "ui.select.add_channel_placeholder":
     "Select VC channels to add (multiple allowed)",
   "ui.select.remove_channel_placeholder":
@@ -115,15 +96,12 @@ export const vcAutoRecruit = {
   // ── Logs ─────────────────────────────────────
   "log.invite_sent":
     "recruit message sent GuildId: {{guildId}} ChannelId: {{channelId}} UserId: {{userId}}",
-  "log.invite_skipped_cooldown":
-    "recruit skipped by cooldown GuildId: {{guildId}} VoiceChannelId: {{voiceChannelId}}",
   "log.invite_closed":
     "recruit closed (VC empty) GuildId: {{guildId}} VoiceChannelId: {{voiceChannelId}} MessageId: {{messageId}}",
   "log.invite_close_failed":
     "failed to close recruit GuildId: {{guildId}} MessageId: {{messageId}}",
   "log.startup_cleanup_done":
     "startup cleanup done: closed {{closed}}, removed {{removed}}",
-  "log.post_failed": "failed to send recruit message GuildId: {{guildId}}",
   "log.channel_not_found":
     "notification channel not found GuildId: {{guildId}} ChannelId: {{channelId}}",
   "log.channel_deleted_config_cleared":
@@ -134,12 +112,6 @@ export const vcAutoRecruit = {
   "log.config_disabled": "disabled GuildId: {{guildId}}",
   "log.config_message_set": "recruit message set GuildId: {{guildId}}",
   "log.config_message_cleared": "recruit message cleared GuildId: {{guildId}}",
-  "log.config_category_added":
-    "recruit target category added GuildId: {{guildId}} CategoryId: {{categoryId}}",
-  "log.config_category_removed":
-    "recruit target category removed GuildId: {{guildId}} CategoryId: {{categoryId}}",
-  "log.category_removed_by_delete":
-    "removed deleted category from enabled list GuildId: {{guildId}} CategoryId: {{categoryId}}",
   "log.config_channel_added":
     "recruit target channel added GuildId: {{guildId}} ChannelId: {{channelId}}",
   "log.config_channel_removed":

@@ -1,4 +1,3 @@
-// src/features/vc-auto-recruit/commands/vcAutoRecruitSettingsCommand.constants.ts
 // vc-auto-recruit-settings コマンドの定数定義
 
 /**

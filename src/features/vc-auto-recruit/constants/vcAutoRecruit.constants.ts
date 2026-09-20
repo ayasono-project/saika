@@ -1,4 +1,3 @@
-// src/features/vc-auto-recruit/constants/vcAutoRecruit.constants.ts
 // VC自動募集機能の共通定数
 
 /** 募集 Embed のブランドカラー（blurple #5865F2・VC操作系と統一） */
@@ -7,11 +6,15 @@ export const VC_AUTO_RECRUIT_EMBED_COLOR = 0x5865f2;
 /** カスタム募集メッセージの最大文字数 */
 export const VC_AUTO_RECRUIT_MESSAGE_MAX_LENGTH = 500;
 
-/** 同一 VC への連投抑制クールダウン（ms） */
-export const VC_AUTO_RECRUIT_REPOST_COOLDOWN_MS = 60_000;
+/**
+ * 0人→1人 になってから投稿するまでの待ち時間（ms）。
+ * 間違えて入って即抜けた場合や、人がいると思って入った場合の誤爆を抑える。
+ * 投稿が遅れても困らないが、募集終了は遅らせない（空 VC を指すボタンが残るため）。
+ */
+export const VC_AUTO_RECRUIT_JOIN_DEBOUNCE_MS = 20_000;
 
-/** カテゴリに属さないルート直下 VC を表す allowlist の sentinel キー */
-export const VC_AUTO_RECRUIT_ROOT_CATEGORY = "TOP";
+/** 入室デバウンスのジョブ ID 接頭辞（VC チャンネル ID を連結して一意にする） */
+export const VC_AUTO_RECRUIT_DEBOUNCE_JOB_PREFIX = "vc-auto-recruit:join:";
 
 /**
  * 募集メッセージ内ボタンの customId

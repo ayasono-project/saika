@@ -1,4 +1,3 @@
-// src/bot/features/sticky-message/handlers/ui/stickyMessageRemoveButtonHandler.ts
 // sticky-message remove の「削除する」ボタン押下を処理する
 
 import {

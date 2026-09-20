@@ -1,4 +1,3 @@
-// src/bot/commands/afk-settings.ts
 // AFK機能の設定コマンド（サーバー管理権限専用）
 
 import {

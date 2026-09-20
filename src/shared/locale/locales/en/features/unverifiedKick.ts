@@ -1,4 +1,3 @@
-// src/shared/locale/locales/en/features/unverifiedKick.ts
 // Unverified auto-kick feature translations (English)
 
 export const unverifiedKick = {

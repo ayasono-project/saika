@@ -1,5 +1,3 @@
-// tests/unit/bot/features/ticket/services/ticketService.test.ts
-
 import {
   closeTicket,
   createTicketChannel,

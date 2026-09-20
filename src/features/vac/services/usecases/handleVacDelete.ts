@@ -1,4 +1,3 @@
-// src/bot/features/vac/services/usecases/handleVacDelete.ts
 // VAC自動削除ユースケース
 
 import { ChannelType, type VoiceState } from "discord.js";

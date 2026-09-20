@@ -1,4 +1,3 @@
-// src/bot/shared/notificationSender.ts
 // 通知送信共通ユーティリティ（コンテンツ先行 → Embed パック送信）
 
 import type { EmbedBuilder, MessageCreateOptions } from "discord.js";

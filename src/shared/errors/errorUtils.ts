@@ -1,4 +1,3 @@
-// src/shared/errors/errorUtils.ts
 // Discord非依存のエラー共通ユーティリティ
 
 import { BaseError } from "@ayasono/shared/core";

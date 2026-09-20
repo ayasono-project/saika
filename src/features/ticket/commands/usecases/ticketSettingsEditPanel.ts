@@ -1,4 +1,3 @@
-// src/bot/features/ticket/commands/usecases/ticketSettingsEditPanel.ts
 // チケットパネル編集モーダル表示処理
 
 import {

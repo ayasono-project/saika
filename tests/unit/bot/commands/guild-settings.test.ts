@@ -1,4 +1,3 @@
-// tests/unit/bot/commands/guild-settings.test.ts
 import type { ChatInputCommandInteraction } from "discord.js";
 import { PermissionFlagsBits } from "discord.js";
 import type { Mock } from "vitest";

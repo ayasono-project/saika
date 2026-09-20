@@ -1,4 +1,3 @@
-// src/shared/features/guild-settings/guildSettingsService.ts
 // ギルド設定のビジネスロジックを担当するサービス
 
 import type {

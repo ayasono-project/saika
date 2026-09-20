@@ -1,5 +1,3 @@
-// tests/unit/bot/events/messageCreate.test.ts
-
 import { Events } from "discord.js";
 import { messageCreateEvent } from "@/bot/events/messageCreate";
 

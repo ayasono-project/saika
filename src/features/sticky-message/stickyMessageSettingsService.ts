@@ -1,4 +1,3 @@
-// src/shared/features/sticky-message/stickyMessageSettingsService.ts
 // スティッキーメッセージ設定サービス（Repositoryパターン準拠）
 
 import type {

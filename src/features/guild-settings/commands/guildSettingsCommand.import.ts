@@ -1,4 +1,3 @@
-// src/bot/features/guild-settings/commands/guildSettingsCommand.import.ts
 // guild-settings import サブコマンド実行処理
 
 import {
@@ -236,7 +235,6 @@ function buildSettingsSummary(data: GuildSettingsExportData): string {
   items.push(`bumpReminder: ${c.bumpReminder ? "○" : "—"}`);
   items.push(`vac: ${c.vac ? "○" : "—"}`);
   items.push(`memberLog: ${c.memberLog ? "○" : "—"}`);
-  items.push(`vcRecruit: ${c.vcRecruit ? "○" : "—"}`);
   items.push(`vcAutoRecruit: ${c.vcAutoRecruit ? "○" : "—"}`);
   items.push(`unverifiedKick: ${c.unverifiedKick ? "○" : "—"}`);
   return items.join(" / ");

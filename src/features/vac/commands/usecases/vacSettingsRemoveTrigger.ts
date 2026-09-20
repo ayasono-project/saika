@@ -1,4 +1,3 @@
-// src/bot/features/vac/commands/usecases/vacSettingsRemoveTrigger.ts
 // vac-settings remove-trigger-vc のユースケース処理（セレクトメニュー複数選択版）
 
 import { ValidationError } from "@ayasono/shared/core";

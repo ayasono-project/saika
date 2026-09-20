@@ -1,4 +1,3 @@
-// src/bot/features/reaction-role/handlers/ui/reactionRoleEditButtonHandler.ts
 // edit-button フローのハンドラ群
 
 import {

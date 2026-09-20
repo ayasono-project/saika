@@ -1,4 +1,3 @@
-// src/bot/features/member-log/commands/memberLogSettingsCommand.disable.ts
 // member-log-settings disable 実行処理
 
 import { type ChatInputCommandInteraction, MessageFlags } from "discord.js";

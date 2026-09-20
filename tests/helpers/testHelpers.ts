@@ -1,4 +1,3 @@
-// tests/helpers/testHelpers.ts
 /**
  * Test Helpers
  * テスト用のヘルパー関数とモック

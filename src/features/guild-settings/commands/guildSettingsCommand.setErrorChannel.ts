@@ -1,4 +1,3 @@
-// src/bot/features/guild-settings/commands/guildSettingsCommand.setErrorChannel.ts
 // guild-settings set-error-channel サブコマンド実行処理
 
 import { ValidationError } from "@ayasono/shared/core";

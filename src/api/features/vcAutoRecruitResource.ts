@@ -1,4 +1,3 @@
-// src/api/features/vcAutoRecruitResource.ts
 // VC自動募集 設定リソース + アクティブ募集一覧
 
 import type {
@@ -29,7 +28,6 @@ export function toContractVcAutoRecruit(
     channelId: domain.channelId ?? null,
     message: domain.message ?? "",
     embedEnabled: domain.embedEnabled,
-    enabledCategoryIds: domain.enabledCategoryIds,
     enabledChannelIds: domain.enabledChannelIds,
   };
 }
@@ -50,7 +48,6 @@ export function applyVcAutoRecruitPatch(
         ? current.message
         : patch.message || undefined,
     embedEnabled: patch.embedEnabled ?? current.embedEnabled,
-    enabledCategoryIds: patch.enabledCategoryIds ?? current.enabledCategoryIds,
     enabledChannelIds: patch.enabledChannelIds ?? current.enabledChannelIds,
     activeInvites: current.activeInvites,
   };

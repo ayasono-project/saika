@@ -1,4 +1,3 @@
-// src/features/vc-auto-recruit/services/vcAutoRecruitService.ts
 // VC自動募集機能のイベント処理（投稿・募集終了・同期）サービス
 
 import {
@@ -10,17 +9,21 @@ import {
   type VoiceState,
 } from "discord.js";
 import type { BotClient } from "../../../bot/client";
+import { notifyWarnChannel } from "../../../bot/shared/errorChannelNotifier";
 import type { VcAutoRecruitRef } from "../../../shared/database/types";
 import { getGuildTranslator } from "../../../shared/locale/helpers";
 import { logPrefixed, tDefault } from "../../../shared/locale/localeManager";
+import { jobScheduler } from "../../../shared/scheduler/jobScheduler";
 import { executeWithLoggedError } from "../../../shared/utils/errorHandling";
 import { logger } from "../../../shared/utils/logger";
-import { TtlMap } from "../../../shared/utils/ttlMap";
 import {
   getVacSettingsService,
   type VacSettingsService,
 } from "../../vac/vacSettingsService";
-import { VC_AUTO_RECRUIT_REPOST_COOLDOWN_MS } from "../constants/vcAutoRecruit.constants";
+import {
+  VC_AUTO_RECRUIT_DEBOUNCE_JOB_PREFIX,
+  VC_AUTO_RECRUIT_JOIN_DEBOUNCE_MS,
+} from "../constants/vcAutoRecruit.constants";
 import {
   buildEndedComponents,
   buildInviteEmbed,
@@ -47,21 +50,26 @@ function countHumanMembers(channel: VoiceBasedChannel): number {
 }
 
 /**
+ * 入室デバウンスのジョブ ID を組み立てる
+ * @param voiceChannelId 対象 VC チャンネル ID
+ * @returns VC ごとに一意なジョブ ID
+ */
+function debounceJobId(voiceChannelId: string): string {
+  return `${VC_AUTO_RECRUIT_DEBOUNCE_JOB_PREFIX}${voiceChannelId}`;
+}
+
+/**
  * VC自動募集機能のイベントユースケースを担当するサービス
  */
 export class VcAutoRecruitService {
   private readonly settingsService: VcAutoRecruitSettingsService;
   private readonly vacSettingsService: VacSettingsService;
-  /** 同一 VC への連投抑制（インメモリ・Bot 再起動でリセット） */
-  private readonly repostCooldown: TtlMap<true>;
-
   constructor(
     settingsService: VcAutoRecruitSettingsService,
     vacSettingsService: VacSettingsService,
   ) {
     this.settingsService = settingsService;
     this.vacSettingsService = vacSettingsService;
-    this.repostCooldown = new TtlMap<true>(VC_AUTO_RECRUIT_REPOST_COOLDOWN_MS);
   }
 
   /**
@@ -86,7 +94,11 @@ export class VcAutoRecruitService {
   }
 
   /**
-   * VC が 0人→1人 になった最初の参加時に募集メッセージを投稿する
+   * VC が 0人→1人 になった最初の参加時に、デバウンスを挟んで募集投稿を予約する
+   *
+   * 即投稿しないのは、間違えて入って即抜けた場合や、人がいると思って入った場合に
+   * ping だけが残るため。投稿が遅れても誰も損しないが、募集終了は遅らせない
+   * （空 VC を指す「VCに参加」ボタンが生き残り、誤爆を機能側から作ることになる）。
    * @param newState 変更後のボイス状態（参加先 VC を含む）
    * @returns 実行完了を示す Promise
    */
@@ -124,20 +136,67 @@ export class VcAutoRecruitService {
       return;
     }
 
-    // 最初の1人（人間メンバーが本人のみ）のときだけ投稿
+    // 最初の1人（人間メンバーが本人のみ）のときだけ予約
     if (countHumanMembers(channel) !== 1) {
       return;
     }
 
-    // 連投抑制（同一 VC・直近クールダウン内）
-    if (this.repostCooldown.has(channel.id)) {
-      logger.debug(
-        logPrefixed(
-          "system:log_prefix.vc_auto_recruit",
-          "vcAutoRecruit:log.invite_skipped_cooldown",
-          { guildId: guild.id, voiceChannelId: channel.id },
-        ),
-      );
+    // 同 ID の置換がそのままデバウンスになる（入り直しは予約を取り直す）
+    jobScheduler.addOneTimeJob(
+      debounceJobId(channel.id),
+      VC_AUTO_RECRUIT_JOIN_DEBOUNCE_MS,
+      () => this.postInvite(guild, channel.id, member.id),
+      { quiet: true },
+    );
+  }
+
+  /**
+   * デバウンス満了時に条件を再判定して募集メッセージを投稿する
+   *
+   * 予約から発火まで間があるため、握ったチャンネル参照も設定も古くなりうる。
+   * `guild.channels.fetch` で取り直してから在室判定するのは、`VoiceState.channel`
+   * がキャッシュの生参照で、時間をおいて `members` を読むと信用できないため
+   * （過去に二重通知バグを生んだのと同じ罠）。
+   * @param guild 対象ギルド
+   * @param voiceChannelId 募集対象の VC チャンネル ID
+   * @param starterUserId 予約のきっかけになったメンバーの ID
+   * @returns 実行完了を示す Promise
+   */
+  private async postInvite(
+    guild: Guild,
+    voiceChannelId: string,
+    starterUserId: string,
+  ): Promise<void> {
+    const settings = await this.settingsService.getVcAutoRecruitSettings(
+      guild.id,
+    );
+    // 待っている間に無効化・投稿先解除・allowlist 解除が起きていないか再判定
+    if (!settings?.enabled || !settings.channelId) {
+      return;
+    }
+    if (!settings.enabledChannelIds.includes(voiceChannelId)) {
+      return;
+    }
+
+    // キャッシュではなく実体を取り直す（削除済みなら取得できない）
+    const channel = await guild.channels
+      .fetch(voiceChannelId)
+      .catch(() => null);
+    if (!channel?.isVoiceBased()) {
+      return;
+    }
+
+    // 待っている間に全員が抜けていれば投稿しない（これが誤爆抑制の本体）
+    if (countHumanMembers(channel) < 1) {
+      return;
+    }
+
+    // 予約のきっかけになった本人が残っていなければ、在室者から代表を立て直す。
+    // 抜けた人をメンションした募集を出さないため。
+    const starter =
+      channel.members.get(starterUserId) ??
+      channel.members.find((m) => !m.user.bot);
+    if (!starter || starter.user.bot) {
       return;
     }
 
@@ -161,8 +220,8 @@ export class VcAutoRecruitService {
     // 募集文は常に content として送信（カスタム未設定時はデフォルト本文）
     const content = settings.message
       ? formatInviteMessage(settings.message, {
-          userMention: `<@${member.id}>`,
-          userName: member.user.displayName,
+          userMention: `<@${starter.id}>`,
+          userName: starter.user.displayName,
           channelMention,
           channelName: channel.name,
           serverName: guild.name,
@@ -174,8 +233,8 @@ export class VcAutoRecruitService {
       ? [
           buildInviteEmbed(t, {
             voiceChannelId: channel.id,
-            starterUserId: member.id,
-            starterAvatarUrl: member.user.displayAvatarURL({ size: 256 }),
+            starterUserId: starter.id,
+            starterAvatarUrl: starter.user.displayAvatarURL({ size: 256 }),
           }),
         ]
       : [];
@@ -195,8 +254,6 @@ export class VcAutoRecruitService {
       messageId: sent.id,
       createdAt: Date.now(),
     });
-    // 連投抑制クールダウンを記録
-    this.repostCooldown.set(channel.id, true);
 
     logger.debug(
       logPrefixed(
@@ -205,7 +262,7 @@ export class VcAutoRecruitService {
         {
           guildId: guild.id,
           channelId: postChannel.id,
-          userId: member.id,
+          userId: starter.id,
         },
       ),
     );
@@ -223,16 +280,19 @@ export class VcAutoRecruitService {
     if (!channel) {
       return;
     }
+    // 人間メンバーが残っていれば通話継続中＝募集有効（開始者の在室は問わない）
+    if (countHumanMembers(channel) > 0) {
+      return;
+    }
+    // 空になったので保留中の投稿予約を捨てる（入って即抜けた場合はここで止まる）
+    jobScheduler.removeJob(debounceJobId(channel.id));
+
     // 募集終了処理は enabled に依存せず、追跡中の募集があれば実行する
     const ref = await this.settingsService.getActiveInvite(
       guild.id,
       channel.id,
     );
     if (!ref) {
-      return;
-    }
-    // 人間メンバーが残っていれば通話継続中＝募集有効（開始者の在室は問わない）
-    if (countHumanMembers(channel) > 0) {
       return;
     }
     // 最後の1人が退出して空になったので募集終了へ差し替え
@@ -258,6 +318,9 @@ export class VcAutoRecruitService {
         return;
       }
 
+      // 削除された VC に保留中の投稿予約があれば捨てる
+      jobScheduler.removeJob(debounceJobId(channel.id));
+
       // (a) 追跡中の VC が削除された → 募集終了へ差し替え
       const ref = settings.activeInvites.find(
         (item) => item.voiceChannelId === channel.id,
@@ -276,21 +339,21 @@ export class VcAutoRecruitService {
             { guildId: guild.id, channelId: channel.id },
           ),
         );
+        // 黙って設定が消えると投稿が止まった理由が分からないため管理者へ知らせる
+        // （メンバーログと同じ扱い: エラーチャンネル＋システムチャンネル）
+        await notifyWarnChannel(guild, `Channel ${channel.id} not found`, {
+          feature: "VC自動募集",
+          action: "投稿先チャンネル消失→設定自動リセット",
+        });
+        const t = await getGuildTranslator(guild.id);
+        await guild.systemChannel
+          ?.send({
+            content: t("vcAutoRecruit:user-response.channel_deleted_notice"),
+          })
+          .catch(() => null);
       }
 
-      // (c) 有効カテゴリが削除された → allowlist から除去（移行期間中の旧データ対応）
-      if (settings.enabledCategoryIds.includes(channel.id)) {
-        await this.settingsService.removeEnabledCategory(guild.id, channel.id);
-        logger.info(
-          logPrefixed(
-            "system:log_prefix.vc_auto_recruit",
-            "vcAutoRecruit:log.category_removed_by_delete",
-            { guildId: guild.id, categoryId: channel.id },
-          ),
-        );
-      }
-
-      // (d) 有効チャンネルが削除された → allowlist から除去
+      // (c) 有効チャンネルが削除された → allowlist から除去
       if (settings.enabledChannelIds.includes(channel.id)) {
         await this.settingsService.removeEnabledChannel(guild.id, channel.id);
         logger.info(

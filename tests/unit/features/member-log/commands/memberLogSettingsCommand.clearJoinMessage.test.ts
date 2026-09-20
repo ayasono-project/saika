@@ -1,5 +1,3 @@
-// tests/unit/bot/features/member-log/commands/memberLogSettingsCommand.clearJoinMessage.test.ts
-
 import { ValidationError } from "@ayasono/shared/core";
 import { handleMemberLogSettingsClearJoinMessage } from "@/features/member-log/commands/memberLogSettingsCommand.clearJoinMessage";
 

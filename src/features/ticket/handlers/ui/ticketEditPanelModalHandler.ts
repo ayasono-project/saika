@@ -1,4 +1,3 @@
-// src/bot/features/ticket/handlers/ui/ticketEditPanelModalHandler.ts
 // パネル編集モーダル送信ハンドラ
 
 import {

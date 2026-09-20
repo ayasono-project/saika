@@ -1,5 +1,3 @@
-// tests/unit/bot/features/message-delete/commands/usecases/runPreviewDialog.test.ts
-
 import type { Mock } from "vitest";
 import type { AllParseKeys } from "@/shared/locale/i18n";
 

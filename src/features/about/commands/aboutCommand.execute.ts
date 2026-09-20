@@ -1,4 +1,3 @@
-// src/features/about/commands/aboutCommand.execute.ts
 // about コマンド実行処理
 
 import type { ChatInputCommandInteraction } from "discord.js";
@@ -14,6 +13,10 @@ const ABOUT_I18N_KEYS = {
   FIELD_NAME_VERSION: "about:embed.field.name.version",
   FIELD_NAME_OFFICIAL: "about:embed.field.name.official",
   FIELD_VALUE_OFFICIAL: "about:embed.field.value.official",
+  FIELD_NAME_MANUAL: "about:embed.field.name.manual",
+  FIELD_VALUE_MANUAL: "about:embed.field.value.manual",
+  FIELD_NAME_DASHBOARD: "about:embed.field.name.dashboard",
+  FIELD_VALUE_DASHBOARD: "about:embed.field.value.dashboard",
 } as const;
 
 /**
@@ -44,6 +47,26 @@ export async function executeAboutCommand(
       name: tInteraction(locale, ABOUT_I18N_KEYS.FIELD_NAME_OFFICIAL),
       value: tInteraction(locale, ABOUT_I18N_KEYS.FIELD_VALUE_OFFICIAL, {
         url: env.OFFICIAL_URL,
+      }),
+    });
+  }
+
+  // マニュアル・ダッシュボードの導線も env 出し分け（/help と同じ扱い）。
+  // 告知を見て最初に /about を叩く人がここで行き先を見つけられるようにする。
+  if (env.USER_MANUAL_URL) {
+    embed.addFields({
+      name: tInteraction(locale, ABOUT_I18N_KEYS.FIELD_NAME_MANUAL),
+      value: tInteraction(locale, ABOUT_I18N_KEYS.FIELD_VALUE_MANUAL, {
+        url: env.USER_MANUAL_URL,
+      }),
+    });
+  }
+
+  if (env.DASHBOARD_URL) {
+    embed.addFields({
+      name: tInteraction(locale, ABOUT_I18N_KEYS.FIELD_NAME_DASHBOARD),
+      value: tInteraction(locale, ABOUT_I18N_KEYS.FIELD_VALUE_DASHBOARD, {
+        url: env.DASHBOARD_URL,
       }),
     });
   }

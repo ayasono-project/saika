@@ -1,4 +1,3 @@
-// src/bot/features/ticket/handlers/ticketChannelDeleteHandler.ts
 // パネル設置チャンネル削除検知ハンドラ
 
 import type { Channel } from "discord.js";

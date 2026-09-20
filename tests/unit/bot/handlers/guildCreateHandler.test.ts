@@ -1,4 +1,3 @@
-// tests/unit/bot/handlers/guildCreateHandler.test.ts
 // guildCreate ハンドラのテスト
 
 const mockApplyBotPresence = vi.fn();

@@ -1,4 +1,3 @@
-// src/shared/database/types/ticketTypes.ts
 // チケットチャンネル機能のエンティティ型定義
 
 export interface GuildTicketSettings {

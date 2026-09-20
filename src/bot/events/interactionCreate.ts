@@ -1,4 +1,3 @@
-// src/bot/events/interactionCreate.ts
 // インタラクション処理イベント
 
 import { Events } from "discord.js";

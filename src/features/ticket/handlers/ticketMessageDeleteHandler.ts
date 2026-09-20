@@ -1,4 +1,3 @@
-// src/bot/features/ticket/handlers/ticketMessageDeleteHandler.ts
 // パネルメッセージ削除検知ハンドラ
 
 import type { Message, PartialMessage } from "discord.js";

@@ -1,5 +1,3 @@
-// tests/unit/features/afk/commands/afkCommand.execute.test.ts
-
 import { ValidationError } from "@ayasono/shared/core";
 import { DiscordAPIError, RESTJSONErrorCodes } from "discord.js";
 import { executeAfkCommand } from "@/features/afk/commands/afkCommand.execute";

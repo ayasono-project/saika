@@ -1,4 +1,3 @@
-// src/bot/features/sticky-message/services/stickyMessageResendService.ts
 // スティッキーメッセージ再送信サービス（レート制限付き）
 
 import type { TextChannel } from "discord.js";

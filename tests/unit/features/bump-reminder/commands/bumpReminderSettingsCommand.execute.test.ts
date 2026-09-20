@@ -1,4 +1,3 @@
-// tests/unit/bot/features/bump-reminder/commands/bumpReminderSettingsCommand.execute.test.ts
 import { handleCommandError } from "@/bot/errors/interactionErrorHandler";
 import { BUMP_REMINDER_SETTINGS_COMMAND } from "@/features/bump-reminder/commands/bumpReminderSettingsCommand.constants";
 import { executeBumpReminderSettingsCommand } from "@/features/bump-reminder/commands/bumpReminderSettingsCommand.execute";

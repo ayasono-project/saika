@@ -1,4 +1,3 @@
-// src/bot/features/ticket/handlers/ui/ticketSetupState.ts
 // setup フローのセッション状態管理
 
 import type { ChatInputCommandInteraction } from "discord.js";

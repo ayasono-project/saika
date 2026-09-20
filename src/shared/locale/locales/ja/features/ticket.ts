@@ -1,4 +1,3 @@
-// src/shared/locale/locales/ja/features/ticket.ts
 // チケットチャンネル機能の日本語翻訳
 
 export const ticket = {
@@ -11,7 +10,6 @@ export const ticket = {
   "ticket-settings.setup.description": "チケットパネルを設置",
   "ticket-settings.setup.category.description": "チケット作成先カテゴリ",
   "ticket-settings.teardown.description": "チケットパネルを撤去",
-  "ticket-settings.reset.description": "全設定をリセット",
   "ticket-settings.view.description": "現在の設定を表示",
   "ticket-settings.edit-panel.description": "パネルのタイトル・説明文を編集",
   "ticket-settings.edit-panel.category.description": "編集対象のカテゴリ",
@@ -32,8 +30,6 @@ export const ticket = {
   "user-response.setup_success": "チケットパネルを設置しました。",
   "user-response.teardown_success": "チケットパネルを撤去しました。",
   "user-response.teardown_cancelled": "キャンセルしました。",
-  "user-response.reset_success": "全てのチケット設定をリセットしました。",
-  "user-response.reset_cancelled": "キャンセルしました。",
   "user-response.ticket_created": "チケットを作成しました: {{channel}}",
   "user-response.ticket_closed": "チケットをクローズしました。",
   "user-response.ticket_opened": "チケットを再オープンしました。",
@@ -93,9 +89,6 @@ export const ticket = {
     "オープン中のチケットが{{count}}件あります。続行するとチケットチャンネルも全て削除されます。この操作は取り消せません。",
   "embed.field.name.target_categories": "削除対象カテゴリ",
   "embed.field.name.open_tickets": "オープン中のチケット（{{count}}件）",
-  "embed.title.reset_confirm": "チケット設定リセット確認",
-  "embed.description.reset_warning":
-    "全てのチケット設定をリセットします。全カテゴリのパネル・チケットチャンネル・設定が削除されます。この操作は取り消せません。",
   "embed.title.config_view": "チケット設定",
   "embed.field.name.category": "カテゴリ",
   "embed.field.name.staff_roles": "スタッフロール",
@@ -114,7 +107,6 @@ export const ticket = {
   "ui.button.delete": "削除",
   "ui.button.delete_confirm": "削除する",
   "ui.button.teardown_confirm": "撤去する",
-  "ui.button.teardown_cancel": "キャンセル",
   "ui.select.roles_placeholder": "スタッフロールを選択してください",
   "ui.select.teardown_placeholder": "撤去するカテゴリを選択してください",
   "ui.select.view_placeholder": "カテゴリを選択してください",
@@ -136,7 +128,6 @@ export const ticket = {
     "チケットパネルを設置 GuildId: {{guildId}} CategoryId: {{categoryId}} ChannelId: {{channelId}}",
   "log.teardown":
     "チケットパネルを撤去 GuildId: {{guildId}} CategoryId: {{categoryId}}",
-  "log.reset": "全チケット設定をリセット GuildId: {{guildId}}",
   "log.ticket_created":
     "チケット作成 GuildId: {{guildId}} ChannelId: {{channelId}} UserId: {{userId}} TicketNumber: {{ticketNumber}}",
   "log.ticket_closed":
@@ -147,14 +138,8 @@ export const ticket = {
     "チケット削除 GuildId: {{guildId}} ChannelId: {{channelId}} DeletedBy: {{deletedBy}}",
   "log.ticket_auto_deleted":
     "チケット自動削除 GuildId: {{guildId}} ChannelId: {{channelId}}",
-  "log.database_config_saved":
-    "チケット設定を保存 GuildId: {{guildId}} CategoryId: {{categoryId}}",
   "log.database_config_save_failed":
     "チケット設定保存に失敗 GuildId: {{guildId}} CategoryId: {{categoryId}}",
-  "log.database_ticket_saved":
-    "チケットを保存 GuildId: {{guildId}} TicketId: {{ticketId}}",
-  "log.database_ticket_save_failed":
-    "チケット保存に失敗 GuildId: {{guildId}} TicketId: {{ticketId}}",
   "log.database_config_find_failed":
     "チケット設定取得に失敗 GuildId: {{guildId}} CategoryId: {{categoryId}}",
   "log.database_config_find_all_failed":

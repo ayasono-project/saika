@@ -1,5 +1,3 @@
-// tests/unit/bot/features/reaction-role/handlers/ui/reactionRoleViewHandler.test.ts
-
 import {
   reactionRoleViewButtonHandler,
   reactionRoleViewSelectHandler,

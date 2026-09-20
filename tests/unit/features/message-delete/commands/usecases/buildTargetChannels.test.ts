@@ -1,4 +1,3 @@
-// tests/unit/bot/features/message-delete/commands/usecases/buildTargetChannels.test.ts
 // buildTargetChannels: channelIds 配列を受け取り、対象チャンネルリストを構築する
 
 import { ChannelType } from "discord.js";

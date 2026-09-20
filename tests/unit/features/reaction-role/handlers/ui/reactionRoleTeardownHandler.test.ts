@@ -1,5 +1,3 @@
-// tests/unit/bot/features/reaction-role/handlers/ui/reactionRoleTeardownHandler.test.ts
-
 import { reactionRoleTeardownSessions } from "@/features/reaction-role/handlers/ui/reactionRoleSetupState";
 
 import {

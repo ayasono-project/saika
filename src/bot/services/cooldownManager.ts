@@ -1,4 +1,3 @@
-// src/bot/services/cooldownManager.ts
 // コマンドクールダウン管理
 
 import { logPrefixed } from "../../shared/locale/localeManager";

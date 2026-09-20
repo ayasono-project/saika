@@ -1,4 +1,3 @@
-// src/shared/utils/serviceFactory.ts
 // module-level singleton のキャッシュパターンを抽象化するユーティリティ
 
 import type { PrismaClient } from "@prisma/client";

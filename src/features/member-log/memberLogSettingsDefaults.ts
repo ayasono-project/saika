@@ -1,4 +1,3 @@
-// src/shared/features/member-log/memberLogSettingsDefaults.ts
 // メンバーログ設定のデフォルト値・初期化ロジック
 
 import type { MemberLogSettings } from "../../shared/database/types";

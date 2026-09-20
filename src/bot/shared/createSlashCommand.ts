@@ -1,4 +1,3 @@
-// src/bot/shared/createSlashCommand.ts
 // 彩加の全スラッシュコマンド共通のベース SlashCommandBuilder を生成するヘルパー
 
 import { ApplicationIntegrationType, SlashCommandBuilder } from "discord.js";

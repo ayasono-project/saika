@@ -1,4 +1,3 @@
-// src/bot/features/vac/commands/vacSettingsCommand.execute.ts
 // VAC 設定コマンド実行処理
 
 import { ValidationError } from "@ayasono/shared/core";

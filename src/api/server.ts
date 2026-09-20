@@ -1,4 +1,3 @@
-// src/api/server.ts
 // web ダッシュボード向け Fastify API サーバー（Bot と同一プロセスで起動）
 
 import { ConfigurationError } from "@ayasono/shared/core";

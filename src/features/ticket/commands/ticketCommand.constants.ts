@@ -1,4 +1,3 @@
-// src/bot/features/ticket/commands/ticketCommand.constants.ts
 // チケットチャンネル機能のコマンド定数
 
 export const TICKET_COMMAND = {

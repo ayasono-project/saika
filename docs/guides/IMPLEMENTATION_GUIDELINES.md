@@ -131,7 +131,7 @@ src/features/<feature-name>/
 | 対象             | 規則       | 例                                              |
 | ---------------- | ---------- | ----------------------------------------------- |
 | クラス           | PascalCase | `BotClient`, `BumpReminderManager`              |
-| インターフェース | PascalCase（リポジトリは `I` プレフィックス） | `IGuildCoreRepository`, `IVcRecruitSettingsRepository` |
+| インターフェース | PascalCase（リポジトリは `I` プレフィックス） | `IGuildCoreRepository`, `IVacSettingsRepository` |
 | 型エイリアス     | PascalCase | `MessageStatus`, `BotEvent`                     |
 
 #### コマンド名・イベント名（Discord API 準拠）
@@ -148,7 +148,7 @@ src/features/<feature-name>/
 
 | セグメント | 必須 | 説明 | 例 |
 | --- | --- | --- | --- |
-| `<feature>` | ✅ | 機能名（コマンド名と一致） | `guild-settings`, `bump-reminder`, `vc-recruit` |
+| `<feature>` | ✅ | 機能名（コマンド名と一致） | `guild-settings`, `bump-reminder`, `vc-auto-recruit` |
 | `<subject>-<qualifier>` | ✅ | 「対象-修飾子」の形式。対象が何で、何をするか/何であるかを表す | `reset-confirm`, `page-next`, `webhook-modal` |
 | `<dynamic-param>` | ❌ | 動的パラメータ（チャンネルID等、実行時に決まる値） | `{channelId}`, `{panelChannelId}` |
 
@@ -209,7 +209,7 @@ src/features/<feature-name>/
 "bump-reminder:mention-off:{guildId}"    // メンション通知OFF
 
 // ✅ 動的パラメータ付き
-"vc-recruit:panel-create:{channelId}"    // パネル作成
+"reaction-role:panel-create:{channelId}"  // パネル作成
 "sticky-message:set-modal:{channelId}"   // 設定モーダル
 
 // ❌ 修飾子から始めている
@@ -222,7 +222,7 @@ src/features/<feature-name>/
 
 // ❌ アンダースコアやcamelCase
 "guild_config_reset_confirm"
-"vcRecruit:createPanel"
+"reactionRole:createPanel"
 ```
 
 - 定数は `src/features/<feature>/constants/*.constants.ts` に集約する
@@ -234,9 +234,10 @@ src/features/<feature-name>/
 ファイル先頭で「何のファイルか」を明記する（必須）。
 
 ```ts
-// src/features/foo/fooService.ts
 // Foo機能の業務ロジックを担当するサービス
 ```
+
+**ファイルパスは書かない**（2026-09-20 廃止）。移動のたびに人が手で追従させる仕組みしか無く、実際に全体の55%が実際の位置とズレていた。パスはエディタのタブ・パンくず・ファイルツリーが常に正確に出すので、ファイル内に持つ価値がない。
 
 #### 関数コメント
 
@@ -503,8 +504,8 @@ disableComponentsAfterTimeout(interaction, [selectRow, buttonRow], TIMEOUT_MS);
 | カテゴリ | 可視性 | 該当コマンド | 備考 |
 | --- | --- | --- | --- |
 | 共有リソース変更（他メンバー干渉） | public | `/afk` | 結果 Embed は public。確認 / エラー / キャンセルは ephemeral |
-| 設定管理 | ephemeral | `*-settings` 全般（afk / bump-reminder / guild / member-log / reaction-role / ticket / vac / vc-recruit） | 実行者（管理者）向け |
-| 常設パネル投稿 | public | vc-recruit パネル、bump パネル、チケットパネル、リアクションロールパネル等 | チャンネルに残す UI |
+| 設定管理 | ephemeral | `*-settings` 全般（afk / bump-reminder / guild / member-log / reaction-role / ticket / vac） | 実行者（管理者）向け |
+| 常設パネル投稿 | public | bump パネル、チケットパネル、リアクションロールパネル等 | チャンネルに残す UI |
 | 情報表示 | public または ephemeral | `/ping`・`/help`・`/about` | コマンドの性質に応じて選択 |
 | エラー / 確認 / キャンセル / タイムアウト | ephemeral | 全コマンド共通 | グローバルエラーハンドラ・確認ダイアログ |
 

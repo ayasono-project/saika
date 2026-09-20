@@ -1,4 +1,3 @@
-// src/shared/features/guild-settings/guildSettingsDefaults.ts
 // ギルド設定のデフォルト値・エクスポート JSON スキーマ定義
 
 import type {
@@ -9,7 +8,6 @@ import type {
   UnverifiedKickSettings,
   VacSettings,
   VcAutoRecruitSettings,
-  VcRecruitSettings,
 } from "../../shared/database/types";
 
 /** ギルド設定のデフォルトロケール */
@@ -26,7 +24,6 @@ export interface GuildSettingsExportSettings {
   bumpReminder?: BumpReminderSettings;
   vac?: Pick<VacSettings, "enabled" | "triggerChannelIds">;
   memberLog?: MemberLogSettings;
-  vcRecruit?: VcRecruitSettings;
   vcAutoRecruit?: VcAutoRecruitSettings;
   unverifiedKick?: UnverifiedKickSettings;
 }

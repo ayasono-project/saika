@@ -1,4 +1,3 @@
-// src/bot/shared/errorChannelNotifier.ts
 // エラーチャンネル通知ユーティリティ
 
 import { ChannelType, type Guild } from "discord.js";

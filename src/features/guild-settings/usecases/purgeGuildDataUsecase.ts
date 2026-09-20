@@ -1,4 +1,3 @@
-// src/features/guild-settings/usecases/purgeGuildDataUsecase.ts
 // ギルドの全データ後始末（インメモリタイマー解除 + DB 一括削除）のユースケース
 
 import type { ITicketRepository } from "../../../shared/database/types/repositories";

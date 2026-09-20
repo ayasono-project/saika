@@ -1,5 +1,3 @@
-// tests/unit/bot/features/bump-reminder/commands/bumpReminderSettingsCommand.guard.test.ts
-
 import { PermissionError } from "@ayasono/shared/core";
 import { PermissionFlagsBits } from "discord.js";
 import { ensureManageGuildPermission } from "@/features/bump-reminder/commands/bumpReminderSettingsCommand.guard";

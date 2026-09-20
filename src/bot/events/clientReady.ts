@@ -1,4 +1,3 @@
-// src/bot/events/clientReady.ts
 // Bot起動完了イベント
 
 import { Events } from "discord.js";

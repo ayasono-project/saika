@@ -1,4 +1,3 @@
-// src/features/vc-auto-recruit/commands/vcAutoRecruitSettingsCommand.removeChannel.ts
 // vc-auto-recruit-settings remove-channel 実行処理
 // 登録済みの募集対象 VC チャンネルを複数選択メニューで提示し、選択時に一括解除する（選択応答は select ハンドラ）
 

@@ -1,4 +1,3 @@
-// tests/unit/shared/utils/prisma.test.ts
 describe("shared/utils/prisma", () => {
   const loggerMock = {
     error: vi.fn(),

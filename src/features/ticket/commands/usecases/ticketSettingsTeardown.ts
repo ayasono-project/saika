@@ -1,4 +1,3 @@
-// src/bot/features/ticket/commands/usecases/ticketSettingsTeardown.ts
 // チケット設定削除（teardown）処理
 
 import crypto from "node:crypto";

@@ -1,4 +1,3 @@
-// tests/unit/bot/features/ticket/handlers/ticketMessageDeleteHandler.test.ts
 // パネルメッセージ削除検知ハンドラのテスト
 
 const mockConfigService = {

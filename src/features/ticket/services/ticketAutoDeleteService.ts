@@ -1,4 +1,3 @@
-// src/bot/features/ticket/services/ticketAutoDeleteService.ts
 // チケット自動削除サービス
 
 import type { Client } from "discord.js";

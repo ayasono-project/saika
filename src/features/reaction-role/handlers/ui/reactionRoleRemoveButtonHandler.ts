@@ -1,4 +1,3 @@
-// src/bot/features/reaction-role/handlers/ui/reactionRoleRemoveButtonHandler.ts
 // remove-button フローのハンドラ群
 
 import {

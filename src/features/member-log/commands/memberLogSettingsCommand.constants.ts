@@ -1,4 +1,3 @@
-// src/bot/features/member-log/commands/memberLogSettingsCommand.constants.ts
 // member-log-settings コマンドの定数定義
 
 /**

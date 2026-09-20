@@ -1,4 +1,3 @@
-// tests/unit/bot/features/member-log/handlers/memberLogUtils.test.ts
 import {
   formatAccountAge,
   formatCustomMessage,

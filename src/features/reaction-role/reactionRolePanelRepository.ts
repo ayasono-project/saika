@@ -1,4 +1,3 @@
-// src/features/reaction-role/reactionRolePanelRepository.ts
 // リアクションロールパネルリポジトリ（Prisma実装。guild_reaction_role_panels テーブル）
 
 import { Prisma, type PrismaClient } from "@prisma/client";

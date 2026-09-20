@@ -1,5 +1,3 @@
-// tests/unit/features/unverified-kick/commands/unverifiedKickSettingsCommand.execute.test.ts
-
 import type { ChatInputCommandInteraction } from "discord.js";
 
 const mocks = vi.hoisted(() => ({

@@ -1,4 +1,3 @@
-// src/shared/config/env.ts
 // 環境変数管理（Zod バリデーション）
 
 import "dotenv/config";
@@ -33,14 +32,6 @@ export type Env = {
   USER_MANUAL_URL?: string | undefined;
   DASHBOARD_URL?: string | undefined;
   OFFICIAL_URL?: string | undefined;
-  // ── 非アクティブ自動キック ──
-  INACTIVE_KICK_CRON_OVERRIDE?: string | undefined;
-  /** true のときキック実行をスキップ（通知のみ送信） */
-  INACTIVE_KICK_DRY_RUN: boolean;
-  /** true のとき per-guild の runHour / lastRunDate ガードを無視してスイープを即時実行 */
-  INACTIVE_KICK_SKIP_GUARDS: boolean;
-  /** 0 より大きい値のとき、DB/Guild からのメンバー取得を省略して指定数のモックデータで通知を確認する */
-  INACTIVE_KICK_MOCK_MEMBERS?: number | undefined;
   // ── 未承認ユーザー自動キック ──
   UNVERIFIED_KICK_CRON_OVERRIDE?: string | undefined;
   /** true のときキック実行をスキップ（通知のみ送信） */
@@ -92,22 +83,6 @@ export const envSchema: z.ZodType<Env> = z.object({
   // ayasono プロジェクト公式サイト（LP）URL（/about で案内、未設定時は省略）。
   // 専用 LP 公開後に設定する想定（死んだリンクを出さないため env 出し分け）
   OFFICIAL_URL: z.string().url().optional(),
-
-  // ── 非アクティブ自動キック ──
-  // cron 上書き（dev/検証用・未設定時は既定の毎時 0 分）
-  INACTIVE_KICK_CRON_OVERRIDE: z.string().optional(),
-  // キック実行スキップ（通知のみ）
-  INACTIVE_KICK_DRY_RUN: z
-    .string()
-    .optional()
-    .transform((val) => val === "true"),
-  // per-guild の runHour / lastRunDate ガードを無視して即時実行
-  INACTIVE_KICK_SKIP_GUARDS: z
-    .string()
-    .optional()
-    .transform((val) => val === "true"),
-  // 指定数のモックメンバーで通知 embed を確認する（0 または未設定で無効）
-  INACTIVE_KICK_MOCK_MEMBERS: z.coerce.number().int().nonnegative().optional(),
 
   // ── 未承認ユーザー自動キック ──
   // cron 上書き（dev/検証用・未設定時は既定の毎時 0 分）

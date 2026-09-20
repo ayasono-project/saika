@@ -1,4 +1,3 @@
-// src/bot/features/reaction-role/commands/usecases/reactionRoleSettingsRemoveButton.ts
 // リアクションロール remove-button サブコマンド処理
 
 import crypto from "node:crypto";

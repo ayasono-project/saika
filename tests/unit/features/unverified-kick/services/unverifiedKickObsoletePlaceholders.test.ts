@@ -1,5 +1,3 @@
-// tests/unit/features/unverified-kick/services/unverifiedKickObsoletePlaceholders.test.ts
-
 import {
   buildObsoleteUnverifiedKickNotice,
   detectObsoleteUnverifiedKickPlaceholders,

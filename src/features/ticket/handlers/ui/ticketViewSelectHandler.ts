@@ -1,4 +1,3 @@
-// src/bot/features/ticket/handlers/ui/ticketViewSelectHandler.ts
 // ticket-settings view カテゴリ選択ハンドラ
 
 import {

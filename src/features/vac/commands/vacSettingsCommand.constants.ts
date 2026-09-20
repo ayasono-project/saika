@@ -1,4 +1,3 @@
-// src/bot/features/vac/commands/vacSettingsCommand.constants.ts
 // VAC 設定コマンド定数
 
 /**

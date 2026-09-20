@@ -1,4 +1,3 @@
-// tests/unit/bot/handlers/interactionCreate/index.test.ts
 import type { Mock } from "vitest";
 
 const handleAutocompleteMock: Mock = vi.fn();

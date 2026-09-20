@@ -1,4 +1,3 @@
-// tests/unit/bot/features/message-delete/services/messageDeleteService.test.ts
 // messageDeleteService の単体テスト（parseDateStr・scanMessages・deleteScannedMessages）
 
 import { Collection } from "discord.js";

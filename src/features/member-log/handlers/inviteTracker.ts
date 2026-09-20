@@ -1,4 +1,3 @@
-// src/bot/features/member-log/handlers/inviteTracker.ts
 // メンバー参加時の招待リンク追跡ユーティリティ
 //
 // 仕組み:

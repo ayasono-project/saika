@@ -1,4 +1,3 @@
-// src/bot/features/bump-reminder/commands/bumpReminderSettingsCommand.setMention.ts
 // bump-reminder-settings set-mention 実行処理
 
 import { ValidationError } from "@ayasono/shared/core";

@@ -1,4 +1,3 @@
-// src/features/vc-auto-recruit/handlers/vcAutoRecruitChannelDelete.ts
 // VC自動募集用 channelDelete のハンドラー
 
 import type { Channel } from "discord.js";

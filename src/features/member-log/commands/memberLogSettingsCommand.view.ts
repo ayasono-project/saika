@@ -1,4 +1,3 @@
-// src/bot/features/member-log/commands/memberLogSettingsCommand.view.ts
 // member-log-settings view 実行処理
 
 import { type ChatInputCommandInteraction, MessageFlags } from "discord.js";

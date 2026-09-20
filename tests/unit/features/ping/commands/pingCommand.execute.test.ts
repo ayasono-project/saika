@@ -1,5 +1,3 @@
-// tests/unit/bot/features/ping/commands/pingCommand.execute.test.ts
-
 import { createSuccessEmbed } from "@/bot/utils/messageResponse";
 import { executePingCommand } from "@/features/ping/commands/pingCommand.execute";
 

@@ -1,4 +1,3 @@
-// src/shared/utils/ttlMap.ts
 // TTL（有効期限）付きインメモリ Map — UI セッション状態の一時保持に使用する
 
 /**

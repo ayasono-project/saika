@@ -1,4 +1,3 @@
-// tests/unit/shared/errors/errorUtils.test.ts
 // errorUtils のエラー正規化・ログ出力レベルの振り分け・ユーザー向けメッセージ生成を検証する
 // NODE_ENV によって動作が変わるため、テストごとにモジュールを動的に再ロードして環境を切り替える
 describe("shared/errors/errorUtils", () => {

@@ -1,4 +1,3 @@
-// tests/integration/bot/features/message-delete/services/messageDeleteService.integration.test.ts
 /**
  * MessageDeleteService Integration Tests
  * scanMessages → deleteScannedMessages の統合テスト

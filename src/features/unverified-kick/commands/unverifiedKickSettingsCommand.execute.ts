@@ -1,4 +1,3 @@
-// src/features/unverified-kick/commands/unverifiedKickSettingsCommand.execute.ts
 // unverified-kick-settings コマンドのルーター
 
 import { ValidationError } from "@ayasono/shared/core";

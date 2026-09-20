@@ -1,4 +1,3 @@
-// tests/unit/bot/features/message-delete/commands/usecases/validateOptions.test.ts
 // hasManageMessagesPermission・parseAndValidateOptions の単体テスト
 // - フィルター必須チェック（hasSlashCommandFilter）・days×日付範囲排他バリデーション
 // - 日付パース・未来日チェック（YYYY-MM-DD 当日許容の特例を含む）

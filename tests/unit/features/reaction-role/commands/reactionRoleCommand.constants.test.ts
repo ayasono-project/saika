@@ -1,4 +1,3 @@
-// tests/unit/bot/features/reaction-role/commands/reactionRoleCommand.constants.test.ts
 import {
   isValidButtonStyle,
   isValidEmoji,

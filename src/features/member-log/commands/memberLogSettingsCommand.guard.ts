@@ -1,4 +1,3 @@
-// src/bot/features/member-log/commands/memberLogSettingsCommand.guard.ts
 // member-log-settings コマンド共通ガード
 
 import { type ChatInputCommandInteraction } from "discord.js";

@@ -1,4 +1,3 @@
-// src/features/vc-auto-recruit/handlers/ui/vcAutoRecruitAddChannelSelectHandler.ts
 // add-channel セレクトメニューの選択応答（選択した VC チャンネルを募集対象へ一括追加する）
 
 import { type StringSelectMenuInteraction } from "discord.js";

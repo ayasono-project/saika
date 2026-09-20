@@ -1,4 +1,3 @@
-// src/shared/database/types/stickyMessageTypes.ts
 // StickyMessage エンティティ（専用テーブル、GuildSettings とは別）
 
 /** Embed データの型（embed_data jsonb カラムの構造） */

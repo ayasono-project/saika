@@ -1,4 +1,3 @@
-// tests/unit/shared/database/repositories/guildSettingsRepository.test.ts
 // GuildCoreRepository が core usecases へ正しく委譲し、エラー変換も行うことを検証
 describe("shared/database/repositories/guildCoreRepository", () => {
   const loadModule = async () => {

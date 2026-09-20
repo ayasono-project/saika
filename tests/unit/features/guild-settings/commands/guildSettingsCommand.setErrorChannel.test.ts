@@ -1,4 +1,3 @@
-// tests/unit/bot/features/guild-settings/commands/guildSettingsCommand.setErrorChannel.test.ts
 import type { ChatInputCommandInteraction } from "discord.js";
 import { ChannelType } from "discord.js";
 

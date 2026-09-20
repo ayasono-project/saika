@@ -1,4 +1,3 @@
-// src/bot/client.ts
 // Discord Client初期化
 
 import { Client, Collection, GatewayIntentBits, Partials } from "discord.js";

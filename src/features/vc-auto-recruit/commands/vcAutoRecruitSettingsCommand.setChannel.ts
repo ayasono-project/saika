@@ -1,4 +1,3 @@
-// src/features/vc-auto-recruit/commands/vcAutoRecruitSettingsCommand.setChannel.ts
 // vc-auto-recruit-settings set-channel 実行処理
 
 import { ValidationError } from "@ayasono/shared/core";

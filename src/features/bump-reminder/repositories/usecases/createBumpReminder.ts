@@ -1,4 +1,3 @@
-// src/bot/features/bump-reminder/repositories/usecases/createBumpReminder.ts
 // Bumpリマインダー作成ユースケース
 
 import type { PrismaClient } from "@prisma/client";

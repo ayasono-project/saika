@@ -1,4 +1,3 @@
-// tests/unit/bot/features/bump-reminder/services/helpers/bumpReminderHelpers.test.ts
 import { BUMP_REMINDER_STATUS } from "@/features/bump-reminder/constants/bumpReminderConstants";
 import type { BumpReminder } from "@/features/bump-reminder/repositories/types";
 import {

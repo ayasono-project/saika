@@ -1,4 +1,3 @@
-// src/features/guild-settings/guildSettingsAggregateRepository.ts
 // ギルド設定一括操作リポジトリ（エクスポート/インポート/reset-all）
 
 import { Prisma, type PrismaClient } from "@prisma/client";
@@ -17,7 +16,6 @@ import type {
   IUnverifiedKickSettingsRepository,
   IVacSettingsRepository,
   IVcAutoRecruitSettingsRepository,
-  IVcRecruitSettingsRepository,
 } from "../../shared/database/types";
 import {
   fromOpenTicketExport,
@@ -43,7 +41,6 @@ export class GuildSettingsAggregateRepository
   private readonly bumpReminderRepo: IBumpReminderSettingsRepository;
   private readonly vacRepo: IVacSettingsRepository;
   private readonly memberLogRepo: IMemberLogSettingsRepository;
-  private readonly vcRecruitRepo: IVcRecruitSettingsRepository;
   private readonly vcAutoRecruitRepo: IVcAutoRecruitSettingsRepository;
   private readonly unverifiedKickRepo: IUnverifiedKickSettingsRepository;
   private readonly stickyMessageRepo: IStickyMessageRepository;
@@ -58,7 +55,6 @@ export class GuildSettingsAggregateRepository
     bumpReminderRepo: IBumpReminderSettingsRepository,
     vacRepo: IVacSettingsRepository,
     memberLogRepo: IMemberLogSettingsRepository,
-    vcRecruitRepo: IVcRecruitSettingsRepository,
     vcAutoRecruitRepo: IVcAutoRecruitSettingsRepository,
     unverifiedKickRepo: IUnverifiedKickSettingsRepository,
     stickyMessageRepo: IStickyMessageRepository,
@@ -72,7 +68,6 @@ export class GuildSettingsAggregateRepository
     this.bumpReminderRepo = bumpReminderRepo;
     this.vacRepo = vacRepo;
     this.memberLogRepo = memberLogRepo;
-    this.vcRecruitRepo = vcRecruitRepo;
     this.vcAutoRecruitRepo = vcAutoRecruitRepo;
     this.unverifiedKickRepo = unverifiedKickRepo;
     this.stickyMessageRepo = stickyMessageRepo;
@@ -94,7 +89,6 @@ export class GuildSettingsAggregateRepository
       bumpReminder,
       vac,
       memberLog,
-      vcRecruit,
       vcAutoRecruit,
       unverifiedKick,
       ticketSettings,
@@ -106,7 +100,6 @@ export class GuildSettingsAggregateRepository
       this.bumpReminderRepo.getBumpReminderSettings(guildId),
       this.vacRepo.getVacSettings(guildId),
       this.memberLogRepo.getMemberLogSettings(guildId),
-      this.vcRecruitRepo.getVcRecruitSettings(guildId),
       this.vcAutoRecruitRepo.getVcAutoRecruitSettings(guildId),
       this.unverifiedKickRepo.getUnverifiedKickSettings(guildId),
       this.ticketSettingsRepo.findAllByGuild(guildId),
@@ -129,16 +122,6 @@ export class GuildSettingsAggregateRepository
         triggerChannelIds: vac.triggerChannelIds,
       };
     if (memberLog) result.memberLog = memberLog;
-    if (vcRecruit) {
-      // setups[].createdVoiceChannelIds はランタイム追跡情報のため export 対象外
-      result.vcRecruit = {
-        ...vcRecruit,
-        setups: vcRecruit.setups.map((s) => ({
-          ...s,
-          createdVoiceChannelIds: [],
-        })),
-      };
-    }
     if (vcAutoRecruit) {
       // activeInvites は投稿中募集のランタイム参照のため export 対象外
       result.vcAutoRecruit = { ...vcAutoRecruit, activeInvites: [] };
@@ -297,28 +280,6 @@ export class GuildSettingsAggregateRepository
         });
       }
 
-      if (data.vcRecruit) {
-        // setups[].createdVoiceChannelIds は空配列で書き込む（ランタイム情報のため）
-        const setupsForDb = data.vcRecruit.setups.map((s) => ({
-          ...s,
-          createdVoiceChannelIds: [],
-        }));
-        await tx.guildVcRecruitSettings.upsert({
-          where: { guildId },
-          create: {
-            guildId,
-            enabled: data.vcRecruit.enabled,
-            mentionRoleIds: data.vcRecruit.mentionRoleIds,
-            setups: setupsForDb as unknown as Prisma.InputJsonValue,
-          },
-          update: {
-            enabled: data.vcRecruit.enabled,
-            mentionRoleIds: data.vcRecruit.mentionRoleIds,
-            setups: setupsForDb as unknown as Prisma.InputJsonValue,
-          },
-        });
-      }
-
       if (data.vcAutoRecruit) {
         // activeInvites は空配列で書き込む（投稿中募集のランタイム参照のため）
         const vcAutoRecruitData = {
@@ -326,8 +287,6 @@ export class GuildSettingsAggregateRepository
           channelId: data.vcAutoRecruit.channelId ?? null,
           message: data.vcAutoRecruit.message ?? null,
           embedEnabled: data.vcAutoRecruit.embedEnabled,
-          enabledCategoryIds: data.vcAutoRecruit
-            .enabledCategoryIds as unknown as Prisma.InputJsonValue,
           enabledChannelIds: data.vcAutoRecruit
             .enabledChannelIds as unknown as Prisma.InputJsonValue,
           activeInvites: [] as unknown as Prisma.InputJsonValue,
@@ -483,7 +442,6 @@ export class GuildSettingsAggregateRepository
         where: { guildId },
       }),
       this.prisma.guildUnverifiedKickWarn.deleteMany({ where: { guildId } }),
-      this.prisma.guildVcRecruitSettings.deleteMany({ where: { guildId } }),
       this.prisma.guildVcAutoRecruitSettings.deleteMany({ where: { guildId } }),
       this.prisma.guildSettings.deleteMany({ where: { guildId } }),
     ]);

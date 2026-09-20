@@ -1,4 +1,3 @@
-// tests/unit/bot/commands/afk-settings.test.ts
 import type { ChatInputCommandInteraction } from "discord.js";
 import { ChannelType, PermissionFlagsBits } from "discord.js";
 import type { Mock } from "vitest";

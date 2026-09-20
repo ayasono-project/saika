@@ -1,4 +1,3 @@
-// tests/unit/bot/commands/index.test.ts
 // commandLoader が commands/ ディレクトリを自動スキャンして
 // 有効な Command オブジェクトのみを返すことを検証する
 
@@ -81,7 +80,6 @@ const KNOWN_COMMAND_NAMES = [
   "ticket",
   "ticket-settings",
   "vac-settings",
-  "vc-recruit-settings",
   "ping",
 ];
 

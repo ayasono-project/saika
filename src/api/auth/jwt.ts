@@ -1,4 +1,3 @@
-// src/api/auth/jwt.ts
 // セッション JWT の検証（jose・HMAC-SHA256・ステートレス）。
 // 署名・発行・refresh は web BFF が担当し、各 Bot API（saika）は検証のみ行う。
 

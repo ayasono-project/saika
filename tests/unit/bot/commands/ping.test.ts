@@ -1,5 +1,3 @@
-// tests/unit/bot/commands/ping.test.ts
-
 const executePingCommandMock = vi.fn();
 const handleCommandErrorMock = vi.fn();
 

@@ -1,4 +1,3 @@
-// src/shared/locale/locales/ja/system.ts
 // 機能横断のシステムメッセージ翻訳リソース
 
 export const system = {

@@ -1,4 +1,3 @@
-// src/bot/features/sticky-message/handlers/ui/stickyMessageSetEmbedModalHandler.ts
 // sticky-message set（Embed 形式）モーダル送信処理
 
 import { ValidationError } from "@ayasono/shared/core";

@@ -1,4 +1,3 @@
-// tests/unit/api/ticketRoutes.test.ts
 // チケットパネル CRUD ルートの統合的ユニットテスト。
 // 設定サービス・ticket リポジトリをインメモリでモックし、Discord 副作用は無効化する。
 

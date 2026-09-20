@@ -1,4 +1,3 @@
-// tests/unit/bot/errors/interactionErrorHandler.test.ts
 /**
  * ErrorHandler Unit Tests
  * エラーハンドリング機能のテスト

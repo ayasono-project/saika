@@ -1,4 +1,3 @@
-// src/shared/config/appVersion.ts
 // アプリケーションのバージョンを package.json から取得する（単一情報源）
 
 import { readFileSync } from "fs";

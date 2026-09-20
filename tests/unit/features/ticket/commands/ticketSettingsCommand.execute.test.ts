@@ -1,5 +1,3 @@
-// tests/unit/bot/features/ticket/commands/ticketSettingsCommand.execute.test.ts
-
 import { ValidationError } from "@ayasono/shared/core";
 import { handleCommandError } from "@/bot/errors/interactionErrorHandler";
 import { TICKET_SETTINGS_COMMAND } from "@/features/ticket/commands/ticketCommand.constants";

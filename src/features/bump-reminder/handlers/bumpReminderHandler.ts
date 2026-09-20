@@ -1,4 +1,3 @@
-// src/bot/features/bump-reminder/handlers/bumpReminderHandler.ts
 // Bump検知ユースケースのオーケストレーション
 
 import type { Client } from "discord.js";

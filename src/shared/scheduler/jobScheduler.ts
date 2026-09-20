@@ -1,4 +1,3 @@
-// src/shared/scheduler/jobScheduler.ts
 // タイマー処理（node-cron + setTimeout）
 
 import cron, { type ScheduledTask } from "node-cron";

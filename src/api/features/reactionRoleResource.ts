@@ -1,4 +1,3 @@
-// src/api/features/reactionRoleResource.ts
 // リアクションロールパネルの契約マッピングと Discord 投稿/削除の副作用。
 
 import type {

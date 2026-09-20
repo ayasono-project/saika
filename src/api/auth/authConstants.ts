@@ -1,4 +1,3 @@
-// src/api/auth/authConstants.ts
 // セッション JWT / Cookie に関する定数（検証専用）。
 // 発行・OAuth フロー・refresh は web BFF が担当するため、saika 側は読み取りに必要な分のみ持つ。
 

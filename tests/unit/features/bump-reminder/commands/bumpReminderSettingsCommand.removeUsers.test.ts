@@ -1,5 +1,3 @@
-// tests/unit/bot/features/bump-reminder/commands/bumpReminderSettingsCommand.removeUsers.test.ts
-
 import { ValidationError } from "@ayasono/shared/core";
 import { handleBumpReminderSettingsRemoveUsers } from "@/features/bump-reminder/commands/bumpReminderSettingsCommand.removeUsers";
 

@@ -1,4 +1,3 @@
-// src/features/vc-auto-recruit/commands/vcAutoRecruitSettingsCommand.reset.ts
 // vc-auto-recruit-settings reset 実行処理
 
 import {

@@ -1,4 +1,3 @@
-// src/bot/handlers/interactionCreate/flow/modal.ts
 // モーダル送信処理
 
 import type { ModalSubmitInteraction } from "discord.js";

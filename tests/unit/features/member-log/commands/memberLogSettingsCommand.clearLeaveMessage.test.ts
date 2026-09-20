@@ -1,5 +1,3 @@
-// tests/unit/bot/features/member-log/commands/memberLogSettingsCommand.clearLeaveMessage.test.ts
-
 import { ValidationError } from "@ayasono/shared/core";
 import { handleMemberLogSettingsClearLeaveMessage } from "@/features/member-log/commands/memberLogSettingsCommand.clearLeaveMessage";
 

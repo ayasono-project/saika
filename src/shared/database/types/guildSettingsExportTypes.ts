@@ -1,4 +1,3 @@
-// src/shared/database/types/guildSettingsExportTypes.ts
 // guild-settings export/import 用の stateful データ型定義
 //
 // 各 *Export 型はトップレベルの guildId を共有するため、要素ごとの guildId を省略する。

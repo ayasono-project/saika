@@ -1,4 +1,3 @@
-// src/shared/locale/locales/en/features/help.ts
 // Help feature translations (English)
 
 export const help = {

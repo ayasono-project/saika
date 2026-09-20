@@ -1,4 +1,3 @@
-// src/bot/commands/about.ts
 // Aboutコマンド - Bot の情報（バージョン・公式リンク）を表示
 
 import {

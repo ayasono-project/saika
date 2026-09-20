@@ -1,4 +1,3 @@
-// src/api/routes/sticky.ts
 // メッセージ固定（sticky）のコレクション CRUD（/api/guilds/:guildId/sticky）。
 // channelId をキーに一覧/作成・上書き/更新/削除し、保存後に Discord へ反映する。
 

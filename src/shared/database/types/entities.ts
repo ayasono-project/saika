@@ -1,4 +1,3 @@
-// src/shared/database/types/entities.ts
 // エンティティ型定義
 
 export interface GuildSettings {

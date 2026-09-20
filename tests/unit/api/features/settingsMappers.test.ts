@@ -1,4 +1,3 @@
-// tests/unit/api/features/settingsMappers.test.ts
 // 機能別設定のドメイン↔契約マッパー（純粋関数）のユニットテスト
 
 import type { Guild as DiscordGuild } from "discord.js";

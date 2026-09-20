@@ -1,4 +1,3 @@
-// src/bot/features/reaction-role/handlers/ui/reactionRoleViewHandler.ts
 // view フローのページネーション・セレクトメニューハンドラ
 
 import {

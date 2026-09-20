@@ -1,4 +1,3 @@
-// src/shared/features/vac/vacSettingsDefaults.ts
 // VAC設定のデフォルト値・正規化ロジック
 
 import type { VacSettings } from "../../shared/database/types";

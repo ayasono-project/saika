@@ -1,4 +1,3 @@
-// src/bot/features/ticket/commands/usecases/ticketSettingsSetup.ts
 // チケット設定セットアップ処理
 
 import crypto from "node:crypto";

@@ -1,4 +1,3 @@
-// src/shared/errors/processErrorHandler.ts
 // プロセス全体の未処理例外とシャットダウン制御
 
 import { BaseError } from "@ayasono/shared/core";

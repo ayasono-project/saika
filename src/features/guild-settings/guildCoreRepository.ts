@@ -1,4 +1,3 @@
-// src/shared/database/repositories/guildCoreRepository.ts
 // ギルド設定コアリポジトリ（guild_configs テーブル）
 
 import { DatabaseError } from "@ayasono/shared/core";

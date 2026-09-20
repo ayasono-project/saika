@@ -1,4 +1,3 @@
-// src/bot/features/member-log/commands/memberLogSettingsCommand.setJoinMessage.ts
 // member-log-settings set-join-message 実行処理
 
 import {

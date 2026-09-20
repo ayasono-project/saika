@@ -1,4 +1,3 @@
-// tests/integration/bot/features/member-log/handlers/memberLogHandlers.integration.test.ts
 /**
  * Member Log Handlers Integration Tests
  * guildMemberAdd / guildMemberRemove ハンドラの統合テスト

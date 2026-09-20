@@ -1,4 +1,3 @@
-// src/api/features/bumpResource.ts
 // Bump リマインダー設定リソース
 
 import type { BumpSettings as ContractBumpSettings } from "@ayasono/shared/api";

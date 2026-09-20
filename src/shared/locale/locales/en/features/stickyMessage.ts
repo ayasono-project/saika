@@ -1,4 +1,3 @@
-// src/shared/locale/locales/en/features/stickyMessage.ts
 // Sticky Message feature translations (English)
 
 export const stickyMessage = {

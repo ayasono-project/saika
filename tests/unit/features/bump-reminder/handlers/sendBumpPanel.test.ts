@@ -1,4 +1,3 @@
-// tests/unit/bot/features/bump-reminder/handlers/sendBumpPanel.test.ts
 import { sendBumpPanel } from "@/features/bump-reminder/handlers/usecases/sendBumpPanel";
 
 const toScheduledAtMock = vi.fn();

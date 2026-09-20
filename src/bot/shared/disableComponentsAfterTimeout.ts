@@ -1,4 +1,3 @@
-// src/bot/shared/disableComponentsAfterTimeout.ts
 // 指定時間後にインタラクション返信のコンポーネントを一括無効化するユーティリティ
 
 import {

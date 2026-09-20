@@ -1,4 +1,3 @@
-// src/shared/locale/locales/ja/resources.ts
 // 日本語翻訳リソースのエクスポート
 
 import { common } from "./common";

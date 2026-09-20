@@ -1,4 +1,3 @@
-// src/bot/features/sticky-message/commands/usecases/stickyMessageRemove.ts
 // sticky-message remove ユースケース
 
 import {

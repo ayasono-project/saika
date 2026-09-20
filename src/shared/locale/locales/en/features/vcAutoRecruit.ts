@@ -1,4 +1,3 @@
-// src/shared/locale/locales/en/features/vcAutoRecruit.ts
 // VC auto recruit feature translations (English)
 
 export const vcAutoRecruit = {

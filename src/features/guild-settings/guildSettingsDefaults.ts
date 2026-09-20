@@ -1,4 +1,3 @@
-// src/shared/features/guild-settings/guildSettingsDefaults.ts
 // ギルド設定のデフォルト値・エクスポート JSON スキーマ定義
 
 import type {

@@ -1,4 +1,3 @@
-// src/features/unverified-kick/handlers/ui/unverifiedKickDmMessageModalHandler.ts
 // unverified-kick-settings のカスタムメッセージ設定モーダル送信処理（警告 DM / キック予告）
 
 import { MessageFlags, type ModalSubmitInteraction } from "discord.js";

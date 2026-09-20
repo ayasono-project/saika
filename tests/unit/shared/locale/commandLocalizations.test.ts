@@ -1,4 +1,3 @@
-// tests/unit/shared/locale/commandLocalizations.test.ts
 import {
   getCommandLocalizations,
   withLocalization,

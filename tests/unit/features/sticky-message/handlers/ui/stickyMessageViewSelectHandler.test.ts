@@ -1,4 +1,3 @@
-// tests/unit/bot/features/sticky-message/handlers/ui/stickyMessageViewSelectHandler.test.ts
 import type { Mock } from "vitest";
 
 const findByChannelMock: Mock = vi.fn();

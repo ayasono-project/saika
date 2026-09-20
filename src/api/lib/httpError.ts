@@ -1,4 +1,3 @@
-// src/api/lib/httpError.ts
 // API 層の HTTP エラー表現と、例外 → レスポンス封筒への変換
 
 import type { ApiErrorCode, ApiErrorResponse } from "@ayasono/shared/api";

@@ -1,4 +1,3 @@
-// src/shared/features/bump-reminder/bumpReminderSettingsDefaults.ts
 // Bumpリマインダー設定のデフォルト値・正規化ロジック
 
 import type { BumpReminderSettings } from "../../shared/database/types";

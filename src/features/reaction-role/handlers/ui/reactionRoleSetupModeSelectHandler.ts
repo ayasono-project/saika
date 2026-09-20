@@ -1,4 +1,3 @@
-// src/bot/features/reaction-role/handlers/ui/reactionRoleSetupModeSelectHandler.ts
 // setup フローのモード選択ハンドラ
 
 import { MessageFlags, type StringSelectMenuInteraction } from "discord.js";

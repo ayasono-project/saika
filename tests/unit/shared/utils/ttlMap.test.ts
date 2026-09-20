@@ -1,5 +1,3 @@
-// tests/unit/shared/utils/ttlMap.test.ts
-
 import { TtlMap } from "@/shared/utils/ttlMap";
 
 // TtlMap の単体テスト — TTL 付きインメモリ Map の全メソッドを検証する

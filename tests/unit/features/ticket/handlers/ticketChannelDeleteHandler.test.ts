@@ -1,4 +1,3 @@
-// tests/unit/bot/features/ticket/handlers/ticketChannelDeleteHandler.test.ts
 // パネル設置チャンネル削除検知ハンドラのテスト
 
 const mockConfigService = {

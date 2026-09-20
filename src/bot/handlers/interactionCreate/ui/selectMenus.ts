@@ -1,4 +1,3 @@
-// src/bot/handlers/interactionCreate/ui/selectMenus.ts
 // セレクトメニューハンドラのレジストリ
 
 import {

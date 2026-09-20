@@ -1,4 +1,3 @@
-// src/shared/locale/locales/en/features/ticket.ts
 // Ticket channel feature English translations
 
 export const ticket = {

@@ -1,5 +1,3 @@
-// tests/unit/bot/features/ticket/commands/usecases/ticketDelete.test.ts
-
 import { MessageFlags } from "discord.js";
 
 const findByChannelIdMock = vi.fn();

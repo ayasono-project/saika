@@ -1,5 +1,3 @@
-// tests/unit/bot/features/message-delete/commands/usecases/runScanPhase.test.ts
-
 import type { Mock } from "vitest";
 
 const scanMessagesMock = vi.fn();

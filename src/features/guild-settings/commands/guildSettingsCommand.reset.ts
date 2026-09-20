@@ -1,4 +1,3 @@
-// src/bot/features/guild-settings/commands/guildSettingsCommand.reset.ts
 // guild-settings reset サブコマンド実行処理
 
 import {

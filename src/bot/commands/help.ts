@@ -1,4 +1,3 @@
-// src/bot/commands/help.ts
 // Helpコマンド - コマンド一覧を表示
 
 import {

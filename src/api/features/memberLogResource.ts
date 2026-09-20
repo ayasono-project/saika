@@ -1,4 +1,3 @@
-// src/api/features/memberLogResource.ts
 // メンバーログ設定リソース（リポジトリ upsert で全体置換）
 
 import type { MemberLogSettings as ContractMemberLogSettings } from "@ayasono/shared/api";

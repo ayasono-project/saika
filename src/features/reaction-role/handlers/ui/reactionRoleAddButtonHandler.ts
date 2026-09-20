@@ -1,4 +1,3 @@
-// src/bot/features/reaction-role/handlers/ui/reactionRoleAddButtonHandler.ts
 // add-button フローのハンドラ群
 
 import {

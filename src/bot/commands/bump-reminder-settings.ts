@@ -1,4 +1,3 @@
-// src/bot/commands/bump-reminder-settings.ts
 // Bumpリマインダー機能の設定コマンド定義
 
 import { InteractionContextType, PermissionFlagsBits } from "discord.js";

@@ -1,4 +1,3 @@
-// tests/unit/bot/features/vac/commands/vacSettingsCommand.autocomplete.test.ts
 import { autocompleteVacSettingsCommand } from "@/features/vac/commands/vacSettingsCommand.autocomplete";
 import { VAC_SETTINGS_COMMAND } from "@/features/vac/commands/vacSettingsCommand.constants";
 

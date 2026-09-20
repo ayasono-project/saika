@@ -1,4 +1,3 @@
-// src/api/features/stickyResource.ts
 // メッセージ固定（sticky）の契約マッピングと Discord 投稿反映
 
 import type { StickyMessage as ContractStickyMessage } from "@ayasono/shared/api";

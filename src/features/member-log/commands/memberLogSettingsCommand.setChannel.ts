@@ -1,4 +1,3 @@
-// src/bot/features/member-log/commands/memberLogSettingsCommand.setChannel.ts
 // member-log-settings set-channel 実行処理
 
 import { ValidationError } from "@ayasono/shared/core";

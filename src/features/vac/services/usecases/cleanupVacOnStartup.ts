@@ -1,4 +1,3 @@
-// src/bot/features/vac/services/usecases/cleanupVacOnStartup.ts
 // VAC起動時クリーンアップユースケース
 
 import { ChannelType } from "discord.js";

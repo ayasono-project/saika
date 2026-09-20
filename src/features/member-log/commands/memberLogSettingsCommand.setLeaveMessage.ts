@@ -1,4 +1,3 @@
-// src/bot/features/member-log/commands/memberLogSettingsCommand.setLeaveMessage.ts
 // member-log-settings set-leave-message 実行処理
 
 import {

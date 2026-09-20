@@ -1,4 +1,3 @@
-// src/features/afk/commands/afkCommand.execute.ts
 // afk コマンド実行処理（対象メンバーの個別移動 + VC全員の一括移動）
 
 import { ValidationError } from "@ayasono/shared/core";

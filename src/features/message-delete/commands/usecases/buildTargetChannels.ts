@@ -1,4 +1,3 @@
-// src/bot/features/message-delete/commands/usecases/buildTargetChannels.ts
 // 削除対象チャンネルリストの構築
 
 import {

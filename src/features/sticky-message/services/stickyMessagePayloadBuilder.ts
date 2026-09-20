@@ -1,4 +1,3 @@
-// src/bot/features/sticky-message/services/stickyMessagePayloadBuilder.ts
 // スティッキーメッセージ送信ペイロードビルダー
 
 import { EmbedBuilder, type MessageCreateOptions } from "discord.js";

@@ -1,4 +1,3 @@
-// src/features/unverified-kick/handlers/unverifiedKickVerifyHandler.ts
 // guildMemberUpdate 契機の対象ロール解除（認証ロール取得時に対象ロールを剥奪する）
 
 import type { GuildMember, PartialGuildMember } from "discord.js";

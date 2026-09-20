@@ -1,4 +1,3 @@
-// tests/unit/shared/database/repositories/guildSettingsAggregateRepository.test.ts
 // GuildSettingsAggregateRepository の stateful 拡張（getFullSettings / importFullSettings / planImportMerge）を検証
 
 import type { Mock } from "vitest";

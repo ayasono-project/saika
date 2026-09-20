@@ -1,4 +1,3 @@
-// src/bot/features/reaction-role/handlers/ui/reactionRoleSetupState.ts
 // setup フローのセッション状態管理
 
 import type {

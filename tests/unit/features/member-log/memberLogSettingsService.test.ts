@@ -1,4 +1,3 @@
-// tests/unit/shared/features/member-log/memberLogSettingsService.test.ts
 // MemberLogSettingsService のデータ取得・保存・シングルトン管理を検証
 describe("shared/features/member-log/memberLogSettingsService", () => {
   /** テスト用 repository モックを生成する */

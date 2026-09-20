@@ -1,4 +1,3 @@
-// src/bot/features/reaction-role/handlers/ui/reactionRoleSetupButtonHandler.ts
 // setup フローの「もう1つ追加」「完了」ボタンハンドラ
 
 import {

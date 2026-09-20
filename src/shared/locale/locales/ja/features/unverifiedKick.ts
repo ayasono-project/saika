@@ -1,4 +1,3 @@
-// src/shared/locale/locales/ja/features/unverifiedKick.ts
 // 未承認ユーザー自動キック機能の翻訳リソース
 
 export const unverifiedKick = {

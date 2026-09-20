@@ -1,5 +1,3 @@
-// tests/unit/features/unverified-kick/services/unverifiedKickRunner.test.ts
-
 import { ChannelType, PermissionFlagsBits } from "discord.js";
 
 // vi.mock はホイストされるため、参照する値は vi.hoisted で定義する

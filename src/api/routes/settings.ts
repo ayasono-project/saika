@@ -1,4 +1,3 @@
-// src/api/routes/settings.ts
 // 機能別設定エンドポイント（/api/guilds/:guildId/<feature>）
 
 import type { FastifyPluginAsync } from "fastify";

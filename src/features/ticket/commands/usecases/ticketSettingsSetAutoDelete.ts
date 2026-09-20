@@ -1,4 +1,3 @@
-// src/bot/features/ticket/commands/usecases/ticketSettingsSetAutoDelete.ts
 // チケット自動削除日数設定処理
 
 import { type ChatInputCommandInteraction, MessageFlags } from "discord.js";

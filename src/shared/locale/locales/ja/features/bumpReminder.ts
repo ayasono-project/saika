@@ -1,4 +1,3 @@
-// src/shared/locale/locales/ja/features/bumpReminder.ts
 // Bumpリマインダー機能の翻訳リソース
 
 export const bumpReminder = {

@@ -1,4 +1,3 @@
-// src/bot/commands/vc-auto-recruit-settings.ts
 // VC自動募集機能の設定コマンド定義
 
 import {

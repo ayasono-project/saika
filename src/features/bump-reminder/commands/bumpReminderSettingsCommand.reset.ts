@@ -1,4 +1,3 @@
-// src/bot/features/bump-reminder/commands/bumpReminderSettingsCommand.reset.ts
 // bump-reminder-settings reset 実行処理
 
 import {

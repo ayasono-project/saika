@@ -1,4 +1,3 @@
-// src/bot/commands/unverified-kick-settings.ts
 // 未承認ユーザー自動キック機能の設定コマンド定義
 
 import {

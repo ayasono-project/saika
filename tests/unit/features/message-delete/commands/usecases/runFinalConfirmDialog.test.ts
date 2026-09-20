@@ -1,5 +1,3 @@
-// tests/unit/bot/features/message-delete/commands/usecases/runFinalConfirmDialog.test.ts
-
 import type { Mock } from "vitest";
 
 const buildFinalConfirmEmbedMock = vi.fn(() => ({ _type: "final" }));

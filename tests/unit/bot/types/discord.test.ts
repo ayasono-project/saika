@@ -1,4 +1,3 @@
-// tests/unit/bot/types/discord.test.ts
 import { registerBotEvent } from "@/bot/types/discord";
 
 describe("bot/types/discord", () => {

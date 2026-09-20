@@ -1,5 +1,3 @@
-// tests/unit/bot/features/sticky-message/commands/stickyMessageCommand.execute.test.ts
-
 import { PermissionFlagsBits } from "discord.js";
 
 const handleStickyMessageSetMock = vi.fn();

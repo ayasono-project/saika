@@ -1,4 +1,3 @@
-// src/api/types.ts
 // API 層で共有する型定義
 
 import type { PrismaClient } from "@prisma/client";

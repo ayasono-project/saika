@@ -1,4 +1,3 @@
-// src/shared/features/vac/vacSettingsService.ts
 // VAC設定のサービス実装（Repositoryパターン準拠）
 
 import {

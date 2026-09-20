@@ -1,4 +1,3 @@
-// src/bot/features/sticky-message/commands/usecases/stickyMessageView.ts
 // sticky-message view ユースケース
 
 import {

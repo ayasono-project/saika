@@ -1,4 +1,3 @@
-// src/bot/utils/eventLoader.ts
 // events/ ディレクトリを自動スキャンしてイベントを動的ロードする
 
 import { readdirSync } from "fs";

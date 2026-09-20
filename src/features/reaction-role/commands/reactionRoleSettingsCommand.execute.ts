@@ -1,4 +1,3 @@
-// src/bot/features/reaction-role/commands/reactionRoleSettingsCommand.execute.ts
 // リアクションロール設定コマンド実行処理
 
 import { ValidationError } from "@ayasono/shared/core";

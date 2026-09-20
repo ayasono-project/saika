@@ -1,4 +1,3 @@
-// src/features/unverified-kick/commands/unverifiedKickSettingsCommand.constants.ts
 // unverified-kick-settings コマンドの定数定義
 
 /**

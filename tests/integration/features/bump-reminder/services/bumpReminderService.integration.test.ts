@@ -1,4 +1,3 @@
-// tests/integration/bot/features/bump-reminder/services/bumpReminderService.integration.test.ts
 /**
  * BumpReminderManager Integration Tests
  * Bumpリマインダータイマー管理の統合テスト

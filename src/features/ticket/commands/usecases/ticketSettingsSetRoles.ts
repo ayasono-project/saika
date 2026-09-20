@@ -1,4 +1,3 @@
-// src/bot/features/ticket/commands/usecases/ticketSettingsSetRoles.ts
 // チケットスタッフロール設定処理
 
 import {

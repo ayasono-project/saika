@@ -1,5 +1,3 @@
-// tests/unit/bot/features/ticket/commands/usecases/ticketSettingsEditPanel.test.ts
-
 import { MessageFlags } from "discord.js";
 
 const findByGuildAndCategoryMock = vi.fn();

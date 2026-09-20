@@ -1,4 +1,3 @@
-// tests/unit/bot/services/cooldownManager.test.ts
 /**
  * CooldownManager Unit Tests
  * コマンドクールダウン管理のテスト

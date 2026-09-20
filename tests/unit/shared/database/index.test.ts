@@ -1,4 +1,3 @@
-// tests/unit/shared/database/index.test.ts
 describe("shared/database standalone repository getters", () => {
   beforeEach(() => {
     vi.resetModules();

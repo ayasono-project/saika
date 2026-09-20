@@ -1,4 +1,3 @@
-// tests/unit/shared/features/sticky-message/stickyMessageSettingsService.test.ts
 import type { Mock } from "vitest";
 
 function createRepoMock(): {

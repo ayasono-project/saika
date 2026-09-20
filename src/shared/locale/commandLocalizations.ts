@@ -1,4 +1,3 @@
-// src/shared/locale/commandLocalizations.ts
 // コマンド定義用のローカライゼーションヘルパー
 
 import { resources } from "./locales/resources";

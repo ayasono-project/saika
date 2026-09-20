@@ -1,4 +1,3 @@
-// src/features/vc-auto-recruit/handlers/vcAutoRecruitVoiceStateUpdate.ts
 // VC自動募集用 voiceStateUpdate のハンドラー
 
 import type { VoiceState } from "discord.js";

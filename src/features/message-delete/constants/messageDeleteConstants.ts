@@ -1,4 +1,3 @@
-// src/bot/features/message-delete/constants/messageDeleteConstants.ts
 // message-delete 機能の定数・型定義
 
 import type {

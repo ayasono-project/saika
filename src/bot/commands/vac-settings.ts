@@ -1,4 +1,3 @@
-// src/bot/commands/vac-settings.ts
 // VC自動作成機能の設定コマンド定義
 
 import {

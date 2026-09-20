@@ -1,5 +1,3 @@
-// tests/unit/bot/features/reaction-role/handlers/ui/reactionRoleSetupHandlers.test.ts
-
 import type { ReactionRoleSetupSession } from "@/features/reaction-role/handlers/ui/reactionRoleSetupState";
 import { reactionRoleSetupSessions } from "@/features/reaction-role/handlers/ui/reactionRoleSetupState";
 

@@ -1,4 +1,3 @@
-// tests/unit/api/settingsResource.test.ts
 // 設定リソース共通ルートファクトリのユニットテスト
 
 import Fastify, { type FastifyInstance } from "fastify";

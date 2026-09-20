@@ -1,4 +1,3 @@
-// src/bot/features/reaction-role/handlers/ui/reactionRoleSetupButtonModalHandler.ts
 // setup フローのボタン設定モーダル送信ハンドラ
 
 import {

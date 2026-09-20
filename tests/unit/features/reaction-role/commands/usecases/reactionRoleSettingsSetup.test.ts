@@ -1,5 +1,3 @@
-// tests/unit/bot/features/reaction-role/commands/usecases/reactionRoleSettingsSetup.test.ts
-
 const sessionSetMock: ReturnType<typeof vi.fn> = vi.fn();
 
 vi.mock("@/features/reaction-role/handlers/ui/reactionRoleSetupState", () => ({

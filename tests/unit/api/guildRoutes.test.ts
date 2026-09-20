@@ -1,4 +1,3 @@
-// tests/unit/api/guildRoutes.test.ts
 // ギルド/Discord リソースルート（/api/guilds 配下）の統合的ユニットテスト
 
 import { ChannelType } from "discord.js";

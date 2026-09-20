@@ -1,5 +1,3 @@
-// tests/unit/bot/shared/errorChannelNotifier.test.ts
-
 import { ChannelType } from "discord.js";
 import {
   notifyErrorChannel,

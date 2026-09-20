@@ -1,4 +1,3 @@
-// src/bot/features/ticket/handlers/ui/ticketSetupRoleSelectHandler.ts
 // setup フローのロール選択ハンドラ
 
 import {

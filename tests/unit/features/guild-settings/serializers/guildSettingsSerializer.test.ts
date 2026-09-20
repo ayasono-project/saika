@@ -1,4 +1,3 @@
-// tests/unit/shared/database/repositories/serializers/guildSettingsSerializer.test.ts
 import {
   toGuildSettings,
   toGuildSettingsCreateData,

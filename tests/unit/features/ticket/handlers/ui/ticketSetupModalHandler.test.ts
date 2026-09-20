@@ -1,5 +1,3 @@
-// tests/unit/bot/features/ticket/handlers/ui/ticketSetupModalHandler.test.ts
-
 import { DiscordAPIError, RESTJSONErrorCodes } from "discord.js";
 import { ticketSetupModalHandler } from "@/features/ticket/handlers/ui/ticketSetupModalHandler";
 

@@ -1,4 +1,3 @@
-// src/bot/features/member-log/handlers/guildMemberAddHandler.ts
 // guildMemberAdd イベントのメンバーログ処理
 
 import { ChannelType, EmbedBuilder, type GuildMember } from "discord.js";

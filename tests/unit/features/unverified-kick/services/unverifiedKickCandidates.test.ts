@@ -1,5 +1,3 @@
-// tests/unit/features/unverified-kick/services/unverifiedKickCandidates.test.ts
-
 import {
   type CandidateMemberInput,
   type CandidateSettings,

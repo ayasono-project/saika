@@ -1,4 +1,3 @@
-// src/shared/locale/locales/en/features/messageDelete.ts
 // Message Delete feature translations (English)
 
 export const messageDelete = {

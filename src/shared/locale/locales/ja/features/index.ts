@@ -1,4 +1,3 @@
-// src/shared/locale/locales/ja/features/index.ts
 // 全機能翻訳のre-export
 
 export { about } from "./about";

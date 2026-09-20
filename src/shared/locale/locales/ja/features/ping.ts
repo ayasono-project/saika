@@ -1,4 +1,3 @@
-// src/shared/locale/locales/ja/features/ping.ts
 // Ping機能の翻訳リソース
 
 export const ping = {

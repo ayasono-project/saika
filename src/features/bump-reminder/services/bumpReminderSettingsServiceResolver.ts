@@ -1,4 +1,3 @@
-// src/bot/features/bump-reminder/services/bumpReminderSettingsServiceResolver.ts
 // bump-reminder 設定サービスの依存解決
 
 import { type IBumpReminderSettingsRepository } from "../../../shared/database/types";

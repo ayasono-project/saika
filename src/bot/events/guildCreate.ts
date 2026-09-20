@@ -1,4 +1,3 @@
-// src/bot/events/guildCreate.ts
 // ギルド参加イベント
 
 import { Events } from "discord.js";

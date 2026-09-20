@@ -1,4 +1,3 @@
-// src/features/unverified-kick/services/unverifiedKickObsoletePlaceholders.ts
 // unverified-kick カスタムテンプレートの廃止プレースホルダー検出・案内 Embed 構築
 
 import { EmbedBuilder } from "discord.js";

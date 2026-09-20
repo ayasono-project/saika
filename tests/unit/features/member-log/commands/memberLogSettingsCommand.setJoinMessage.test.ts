@@ -1,5 +1,3 @@
-// tests/unit/bot/features/member-log/commands/memberLogSettingsCommand.setJoinMessage.test.ts
-
 import { ValidationError } from "@ayasono/shared/core";
 import { MEMBER_LOG_SETTINGS_COMMAND } from "@/features/member-log/commands/memberLogSettingsCommand.constants";
 import { handleMemberLogSettingsSetJoinMessage } from "@/features/member-log/commands/memberLogSettingsCommand.setJoinMessage";

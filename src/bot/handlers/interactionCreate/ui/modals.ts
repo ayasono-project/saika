@@ -1,4 +1,3 @@
-// src/bot/handlers/interactionCreate/ui/modals.ts
 // モーダルハンドラーレジストリ
 
 import { memberLogSetJoinMessageModalHandler } from "../../../../features/member-log/handlers/ui/memberLogSetJoinMessageModalHandler";

@@ -1,4 +1,3 @@
-// src/api/features/configResource.ts
 // ギルド共通設定（言語・エラー通知チャンネル）リソース
 
 import type { GuildConfig, Locale } from "@ayasono/shared/api";

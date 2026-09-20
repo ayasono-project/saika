@@ -1,4 +1,3 @@
-// tests/unit/shared/database/repositories/persistence/guildSettingsReadPersistence.test.ts
 import {
   existsGuildSettingsRecord,
   findGuildLocale,

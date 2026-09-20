@@ -1,4 +1,3 @@
-// src/shared/locale/locales/ja/features/about.ts
 // About機能の翻訳リソース
 
 export const about = {

@@ -1,4 +1,3 @@
-// src/bot/features/message-delete/commands/usecases/dialogUtils.ts
 // ダイアログ共通ユーティリティ（型定義・モーダルヘルパー）
 
 import {

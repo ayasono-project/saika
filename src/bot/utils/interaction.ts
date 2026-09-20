@@ -1,4 +1,3 @@
-// src/bot/utils/interaction.ts
 // Discord Interaction関連のユーティリティ関数
 
 import type {

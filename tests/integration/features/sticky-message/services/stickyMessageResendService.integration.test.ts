@@ -1,4 +1,3 @@
-// tests/integration/bot/features/sticky-message/services/stickyMessageResendService.integration.test.ts
 /**
  * StickyMessageResendService Integration Tests
  * ResendService → モックRepository の統合テスト

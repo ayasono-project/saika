@@ -1,4 +1,3 @@
-// tests/unit/bot/features/guild-settings/commands/guildSettingsCommand.reset.test.ts
 import type { ChatInputCommandInteraction } from "discord.js";
 
 const invalidateMock = vi.hoisted(() => vi.fn());

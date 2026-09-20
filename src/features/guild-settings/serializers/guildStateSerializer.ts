@@ -1,4 +1,3 @@
-// src/features/guild-settings/serializers/guildStateSerializer.ts
 // guild-settings export/import の stateful データ用 serializer / deserializer
 //
 // staffRoleIds / buttons は jsonb 化済みのため DB 上もアプリ上も配列で、export 表現でも配列のまま透過する。

@@ -1,4 +1,3 @@
-// tests/unit/bot/features/vac/commands/vacSettingsCommand.execute.test.ts
 import { handleCommandError } from "@/bot/errors/interactionErrorHandler";
 import { handleVacSettingsCreateTrigger } from "@/features/vac/commands/usecases/vacSettingsCreateTrigger";
 import { handleVacSettingsRemoveTrigger } from "@/features/vac/commands/usecases/vacSettingsRemoveTrigger";

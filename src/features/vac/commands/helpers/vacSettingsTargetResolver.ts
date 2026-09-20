@@ -1,4 +1,3 @@
-// src/bot/features/vac/commands/helpers/vacSettingsTargetResolver.ts
 // vac-settings の入力解決ヘルパー
 
 import {

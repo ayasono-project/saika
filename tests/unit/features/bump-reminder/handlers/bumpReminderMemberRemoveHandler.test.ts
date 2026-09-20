@@ -1,4 +1,3 @@
-// tests/unit/bot/features/bump-reminder/handlers/bumpReminderMemberRemoveHandler.test.ts
 import { handleBumpReminderMemberRemove } from "@/features/bump-reminder/handlers/bumpReminderMemberRemoveHandler";
 
 const getBumpReminderSettingsMock = vi.fn();

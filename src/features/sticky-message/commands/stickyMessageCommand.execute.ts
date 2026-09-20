@@ -1,4 +1,3 @@
-// src/bot/features/sticky-message/commands/stickyMessageCommand.execute.ts
 // スティッキーメッセージコマンド実行処理
 
 import { ValidationError } from "@ayasono/shared/core";

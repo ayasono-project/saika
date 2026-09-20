@@ -1,5 +1,3 @@
-// tests/unit/bot/features/member-log/commands/memberLogSettingsCommand.setLeaveMessage.test.ts
-
 import { ValidationError } from "@ayasono/shared/core";
 import { MEMBER_LOG_SETTINGS_COMMAND } from "@/features/member-log/commands/memberLogSettingsCommand.constants";
 import { handleMemberLogSettingsSetLeaveMessage } from "@/features/member-log/commands/memberLogSettingsCommand.setLeaveMessage";

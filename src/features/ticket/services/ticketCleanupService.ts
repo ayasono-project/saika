@@ -1,4 +1,3 @@
-// src/bot/features/ticket/services/ticketCleanupService.ts
 // チケット設定の一括クリーンアップ処理（teardown / reset 共通）
 
 import type { Guild } from "discord.js";

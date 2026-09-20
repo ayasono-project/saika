@@ -1,5 +1,3 @@
-// tests/unit/bot/features/reaction-role/handlers/ui/reactionRoleRemoveButtonHandler.test.ts
-
 import {
   reactionRoleRemoveButtonButtonHandler,
   reactionRoleRemoveButtonPanelSelectHandler,

@@ -1,5 +1,3 @@
-// tests/unit/features/unverified-kick/unverifiedKickSettingsService.test.ts
-
 import { DEFAULT_UNVERIFIED_KICK_GRACE_DAYS } from "@/features/unverified-kick/unverifiedKickSettingsDefaults";
 import { createUnverifiedKickSettingsService } from "@/features/unverified-kick/unverifiedKickSettingsService";
 import type {

@@ -1,4 +1,3 @@
-// src/shared/locale/locales/ja/features/help.ts
 // Help機能の翻訳リソース
 
 export const help = {

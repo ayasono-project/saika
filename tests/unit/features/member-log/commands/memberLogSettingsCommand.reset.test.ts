@@ -1,4 +1,3 @@
-// tests/unit/bot/features/member-log/commands/memberLogSettingsCommand.reset.test.ts
 import { handleMemberLogSettingsReset } from "@/features/member-log/commands/memberLogSettingsCommand.reset";
 
 const setEnabledMock = vi.fn();

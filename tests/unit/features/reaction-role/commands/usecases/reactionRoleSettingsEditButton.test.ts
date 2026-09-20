@@ -1,5 +1,3 @@
-// tests/unit/bot/features/reaction-role/commands/usecases/reactionRoleSettingsEditButton.test.ts
-
 import { MessageFlags } from "discord.js";
 import type { GuildReactionRolePanel } from "@/shared/database/types/reactionRoleTypes";
 

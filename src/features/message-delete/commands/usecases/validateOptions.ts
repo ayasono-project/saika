@@ -1,4 +1,3 @@
-// src/bot/features/message-delete/commands/usecases/validateOptions.ts
 // コマンドオプションのパース・バリデーション
 
 import {

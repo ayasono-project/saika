@@ -1,4 +1,3 @@
-// src/bot/features/bump-reminder/constants/bumpReminderConstants.ts
 // Bumpリマインダー機能の定数定義
 
 import { env } from "../../../shared/config/env";

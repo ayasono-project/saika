@@ -1,4 +1,3 @@
-// src/bot/features/reaction-role/handlers/ui/reactionRoleClickHandler.ts
 // パネルボタンクリック時のロール操作ハンドラ
 
 import {

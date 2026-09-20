@@ -1,4 +1,3 @@
-// src/bot/features/reaction-role/handlers/ui/reactionRoleTeardownHandler.ts
 // teardown フローのセレクトメニュー・確認ボタンハンドラ
 
 import {

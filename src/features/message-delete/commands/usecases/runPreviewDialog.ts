@@ -1,4 +1,3 @@
-// src/bot/features/message-delete/commands/usecases/runPreviewDialog.ts
 // Stage 1: プレビューダイアログ処理
 
 import {

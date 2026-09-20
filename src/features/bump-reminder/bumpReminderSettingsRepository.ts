@@ -1,4 +1,3 @@
-// src/features/bump-reminder/bumpReminderSettingsRepository.ts
 // Bumpリマインダー設定リポジトリ（guild_bump_reminder_settings テーブル）
 
 import type { PrismaClient } from "@prisma/client";

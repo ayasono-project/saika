@@ -1,4 +1,3 @@
-// tests/unit/bot/utils/messageResponse.test.ts
 // メッセージレスポンスユーティリティのテスト
 
 import { EmbedBuilder } from "discord.js";

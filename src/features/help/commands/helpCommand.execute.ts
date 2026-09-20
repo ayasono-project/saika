@@ -1,4 +1,3 @@
-// src/bot/features/help/commands/helpCommand.execute.ts
 // help コマンド実行処理
 
 import type { ChatInputCommandInteraction } from "discord.js";

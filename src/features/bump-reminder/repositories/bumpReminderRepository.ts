@@ -1,4 +1,3 @@
-// src/bot/features/bump-reminder/repositories/bumpReminderRepository.ts
 // Bumpリマインダー用リポジトリ
 
 import type { PrismaClient } from "@prisma/client";

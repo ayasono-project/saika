@@ -1,4 +1,3 @@
-// tests/unit/features/vc-auto-recruit/vcAutoRecruitSettingsDefaults.test.ts
 // VC自動募集設定のデフォルト値・正規化ロジックを検証
 
 import {

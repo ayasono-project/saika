@@ -1,4 +1,3 @@
-// src/bot/features/guild-settings/commands/guildSettingsCommand.setLocale.ts
 // guild-settings set-locale サブコマンド実行処理
 
 import { type ChatInputCommandInteraction, MessageFlags } from "discord.js";

@@ -1,5 +1,3 @@
-// tests/unit/shared/database/repositories/bumpReminderSettingsRepository.test.ts
-
 import type { Mock } from "vitest";
 import {
   BUMP_REMINDER_MENTION_CLEAR_RESULT,

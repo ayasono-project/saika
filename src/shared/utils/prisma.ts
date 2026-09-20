@@ -1,4 +1,3 @@
-// src/shared/utils/prisma.ts
 // Prisma関連のユーティリティ関数
 
 import type { PrismaClient } from "@prisma/client";

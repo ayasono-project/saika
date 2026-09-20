@@ -1,4 +1,3 @@
-// src/api/auth/guildAccess.ts
 // ギルドアクセスを検証する preHandler。
 // JWT クレームの管理可能ギルド一覧（web BFF がログイン時に算出）に対象 guildId が
 // 含まれるかを判定するのみで、Discord には問い合わせない。

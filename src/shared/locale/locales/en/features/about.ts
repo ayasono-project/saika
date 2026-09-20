@@ -1,4 +1,3 @@
-// src/shared/locale/locales/en/features/about.ts
 // About feature translations (English)
 
 export const about = {

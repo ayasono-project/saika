@@ -1,5 +1,3 @@
-// tests/unit/bot/features/afk/commands/afkSettingsCommand.execute.test.ts
-
 import { PermissionError } from "@ayasono/shared/core";
 import { ChannelType } from "discord.js";
 import { executeAfkSettingsCommand } from "@/features/afk/commands/afkSettingsCommand.execute";

@@ -1,4 +1,3 @@
-// src/bot/shared/vcActionLog.ts
 // /afk の操作結果を表すアクションログ Embed を生成するユーティリティ
 
 import { EmbedBuilder } from "discord.js";

@@ -1,4 +1,3 @@
-// src/features/unverified-kick/commands/unverifiedKickSettingsCommand.view.ts
 // unverified-kick-settings view 実行処理
 
 import { type ChatInputCommandInteraction, MessageFlags } from "discord.js";

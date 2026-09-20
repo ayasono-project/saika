@@ -1,4 +1,3 @@
-// src/features/unverified-kick/unverifiedKickSettingsService.ts
 // 未承認ユーザー自動キック設定サービス実装（Repositoryパターン準拠）
 
 import type {

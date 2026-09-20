@@ -1,5 +1,3 @@
-// tests/unit/bot/features/vac/services/usecases/handleVacCreate.test.ts
-
 import {
   ChannelType,
   DiscordAPIError,

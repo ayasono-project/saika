@@ -1,4 +1,3 @@
-// src/shared/locale/locales/ja/features/ticket.ts
 // チケットチャンネル機能の日本語翻訳
 
 export const ticket = {

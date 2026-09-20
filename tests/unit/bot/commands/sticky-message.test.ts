@@ -1,5 +1,3 @@
-// tests/unit/bot/commands/sticky-message.test.ts
-
 const executeStickyMessageCommandMock = vi.fn();
 const handleCommandErrorMock = vi.fn();
 

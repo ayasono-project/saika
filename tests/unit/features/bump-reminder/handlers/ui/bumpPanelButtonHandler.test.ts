@@ -1,5 +1,3 @@
-// tests/unit/bot/features/bump-reminder/handlers/ui/bumpPanelButtonHandler.test.ts
-
 import { MessageFlags } from "discord.js";
 import { getBotBumpReminderSettingsService } from "@/bot/services/botCompositionRoot";
 import {

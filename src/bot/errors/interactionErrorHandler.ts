@@ -1,4 +1,3 @@
-// src/bot/errors/interactionErrorHandler.ts
 // コマンド/インタラクション向けエラーハンドリング
 
 import {

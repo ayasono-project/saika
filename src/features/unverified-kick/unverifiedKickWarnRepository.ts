@@ -1,4 +1,3 @@
-// src/features/unverified-kick/unverifiedKickWarnRepository.ts
 // 未承認ユーザー自動キックの事前警告記録リポジトリ（guild_unverified_kick_warns テーブル）
 
 import type { PrismaClient } from "@prisma/client";

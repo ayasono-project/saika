@@ -1,4 +1,3 @@
-// tests/unit/api/features/reactionRoleResource.test.ts
 // deletePanelMessage の孤児化可視化分岐のユニットテスト。
 // Discord 副作用はモックし、運営 webhook(logger.error) とギルド通知(notifyWarnChannel)の
 // 呼び出し有無で判定する。

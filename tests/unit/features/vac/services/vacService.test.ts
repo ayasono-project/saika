@@ -1,5 +1,3 @@
-// tests/unit/bot/features/vac/services/vacService.test.ts
-
 import { ChannelType } from "discord.js";
 import type { Mocked } from "vitest";
 import { cleanupVacOnStartupUseCase } from "@/features/vac/services/usecases/cleanupVacOnStartup";

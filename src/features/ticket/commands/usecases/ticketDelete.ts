@@ -1,4 +1,3 @@
-// src/bot/features/ticket/commands/usecases/ticketDelete.ts
 // チケット削除確認ダイアログ表示処理
 
 import {

@@ -1,4 +1,3 @@
-// src/bot/features/message-delete/commands/messageDeleteEmbedBuilder.ts
 // メッセージ削除 Embed ビルダー（プレビュー → 最終確認 2段階ダイアログ）
 
 import {

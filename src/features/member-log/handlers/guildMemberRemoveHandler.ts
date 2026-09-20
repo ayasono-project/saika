@@ -1,4 +1,3 @@
-// src/bot/features/member-log/handlers/guildMemberRemoveHandler.ts
 // guildMemberRemove イベントのメンバーログ処理
 
 import {

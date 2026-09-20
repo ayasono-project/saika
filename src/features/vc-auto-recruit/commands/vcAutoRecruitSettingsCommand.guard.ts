@@ -1,4 +1,3 @@
-// src/features/vc-auto-recruit/commands/vcAutoRecruitSettingsCommand.guard.ts
 // vc-auto-recruit-settings コマンド共通ガード
 
 import { type ChatInputCommandInteraction } from "discord.js";

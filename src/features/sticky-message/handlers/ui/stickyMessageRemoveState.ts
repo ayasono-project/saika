@@ -1,4 +1,3 @@
-// src/bot/features/sticky-message/handlers/ui/stickyMessageRemoveState.ts
 // sticky-message remove の選択状態を保持する（セレクトメニュー → ボタン間の受け渡し用）
 
 import { TtlMap } from "../../../../shared/utils/ttlMap";

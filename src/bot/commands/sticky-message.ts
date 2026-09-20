@@ -1,4 +1,3 @@
-// src/bot/commands/sticky-message.ts
 // スティッキーメッセージコマンド定義
 
 import {

@@ -1,5 +1,3 @@
-// tests/unit/bot/events/interactionCreate.test.ts
-
 import { Events, MessageFlags } from "discord.js";
 import type { Mock } from "vitest";
 import {

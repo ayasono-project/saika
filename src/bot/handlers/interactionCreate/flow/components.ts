@@ -1,4 +1,3 @@
-// src/bot/handlers/interactionCreate/flow/components.ts
 // ボタン / セレクトメニュー インタラクションの共通ディスパッチ
 
 import type {

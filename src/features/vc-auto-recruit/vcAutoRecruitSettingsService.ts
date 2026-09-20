@@ -1,4 +1,3 @@
-// src/features/vc-auto-recruit/vcAutoRecruitSettingsService.ts
 // VC自動募集設定サービス実装（Repositoryパターン準拠）
 
 import type {

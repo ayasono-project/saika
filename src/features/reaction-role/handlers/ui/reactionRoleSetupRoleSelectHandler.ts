@@ -1,4 +1,3 @@
-// src/bot/features/reaction-role/handlers/ui/reactionRoleSetupRoleSelectHandler.ts
 // setup フローのロール選択ハンドラ（ボタン追加ループ）
 
 import {

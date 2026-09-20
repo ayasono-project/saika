@@ -1,4 +1,3 @@
-// src/bot/features/member-log/commands/memberLogSettingsCommand.clearJoinMessage.ts
 // member-log-settings clear-join-message 実行処理
 
 import { type ChatInputCommandInteraction, MessageFlags } from "discord.js";

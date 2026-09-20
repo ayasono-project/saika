@@ -1,4 +1,3 @@
-// tests/unit/shared/utils/logger.test.ts
 // saika の logger.ts が @ayasono/shared/core の createLogger / DiscordWebhookTransport を
 // env に基づいて正しく wiring することを検証する。
 // NOTE: フォーマット/トランスポート構成ロジック本体は @ayasono/shared 側の責務（shared 側でテストする）。

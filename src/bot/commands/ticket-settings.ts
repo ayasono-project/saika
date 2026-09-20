@@ -1,4 +1,3 @@
-// src/bot/commands/ticket-settings.ts
 // チケット設定コマンド定義
 
 import {

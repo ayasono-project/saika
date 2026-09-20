@@ -1,4 +1,3 @@
-// src/shared/database/repositories/afkSettingsRepository.ts
 // AFK設定リポジトリ（guild_afk_configs テーブル）
 
 import type { PrismaClient } from "@prisma/client";

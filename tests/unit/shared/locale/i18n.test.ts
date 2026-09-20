@@ -1,4 +1,3 @@
-// tests/unit/shared/locale/i18n.test.ts
 // i18n モジュールの初期化設定（ロケール定数・i18next オプション・debug フラグ）と
 // addResources / changeLanguage / t のラッパーが i18next に正しく委譲するかを検証する
 describe("shared/locale/i18n", () => {

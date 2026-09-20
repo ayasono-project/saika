@@ -1,4 +1,3 @@
-// src/bot/commands/afk.ts
 // AFK機能のコマンド
 
 import {

@@ -1,4 +1,3 @@
-// src/bot/handlers/guildDeleteHandler.ts
 // guildDelete 時の全設定クリーンアップハンドラ
 
 import type { Guild } from "discord.js";

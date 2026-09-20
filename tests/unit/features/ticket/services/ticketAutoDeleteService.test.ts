@@ -1,5 +1,3 @@
-// tests/unit/bot/features/ticket/services/ticketAutoDeleteService.test.ts
-
 vi.mock("@/shared/scheduler/jobScheduler", () => ({
   jobScheduler: {
     addOneTimeJob: vi.fn(),

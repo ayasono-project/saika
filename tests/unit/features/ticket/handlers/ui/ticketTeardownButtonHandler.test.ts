@@ -1,5 +1,3 @@
-// tests/unit/bot/features/ticket/handlers/ui/ticketTeardownButtonHandler.test.ts
-
 import { ticketTeardownButtonHandler } from "@/features/ticket/handlers/ui/ticketTeardownButtonHandler";
 
 vi.mock("@/shared/locale/localeManager", () => ({

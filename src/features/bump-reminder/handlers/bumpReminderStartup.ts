@@ -1,4 +1,3 @@
-// src/bot/features/bump-reminder/handlers/bumpReminderStartup.ts
 // Bump リマインダーの起動時復元処理
 
 import type { BotClient } from "../../../bot/client";

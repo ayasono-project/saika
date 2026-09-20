@@ -1,4 +1,3 @@
-// tests/unit/shared/locale/localeManager.test.ts
 import type { Mock } from "vitest";
 
 const initMock: Mock = vi.fn();

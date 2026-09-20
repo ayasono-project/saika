@@ -1,4 +1,3 @@
-// src/bot/features/reaction-role/commands/usecases/reactionRoleSettingsTeardown.ts
 // リアクションロール teardown サブコマンド処理
 
 import crypto from "node:crypto";

@@ -1,5 +1,3 @@
-// tests/unit/bot/features/sticky-message/commands/usecases/stickyMessageSet.test.ts
-
 import { ChannelType, MessageFlags } from "discord.js";
 
 const findByChannelMock = vi.fn();

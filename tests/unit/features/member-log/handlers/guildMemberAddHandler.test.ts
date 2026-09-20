@@ -1,4 +1,3 @@
-// tests/unit/bot/features/member-log/handlers/guildMemberAddHandler.test.ts
 import { ChannelType } from "discord.js";
 
 // discord.js は static import のため vi.mock factory がホイスト時点で実行される

@@ -1,4 +1,3 @@
-// tests/unit/features/vc-auto-recruit/vcAutoRecruitService.test.ts
 // VcAutoRecruitService の投稿（0→1・入室デバウンス）・除外・募集終了・channelDelete を検証
 
 import { ChannelType } from "discord.js";

@@ -1,4 +1,3 @@
-// tests/unit/shared/errors/processErrorHandler.test.ts
 // process イベントハンドラの登録・重複防止・エラー分類・グレースフルシャットダウンの正確な動作を検証
 describe("shared/errors/processErrorHandler", () => {
   const tDefaultMock = vi.fn(

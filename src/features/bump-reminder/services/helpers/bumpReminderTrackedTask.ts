@@ -1,4 +1,3 @@
-// src/bot/features/bump-reminder/services/helpers/bumpReminderTrackedTask.ts
 // Bumpリマインダータスクの実行結果をDBステータスへ反映するヘルパー
 
 import { logPrefixed } from "../../../../shared/locale/localeManager";

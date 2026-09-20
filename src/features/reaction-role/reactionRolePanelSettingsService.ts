@@ -1,4 +1,3 @@
-// src/shared/features/reaction-role/reactionRolePanelSettingsService.ts
 // リアクションロールパネル設定サービス（Repositoryパターン準拠）
 
 import type {

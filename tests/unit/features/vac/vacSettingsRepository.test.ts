@@ -1,5 +1,3 @@
-// tests/unit/shared/database/repositories/vacSettingsRepository.test.ts
-
 import type { Mock } from "vitest";
 
 function createPrismaMock() {

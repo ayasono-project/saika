@@ -1,4 +1,3 @@
-// src/api/routes/tickets.ts
 // チケットパネルのコレクション CRUD（/api/guilds/:guildId/tickets）。
 // categoryId を識別キーに一覧/作成/更新/削除し、Discord パネルの投稿/編集/削除を伴う。
 

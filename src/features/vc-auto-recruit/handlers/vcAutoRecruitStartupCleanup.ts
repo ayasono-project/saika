@@ -1,4 +1,3 @@
-// src/features/vc-auto-recruit/handlers/vcAutoRecruitStartupCleanup.ts
 // VC自動募集用の起動時クリーンアップハンドラー
 
 import type { BotClient } from "../../../bot/client";

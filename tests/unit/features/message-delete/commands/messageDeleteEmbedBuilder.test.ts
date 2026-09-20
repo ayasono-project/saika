@@ -1,4 +1,3 @@
-// tests/unit/bot/features/message-delete/commands/messageDeleteEmbedBuilder.test.ts
 // messageDeleteEmbedBuilder の単体テスト
 
 vi.mock("@/shared/locale/localeManager", () => ({

@@ -1,4 +1,3 @@
-// tests/unit/bot/features/bump-reminder/handlers/bumpReminderRoleDeleteHandler.test.ts
 import { handleBumpReminderRoleDelete } from "@/features/bump-reminder/handlers/bumpReminderRoleDeleteHandler";
 
 const getBumpReminderSettingsMock = vi.fn();

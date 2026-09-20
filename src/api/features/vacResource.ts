@@ -1,4 +1,3 @@
-// src/api/features/vacResource.ts
 // VAC（VC自動作成）設定リソース + アクティブ VC 一覧
 
 import type {

@@ -1,4 +1,3 @@
-// src/features/vc-auto-recruit/commands/vcAutoRecruitSettingsCommand.clearMessage.ts
 // vc-auto-recruit-settings clear-message 実行処理
 
 import { type ChatInputCommandInteraction, MessageFlags } from "discord.js";

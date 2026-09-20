@@ -1,4 +1,3 @@
-// src/bot/features/bump-reminder/services/usecases/restorePendingBumpRemindersUsecase.ts
 // pending Bumpリマインダー復元のユースケース
 
 import { logPrefixed } from "../../../../shared/locale/localeManager";

@@ -1,5 +1,3 @@
-// tests/unit/bot/features/ticket/handlers/ui/ticketTeardownSelectHandler.test.ts
-
 import { ticketTeardownSelectHandler } from "@/features/ticket/handlers/ui/ticketTeardownSelectHandler";
 
 vi.mock("crypto", () => ({

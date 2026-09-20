@@ -1,4 +1,3 @@
-// src/shared/locale/locales/ja/features/reactionRole.ts
 // リアクションロール機能の日本語翻訳
 
 export const reactionRole = {

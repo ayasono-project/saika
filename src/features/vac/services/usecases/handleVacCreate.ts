@@ -1,4 +1,3 @@
-// src/bot/features/vac/services/usecases/handleVacCreate.ts
 // VAC自動作成ユースケース
 
 import {

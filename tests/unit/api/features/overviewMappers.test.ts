@@ -1,4 +1,3 @@
-// tests/unit/api/features/overviewMappers.test.ts
 // 概要の機能ステータス構築（toFeatureStatuses）のユニットテスト。
 
 import { describe, expect, it } from "vitest";

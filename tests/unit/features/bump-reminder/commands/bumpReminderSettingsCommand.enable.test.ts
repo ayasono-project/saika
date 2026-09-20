@@ -1,4 +1,3 @@
-// tests/unit/bot/features/bump-reminder/commands/bumpReminderSettingsCommand.enable.test.ts
 import { handleBumpReminderSettingsEnable } from "@/features/bump-reminder/commands/bumpReminderSettingsCommand.enable";
 
 const setEnabledMock = vi.fn();

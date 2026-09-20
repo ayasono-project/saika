@@ -1,4 +1,3 @@
-// src/bot/features/bump-reminder/handlers/usecases/sendBumpPanel.ts
 // Bump予約時刻表示パネル送信ユースケース
 
 import {

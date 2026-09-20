@@ -1,5 +1,3 @@
-// tests/unit/bot/features/member-log/commands/memberLogSettingsCommand.guard.test.ts
-
 import { PermissionError } from "@ayasono/shared/core";
 import { ensureMemberLogManageGuildPermission } from "@/features/member-log/commands/memberLogSettingsCommand.guard";
 

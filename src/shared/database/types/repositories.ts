@@ -1,4 +1,3 @@
-// src/shared/database/types/repositories.ts
 // 機能別リポジトリインターフェース（必要な範囲だけ依存できる）
 
 import type {

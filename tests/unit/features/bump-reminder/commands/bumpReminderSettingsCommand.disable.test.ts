@@ -1,4 +1,3 @@
-// tests/unit/bot/features/bump-reminder/commands/bumpReminderSettingsCommand.disable.test.ts
 import { handleBumpReminderSettingsDisable } from "@/features/bump-reminder/commands/bumpReminderSettingsCommand.disable";
 
 const cancelReminderMock = vi.fn();

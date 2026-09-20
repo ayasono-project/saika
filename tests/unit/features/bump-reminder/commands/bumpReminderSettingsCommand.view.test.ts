@@ -1,4 +1,3 @@
-// tests/unit/bot/features/bump-reminder/commands/bumpReminderSettingsCommand.view.test.ts
 import { handleBumpReminderSettingsView } from "@/features/bump-reminder/commands/bumpReminderSettingsCommand.view";
 
 const getBumpReminderSettingsMock = vi.fn();

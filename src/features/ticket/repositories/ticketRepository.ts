@@ -1,4 +1,3 @@
-// src/bot/features/ticket/repositories/ticketRepository.ts
 // チケットリポジトリ（Prisma実装）
 
 import type { PrismaClient } from "@prisma/client";

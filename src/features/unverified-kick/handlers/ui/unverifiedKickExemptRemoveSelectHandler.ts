@@ -1,4 +1,3 @@
-// src/features/unverified-kick/handlers/ui/unverifiedKickExemptRemoveSelectHandler.ts
 // exempt remove セレクトメニューの選択応答（選択したロールを一括削除する）
 
 import { type StringSelectMenuInteraction } from "discord.js";

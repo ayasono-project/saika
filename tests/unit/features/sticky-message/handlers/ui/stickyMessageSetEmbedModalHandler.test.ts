@@ -1,5 +1,3 @@
-// tests/unit/bot/features/sticky-message/handlers/ui/stickyMessageSetEmbedModalHandler.test.ts
-
 import {
   ChannelType,
   DiscordAPIError,

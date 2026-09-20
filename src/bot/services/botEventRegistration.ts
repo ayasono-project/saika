@@ -1,4 +1,3 @@
-// src/bot/services/botEventRegistration.ts
 // Botイベント登録の責務を集約
 
 import { logPrefixed, tDefault } from "../../shared/locale/localeManager";

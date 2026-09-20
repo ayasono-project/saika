@@ -1,4 +1,3 @@
-// src/bot/commands/member-log-settings.ts
 // メンバーログ機能の設定コマンド定義
 
 import {

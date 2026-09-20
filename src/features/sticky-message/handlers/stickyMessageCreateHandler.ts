@@ -1,4 +1,3 @@
-// src/bot/features/sticky-message/handlers/stickyMessageCreateHandler.ts
 // スティッキーメッセージ messageCreate イベントハンドラー
 
 import { ChannelType, type Message } from "discord.js";

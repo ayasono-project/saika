@@ -1,4 +1,3 @@
-// src/bot/features/ticket/commands/usecases/ticketSettingsSetMaxTickets.ts
 // チケット最大作成数設定処理
 
 import { type ChatInputCommandInteraction, MessageFlags } from "discord.js";

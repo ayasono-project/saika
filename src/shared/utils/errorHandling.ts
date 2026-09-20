@@ -1,4 +1,3 @@
-// src/shared/utils/errorHandling.ts
 // 共通エラーハンドリングユーティリティ
 
 import { DatabaseError } from "@ayasono/shared/core";

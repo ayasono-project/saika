@@ -1,4 +1,3 @@
-// src/shared/locale/locales/en/features/reactionRole.ts
 // Reaction role feature English translations
 
 export const reactionRole = {

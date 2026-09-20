@@ -1,4 +1,3 @@
-// src/features/unverified-kick/services/unverifiedKickRunner.ts
 // 未承認ユーザー自動キックの時間単位スイープ（候補抽出 → 事前警告〔DM + 通知〕→ キック実行）
 
 import {

@@ -1,4 +1,3 @@
-// src/bot/features/vac/handlers/vacChannelDelete.ts
 // VAC の channelDelete ハンドラー
 
 import type { Channel } from "discord.js";

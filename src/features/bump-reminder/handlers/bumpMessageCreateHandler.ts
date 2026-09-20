@@ -1,4 +1,3 @@
-// src/bot/features/bump-reminder/handlers/bumpMessageCreateHandler.ts
 // messageCreate における Bump 検知のユースケース処理
 
 import type { Message } from "discord.js";

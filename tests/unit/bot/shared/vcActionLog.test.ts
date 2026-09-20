@@ -1,5 +1,3 @@
-// tests/unit/bot/shared/vcActionLog.test.ts
-
 import {
   formatActionLog,
   resolveAuditReason,

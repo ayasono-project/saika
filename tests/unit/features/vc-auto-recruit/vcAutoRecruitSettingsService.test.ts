@@ -1,4 +1,3 @@
-// tests/unit/features/vc-auto-recruit/vcAutoRecruitSettingsService.test.ts
 // VcAutoRecruitSettingsService のデータ取得・保存・追跡管理・シングルトンを検証
 
 describe("features/vc-auto-recruit/vcAutoRecruitSettingsService", () => {

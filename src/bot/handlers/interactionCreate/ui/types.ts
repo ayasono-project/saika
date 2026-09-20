@@ -1,4 +1,3 @@
-// src/bot/handlers/interactionCreate/ui/types.ts
 // UI interaction ハンドラ型定義
 
 import type {

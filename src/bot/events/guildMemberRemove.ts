@@ -1,4 +1,3 @@
-// src/bot/events/guildMemberRemove.ts
 // メンバー退出イベント（メンバーログ）
 
 import { Events } from "discord.js";

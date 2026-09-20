@@ -1,4 +1,3 @@
-// src/shared/locale/locales/en/features/bumpReminder.ts
 // Bump Reminder feature translations (English)
 
 export const bumpReminder = {

@@ -1,4 +1,3 @@
-// src/bot/features/reaction-role/commands/usecases/reactionRoleSettingsEditPanel.ts
 // リアクションロール edit-panel サブコマンド処理
 
 import crypto from "node:crypto";

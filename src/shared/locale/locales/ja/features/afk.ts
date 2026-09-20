@@ -1,4 +1,3 @@
-// src/shared/locale/locales/ja/features/afk.ts
 // AFK機能の翻訳リソース
 // action-log.* / bulk-confirm.* と target 系の user-response.* は、
 // /afk の結果 Embed と一括確認ダイアログ（src/bot/shared/ の共通ヘルパー）が使う。

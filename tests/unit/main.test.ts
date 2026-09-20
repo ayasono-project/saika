@@ -1,4 +1,3 @@
-// tests/unit/bot/main.test.ts
 import type { Mock, MockInstance } from "vitest";
 
 // bot/main の起動フロー（コマンド登録・イベント登録・エラー終了）を副作用隔離で検証

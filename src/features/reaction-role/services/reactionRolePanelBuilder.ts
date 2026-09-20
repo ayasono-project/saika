@@ -1,4 +1,3 @@
-// src/bot/features/reaction-role/services/reactionRolePanelBuilder.ts
 // リアクションロールパネルのEmbed・ボタン構築ユーティリティ
 
 import {

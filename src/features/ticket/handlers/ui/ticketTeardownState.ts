@@ -1,4 +1,3 @@
-// src/bot/features/ticket/handlers/ui/ticketTeardownState.ts
 // teardown フローのセッション状態管理
 
 import { TtlMap } from "../../../../shared/utils/ttlMap";

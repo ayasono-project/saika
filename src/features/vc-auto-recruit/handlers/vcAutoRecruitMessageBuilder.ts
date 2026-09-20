@@ -1,4 +1,3 @@
-// src/features/vc-auto-recruit/handlers/vcAutoRecruitMessageBuilder.ts
 // VC自動募集の content / Embed / ボタン生成ユーティリティ
 
 import {

@@ -1,4 +1,3 @@
-// src/bot/features/reaction-role/handlers/ui/reactionRoleEditPanelHandler.ts
 // edit-panel フローのセレクトメニュー・モーダルハンドラ
 
 import {

@@ -1,4 +1,3 @@
-// src/api/lib/request.ts
 // ルートハンドラ共通のリクエストヘルパ
 
 import type { FastifyRequest } from "fastify";

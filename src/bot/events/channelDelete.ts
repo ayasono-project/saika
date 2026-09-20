@@ -1,4 +1,3 @@
-// src/bot/events/channelDelete.ts
 // チャンネル削除同期イベント（VAC・VC自動募集・スティッキーメッセージ・チケット・リアクションロール）
 
 import { Events } from "discord.js";

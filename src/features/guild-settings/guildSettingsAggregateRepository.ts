@@ -1,4 +1,3 @@
-// src/features/guild-settings/guildSettingsAggregateRepository.ts
 // ギルド設定一括操作リポジトリ（エクスポート/インポート/reset-all）
 
 import { Prisma, type PrismaClient } from "@prisma/client";

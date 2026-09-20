@@ -1,4 +1,3 @@
-// src/shared/locale/locales/ja/features/messageDelete.ts
 // メッセージ削除機能の翻訳リソース
 
 export const messageDelete = {

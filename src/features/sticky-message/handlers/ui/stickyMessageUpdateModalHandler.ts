@@ -1,4 +1,3 @@
-// src/bot/features/sticky-message/handlers/ui/stickyMessageUpdateModalHandler.ts
 // sticky-message update（プレーンテキスト）モーダル送信処理
 
 import {

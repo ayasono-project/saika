@@ -1,4 +1,3 @@
-// src/bot/features/ticket/handlers/ui/ticketViewButtonHandler.ts
 // ticket-settings view ページネーションボタンハンドラ
 
 import {

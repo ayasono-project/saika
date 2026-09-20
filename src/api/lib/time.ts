@@ -1,4 +1,3 @@
-// src/api/lib/time.ts
 // ダッシュボード表示用の時刻整形
 
 import { formatDistanceToNow } from "date-fns";

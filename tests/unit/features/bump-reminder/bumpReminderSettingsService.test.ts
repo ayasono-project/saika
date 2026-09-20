@@ -1,4 +1,3 @@
-// tests/unit/shared/features/bump-reminder/bumpReminderSettingsService.test.ts
 // BumpReminderSettingsService のデータ取得・保存・シングルトン管理・トップレベル関数委譲の動作を検証
 describe("shared/features/bump-reminder/bumpReminderSettingsService", () => {
   const CLEAR = "CLEAR";

@@ -1,5 +1,3 @@
-// tests/unit/bot/shared/disableComponentsAfterTimeout.test.ts
-
 // ActionRowBuilder.from のモックを制御するためのスタブ
 const fromMock = vi.fn();
 

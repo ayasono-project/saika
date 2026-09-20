@@ -1,5 +1,3 @@
-// tests/unit/bot/shared/vcBulkAction.test.ts
-
 import { ChannelType } from "discord.js";
 import {
   presentBulkConfirm,

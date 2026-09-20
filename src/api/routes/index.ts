@@ -1,4 +1,3 @@
-// src/api/routes/index.ts
 // /api 配下のルーティングを集約するプラグイン
 
 import type { FastifyPluginAsync } from "fastify";

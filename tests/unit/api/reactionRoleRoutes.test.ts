@@ -1,4 +1,3 @@
-// tests/unit/api/reactionRoleRoutes.test.ts
 // リアクションロール CRUD ルートの統合的ユニットテスト。
 // Composition Root のサービスをインメモリ実装でモックし、Discord 副作用は無効化する。
 

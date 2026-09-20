@@ -1,5 +1,3 @@
-// tests/unit/bot/features/sticky-message/commands/usecases/stickyMessageRemove.test.ts
-
 import { MessageFlags } from "discord.js";
 
 const findAllByGuildMock = vi.fn();

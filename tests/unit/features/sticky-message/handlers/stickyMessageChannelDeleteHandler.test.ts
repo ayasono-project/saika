@@ -1,5 +1,3 @@
-// tests/unit/bot/features/sticky-message/handlers/stickyMessageChannelDeleteHandler.test.ts
-
 import { ChannelType } from "discord.js";
 import { handleStickyMessageChannelDelete } from "@/features/sticky-message/handlers/stickyMessageChannelDeleteHandler";
 

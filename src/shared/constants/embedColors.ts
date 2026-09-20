@@ -1,4 +1,3 @@
-// src/shared/constants/embedColors.ts
 // 各機能で使用する Embed カラーコードの共通定数
 
 /**

@@ -1,4 +1,3 @@
-// src/bot/events/voiceStateUpdate.ts
 // VAC用 voiceStateUpdate イベント
 
 import { Events, type VoiceState } from "discord.js";

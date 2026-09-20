@@ -1,4 +1,3 @@
-// src/features/ticket/ticketSettingsRepository.ts
 // チケット設定リポジトリ（Prisma実装。guild_ticket_settings テーブル）
 
 import type { PrismaClient } from "@prisma/client";

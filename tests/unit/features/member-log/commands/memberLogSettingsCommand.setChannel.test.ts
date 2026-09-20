@@ -1,5 +1,3 @@
-// tests/unit/bot/features/member-log/commands/memberLogSettingsCommand.setChannel.test.ts
-
 import { ValidationError } from "@ayasono/shared/core";
 import { ChannelType } from "discord.js";
 import { MEMBER_LOG_SETTINGS_COMMAND } from "@/features/member-log/commands/memberLogSettingsCommand.constants";

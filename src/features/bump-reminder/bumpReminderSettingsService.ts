@@ -1,4 +1,3 @@
-// src/shared/features/bump-reminder/bumpReminderSettingsService.ts
 // Bumpリマインダー設定サービス実装（Repositoryパターン準拠）
 
 import {

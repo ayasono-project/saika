@@ -1,4 +1,3 @@
-// tests/unit/shared/locale/logPrefixed.test.ts
 // logPrefixed / logCommand ヘルパー関数のテスト
 
 import {

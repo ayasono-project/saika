@@ -1,4 +1,3 @@
-// src/bot/features/sticky-message/repositories/stickyMessageRepository.ts
 // スティッキーメッセージ用リポジトリ
 
 import { Prisma, type PrismaClient } from "@prisma/client";

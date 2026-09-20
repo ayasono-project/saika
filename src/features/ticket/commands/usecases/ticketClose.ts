@@ -1,4 +1,3 @@
-// src/bot/features/ticket/commands/usecases/ticketClose.ts
 // チケットクローズ処理
 
 import { type ChatInputCommandInteraction, MessageFlags } from "discord.js";

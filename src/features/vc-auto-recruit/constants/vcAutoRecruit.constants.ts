@@ -1,4 +1,3 @@
-// src/features/vc-auto-recruit/constants/vcAutoRecruit.constants.ts
 // VC自動募集機能の共通定数
 
 /** 募集 Embed のブランドカラー（blurple #5865F2・VC操作系と統一） */

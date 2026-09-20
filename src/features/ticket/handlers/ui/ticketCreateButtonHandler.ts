@@ -1,4 +1,3 @@
-// src/bot/features/ticket/handlers/ui/ticketCreateButtonHandler.ts
 // チケット作成パネルボタンハンドラ
 
 import {

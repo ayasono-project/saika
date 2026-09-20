@@ -1,4 +1,3 @@
-// src/bot/handlers/interactionCreate/flow/command.ts
 // スラッシュコマンド / オートコンプリート処理
 
 import {

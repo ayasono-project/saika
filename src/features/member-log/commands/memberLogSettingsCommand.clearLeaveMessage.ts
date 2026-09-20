@@ -1,4 +1,3 @@
-// src/bot/features/member-log/commands/memberLogSettingsCommand.clearLeaveMessage.ts
 // member-log-settings clear-leave-message 実行処理
 
 import { type ChatInputCommandInteraction, MessageFlags } from "discord.js";

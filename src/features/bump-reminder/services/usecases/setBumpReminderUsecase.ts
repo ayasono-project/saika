@@ -1,4 +1,3 @@
-// src/bot/features/bump-reminder/services/usecases/setBumpReminderUsecase.ts
 // Bumpリマインダー設定のユースケース
 
 import { logPrefixed } from "../../../../shared/locale/localeManager";

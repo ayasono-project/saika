@@ -1,4 +1,3 @@
-// src/shared/locale/locales/en/features/ping.ts
 // Ping feature translations (English)
 
 export const ping = {

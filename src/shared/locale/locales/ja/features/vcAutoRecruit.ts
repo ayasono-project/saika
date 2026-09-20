@@ -1,4 +1,3 @@
-// src/shared/locale/locales/ja/features/vcAutoRecruit.ts
 // VC自動募集機能の翻訳リソース
 
 export const vcAutoRecruit = {

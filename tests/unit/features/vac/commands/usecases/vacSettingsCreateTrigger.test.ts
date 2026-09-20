@@ -1,5 +1,3 @@
-// tests/unit/bot/features/vac/commands/usecases/vacSettingsCreateTrigger.test.ts
-
 import { ValidationError } from "@ayasono/shared/core";
 import { ChannelType, MessageFlags } from "discord.js";
 import type { Mock } from "vitest";

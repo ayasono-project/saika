@@ -1,4 +1,3 @@
-// src/bot/features/guild-settings/commands/guildSettingsCommand.export.ts
 // guild-settings export サブコマンド実行処理
 
 import {

@@ -1,4 +1,3 @@
-// src/features/vc-auto-recruit/commands/vcAutoRecruitSettingsCommand.enable.ts
 // vc-auto-recruit-settings enable 実行処理
 
 import { type ChatInputCommandInteraction, MessageFlags } from "discord.js";

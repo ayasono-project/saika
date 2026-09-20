@@ -1,5 +1,3 @@
-// tests/unit/bot/features/ticket/commands/usecases/ticketSettingsTeardown.test.ts
-
 import { MessageFlags } from "discord.js";
 
 const findAllByGuildMock = vi.fn();

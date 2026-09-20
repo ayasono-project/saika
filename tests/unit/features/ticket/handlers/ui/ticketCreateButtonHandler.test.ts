@@ -1,5 +1,3 @@
-// tests/unit/bot/features/ticket/handlers/ui/ticketCreateButtonHandler.test.ts
-
 import { MessageFlags } from "discord.js";
 import { ticketCreateButtonHandler } from "@/features/ticket/handlers/ui/ticketCreateButtonHandler";
 

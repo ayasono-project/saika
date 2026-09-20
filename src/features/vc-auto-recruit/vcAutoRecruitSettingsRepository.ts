@@ -1,4 +1,3 @@
-// src/features/vc-auto-recruit/vcAutoRecruitSettingsRepository.ts
 // VC自動募集設定リポジトリ（guild_vc_auto_recruit_settings テーブル）
 
 import { Prisma, type PrismaClient } from "@prisma/client";

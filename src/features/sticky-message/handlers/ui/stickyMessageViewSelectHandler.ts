@@ -1,4 +1,3 @@
-// src/bot/features/sticky-message/handlers/ui/stickyMessageViewSelectHandler.ts
 // sticky-message view コマンドが送信した StringSelectMenu の選択応答を処理する
 
 import { type StringSelectMenuInteraction } from "discord.js";

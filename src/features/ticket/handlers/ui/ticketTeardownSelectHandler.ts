@@ -1,4 +1,3 @@
-// src/bot/features/ticket/handlers/ui/ticketTeardownSelectHandler.ts
 // teardown フローのカテゴリ選択ハンドラ + 確認ダイアログ表示
 
 import {

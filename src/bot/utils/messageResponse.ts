@@ -1,4 +1,3 @@
-// src/bot/utils/messageResponse.ts
 // Discord向けステータスEmbed生成ユーティリティ
 
 import { EmbedBuilder } from "discord.js";

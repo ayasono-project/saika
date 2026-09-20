@@ -1,5 +1,3 @@
-// tests/unit/shared/database/repositories/usecases/guildSettingsCoreUsecases.test.ts
-
 import type { MockedFunction } from "vitest";
 import {
   existsGuildSettingsRecord,

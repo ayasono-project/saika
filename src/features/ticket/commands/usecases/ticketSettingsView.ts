@@ -1,4 +1,3 @@
-// src/bot/features/ticket/commands/usecases/ticketSettingsView.ts
 // チケット設定一覧表示処理
 
 import {

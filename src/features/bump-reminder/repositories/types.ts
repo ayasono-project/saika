@@ -1,4 +1,3 @@
-// src/bot/features/bump-reminder/repositories/types.ts
 // Bumpリマインダー repository の型定義
 
 import type { BumpReminderStatus } from "../constants/bumpReminderConstants";

@@ -1,4 +1,3 @@
-// src/shared/database/repositories/memberLogSettingsRepository.ts
 // メンバーログ設定リポジトリ（guild_member_log_configs テーブル）
 
 import type { PrismaClient } from "@prisma/client";

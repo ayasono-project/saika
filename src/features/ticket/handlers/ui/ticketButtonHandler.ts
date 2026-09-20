@@ -1,4 +1,3 @@
-// src/bot/features/ticket/handlers/ui/ticketButtonHandler.ts
 // チケット操作ボタン（close/open/delete）ハンドラ
 
 import {

@@ -1,4 +1,3 @@
-// src/api/features/afkResource.ts
 // AFK 設定リソース（ドメイン ↔ 契約のマッピング + 永続化）
 
 import type { AfkSettings as ContractAfkSettings } from "@ayasono/shared/api";

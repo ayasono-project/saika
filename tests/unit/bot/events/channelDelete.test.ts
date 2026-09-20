@@ -1,5 +1,3 @@
-// tests/unit/bot/events/channelDelete.test.ts
-
 import { ChannelType, Events } from "discord.js";
 import { channelDeleteEvent } from "@/bot/events/channelDelete";
 

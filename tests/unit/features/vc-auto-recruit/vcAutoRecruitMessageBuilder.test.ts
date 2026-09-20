@@ -1,4 +1,3 @@
-// tests/unit/features/vc-auto-recruit/vcAutoRecruitMessageBuilder.test.ts
 // VC自動募集の content / Embed / ボタン生成を検証
 
 import { ButtonStyle } from "discord.js";

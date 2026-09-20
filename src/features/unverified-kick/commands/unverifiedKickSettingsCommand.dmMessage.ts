@@ -1,4 +1,3 @@
-// src/features/unverified-kick/commands/unverifiedKickSettingsCommand.dmMessage.ts
 // unverified-kick-settings のカスタムメッセージ設定サブコマンド（警告 DM / キック予告の設定モーダル・削除）
 
 import {

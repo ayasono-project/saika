@@ -1,4 +1,3 @@
-// src/shared/features/ticket/ticketSettingsService.ts
 // チケット設定サービス（Repositoryパターン準拠）
 
 import type {

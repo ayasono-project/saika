@@ -1,4 +1,3 @@
-// tests/integration/shared/database/repositories/guildSettingsRepository.integration.test.ts
 /**
  * スタンドアロンリポジトリ統合テスト
  * GuildCoreRepository + 各機能リポジトリの Prisma 委譲を検証

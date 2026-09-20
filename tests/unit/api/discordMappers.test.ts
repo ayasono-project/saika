@@ -1,4 +1,3 @@
-// tests/unit/api/discordMappers.test.ts
 // discord.js → 契約型マッパーのユニットテスト
 
 import {

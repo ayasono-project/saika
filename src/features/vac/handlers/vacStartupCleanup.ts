@@ -1,4 +1,3 @@
-// src/bot/features/vac/handlers/vacStartupCleanup.ts
 // VAC の起動時クリーンアップハンドラー
 
 import type { BotClient } from "../../../bot/client";

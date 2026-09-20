@@ -1,4 +1,3 @@
-// src/bot/commands/guild-settings.ts
 // ギルド設定コマンド（サーバー管理権限専用）
 
 import {

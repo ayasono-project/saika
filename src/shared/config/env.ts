@@ -1,4 +1,3 @@
-// src/shared/config/env.ts
 // 環境変数管理（Zod バリデーション）
 
 import "dotenv/config";

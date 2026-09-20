@@ -1,4 +1,3 @@
-// src/bot/features/message-delete/commands/usecases/runFinalConfirmDialog.ts
 // Stage 2: 最終確認ダイアログ処理
 
 import { type MessageComponentInteraction, MessageFlags } from "discord.js";

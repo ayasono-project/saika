@@ -1,4 +1,3 @@
-// tests/unit/api/auth/guildAccess.test.ts
 // ギルドアクセス検証 preHandler のユニットテスト（JWT クレームの管理可能ギルド判定）。
 
 import type { FastifyReply, FastifyRequest } from "fastify";

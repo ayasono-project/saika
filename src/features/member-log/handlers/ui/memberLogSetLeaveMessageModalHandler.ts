@@ -1,4 +1,3 @@
-// src/bot/features/member-log/handlers/ui/memberLogSetLeaveMessageModalHandler.ts
 // member-log-settings set-leave-message モーダル送信処理
 
 import { MessageFlags, type ModalSubmitInteraction } from "discord.js";

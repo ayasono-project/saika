@@ -1,4 +1,3 @@
-// src/shared/locale/locales/en/features/index.ts
 // Re-export all feature translations (English)
 
 export { about } from "./about";

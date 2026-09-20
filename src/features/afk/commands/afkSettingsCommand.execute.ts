@@ -1,4 +1,3 @@
-// src/bot/features/afk/commands/afkSettingsCommand.execute.ts
 // afk-settings コマンド実行処理
 
 import { ValidationError } from "@ayasono/shared/core";

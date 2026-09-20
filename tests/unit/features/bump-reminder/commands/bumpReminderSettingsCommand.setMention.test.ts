@@ -1,5 +1,3 @@
-// tests/unit/bot/features/bump-reminder/commands/bumpReminderSettingsCommand.setMention.test.ts
-
 import { ValidationError } from "@ayasono/shared/core";
 import { BUMP_REMINDER_MENTION_ROLE_RESULT } from "@/features/bump-reminder/bumpReminderSettingsService";
 import { handleBumpReminderSettingsSetMention } from "@/features/bump-reminder/commands/bumpReminderSettingsCommand.setMention";

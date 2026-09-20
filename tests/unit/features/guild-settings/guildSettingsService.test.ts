@@ -1,4 +1,3 @@
-// tests/unit/shared/features/guild-settings/guildSettingsService.test.ts
 import type { Mock } from "vitest";
 
 const loggerMock = vi.hoisted(() => ({

@@ -1,4 +1,3 @@
-// src/bot/features/bump-reminder/services/bumpReminderService.ts
 // Bumpリマインダー用のジョブマネージャー
 // DB永続化対応：Bot再起動時もリマインダーを復元可能
 

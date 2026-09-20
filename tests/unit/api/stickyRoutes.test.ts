@@ -1,4 +1,3 @@
-// tests/unit/api/stickyRoutes.test.ts
 // sticky コレクション CRUD ルート（/api/guilds/:guildId/sticky）の統合的ユニットテスト。
 // Composition Root の sticky サービスをインメモリ実装でモックする。
 

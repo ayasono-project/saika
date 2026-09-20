@@ -1,4 +1,3 @@
-// src/shared/database/types/reactionRoleTypes.ts
 // リアクションロール機能のエンティティ型定義
 
 /** リアクションロールのモード定数 */

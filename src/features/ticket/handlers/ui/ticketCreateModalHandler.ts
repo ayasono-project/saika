@@ -1,4 +1,3 @@
-// src/bot/features/ticket/handlers/ui/ticketCreateModalHandler.ts
 // チケット作成モーダル送信ハンドラ
 
 import { MessageFlags, type ModalSubmitInteraction } from "discord.js";

@@ -1,4 +1,3 @@
-// src/bot/features/vac/commands/presenters/vacSettingsViewPresenter.ts
 // vac-settings view 用の表示整形
 
 import { ChannelType, type Guild } from "discord.js";

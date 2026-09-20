@@ -1,4 +1,3 @@
-// src/shared/locale/locales/en/features/vac.ts
 // VAC (Voice Auto-Create) feature translations (English)
 
 export const vac = {

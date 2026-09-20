@@ -1,4 +1,3 @@
-// src/bot/features/sticky-message/handlers/stickyMessageChannelDeleteHandler.ts
 // スティッキーメッセージ channelDelete ハンドラー
 
 import { type Channel, ChannelType } from "discord.js";

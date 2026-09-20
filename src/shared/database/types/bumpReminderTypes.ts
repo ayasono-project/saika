@@ -1,4 +1,3 @@
-// src/shared/database/types/bumpReminderTypes.ts
 // BumpReminder 関連の定数・型
 
 export const BUMP_REMINDER_MENTION_USER_MODE = {

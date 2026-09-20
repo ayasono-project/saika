@@ -1,4 +1,3 @@
-// tests/integration/bot/features/ticket/ticketLifecycle.integration.test.ts
 /**
  * Ticket Lifecycle Integration Test
  * setup config -> create ticket -> close ticket -> reopen ticket -> delete ticket

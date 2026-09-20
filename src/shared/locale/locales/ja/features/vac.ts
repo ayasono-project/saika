@@ -1,4 +1,3 @@
-// src/shared/locale/locales/ja/features/vac.ts
 // VAC（VC自動作成）機能の翻訳リソース
 
 export const vac = {

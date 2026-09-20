@@ -1,4 +1,3 @@
-// src/bot/features/reaction-role/handlers/ui/reactionRoleSetupColorSelectHandler.ts
 // setup フローの色選択 StringSelectMenu ハンドラ
 
 import {

@@ -1,4 +1,3 @@
-// src/features/about/commands/aboutCommand.execute.ts
 // about コマンド実行処理
 
 import type { ChatInputCommandInteraction } from "discord.js";

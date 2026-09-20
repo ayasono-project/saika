@@ -1,5 +1,3 @@
-// tests/unit/bot/features/vac/commands/usecases/vacSettingsRemoveTrigger.test.ts
-
 import { ValidationError } from "@ayasono/shared/core";
 import { ChannelType } from "discord.js";
 import { handleVacSettingsRemoveTrigger } from "@/features/vac/commands/usecases/vacSettingsRemoveTrigger";

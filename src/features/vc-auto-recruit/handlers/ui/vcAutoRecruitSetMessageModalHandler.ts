@@ -1,4 +1,3 @@
-// src/features/vc-auto-recruit/handlers/ui/vcAutoRecruitSetMessageModalHandler.ts
 // vc-auto-recruit-settings set-message モーダル送信処理
 
 import { MessageFlags, type ModalSubmitInteraction } from "discord.js";

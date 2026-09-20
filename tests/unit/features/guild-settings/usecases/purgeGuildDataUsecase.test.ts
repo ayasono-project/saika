@@ -1,4 +1,3 @@
-// tests/unit/features/guild-settings/usecases/purgeGuildDataUsecase.test.ts
 // ギルド全データ後始末ユースケースのテスト
 
 vi.mock("@/shared/scheduler/jobScheduler", () => ({

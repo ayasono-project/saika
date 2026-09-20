@@ -1,5 +1,3 @@
-// tests/unit/bot/features/vac/commands/presenters/vacSettingsViewPresenter.test.ts
-
 import { ChannelType } from "discord.js";
 import { presentVacSettingsView } from "@/features/vac/commands/presenters/vacSettingsViewPresenter";
 import type { VacSettings } from "@/shared/database/types";

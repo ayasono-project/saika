@@ -1,4 +1,3 @@
-// src/bot/features/sticky-message/commands/stickyMessageCommand.constants.ts
 // スティッキーメッセージコマンド定数
 
 /**

@@ -1,4 +1,3 @@
-// tests/unit/bot/services/botPresence.test.ts
 // プレゼンス適用（稼働サーバー数の表示）のテスト
 
 import { ActivityType, PresenceUpdateStatus } from "discord.js";

@@ -1,4 +1,3 @@
-// src/bot/features/ticket/services/ticketService.ts
 // チケット操作のビジネスロジック
 
 import { ValidationError } from "@ayasono/shared/core";

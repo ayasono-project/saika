@@ -1,4 +1,3 @@
-// src/bot/features/bump-reminder/services/usecases/cancelBumpReminderUsecase.ts
 // Bumpリマインダーキャンセルのユースケース
 
 import { logPrefixed } from "../../../../shared/locale/localeManager";

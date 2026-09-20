@@ -1,4 +1,3 @@
-// src/bot/events/guildDelete.ts
 // ギルド退出イベント（全設定クリーンアップ）
 
 import { Events } from "discord.js";

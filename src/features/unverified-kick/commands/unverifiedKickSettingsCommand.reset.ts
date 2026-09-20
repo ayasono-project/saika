@@ -1,4 +1,3 @@
-// src/features/unverified-kick/commands/unverifiedKickSettingsCommand.reset.ts
 // unverified-kick-settings reset 実行処理（確認ダイアログ付き）
 
 import {

@@ -1,4 +1,3 @@
-// src/shared/database/types/index.ts
 // 全型定義の再エクスポート
 
 export * from "./bumpReminderTypes";

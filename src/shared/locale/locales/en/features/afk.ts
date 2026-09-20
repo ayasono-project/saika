@@ -1,4 +1,3 @@
-// src/shared/locale/locales/en/features/afk.ts
 // AFK feature translations (English)
 // action-log.* / bulk-confirm.* and the target-related user-response.* keys are used by
 // the /afk result Embed and bulk confirmation dialog (shared helpers in src/bot/shared/).

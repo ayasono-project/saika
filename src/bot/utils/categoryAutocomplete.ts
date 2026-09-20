@@ -1,4 +1,3 @@
-// src/bot/utils/categoryAutocomplete.ts
 // カテゴリ選択 autocomplete の共通ロジック
 
 import { AutocompleteInteraction, ChannelType } from "discord.js";

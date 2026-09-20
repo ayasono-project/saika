@@ -1,4 +1,3 @@
-// src/features/unverified-kick/commands/unverifiedKickSettingsCommand.simple.ts
 // unverified-kick-settings の単純設定系サブコマンド（ロール / 日数 / チャンネル / enable / disable）
 
 import { ValidationError } from "@ayasono/shared/core";

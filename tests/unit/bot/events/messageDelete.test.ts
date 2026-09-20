@@ -1,5 +1,3 @@
-// tests/unit/bot/events/messageDelete.test.ts
-
 import { Events } from "discord.js";
 import { messageDeleteEvent } from "@/bot/events/messageDelete";
 

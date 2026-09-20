@@ -1,4 +1,3 @@
-// tests/unit/shared/features/ticket/ticketSettingsService.test.ts
 import {
   createTicketSettingsService,
   TicketSettingsService,

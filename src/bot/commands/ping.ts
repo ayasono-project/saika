@@ -1,4 +1,3 @@
-// src/bot/commands/ping.ts
 // Pingコマンド - ボットの応答速度を確認
 
 import {

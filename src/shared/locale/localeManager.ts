@@ -1,4 +1,3 @@
-// src/shared/locale/localeManager.ts
 // Guild別言語対応（i18next版）
 
 import i18next, { type TFunction, type TOptionsBase } from "i18next";

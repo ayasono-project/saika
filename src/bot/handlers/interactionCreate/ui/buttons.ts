@@ -1,4 +1,3 @@
-// src/bot/handlers/interactionCreate/ui/buttons.ts
 // ボタンハンドラのレジストリ
 
 import { bumpPanelButtonHandler } from "../../../../features/bump-reminder/handlers/ui/bumpPanelButtonHandler";

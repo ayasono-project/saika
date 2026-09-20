@@ -1,4 +1,3 @@
-// src/api/features/vcAutoRecruitResource.ts
 // VC自動募集 設定リソース + アクティブ募集一覧
 
 import type {

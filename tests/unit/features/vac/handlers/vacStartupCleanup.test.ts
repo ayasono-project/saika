@@ -1,4 +1,3 @@
-// tests/unit/bot/features/vac/handlers/vacStartupCleanup.test.ts
 import { cleanupVacOnStartup } from "@/features/vac/handlers/vacStartupCleanup";
 
 const cleanupOnStartupMock = vi.fn();

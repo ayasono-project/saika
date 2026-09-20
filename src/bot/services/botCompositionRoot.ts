@@ -1,4 +1,3 @@
-// src/bot/services/botCompositionRoot.ts
 // Bot層の依存解決を集約する Composition Root
 
 import type { PrismaClient } from "@prisma/client";

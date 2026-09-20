@@ -1,5 +1,3 @@
-// tests/unit/bot/features/sticky-message/handlers/ui/stickyMessageRemoveSelectHandler.test.ts
-
 vi.mock("@/bot/services/botCompositionRoot", () => ({
   tInteraction: vi.fn((_l: string, k: string) => k),
 }));

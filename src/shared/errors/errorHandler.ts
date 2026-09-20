@@ -1,4 +1,3 @@
-// src/shared/errors/errorHandler.ts
 // エラーハンドリング機能の公開エントリーポイント
 /* c8 ignore file */
 

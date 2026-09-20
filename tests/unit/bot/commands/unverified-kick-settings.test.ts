@@ -1,5 +1,3 @@
-// tests/unit/bot/commands/unverified-kick-settings.test.ts
-
 import { ApplicationCommandOptionType, PermissionFlagsBits } from "discord.js";
 import { unverifiedKickSettingsCommand } from "@/bot/commands/unverified-kick-settings";
 

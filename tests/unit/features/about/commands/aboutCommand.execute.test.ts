@@ -1,5 +1,3 @@
-// tests/unit/features/about/commands/aboutCommand.execute.test.ts
-
 import { EmbedBuilder, MessageFlags } from "discord.js";
 
 vi.mock("@/shared/locale/localeManager", () => ({

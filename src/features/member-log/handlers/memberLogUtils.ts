@@ -1,4 +1,3 @@
-// src/bot/features/member-log/handlers/memberLogUtils.ts
 // メンバーログハンドラー共通のフォーマットユーティリティ
 
 import type { GuildTFunction } from "../../../shared/locale/helpers";

@@ -1,4 +1,3 @@
-// src/bot/features/guild-settings/commands/guildSettingsCommand.execute.ts
 // guild-settings コマンドのサブコマンドルーティング
 
 import { ValidationError } from "@ayasono/shared/core";

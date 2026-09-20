@@ -1,4 +1,3 @@
-// src/shared/locale/locales/ja/features/memberLog.ts
 // メンバーログ機能の翻訳リソース
 
 export const memberLog = {

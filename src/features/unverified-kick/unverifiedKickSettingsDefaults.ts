@@ -1,4 +1,3 @@
-// src/features/unverified-kick/unverifiedKickSettingsDefaults.ts
 // 未承認ユーザー自動キック設定のデフォルト値・初期化ロジック
 
 import type { UnverifiedKickSettings } from "../../shared/database/types";

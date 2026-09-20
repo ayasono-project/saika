@@ -1,5 +1,3 @@
-// tests/unit/bot/events/guildMemberAdd.test.ts
-
 import { Events } from "discord.js";
 import { guildMemberAddEvent } from "@/bot/events/guildMemberAdd";
 

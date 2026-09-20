@@ -1,4 +1,3 @@
-// src/bot/features/guild-settings/commands/guildSettingsCommand.viewPages.ts
 // guild-settings view のギルド設定ページ Embed 生成（純粋関数）
 
 import type { EmbedBuilder } from "discord.js";

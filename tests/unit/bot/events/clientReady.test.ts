@@ -1,4 +1,3 @@
-// tests/unit/bot/events/clientReady.test.ts
 import { Events } from "discord.js";
 import { clientReadyEvent } from "@/bot/events/clientReady";
 

@@ -1,4 +1,3 @@
-// src/features/unverified-kick/services/unverifiedKickNotifier.ts
 // 警告 DM・キック予告（通知チャンネル）・キックサマリー（ログチャンネル）の整形（単一波括弧変数）
 
 import { EmbedBuilder } from "discord.js";

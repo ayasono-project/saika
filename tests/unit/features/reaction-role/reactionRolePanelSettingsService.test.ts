@@ -1,4 +1,3 @@
-// tests/unit/shared/features/reaction-role/reactionRolePanelSettingsService.test.ts
 import {
   createReactionRolePanelSettingsService,
   ReactionRolePanelSettingsService,

@@ -1,4 +1,3 @@
-// src/features/unverified-kick/commands/unverifiedKickSettingsCommand.preview.ts
 // unverified-kick-settings preview 実行処理（現在のキック対象・事前警告対象を一覧表示）
 
 import { type ChatInputCommandInteraction, MessageFlags } from "discord.js";

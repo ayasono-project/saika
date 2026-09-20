@@ -1,4 +1,3 @@
-// src/bot/features/sticky-message/handlers/ui/stickyMessageSetModalHandler.ts
 // sticky-message set モーダル送信処理（プレーンテキスト入力）
 
 import { ValidationError } from "@ayasono/shared/core";

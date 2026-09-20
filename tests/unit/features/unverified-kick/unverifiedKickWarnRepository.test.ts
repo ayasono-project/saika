@@ -1,5 +1,3 @@
-// tests/unit/features/unverified-kick/unverifiedKickWarnRepository.test.ts
-
 import type { Mock } from "vitest";
 
 function createPrismaMock() {

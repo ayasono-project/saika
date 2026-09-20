@@ -1,4 +1,3 @@
-// src/bot/events/roleDelete.ts
 // ロール削除イベント（Bumpリマインダー mentionRoleId クリア）
 
 import { Events } from "discord.js";

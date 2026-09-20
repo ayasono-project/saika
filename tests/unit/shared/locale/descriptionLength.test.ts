@@ -1,4 +1,3 @@
-// tests/unit/shared/locale/descriptionLength.test.ts
 // コマンド/オプション説明文の長さが Discord の上限(100文字)以内であることを保証する回帰テスト。
 // 説明文は base(英語)・localizations(日本語)いずれも Discord 側で 1〜100 文字に制限されるため、
 // 両ロケールの "*.description" キーを検証する。超過すると本番のコマンド登録時に弾かれる。

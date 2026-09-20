@@ -1,4 +1,3 @@
-// src/api/features/ticketResource.ts
 // チケットパネルの契約マッピングと Discord パネルの投稿/編集/削除の副作用。
 // パネル UI は ticket コマンドのインライン構築相当を再現する（discord.js は投稿時のみ動的 import）。
 

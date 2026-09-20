@@ -1,4 +1,3 @@
-// src/shared/locale/i18next.d.ts
 // i18next型定義の拡張
 
 import "i18next";

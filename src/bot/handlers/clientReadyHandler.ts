@@ -1,4 +1,3 @@
-// src/bot/handlers/clientReadyHandler.ts
 // clientReady 時のBot共通ハンドラー
 
 import { Events } from "discord.js";

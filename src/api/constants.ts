@@ -1,4 +1,3 @@
-// src/api/constants.ts
 // API 層の定数
 
 /** API のメタ情報（GET /api の応答に使用） */

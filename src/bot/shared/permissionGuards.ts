@@ -1,4 +1,3 @@
-// src/bot/shared/permissionGuards.ts
 // コマンド共通権限ガード
 
 import { PermissionError } from "@ayasono/shared/core";

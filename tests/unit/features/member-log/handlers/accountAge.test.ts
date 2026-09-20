@@ -1,4 +1,3 @@
-// tests/unit/bot/features/member-log/handlers/accountAge.test.ts
 import { calcDuration } from "@/features/member-log/handlers/accountAge";
 
 // calcDuration の年・月・日計算の正確性・境界値・デフォルト値補完を検証

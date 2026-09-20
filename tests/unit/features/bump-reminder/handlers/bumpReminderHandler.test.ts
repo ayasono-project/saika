@@ -1,4 +1,3 @@
-// tests/unit/bot/features/bump-reminder/handlers/bumpReminderHandler.test.ts
 import { handleBumpDetected } from "@/features/bump-reminder/handlers/bumpReminderHandler";
 import { sendBumpPanel } from "@/features/bump-reminder/handlers/usecases/sendBumpPanel";
 import { sendBumpReminder } from "@/features/bump-reminder/handlers/usecases/sendBumpReminder";

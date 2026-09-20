@@ -1,4 +1,3 @@
-// src/bot/shared/pagination.ts
 // 機能横断ページネーション共通関数
 
 import {

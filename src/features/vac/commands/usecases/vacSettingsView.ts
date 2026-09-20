@@ -1,4 +1,3 @@
-// src/bot/features/vac/commands/usecases/vacSettingsView.ts
 // vac-settings view のユースケース処理
 
 import { ValidationError } from "@ayasono/shared/core";

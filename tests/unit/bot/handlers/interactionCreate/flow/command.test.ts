@@ -1,5 +1,3 @@
-// tests/unit/bot/handlers/interactionCreate/flow/command.test.ts
-
 import type { Mock } from "vitest";
 import { handleCommandError } from "@/bot/errors/interactionErrorHandler";
 import {

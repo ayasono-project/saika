@@ -1,4 +1,3 @@
-// src/bot/features/bump-reminder/commands/bumpReminderSettingsCommand.constants.ts
 // bump-reminder-settings コマンドの定数定義
 
 /**

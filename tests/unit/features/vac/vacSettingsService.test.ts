@@ -1,4 +1,3 @@
-// tests/unit/shared/features/vac/vacSettingsService.test.ts
 // VacSettingsService のビジネスロジック・分岐・ファクトリ関数を検証する
 
 import {

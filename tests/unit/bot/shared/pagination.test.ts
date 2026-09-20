@@ -1,4 +1,3 @@
-// tests/unit/bot/shared/pagination.test.ts
 import {
   buildPaginationRow,
   parsePaginationAction,

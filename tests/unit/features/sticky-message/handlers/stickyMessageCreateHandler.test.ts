@@ -1,5 +1,3 @@
-// tests/unit/bot/features/sticky-message/handlers/stickyMessageCreateHandler.test.ts
-
 import { ChannelType } from "discord.js";
 
 const handleMessageCreateMock = vi.fn();

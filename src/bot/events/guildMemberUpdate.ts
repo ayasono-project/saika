@@ -1,4 +1,3 @@
-// src/bot/events/guildMemberUpdate.ts
 // メンバー更新イベント（未承認自動キックの対象ロール解除）
 
 import { Events } from "discord.js";

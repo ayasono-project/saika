@@ -1,4 +1,3 @@
-// src/bot/events/messageDelete.ts
 // メッセージ削除イベント（チケット・リアクションロールパネルの同期）
 
 import { Events } from "discord.js";

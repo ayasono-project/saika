@@ -1,5 +1,3 @@
-// tests/unit/shared/utils/errorHandling.test.ts
-
 import { DatabaseError } from "@ayasono/shared/core";
 import type { MockedFunction } from "vitest";
 import {

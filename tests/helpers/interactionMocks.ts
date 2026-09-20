@@ -1,4 +1,3 @@
-// tests/helpers/interactionMocks.ts
 // Discord.js Interaction モック生成ヘルパー
 // ハンドラテストで使用する各種 Interaction モックのファクトリを一元管理する
 

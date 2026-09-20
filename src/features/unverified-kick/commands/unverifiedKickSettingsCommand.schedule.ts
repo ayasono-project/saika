@@ -1,4 +1,3 @@
-// src/features/unverified-kick/commands/unverifiedKickSettingsCommand.schedule.ts
 // unverified-kick-settings の スケジュール系サブコマンド（set-timezone / set-run-hour / mention enable|disable）
 
 import {

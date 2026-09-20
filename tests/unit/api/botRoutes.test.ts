@@ -1,4 +1,3 @@
-// tests/unit/api/botRoutes.test.ts
 // Bot 情報ルート（GET /api/bot）のユニットテスト。
 
 import Fastify, { type FastifyInstance } from "fastify";

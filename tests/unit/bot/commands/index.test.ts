@@ -1,4 +1,3 @@
-// tests/unit/bot/commands/index.test.ts
 // commandLoader が commands/ ディレクトリを自動スキャンして
 // 有効な Command オブジェクトのみを返すことを検証する
 

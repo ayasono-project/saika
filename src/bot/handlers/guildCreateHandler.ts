@@ -1,4 +1,3 @@
-// src/bot/handlers/guildCreateHandler.ts
 // guildCreate 時のBot共通ハンドラ
 
 import type { Guild } from "discord.js";

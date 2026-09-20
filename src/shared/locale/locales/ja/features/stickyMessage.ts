@@ -1,4 +1,3 @@
-// src/shared/locale/locales/ja/features/stickyMessage.ts
 // スティッキーメッセージ機能の翻訳リソース
 
 export const stickyMessage = {

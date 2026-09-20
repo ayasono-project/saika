@@ -1,5 +1,3 @@
-// tests/unit/features/unverified-kick/services/unverifiedKickEligibility.test.ts
-
 import {
   classifyStage,
   computeAgeDays,

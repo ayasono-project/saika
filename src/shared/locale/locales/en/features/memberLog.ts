@@ -1,4 +1,3 @@
-// src/shared/locale/locales/en/features/memberLog.ts
 // Member Log feature translations (English)
 
 export const memberLog = {

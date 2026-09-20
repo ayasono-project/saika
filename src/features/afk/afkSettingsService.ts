@@ -1,4 +1,3 @@
-// src/shared/features/afk/afkSettingsService.ts
 // AFK設定サービス実装（Repositoryパターン準拠）
 
 import {

@@ -1,4 +1,3 @@
-// src/shared/features/afk/afkSettingsDefaults.ts
 // AFK設定のデフォルト値・正規化ロジック
 
 import type { AfkSettings } from "../../shared/database/types";

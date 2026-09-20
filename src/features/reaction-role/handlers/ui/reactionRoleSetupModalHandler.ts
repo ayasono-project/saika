@@ -1,4 +1,3 @@
-// src/bot/features/reaction-role/handlers/ui/reactionRoleSetupModalHandler.ts
 // setup フローのパネル設定モーダル送信ハンドラ
 
 import {

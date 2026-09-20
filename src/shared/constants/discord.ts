@@ -1,4 +1,3 @@
-// src/shared/constants/discord.ts
 // Discord API 仕様に基づく共通定数
 
 /**

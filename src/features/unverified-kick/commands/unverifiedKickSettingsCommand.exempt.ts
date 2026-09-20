@@ -1,4 +1,3 @@
-// src/features/unverified-kick/commands/unverifiedKickSettingsCommand.exempt.ts
 // unverified-kick-settings の exempt サブコマンドグループ（add / remove / list）
 
 import {

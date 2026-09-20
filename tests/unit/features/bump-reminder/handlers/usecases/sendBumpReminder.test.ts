@@ -1,4 +1,3 @@
-// tests/unit/bot/features/bump-reminder/handlers/usecases/sendBumpReminder.test.ts
 // チャンネル状態・設定状態・サービス種別(Disboard/Dissoku)・パネルメッセージの有無など
 // 多様な条件下でリマインダー送信ユースケースが正しく動作することを検証するテスト群
 describe("bot/features/bump-reminder/handlers/usecases/sendBumpReminder", () => {

@@ -1,4 +1,3 @@
-// src/api/features/overviewResource.ts
 // ギルド概要（GET /api/guilds/:guildId）— ギルドサマリー + 機能別ステータス集計。
 
 import type {

@@ -1,4 +1,3 @@
-// src/api/lib/discordMappers.ts
 // discord.js のリソース → ダッシュボード契約型（@ayasono/shared/api）への変換
 
 import type {

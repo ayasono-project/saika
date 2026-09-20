@@ -1,4 +1,3 @@
-// src/features/vc-auto-recruit/handlers/ui/vcAutoRecruitRemoveChannelSelectHandler.ts
 // remove-channel セレクトメニューの選択応答（選択した VC チャンネルを募集対象から一括解除する）
 
 import { type StringSelectMenuInteraction } from "discord.js";

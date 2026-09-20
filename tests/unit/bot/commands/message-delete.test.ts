@@ -1,5 +1,3 @@
-// tests/unit/bot/commands/message-delete.test.ts
-
 const executeMessageDeleteCommandMock = vi.fn();
 const handleCommandErrorMock = vi.fn();
 

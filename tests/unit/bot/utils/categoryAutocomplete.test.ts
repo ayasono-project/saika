@@ -1,5 +1,3 @@
-// tests/unit/bot/utils/categoryAutocomplete.test.ts
-
 import { ChannelType } from "discord.js";
 import { respondCategoryAutocomplete } from "@/bot/utils/categoryAutocomplete";
 

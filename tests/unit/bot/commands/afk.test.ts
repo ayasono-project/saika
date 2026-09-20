@@ -1,5 +1,3 @@
-// tests/unit/bot/commands/afk.test.ts
-
 import { PermissionFlagsBits } from "discord.js";
 
 const executeAfkCommandMock = vi.fn();

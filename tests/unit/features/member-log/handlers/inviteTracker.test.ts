@@ -1,4 +1,3 @@
-// tests/unit/bot/features/member-log/handlers/inviteTracker.test.ts
 import {
   clearInviteCacheForTest,
   findUsedInvite,

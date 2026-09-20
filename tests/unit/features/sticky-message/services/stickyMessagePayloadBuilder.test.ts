@@ -1,5 +1,3 @@
-// tests/unit/bot/features/sticky-message/services/stickyMessagePayloadBuilder.test.ts
-
 import { EmbedBuilder } from "discord.js";
 import {
   buildStickyMessagePayload,

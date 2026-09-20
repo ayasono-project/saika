@@ -1,4 +1,3 @@
-// tests/unit/bot/features/bump-reminder/services/usecases/clearAllBumpRemindersUsecase.test.ts
 import { clearAllBumpRemindersUsecase } from "@/features/bump-reminder/services/usecases/clearAllBumpRemindersUsecase";
 
 const loggerErrorMock = vi.fn();

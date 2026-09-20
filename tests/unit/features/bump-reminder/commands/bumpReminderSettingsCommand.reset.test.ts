@@ -1,4 +1,3 @@
-// tests/unit/bot/features/bump-reminder/commands/bumpReminderSettingsCommand.reset.test.ts
 import { handleBumpReminderSettingsReset } from "@/features/bump-reminder/commands/bumpReminderSettingsCommand.reset";
 
 const cancelAllForGuildMock = vi.fn();

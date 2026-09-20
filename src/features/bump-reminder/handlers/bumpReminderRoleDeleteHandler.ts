@@ -1,4 +1,3 @@
-// src/bot/features/bump-reminder/handlers/bumpReminderRoleDeleteHandler.ts
 // ロール削除時の mentionRoleId 自動クリア
 
 import type { Role } from "discord.js";

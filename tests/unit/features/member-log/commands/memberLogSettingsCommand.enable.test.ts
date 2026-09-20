@@ -1,5 +1,3 @@
-// tests/unit/bot/features/member-log/commands/memberLogSettingsCommand.enable.test.ts
-
 import { ValidationError } from "@ayasono/shared/core";
 import { handleMemberLogSettingsEnable } from "@/features/member-log/commands/memberLogSettingsCommand.enable";
 

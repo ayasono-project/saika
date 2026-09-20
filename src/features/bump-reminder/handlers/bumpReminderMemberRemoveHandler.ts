@@ -1,4 +1,3 @@
-// src/bot/features/bump-reminder/handlers/bumpReminderMemberRemoveHandler.ts
 // メンバー退出時の mentionUserIds 自動除去
 
 import type { GuildMember, PartialGuildMember } from "discord.js";

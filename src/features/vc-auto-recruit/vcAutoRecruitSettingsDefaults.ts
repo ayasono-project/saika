@@ -1,4 +1,3 @@
-// src/features/vc-auto-recruit/vcAutoRecruitSettingsDefaults.ts
 // VC自動募集設定のデフォルト値・正規化ロジック
 
 import type { VcAutoRecruitSettings } from "../../shared/database/types";

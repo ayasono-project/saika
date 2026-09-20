@@ -1,5 +1,3 @@
-// tests/unit/bot/client.test.ts
-
 import { Collection, GatewayIntentBits, Partials } from "discord.js";
 import { BotClient, createBotClient } from "@/bot/client";
 import { logger } from "@/shared/utils/logger";

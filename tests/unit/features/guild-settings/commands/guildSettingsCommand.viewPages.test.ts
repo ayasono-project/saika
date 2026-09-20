@@ -1,5 +1,3 @@
-// tests/unit/bot/features/guild-settings/commands/guildSettingsCommand.viewPages.test.ts
-
 vi.mock("@/shared/locale/localeManager", () => ({
   logPrefixed: vi.fn((...args: unknown[]) => String(args[1])),
   tDefault: vi.fn((key: string) => key),

@@ -1,4 +1,3 @@
-// src/bot/features/ticket/commands/usecases/ticketOpen.ts
 // チケット再オープン処理
 
 import { type ChatInputCommandInteraction, MessageFlags } from "discord.js";

@@ -1,4 +1,3 @@
-// src/api/routes/settingsResource.ts
 // 設定リソース（GET/PATCH/POST-reset）の共通ルート登録ファクトリ
 
 import type { FastifyInstance } from "fastify";

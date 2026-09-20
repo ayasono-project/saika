@@ -1,4 +1,3 @@
-// tests/unit/shared/database/repositories/serializers/guildStateSerializer.test.ts
 import {
   fromOpenTicketExport,
   fromReactionRolePanelExport,

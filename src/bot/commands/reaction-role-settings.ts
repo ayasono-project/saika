@@ -1,4 +1,3 @@
-// src/bot/commands/reaction-role-settings.ts
 // リアクションロール設定コマンド定義
 
 import {

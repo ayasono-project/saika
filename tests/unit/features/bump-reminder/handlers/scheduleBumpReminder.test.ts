@@ -1,4 +1,3 @@
-// tests/unit/bot/features/bump-reminder/handlers/scheduleBumpReminder.test.ts
 import { scheduleBumpReminder } from "@/features/bump-reminder/handlers/usecases/scheduleBumpReminder";
 
 const SERVICE_NAME = "Disboard" as const;

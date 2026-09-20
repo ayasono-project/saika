@@ -1,4 +1,3 @@
-// tests/unit/api/features/kickMappers.test.ts
 // vc-auto-recruit / unverified-kick マッパー（純粋関数）のユニットテスト
 
 import type { Guild as DiscordGuild } from "discord.js";

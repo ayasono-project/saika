@@ -1,4 +1,3 @@
-// src/features/vc-auto-recruit/services/vcAutoRecruitService.ts
 // VC自動募集機能のイベント処理（投稿・募集終了・同期）サービス
 
 import {

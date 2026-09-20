@@ -1,4 +1,3 @@
-// src/bot/features/bump-reminder/repositories/usecases/updateBumpReminderStatus.ts
 // Bumpリマインダー状態更新ユースケース
 
 import type { PrismaClient } from "@prisma/client";

@@ -1,4 +1,3 @@
-// src/features/vc-auto-recruit/commands/vcAutoRecruitSettingsCommand.setEmbed.ts
 // vc-auto-recruit-settings set-embed 実行処理
 
 import { type ChatInputCommandInteraction, MessageFlags } from "discord.js";

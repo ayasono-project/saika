@@ -1,4 +1,3 @@
-// src/shared/locale/locales/en/system.ts
 // Cross-feature system message translations (English)
 
 export const system = {

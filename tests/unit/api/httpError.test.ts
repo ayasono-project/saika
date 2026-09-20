@@ -1,4 +1,3 @@
-// tests/unit/api/httpError.test.ts
 // API 例外 → エラー封筒変換のユニットテスト
 
 import {

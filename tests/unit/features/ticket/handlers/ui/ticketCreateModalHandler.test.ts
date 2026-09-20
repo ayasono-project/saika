@@ -1,5 +1,3 @@
-// tests/unit/bot/features/ticket/handlers/ui/ticketCreateModalHandler.test.ts
-
 import { ticketCreateModalHandler } from "@/features/ticket/handlers/ui/ticketCreateModalHandler";
 
 vi.mock("@/shared/locale/localeManager", () => ({

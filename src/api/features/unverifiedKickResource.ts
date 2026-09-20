@@ -1,4 +1,3 @@
-// src/api/features/unverifiedKickResource.ts
 // 未承認ユーザー自動キック 設定リソース
 
 import type { UnverifiedKickSettings as ContractUnverifiedKickSettings } from "@ayasono/shared/api";

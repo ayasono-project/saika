@@ -1,4 +1,3 @@
-// src/bot/features/bump-reminder/services/helpers/bumpReminderRestorePlanner.ts
 // bump-reminder 復元時の pending 正規化ヘルパー
 
 import { isBumpServiceName } from "../../constants/bumpReminderConstants";

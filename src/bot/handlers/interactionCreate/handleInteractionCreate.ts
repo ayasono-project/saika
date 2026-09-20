@@ -1,4 +1,3 @@
-// src/bot/handlers/interactionCreate/handleInteractionCreate.ts
 // interactionCreate のユースケース処理エントリ
 
 import type { Interaction } from "discord.js";

@@ -1,4 +1,3 @@
-// src/bot/features/message-delete/services/messageDeleteService.ts
 // メッセージ削除コアロジック
 
 import type {

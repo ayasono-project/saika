@@ -1,4 +1,3 @@
-// tests/unit/features/reaction-role/reactionRolePanelRepository.test.ts
 import type { Mock } from "vitest";
 
 const executeWithDatabaseErrorMock: Mock = vi.fn(async (fn: () => unknown) =>

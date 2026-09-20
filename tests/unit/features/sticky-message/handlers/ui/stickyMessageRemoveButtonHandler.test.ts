@@ -1,5 +1,3 @@
-// tests/unit/bot/features/sticky-message/handlers/ui/stickyMessageRemoveButtonHandler.test.ts
-
 import { ChannelType } from "discord.js";
 
 const findByChannelMock = vi.fn();

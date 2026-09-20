@@ -1,4 +1,3 @@
-// tests/unit/bot/features/sticky-message/repositories/stickyMessageRepository.test.ts
 import { Prisma } from "@prisma/client";
 import type { Mock } from "vitest";
 

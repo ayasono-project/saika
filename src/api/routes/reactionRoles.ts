@@ -1,4 +1,3 @@
-// src/api/routes/reactionRoles.ts
 // リアクションロールパネルのコレクション CRUD（/api/guilds/:guildId/reaction-roles）。
 // 作成時に Discord へパネルを投稿し、更新時はメッセージ編集、削除時はメッセージ除去する。
 

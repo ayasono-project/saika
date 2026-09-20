@@ -1,4 +1,3 @@
-// src/shared/database/repositories/persistence/guildSettingsReadPersistence.ts
 // guildSettings の read 系永続化ヘルパー
 
 import type { GuildSettings, PrismaClient } from "@prisma/client";

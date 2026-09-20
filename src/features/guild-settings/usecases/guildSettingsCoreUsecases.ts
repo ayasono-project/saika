@@ -1,4 +1,3 @@
-// src/shared/database/repositories/usecases/guildSettingsCoreUsecases.ts
 // GuildSettingsRepository のコアCRUD/locale ユースケース
 
 import type { PrismaClient } from "@prisma/client";

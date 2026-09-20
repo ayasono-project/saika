@@ -84,7 +84,6 @@ describe("ClassName/FunctionName", () => {
 
 | 場所 | 必須/推奨 | 内容 |
 | --- | --- | --- |
-| ファイル先頭 | 必須 | `// tests/path/to/file.test.ts` |
 | `describe` 直前 | 必須 | 検証グループの目的（1行） |
 | `beforeEach` / `afterEach` 直前 | 必須 | セットアップ・後処理の理由（1行） |
 | `it` 文字列 | **必須** | 日本語で検証内容・条件・前提を直接記載 |
@@ -204,7 +203,6 @@ pnpm test:coverage     # カバレッジ付き実行
 
 ### コメント
 
-- [ ] ファイル先頭に `// tests/path/to/file.test.ts` がある
 - [ ] `describe` 直前に検証グループの目的コメントがある
 - [ ] `beforeEach` / `afterEach` 直前に理由コメントがある
 

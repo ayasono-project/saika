@@ -1,4 +1,3 @@
-// src/features/vc-auto-recruit/commands/vcAutoRecruitSettingsCommand.setMessage.ts
 // vc-auto-recruit-settings set-message 実行処理
 
 import {

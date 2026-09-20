@@ -1,5 +1,3 @@
-// tests/unit/bot/handlers/interactionCreate/flow/modal.test.ts
-
 import type { Mock } from "vitest";
 import { handleInteractionError } from "@/bot/errors/interactionErrorHandler";
 import { handleModalSubmit } from "@/bot/handlers/interactionCreate/flow/modal";

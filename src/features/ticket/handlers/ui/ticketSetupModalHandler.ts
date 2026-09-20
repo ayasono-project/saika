@@ -1,4 +1,3 @@
-// src/bot/features/ticket/handlers/ui/ticketSetupModalHandler.ts
 // setup フローのモーダル送信ハンドラ
 
 import {

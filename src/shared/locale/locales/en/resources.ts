@@ -1,4 +1,3 @@
-// src/shared/locale/locales/en/resources.ts
 // English translation resources export
 
 import { common } from "./common";

@@ -288,8 +288,6 @@ export class GuildSettingsAggregateRepository
           channelId: data.vcAutoRecruit.channelId ?? null,
           message: data.vcAutoRecruit.message ?? null,
           embedEnabled: data.vcAutoRecruit.embedEnabled,
-          enabledCategoryIds: data.vcAutoRecruit
-            .enabledCategoryIds as unknown as Prisma.InputJsonValue,
           enabledChannelIds: data.vcAutoRecruit
             .enabledChannelIds as unknown as Prisma.InputJsonValue,
           activeInvites: [] as unknown as Prisma.InputJsonValue,

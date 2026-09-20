@@ -45,7 +45,7 @@
     ]
   },
   "dependencies": {
-    "@ayasono/shared": "github:ayasono-project/shared#v2.0.0",
+    "@ayasono/shared": "github:ayasono-project/shared#v3.0.0",
     "@fastify/cookie": "^11.0.2",
     "@fastify/cors": "^11.2.0",
     "@fastify/rate-limit": "^11.2.0",

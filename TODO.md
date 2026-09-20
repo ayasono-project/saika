@@ -31,10 +31,10 @@
 
 | 区分 | 残件 |
 | --- | ---: |
-| いま着手できる | 9 |
+| いま着手できる | 8 |
 | 完了待ち | 13 |
 | 未決（判断が要る） | 11 |
-| **合計** | **33** |
+| **合計** | **32** |
 
 > **着手順は「いま着手できる」の並び順そのもの**（1件＝1 PR）。番号付きの「次にやること」は 2026-09-20 に廃止。1件動くたびに本体・サマリー・リストの3箇所を直すことになり、番号も挿入のたびにずれるため。
 >
@@ -54,57 +54,6 @@
 ## いま着手できる
 
 依存なし。上から順に1件ずつ着手する（1件＝1 PR）。並び順が実行順を兼ねるので、順番を変えたいときはこのセクション内で移動する。
-
-### VC自動募集のカテゴリ残骸とデッドコードの撤去 【実装・中・saika ＋ shared】
-
-**依存なし。** 2026-09-05 に棚卸し。チャンネル単位化（2026-06-30）で役目を終えたカテゴリ allowlist が全レイヤーに残っている。**設定する手段はもう無い**（カテゴリ系サブコマンド廃止済み・web にも UI 無し）のに、ロジック・型・DB・API・ロケール・テストが生きている。
-
-**残っているもの**
-
-ロジック
-
-- `vcAutoRecruitSettingsService.ts` — `addEnabledCategory` / `addEnabledCategories` / `removeEnabledCategories` は**本番からの呼び出しゼロ**（テストだけが維持）。`removeEnabledCategory` は下記 channelDelete からのみ
-- `vcAutoRecruitService.ts:280-289` — `channelDelete` でカテゴリ allowlist を掃除する分岐。処理ごと不要
-- `vcAutoRecruit.constants.ts:14` — `VC_AUTO_RECRUIT_ROOT_CATEGORY = "TOP"` は**定義のみで未参照**
-
-データ・型
-
-- `entities.ts:155` / `vcAutoRecruitSettingsDefaults.ts`（3箇所）/ `vcAutoRecruitSettingsRepository.ts`（3箇所）/ `guildSettingsAggregateRepository.ts:336`
-- `shared/src/api/types.ts:130` — web の mock 2箇所（`mocks/data.ts` / `mocks/handlers.ts`）も追従が要る
-- `prisma/schema.prisma:94` の `enabled_category_ids` 列
-
-API
-
-- `vcAutoRecruitResource.ts:32,53` — read / patch で往復させている
-- `overviewResource.ts:39,89,187` — 概要が `対象カテゴリ: ${enabledCategoryIds.length}件` を表示。**設定手段が無いので常に「0件」**で、有効なのに未反映に見える
-
-ロケール（ja / en 両方・すべて未使用）
-
-- `user-response.categories_added_count` / `categories_removed_count` / `no_addable_categories` / `no_enabled_categories` / `category_top_label`
-- `user-response.enable_warning_no_category` — **存在しない `/vc-auto-recruit-settings add-category` を案内する文面**。使われているのは `enable_warning_no_channel` なので実害は無いが、残すと読む人が混乱する
-- `embed.field.name.categories` / `embed.field.value.categories_none` / `embed.field.value.top`
-- `ui.select.add_category_placeholder` / `ui.select.remove_category_placeholder`
-- `log.config_category_added` / `log.config_category_removed` / `log.category_removed_by_delete`
-- **カテゴリと無関係の未使用キー**: `log.post_failed`（どこからも参照されていない）
-
-テスト
-
-- `vcAutoRecruitSettingsService.test.ts:261-413` — カテゴリ操作の8ケース
-- `vcAutoRecruitService.test.ts:101,474` — channelDelete のカテゴリ掃除ケース
-
-**やること**
-
-- [ ] 上記を一括で撤去し、overview のサマリーを `enabledChannelIds` ベースの `対象チャンネル: N件` へ差し替える
-- [ ] shared から削除 → publish → saika / web の参照を更新
-- [ ] migration で `enabled_category_ids` 列を削除（**本番は移行時に0件であることを確認済み**・HISTORY.md「完了済み」参照）
-- [ ] 対応するテストを削除する
-
-**判断が要るもの**
-
-- **テーブル名 `guild_vc_invite_settings` を直すか。** `schema.prisma:98` の `@@map` が旧称 `vc-invite` のまま（リポジトリ冒頭のコメント2箇所も同じ）。カテゴリ列削除と**同じ migration でリネームまで済ませられる**ので、やるならこのタイミング
-- **命名ドリフトを直すか。** `SUBCOMMAND.SET_CHANNEL`（値は `set-post-channel`）/ ファイル名 `vcAutoRecruitSettingsCommand.setChannel.ts` / ロケールキー `log.config_set_channel`。**ロケールのキー名リネームは影響範囲が別**なので、やるなら明示的に切り出す
-
-> **VC自動募集の誤爆抑制より先に着手する。** 対象が `vcAutoRecruitService` / `vcAutoRecruitSettingsService` / repository / API resource と丸ごと重なるため、別々にやると同じファイルを二度開いて二度レビューすることになる。
 
 ### VC自動募集の誤爆抑制（入室デバウンス） 【実装・小〜中】
 
@@ -131,7 +80,7 @@ API
 
 ### VAC 作成 VC の募集ボタン（vc-auto-recruit の拡張） 【機能追加・小】
 
-**依存なし。** 2026-09-17 決定（→ HISTORY.md「決定事項」）。「カテゴリ残骸の撤去」「誤爆抑制」の後、同じサービスが温かいうちにやる。設計は以下で全部。
+**依存なし。** 2026-09-17 決定（→ HISTORY.md「決定事項」）。「誤爆抑制」の後、同じサービスが温かいうちにやる。設計は以下で全部。
 
 VAC が建てた VC は ID が毎回新しく allowlist に入らないので、vc-auto-recruit の自動投稿は発火しない。代わりに VC のチャット欄にボタンを置き、押した時だけ既存の募集投稿を1回叩く。募集終了は「追跡中の募集があれば enabled や allowlist に関係なく実行」（`vcAutoRecruitService.ts:219-240`）、channelDelete 同期・起動クリーンアップも既存なので、**投稿の発火以外は全部既存が面倒を見る**。
 
@@ -240,15 +189,14 @@ VAC が建てた VC は ID が毎回新しく allowlist に入らないので、
 
 ### 未使用ロケールキーの一括撤去 【実装・中】
 
-**カテゴリ残骸の撤去待ち。** VC募集の削除で `vcRecruit` 11件が実施済み。残るカテゴリ系13件も先に消えるので、後にやるほど対象が減る。
+**依存なし。** VC募集の削除で `vcRecruit` 11件、カテゴリ残骸の撤去で `vcAutoRecruit` 13件（カテゴリ系12 ＋ `log.post_failed`）が実施済み。**残りは64件**（着手時に再スキャンする）。
 
-2026-09-05 に全名前空間をスキャンし**未使用候補88件**（全体1000件超の約8%）を検出。代表4件はロケール定義にしか存在しないことを実地検証済み。うち `vcRecruit` の11件は機能削除で消えたため、**残りは77件**（着手時に再スキャンする）。
+2026-09-05 に全名前空間をスキャンし**未使用候補88件**（全体1000件超の約8%）を検出。代表4件はロケール定義にしか存在しないことを実地検証済み。
 
 | 名前空間 | 未使用 / 全体 | 中身 |
 | --- | ---: | --- |
 | **system** | 33 / 135 | `web.*` 16件（**Web API の認証・セッションが丸ごと**）/ `database.*` 8件（旧 DB ロギング層）/ `log_prefix.*` 7件 / `shutdown.*` 2件 |
 | **common** | 9 / 66 | `database.*` 6件（system と対）/ `validation.error_title` / `general.error_title` / `title_move_failed` |
-| vcAutoRecruit | 13 / 88 | カテゴリ系12 ＋ `log.post_failed`（→「VC自動募集のカテゴリ残骸とデッドコードの撤去」） |
 | bumpReminder | 5 / 85 | **`user-response.reminder_message_disboard` / `dissoku`**（リマインダー本文）/ `embed.description.config_view` ほか |
 | messageDelete / stickyMessage / ticket | 各 3 | |
 | vac | 3 | トリガー設定系の残骸（`user-response.trigger_not_found` / `embed.title.remove_error` / `embed.field.name.created_vcs`）。VAC は残すので (a) として撤去 |

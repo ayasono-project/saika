@@ -32,7 +32,7 @@ export interface OverviewInputs {
   vacEnabled: boolean;
   vacTriggerCount: number;
   vcAutoRecruitEnabled: boolean;
-  vcAutoRecruitCategoryCount: number;
+  vcAutoRecruitChannelCount: number;
   stickyCount: number;
   memberLogEnabled: boolean;
   memberLogChannelId: string | null;
@@ -75,7 +75,7 @@ export function toFeatureStatuses(input: OverviewInputs): FeatureStatus[] {
     {
       key: "vc-auto-recruit",
       state: toggle(input.vcAutoRecruitEnabled),
-      summary: `対象カテゴリ: ${input.vcAutoRecruitCategoryCount}件`,
+      summary: `対象チャンネル: ${input.vcAutoRecruitChannelCount}件`,
     },
     {
       key: "sticky",
@@ -162,7 +162,7 @@ async function collectInputs(
     vacEnabled: vac.enabled,
     vacTriggerCount: vac.triggerChannelIds.length,
     vcAutoRecruitEnabled: vcAuto.enabled,
-    vcAutoRecruitCategoryCount: vcAuto.enabledCategoryIds.length,
+    vcAutoRecruitChannelCount: vcAuto.enabledChannelIds.length,
     stickyCount: sticky.length,
     memberLogEnabled: memberLog.enabled,
     memberLogChannelId: memberLog.channelId,

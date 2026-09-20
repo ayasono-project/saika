@@ -14,7 +14,7 @@ const BASE: OverviewInputs = {
   vacEnabled: false,
   vacTriggerCount: 0,
   vcAutoRecruitEnabled: false,
-  vcAutoRecruitCategoryCount: 0,
+  vcAutoRecruitChannelCount: 0,
   stickyCount: 0,
   memberLogEnabled: false,
   memberLogChannelId: null,

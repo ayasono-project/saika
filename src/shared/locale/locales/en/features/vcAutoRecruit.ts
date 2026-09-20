@@ -97,8 +97,6 @@ export const vcAutoRecruit = {
   // ── Logs ─────────────────────────────────────
   "log.invite_sent":
     "recruit message sent GuildId: {{guildId}} ChannelId: {{channelId}} UserId: {{userId}}",
-  "log.invite_skipped_cooldown":
-    "recruit skipped by cooldown GuildId: {{guildId}} VoiceChannelId: {{voiceChannelId}}",
   "log.invite_closed":
     "recruit closed (VC empty) GuildId: {{guildId}} VoiceChannelId: {{voiceChannelId}} MessageId: {{messageId}}",
   "log.invite_close_failed":

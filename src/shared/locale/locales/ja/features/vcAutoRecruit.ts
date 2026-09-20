@@ -96,8 +96,6 @@ export const vcAutoRecruit = {
   // ── ログ ─────────────────────────────────────
   "log.invite_sent":
     "募集メッセージを送信 GuildId: {{guildId}} ChannelId: {{channelId}} UserId: {{userId}}",
-  "log.invite_skipped_cooldown":
-    "連投抑制により募集投稿をスキップ GuildId: {{guildId}} VoiceChannelId: {{voiceChannelId}}",
   "log.invite_closed":
     "VCが空になり募集終了に変更 GuildId: {{guildId}} VoiceChannelId: {{voiceChannelId}} MessageId: {{messageId}}",
   "log.invite_close_failed":

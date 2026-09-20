@@ -98,6 +98,32 @@ VAC を残す判断（→「VAC（トリガー VC 方式）は残し、募集は
 
 > 詳細な作業経過は git log を参照。
 
+### 未使用ロケールキーの撤去 ＋ VC自動募集の投稿先消失通知（2026-09-20 develop merge）
+
+全1151キーを再スキャンして未使用候補77件を検出し、(a) 残骸 /(b) 仕様判断 /(c) 実装漏れ に分類した。結果は **誤検出2件・(c) 1件・(a) 74件・(b) 0件**。
+
+**(c) 実装漏れ＝バグ 1件を実装した。** `vcAutoRecruit:user-response.channel_deleted_notice`（「投稿先チャンネルが削除されました。設定をリセットしたので再設定してください」）は文面だけあって**どこからも送られていなかった**。投稿先が消えると設定が黙ってリセットされ、管理者は募集が止まった理由を知る手段が無かった。メンバーログは同名のキーで同じ状況を通知しているので、そちらに合わせてエラーチャンネル（`notifyWarnChannel`）とシステムチャンネルの両方へ出すようにした。テスト2件を追加。
+
+**誤検出2件。** `bumpReminder:user-response.reminder_message_disboard` / `_dissoku` は [`sendBumpReminder.ts`](src/features/bump-reminder/handlers/usecases/sendBumpReminder.ts) が `` `...reminder_message_${serviceKey}` `` と**動的に組み立てて**いるため静的スキャンに掛からなかっただけで実使用。**動的組み立てはコード全体でこの1箇所のみ**であることを確認済み。
+
+**(a) 残骸74件を ja / en 双方から撤去した。**
+
+| 名前空間 | 件数 | 中身 |
+| --- | ---: | --- |
+| system | 33 | `web.*` 13（OAuth・セッション管理が web BFF へ移り saika は検証専用になった残骸）／`database.*` 8（旧 DB ロギング層）／`log_prefix.*` 7（イベントが接頭辞ログを出さなくなった）／`shutdown.*` 2 ほか |
+| ticket | 10 | 存在しない `reset` サブコマンド用 ＋ DB ログ |
+| common | 8 | `database.*` 6（system と対）／`validation.error_title` / `general.error_title` |
+| messageDelete | 6 | 削除済みコマンドオプション `user` / `channel` 関連 |
+| vac | 6 | トリガー設定系の残骸 |
+| memberLog | 4 | `log.channel_not_found` ほか（実装は別キーで通知済み） |
+| stickyMessage | 3 | embed タイトル（平文メッセージに置き換わった） |
+| bumpReminder | 3 | `embed.description.config_view` ほか |
+| reactionRole | 1 | DB ログ |
+
+> **(b) はゼロだった。** マニュアルに載っているのに実装が無いキーは無い。`/message-delete` の `user` / `channel` はマニュアルでも**選択メニュー**として説明されており、コマンドオプションとしては書かれていない（キーの方が古い設計の名残）。ticket の `reset` もマニュアルに記載が無い。
+> **ticket の `reset` は未決タスクと関係する。** 「`resetAll` の要否 ＋ 機能単位 reset を足すか」で機能単位 reset を足すと決めた場合、文面を書き直すことになる。消した根拠は「実装もマニュアル記載も無い」であり、決定が出たら新しく書けばよい。
+> **撤去後に ja / en のキー集合が完全一致することを検証した。** あわせて、キーが消えて見出しだけ残ったセクションコメント4箇所も落とした。
+
 ### 非アクティブ自動キックの環境変数・Embed 色の撤去（2026-09-20 develop merge）
 
 機能削除（2026-09-20）の追従漏れ。`env.ts` に `INACTIVE_KICK_*` の4変数が型・スキーマ両方に残り、**起動のたびに読まれ続ける死んだ設定**になっていた。`.env.example` は使えない変数を案内していた。

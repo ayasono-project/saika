@@ -38,16 +38,12 @@ export const stickyMessage = {
   "user-response.empty_message": "Please enter a message.",
   "user-response.text_channel_only":
     "Sticky messages can only be set in text channels.",
-  "user-response.operation_failed":
-    "An error occurred while managing the sticky message.",
 
   // ── Embed ─────────────────────────────────────
   "embed.title.set_success": "Done",
-  "embed.title.already_exists": "Warning",
   "embed.title.remove_success": "Removed",
   "embed.title.remove_not_found": "Not Found",
   "embed.title.view": "Sticky Message Settings",
-  "embed.title.view_not_found": "Not Configured",
   "embed.title.update_success": "Updated",
   "embed.title.update_not_found": "Not Configured",
   "embed.field.name.removed_channels": "Removed channels",

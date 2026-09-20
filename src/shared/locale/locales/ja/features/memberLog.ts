@@ -68,7 +68,6 @@ export const memberLog = {
   "embed.field.name.leave_member_count": "メンバー数",
 
   // Embed field values (shared formatting)
-  "embed.field.value.days": "{{count}}日",
   "embed.field.value.member_count": "{{count}}名",
   "embed.field.value.unknown": "不明",
   "embed.field.value.age_years": "{{count}}年",
@@ -92,8 +91,6 @@ export const memberLog = {
   "log.leave_notification_sent":
     "退出通知を送信 GuildId: {{guildId}} UserId: {{userId}}",
   "log.notification_failed": "通知送信失敗 GuildId: {{guildId}}",
-  "log.channel_not_found":
-    "チャンネルが見つかりません。 GuildId: {{guildId}} ChannelId: {{channelId}}",
   "log.channel_deleted_config_cleared":
     "チャンネルが削除されたため設定をリセットしました。 GuildId: {{guildId}} ChannelId: {{channelId}}",
   "log.config_set_channel":
@@ -105,10 +102,6 @@ export const memberLog = {
   "log.config_join_message_cleared": "参加メッセージ削除 GuildId: {{guildId}}",
   "log.config_reset": "設定リセット GuildId: {{guildId}}",
   "log.config_leave_message_cleared": "退出メッセージ削除 GuildId: {{guildId}}",
-  "log.database_user_setting_find_failed":
-    "ユーザー設定取得に失敗 UserId: {{userId}} GuildId: {{guildId}}",
-  "log.database_user_setting_upsert_failed":
-    "ユーザー設定保存に失敗 UserId: {{userId}} GuildId: {{guildId}}",
 } as const;
 
 export type MemberLogTranslations = typeof memberLog;

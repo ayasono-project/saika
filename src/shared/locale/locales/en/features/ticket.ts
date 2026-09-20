@@ -11,7 +11,6 @@ export const ticket = {
   "ticket-settings.setup.description": "Set up ticket panel",
   "ticket-settings.setup.category.description": "Category for ticket channels",
   "ticket-settings.teardown.description": "Remove ticket panel",
-  "ticket-settings.reset.description": "Reset all settings",
   "ticket-settings.view.description": "Show current settings",
   "ticket-settings.edit-panel.description": "Edit panel title and description",
   "ticket-settings.edit-panel.category.description": "Target category",
@@ -32,8 +31,6 @@ export const ticket = {
   "user-response.setup_success": "Ticket panel has been set up.",
   "user-response.teardown_success": "Ticket panel has been removed.",
   "user-response.teardown_cancelled": "Cancelled.",
-  "user-response.reset_success": "All ticket settings have been reset.",
-  "user-response.reset_cancelled": "Cancelled.",
   "user-response.ticket_created": "Ticket created: {{channel}}",
   "user-response.ticket_closed": "Ticket has been closed.",
   "user-response.ticket_opened": "Ticket has been reopened.",
@@ -91,9 +88,6 @@ export const ticket = {
     "There are {{count}} open tickets. Continuing will also delete all ticket channels. This action cannot be undone.",
   "embed.field.name.target_categories": "Target Categories",
   "embed.field.name.open_tickets": "Open tickets ({{count}})",
-  "embed.title.reset_confirm": "Ticket Settings Reset",
-  "embed.description.reset_warning":
-    "All ticket settings will be reset. All panels, ticket channels, and settings for all categories will be deleted. This action cannot be undone.",
   "embed.title.config_view": "Ticket Settings",
   "embed.field.name.category": "Category",
   "embed.field.name.staff_roles": "Staff Roles",
@@ -112,7 +106,6 @@ export const ticket = {
   "ui.button.delete": "Delete",
   "ui.button.delete_confirm": "Delete",
   "ui.button.teardown_confirm": "Remove",
-  "ui.button.teardown_cancel": "Cancel",
   "ui.select.roles_placeholder": "Select staff roles",
   "ui.select.teardown_placeholder": "Select a category to remove",
   "ui.select.view_placeholder": "Select a category",
@@ -134,7 +127,6 @@ export const ticket = {
     "ticket panel set up GuildId: {{guildId}} CategoryId: {{categoryId}} ChannelId: {{channelId}}",
   "log.teardown":
     "ticket panel removed GuildId: {{guildId}} CategoryId: {{categoryId}}",
-  "log.reset": "all ticket settings reset GuildId: {{guildId}}",
   "log.ticket_created":
     "ticket created GuildId: {{guildId}} ChannelId: {{channelId}} UserId: {{userId}} TicketNumber: {{ticketNumber}}",
   "log.ticket_closed":
@@ -145,14 +137,8 @@ export const ticket = {
     "ticket deleted GuildId: {{guildId}} ChannelId: {{channelId}} DeletedBy: {{deletedBy}}",
   "log.ticket_auto_deleted":
     "ticket auto-deleted GuildId: {{guildId}} ChannelId: {{channelId}}",
-  "log.database_config_saved":
-    "ticket config saved GuildId: {{guildId}} CategoryId: {{categoryId}}",
   "log.database_config_save_failed":
     "failed to save ticket config GuildId: {{guildId}} CategoryId: {{categoryId}}",
-  "log.database_ticket_saved":
-    "ticket saved GuildId: {{guildId}} TicketId: {{ticketId}}",
-  "log.database_ticket_save_failed":
-    "failed to save ticket GuildId: {{guildId}} TicketId: {{ticketId}}",
   "log.database_config_find_failed":
     "failed to find ticket config GuildId: {{guildId}} CategoryId: {{categoryId}}",
   "log.database_config_find_all_failed":

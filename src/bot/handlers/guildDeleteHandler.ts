@@ -10,6 +10,7 @@ import {
   getBotGuildSettingsService,
   getBotTicketRepository,
 } from "../services/botCompositionRoot";
+import { applyBotPresence } from "../services/botPresence";
 
 /**
  * Bot がギルドから退出した際に、そのギルドの全設定データを削除する
@@ -24,6 +25,9 @@ export async function handleGuildDelete(guild: Guild): Promise<void> {
       guildName: guild.name,
     }),
   );
+
+  // 稼働サーバー数の表示を更新する。設定削除の成否に依存しないよう先に行う
+  applyBotPresence(guild.client);
 
   try {
     // インメモリタイマーを解除してから全設定データを一括削除する

@@ -26,6 +26,7 @@ export const system = {
   "log_prefix.message_delete": "messageDelete",
   "log_prefix.voice_state_update": "voiceStateUpdate",
   "log_prefix.channel_delete": "channelDelete",
+  "log_prefix.guild_create": "guildCreate",
   "log_prefix.guild_delete": "guildDelete",
   "log_prefix.ready": "ready",
   "log_prefix.ticket": "チケット",
@@ -38,6 +39,10 @@ export const system = {
     "エラー通知の送信に失敗しました GuildId: {{guildId}}",
   "error_channel.send_warn_failed":
     "警告通知の送信に失敗しました GuildId: {{guildId}}",
+
+  // guildCreate（Bot参加時）
+  "guild_create.joined":
+    "ギルドへの参加を検知しました GuildId: {{guildId}} GuildName: {{guildName}}",
 
   // guildDelete（Bot退出時クリーンアップ）
   "guild_delete.start":

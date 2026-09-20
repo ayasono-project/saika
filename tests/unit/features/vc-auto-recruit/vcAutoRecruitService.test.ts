@@ -98,7 +98,6 @@ function createServices() {
     addActiveInvite: vi.fn(),
     getActiveInvite: vi.fn(),
     removeActiveInvite: vi.fn(),
-    removeEnabledCategory: vi.fn(),
     removeEnabledChannel: vi.fn(),
     disableAndClearChannel: vi.fn(),
   };
@@ -117,7 +116,6 @@ const enabledConfig = (overrides?: Record<string, unknown>) => ({
   channelId: "ch-1",
   embedEnabled: true,
   message: undefined,
-  enabledCategoryIds: [],
   // 既定ではテスト VC（"vc-1"）を有効チャンネルとして登録
   enabledChannelIds: ["vc-1"],
   activeInvites: [],
@@ -449,31 +447,6 @@ describe("features/vc-auto-recruit/vcAutoRecruitService", () => {
 
       expect(settingsService.disableAndClearChannel).toHaveBeenCalledWith(
         "g-1",
-      );
-    });
-
-    it("有効カテゴリが削除されたら enabledCategoryIds から除去すること", async () => {
-      const { settingsService, vacSettingsService } = createServices();
-      const post = makePostChannel();
-      const guild = makeGuild(post);
-      settingsService.getVcAutoRecruitSettings.mockResolvedValue(
-        enabledConfig({ enabledCategoryIds: ["cat-1"], activeInvites: [] }),
-      );
-
-      const service = new VcAutoRecruitService(
-        settingsService as never,
-        vacSettingsService as never,
-      );
-      await service.handleChannelDelete({
-        id: "cat-1",
-        guild,
-        isDMBased: () => false,
-        type: ChannelType.GuildCategory,
-      } as never);
-
-      expect(settingsService.removeEnabledCategory).toHaveBeenCalledWith(
-        "g-1",
-        "cat-1",
       );
     });
 

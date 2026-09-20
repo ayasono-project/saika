@@ -98,6 +98,23 @@ VAC を残す判断（→「VAC（トリガー VC 方式）は残し、募集は
 
 > 詳細な作業経過は git log を参照。
 
+### VC自動募集のカテゴリ残骸の撤去 ＋ shared v3.0.0（2026-09-20 develop merge）
+
+チャンネル単位化（2026-06-30）で役目を終えたカテゴリ allowlist が、ロジック・型・DB・API・ロケール・テストの全レイヤーに残っていた。**設定する手段はとうに無い**（カテゴリ系サブコマンド廃止済み・web にも UI 無し）のに、概要 API は `対象カテゴリ: 0件` を表示し続けており、有効なのに未反映に見える状態だった。
+
+- [x] `vcAutoRecruitSettingsService` からカテゴリ操作4メソッドを削除（`addEnabledCategory` / `removeEnabledCategory` / `addEnabledCategories` / `removeEnabledCategories`）
+- [x] `channelDelete` のカテゴリ allowlist 掃除分岐と、定義のみで未参照だった `VC_AUTO_RECRUIT_ROOT_CATEGORY = "TOP"` を撤去
+- [x] entities / defaults / repository / アグリゲートリポジトリ / API resource から `enabledCategoryIds` を除去
+- [x] 概要 API のサマリーを `対象カテゴリ: N件` から **`対象チャンネル: N件`**（`enabledChannelIds` ベース）へ差し替え
+- [x] ロケール ja/en の未使用キー15件を撤去（カテゴリ系14 ＋ `log.post_failed`）。**全件について src からの参照がゼロであることを確認してから消した**
+- [x] migration で `enabled_category_ids` 列を削除し、**テーブル名を `guild_vc_invite_settings` から `guild_vc_auto_recruit_settings` へ改称**
+- [x] shared から `enabledCategoryIds` と VC募集の型2つを削除し **v3.0.0** として publish。saika / web の参照も更新
+- [x] カテゴリ操作のテスト8ケース、`channelDelete` のカテゴリ掃除ケースを削除
+
+> **テーブル名を同じ migration で直した理由**（2026-09-20 決定）。`@@map` が旧称 `vc-invite` のまま残っており、列削除と同時なら migration 1本で済む。別々にやると改称のためだけにもう1本切ることになる。
+> **shared はここで1回だけ publish した**（2026-09-20 決定）。VC募集の型削除とカテゴリ列削除はどちらも破壊的変更だが、タスクごとに publish すると v3.0.0 と v4.0.0 を短期間に2つ消費する。掃除の残り（入室デバウンス・パスコメント廃止・未使用ロケールキー撤去）は shared に触らないため、このタイミングが唯一の publish 機会だった。
+> **`enable_warning_no_category` は存在しないサブコマンドを案内していた。** 実際に使われているのは `enable_warning_no_channel` なので実害は無かったが、読む人を混乱させるため一緒に落とした。
+
 ### VC募集機能の削除（2026-09-20 develop merge）
 
 実測で**行は自鯖の1件のみ、かつ `setups` が空**（2026-09-05）。パネルも投稿先も存在せず稼働しておらず、他鯖はゼロ。削除の根拠①（誰も使っていない）に該当する。saika の src 28ファイル・テスト34ファイルが消えた。

@@ -282,7 +282,7 @@ const prisma = getPrismaClient(); // null の場合あり
 | `GuildBumpReminderSettings` | Bump リマインダー設定                      |
 | `GuildMemberLogSettings`    | メンバーログ設定                           |
 | `GuildVacSettings`          | VC 自動作成設定                            |
-| `GuildVcAutoRecruitSettings` | VC 自動募集設定（物理テーブル名は `guild_vc_invite_settings`） |
+| `GuildVcAutoRecruitSettings` | VC 自動募集設定                            |
 | `GuildUnverifiedKickSettings` | 未承認ユーザー自動キック設定             |
 | `GuildUnverifiedKickWarn` | 未承認キックの警告記録（guildId + userId 複合PK） |
 | `BumpReminder`            | Bump リマインダー記録（スケジュールデータ） |

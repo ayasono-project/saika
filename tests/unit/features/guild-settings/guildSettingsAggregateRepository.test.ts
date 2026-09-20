@@ -316,7 +316,6 @@ describe("shared/database/repositories/guildSettingsAggregateRepository", () => 
         channelId: "ch-1",
         message: "msg",
         embedEnabled: true,
-        enabledCategoryIds: ["TOP", "cat-1"],
         enabledChannelIds: ["ch-1"],
         activeInvites: [
           {
@@ -342,10 +341,6 @@ describe("shared/database/repositories/guildSettingsAggregateRepository", () => 
       const result = await repo.getFullSettings("g1");
       // activeInvites はランタイム参照のため空配列で除外
       expect(result?.vcAutoRecruit?.activeInvites).toEqual([]);
-      expect(result?.vcAutoRecruit?.enabledCategoryIds).toEqual([
-        "TOP",
-        "cat-1",
-      ]);
       expect(result?.unverifiedKick?.exemptRoleIds).toEqual(["r-2"]);
     });
   });
@@ -566,7 +561,6 @@ describe("shared/database/repositories/guildSettingsAggregateRepository", () => 
           channelId: "ch-1",
           message: "msg",
           embedEnabled: false,
-          enabledCategoryIds: ["TOP"],
           enabledChannelIds: [],
           activeInvites: [
             {
@@ -583,7 +577,6 @@ describe("shared/database/repositories/guildSettingsAggregateRepository", () => 
       const callArgs =
         prismaTx.guildVcAutoRecruitSettings?.upsert?.mock.calls[0]?.[0];
       expect(callArgs.create.activeInvites).toEqual([]);
-      expect(callArgs.create.enabledCategoryIds).toEqual(["TOP"]);
     });
 
     // enabledChannelIds は現行の対象VCチャンネル allowlist。
@@ -596,7 +589,6 @@ describe("shared/database/repositories/guildSettingsAggregateRepository", () => 
           channelId: "ch-1",
           message: "msg",
           embedEnabled: false,
-          enabledCategoryIds: [],
           enabledChannelIds: ["vc-1", "vc-2"],
           activeInvites: [],
         },

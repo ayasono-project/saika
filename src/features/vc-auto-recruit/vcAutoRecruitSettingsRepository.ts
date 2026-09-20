@@ -1,5 +1,5 @@
 // src/features/vc-auto-recruit/vcAutoRecruitSettingsRepository.ts
-// VC自動募集設定リポジトリ（guild_vc_invite_settings テーブル）
+// VC自動募集設定リポジトリ（guild_vc_auto_recruit_settings テーブル）
 
 import { Prisma, type PrismaClient } from "@prisma/client";
 import type {
@@ -10,7 +10,7 @@ import type {
 import { createRepositoryGetter } from "../../shared/utils/serviceFactory";
 
 /**
- * guild_vc_invite_settings テーブルを使用した VC自動募集設定リポジトリ
+ * guild_vc_auto_recruit_settings テーブルを使用した VC自動募集設定リポジトリ
  */
 export class VcAutoRecruitSettingsRepository
   implements IVcAutoRecruitSettingsRepository
@@ -37,7 +37,6 @@ export class VcAutoRecruitSettingsRepository
       channelId: record.channelId ?? undefined,
       message: record.message ?? undefined,
       embedEnabled: record.embedEnabled,
-      enabledCategoryIds: record.enabledCategoryIds as unknown as string[],
       enabledChannelIds: record.enabledChannelIds as unknown as string[],
       activeInvites: record.activeInvites as unknown as VcAutoRecruitRef[],
     };
@@ -60,8 +59,6 @@ export class VcAutoRecruitSettingsRepository
         channelId: vcAutoRecruitSettings.channelId ?? null,
         message: vcAutoRecruitSettings.message ?? null,
         embedEnabled: vcAutoRecruitSettings.embedEnabled,
-        enabledCategoryIds:
-          vcAutoRecruitSettings.enabledCategoryIds as unknown as Prisma.InputJsonValue,
         enabledChannelIds:
           vcAutoRecruitSettings.enabledChannelIds as unknown as Prisma.InputJsonValue,
         activeInvites:
@@ -72,8 +69,6 @@ export class VcAutoRecruitSettingsRepository
         channelId: vcAutoRecruitSettings.channelId ?? null,
         message: vcAutoRecruitSettings.message ?? null,
         embedEnabled: vcAutoRecruitSettings.embedEnabled,
-        enabledCategoryIds:
-          vcAutoRecruitSettings.enabledCategoryIds as unknown as Prisma.InputJsonValue,
         enabledChannelIds:
           vcAutoRecruitSettings.enabledChannelIds as unknown as Prisma.InputJsonValue,
         activeInvites:

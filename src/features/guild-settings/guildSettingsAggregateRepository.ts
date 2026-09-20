@@ -425,6 +425,12 @@ export class GuildSettingsAggregateRepository
   /**
    * ギルド設定と全機能設定を一括削除する（reset-all 用）
    * トランザクションで一括実行し、中途半端な削除状態を防止する
+   *
+   * **ここを増減したら `guildSettings:embed.field.value.reset_all_target` も直すこと。**
+   * あれは取り消せない操作の確認ダイアログに出る削除対象の一覧で、
+   * 実際に消すものより少なく書くと利用者を騙すことになる（2026-09-20 に
+   * チケット・リアクションロール・未承認キック・VC自動募集の4つが
+   * 抜けているのを見つけて直した）。
    */
   async deleteAllSettings(guildId: string): Promise<void> {
     // deleteMany は該当レコードなしでも例外を投げないため、個別エラー処理不要

@@ -24,7 +24,6 @@ import type {
 import type { GuildReactionRolePanel } from "./reactionRoleTypes";
 import type { StickyEmbedData, StickyMessage } from "./stickyMessageTypes";
 import type { GuildTicketSettings, Ticket } from "./ticketTypes";
-import type { VcRecruitSettings } from "./vcRecruitTypes";
 
 /** ギルド設定のコアCRUD・locale操作 */
 export interface IGuildCoreRepository {
@@ -67,7 +66,6 @@ export interface FullGuildSettings {
   bumpReminder?: BumpReminderSettings;
   vac?: Pick<VacSettings, "enabled" | "triggerChannelIds">;
   memberLog?: MemberLogSettings;
-  vcRecruit?: VcRecruitSettings;
   vcAutoRecruit?: VcAutoRecruitSettings;
   unverifiedKick?: UnverifiedKickSettings;
   /** stateful データ（チケット設定 / open チケット / スティッキー / リアクションロールパネル / VAC 作成済み VC） */
@@ -168,14 +166,6 @@ export interface IUnverifiedKickWarnRepository {
   deleteWarned(guildId: string, userIds: string[]): Promise<void>;
   /** ギルドの全警告記録を削除する（機能リセット/再有効化時のフレッシュスタート） */
   deleteAllByGuild(guildId: string): Promise<void>;
-}
-
-export interface IVcRecruitSettingsRepository {
-  getVcRecruitSettings(guildId: string): Promise<VcRecruitSettings | null>;
-  updateVcRecruitSettings(
-    guildId: string,
-    vcRecruitSettings: VcRecruitSettings,
-  ): Promise<void>;
 }
 
 export interface IStickyMessageRepository {

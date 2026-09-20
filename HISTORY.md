@@ -98,6 +98,28 @@ VAC を残す判断（→「VAC（トリガー VC 方式）は残し、募集は
 
 > 詳細な作業経過は git log を参照。
 
+### VC募集機能の削除（2026-09-20 develop merge）
+
+実測で**行は自鯖の1件のみ、かつ `setups` が空**（2026-09-05）。パネルも投稿先も存在せず稼働しておらず、他鯖はゼロ。削除の根拠①（誰も使っていない）に該当する。saika の src 28ファイル・テスト34ファイルが消えた。
+
+`enabled=true` になっていたのは `addSetup` が立てたフラグを false に戻す経路が無かったため（`enable`/`disable` サブコマンドが無く、teardown は `setups` から消すだけ）。デフォルトも `enabled: true` で、**このフラグは最初から意味を持っていなかった。**
+
+- [x] `src/features/vc-recruit/` 一式と `/vc-recruit-settings` コマンド、テストを削除
+- [x] **未配線のデッドコード `handleVcRecruitVoiceStateUpdate` を撤去。** src からの参照ゼロでテストだけが維持していた（自動削除を廃止した時の残骸）
+- [x] `messageDelete` / `channelDelete` からフックを外し、composition root・モーダル2本・ボタン3本・セレクト3本の配線を除去
+- [x] API の `vcRecruitResource` とルート登録、概要 API の該当カードを削除（機能カードは12→10）
+- [x] ロケールの `vcRecruit` 名前空間（ja/en 各128キー）、help、`system.ts` のログ接頭辞、`embedColors`
+- [x] `guild-settings` の export / import・アグリゲートリポジトリ・型定義・`shared/database/types/vcRecruitTypes.ts` から除去
+- [x] migration で `guild_vc_recruit_settings` を削除
+- [x] web ダッシュボードの `VcRecruitPage`・ルート・ナビ・モックを削除
+- [x] **招待 URL からスレッド系の権限3件を削除**（下記）
+- [x] README・ARCHITECTURE・IMPLEMENTATION_GUIDELINES・I18N_GUIDE・GIT_WORKFLOW・DISCORD_BOT_SETUP を追従
+
+> **スレッド系の招待権限を外した理由**（2026-09-20 決定）。`CreatePublicThreads` / `ManageThreads` / `SendMessagesInThreads` はすべて VC募集の募集スレッド用で、削除後の src に**スレッド操作が1箇所も残らない**ことを確認した。チャンネル選択はすべて型制限されており、唯一スレッドを選べる message-delete は対象のメッセージを消すだけで投稿しない。既存サーバーは再招待するまで付与済み権限のまま。
+> **ARCHITECTURE.md は非アクティブキック削除の追従漏れも直した。** `GuildInactiveKickSettings` / `MemberActivity` とそのリポジトリが表に残っており、`guildId` を持つモデル数も 16 のままだった（実際は13）。
+> **`shared` の `VcRecruitSetup` / `VcRecruitSettings` はまだ消していない。** 掃除の最後に v3.0.0 として1回で publish する方針のため（2026-09-20 決定）。使われない型が残るのは掃除の間だけ。
+> **マニュアル（USER_MANUAL.md）は触っていない。** 削除3機能ぶんをまとめて落とす「マニュアル全面修正」タスクで対応する。非アクティブキックと `/vc` も同じ状態。
+
 ### Bot ステータスをギルド参加・退出時に更新する（2026-09-20 完了・本番デプロイ済み）
 
 `applyBotPresence()` の呼び出し元が `clientReady` / `shardReady` / `shardResume` の3箇所しかなく、参加・退出しても**再起動または再接続まで古いサーバー数が表示され続けていた**。

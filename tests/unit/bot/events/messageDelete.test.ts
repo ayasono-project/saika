@@ -3,13 +3,8 @@
 import { Events } from "discord.js";
 import { messageDeleteEvent } from "@/bot/events/messageDelete";
 
-const handleVcRecruitMessageDeleteMock = vi.fn();
 const handleTicketMessageDeleteMock = vi.fn();
 
-vi.mock("@/features/vc-recruit/handlers/vcRecruitMessageDeleteHandler", () => ({
-  handleVcRecruitMessageDelete: (...args: unknown[]) =>
-    handleVcRecruitMessageDeleteMock(...args),
-}));
 vi.mock("@/features/ticket/handlers/ticketMessageDeleteHandler", () => ({
   handleTicketMessageDelete: (...args: unknown[]) =>
     handleTicketMessageDeleteMock(...args),
@@ -43,11 +38,19 @@ describe("bot/events/messageDelete", () => {
     expect(messageDeleteEvent.once).toBe(false);
   });
 
-  it("メッセージが handleVcRecruitMessageDelete へ委譲されることを確認", async () => {
+  it("メッセージが handleTicketMessageDelete へ委譲されることを確認", async () => {
     const message = createMessage();
 
     await messageDeleteEvent.execute(message as never);
 
-    expect(handleVcRecruitMessageDeleteMock).toHaveBeenCalledWith(message);
+    expect(handleTicketMessageDeleteMock).toHaveBeenCalledWith(message);
+  });
+
+  it("メッセージが handleReactionRoleMessageDelete へ委譲されることを確認", async () => {
+    const message = createMessage();
+
+    await messageDeleteEvent.execute(message as never);
+
+    expect(handleReactionRoleMessageDeleteMock).toHaveBeenCalledWith(message);
   });
 });

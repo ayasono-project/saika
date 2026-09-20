@@ -13,8 +13,6 @@ const BASE: OverviewInputs = {
   afkChannelId: null,
   vacEnabled: false,
   vacTriggerCount: 0,
-  vcRecruitEnabled: false,
-  vcRecruitSetupCount: 0,
   vcAutoRecruitEnabled: false,
   vcAutoRecruitCategoryCount: 0,
   stickyCount: 0,
@@ -35,13 +33,12 @@ function statusFor(key: string, input: OverviewInputs) {
 }
 
 describe("toFeatureStatuses", () => {
-  it("12 機能を既定の表示順で返す", () => {
+  it("10 機能を既定の表示順で返す", () => {
     const keys = toFeatureStatuses(BASE).map((s) => s.key);
     expect(keys).toEqual([
       "general",
       "afk",
       "vac",
-      "vc-recruit",
       "vc-auto-recruit",
       "sticky",
       "member-log",

@@ -16,11 +16,10 @@ export interface BotRoutesOptions {
  * Administrator は要求しない。各機能の実 API 呼び出しに必要な個別権限のみを列挙する:
  * - 共通（コマンド応答）: ViewChannel / SendMessages / EmbedLinks / ReadMessageHistory
  * - reaction-role / ticket / kick 系マーカーロール: ManageRoles
- * - message-delete / sticky-message / vc-recruit パネル: ManageMessages
- * - ticket / vac / vc-recruit / vc-auto-recruit（チャンネル作成・編集・overwrite）: ManageChannels
+ * - message-delete / sticky-message: ManageMessages
+ * - ticket / vac / vc-auto-recruit（チャンネル作成・編集・overwrite）: ManageChannels
  * - vac / afk（メンバー移動）: MoveMembers / Connect（移動先VCへの接続権限が別途必要）
  * - unverified-kick: KickMembers
- * - vc-recruit（自動スレッド作成 / 募集スレッド削除 / 募集スレッドへの @everyone 送信 overwrite 付与）: CreatePublicThreads / ManageThreads / SendMessagesInThreads
  * - member-log（招待元トラッキング = guild.invites.fetch）: ManageGuild
  *
  * 注: @everyone/@here や「メンション不可ロール」への通知を実際に飛ばす MentionEveryone は
@@ -37,9 +36,6 @@ const INVITE_PERMISSIONS: PermissionsString[] = [
   "MoveMembers",
   "Connect",
   "KickMembers",
-  "CreatePublicThreads",
-  "ManageThreads",
-  "SendMessagesInThreads",
   "ManageGuild",
 ];
 

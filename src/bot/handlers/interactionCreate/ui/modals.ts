@@ -20,15 +20,11 @@ import {
   unverifiedKickSetNotifyMessageModalHandler,
 } from "../../../../features/unverified-kick/handlers/ui/unverifiedKickDmMessageModalHandler";
 import { vcAutoRecruitSetMessageModalHandler } from "../../../../features/vc-auto-recruit/handlers/ui/vcAutoRecruitSetMessageModalHandler";
-import { vcRecruitModalHandler } from "../../../../features/vc-recruit/handlers/ui/vcRecruitModal";
-import { vcRecruitRenameModalHandler } from "../../../../features/vc-recruit/handlers/ui/vcRecruitRenameModal";
 import type { ModalHandler } from "./types";
 
 export const modalHandlers: ModalHandler[] = [
   // VC募集モーダル送信（ステップ1→2）を処理
-  vcRecruitModalHandler,
   // VC募集メッセージからのVC名変更モーダルを処理
-  vcRecruitRenameModalHandler,
   // sticky-message set プレーンテキストモーダルを処理
   stickyMessageSetModalHandler,
   // sticky-message set Embed モーダルを処理

@@ -35,7 +35,6 @@ export const I18N_NAMESPACES = [
   "reactionRole",
   "stickyMessage",
   "ticket",
-  "vcRecruit",
   "guildSettings",
 ] as const;
 

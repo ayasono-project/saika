@@ -55,7 +55,6 @@ export const bumpReminder = {
 
   // ── embed: config_view ─────────────────────────
   "embed.title.config_view": "Bumpリマインダー機能",
-  "embed.description.config_view": "現在の設定状態",
 
   // ── embed: panel ───────────────────────────────
   "embed.title.panel": "Bumpリマインダー機能",
@@ -87,7 +86,6 @@ export const bumpReminder = {
   "log.config_users_removed":
     "メンションユーザー削除 GuildId: {{guildId}} UserIds: {{userIds}}",
   "log.scheduler_task_failed": "タスク失敗 GuildId: {{guildId}}",
-  "log.scheduler_description": "GuildId: {{guildId}} ExecuteAt: {{executeAt}}",
   "log.scheduler_scheduled":
     "{{minutes}} 分後にリマインダーをスケジュール GuildId: {{guildId}}",
   "log.scheduler_cancelling":
@@ -111,8 +109,6 @@ export const bumpReminder = {
   "log.scheduler_duplicates_none": "重複リマインダーなし",
   "log.scheduler_unregistered_channel":
     "未登録チャンネルのためスキップ GuildId: {{guildId}} ChannelId: {{channelId}} ExpectedChannelId: {{expectedChannelId}}",
-  "log.scheduler_orphaned_panel_delete_failed":
-    "孤立パネルメッセージ削除失敗 PanelMessageId: {{panelMessageId}}",
   "log.scheduler_panel_deleted":
     "パネルメッセージを削除 GuildId: {{guildId}} PanelMessageId: {{panelMessageId}}",
   "log.scheduler_panel_delete_failed":

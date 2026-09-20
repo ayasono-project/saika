@@ -6,8 +6,6 @@ export const messageDelete = {
     "メッセージを一括削除します（デフォルト: サーバー全チャンネル）",
   "message-delete.count.description":
     "削除するメッセージ数（1〜1000、未指定時は最新1000件を上限に削除）",
-  "message-delete.user.description":
-    "削除対象のユーザーID またはメンション（Webhookの場合はIDを直接入力）",
   "message-delete.keyword.description":
     "本文に指定キーワードを含むメッセージのみ削除（部分一致）",
   "message-delete.days.description":
@@ -16,8 +14,6 @@ export const messageDelete = {
     "この日時以降のメッセージのみ削除 (YYYY-MM-DD または YYYY-MM-DDTHH:MM:SS)",
   "message-delete.before.description":
     "この日時以前のメッセージのみ削除 (YYYY-MM-DD または YYYY-MM-DDTHH:MM:SS)",
-  "message-delete.channel.description":
-    "削除対象を絞り込むチャンネル（未指定でサーバー全体）",
 
   // ── UIラベル ──────────────────────────────────
   "ui.button.scan_cancel": "収集分を確認",
@@ -101,10 +97,6 @@ export const messageDelete = {
   "embed.field.value.jump_to_message": "↗ メッセージへ",
 
   // ── ユーザーレスポンス ────────────────────────
-  "user-response.user_invalid_format":
-    "`user` の形式が不正です。ユーザーIDまたはメンション（例: `<@123456789>`）を入力してください。",
-  "user-response.no_filter":
-    "フィルタ条件が指定されていないため実行できません。\n`count`・`user`・`keyword`・`days`・`after`・`before` のいずれか1つを指定してください。",
   "user-response.days_and_date_conflict":
     "`days` と `after`/`before` は同時に指定できません。どちらか一方を使用してください。",
   "user-response.after_invalid_format":
@@ -117,7 +109,6 @@ export const messageDelete = {
     "この操作を実行する権限がありません。\n必要な権限: メッセージ管理",
   "user-response.bot_no_permission":
     "Botに必要な権限が不足しているため、操作を実行できませんでした。\n必要な権限: メッセージ管理・メッセージ履歴の閲覧・チャンネルの閲覧\nサーバー管理者にBotの権限設定の確認をお願いします。",
-  "user-response.text_channel_only": "テキストチャンネルを指定してください。",
   "user-response.no_messages_found":
     "削除可能なメッセージが見つかりませんでした。",
   "user-response.delete_failed": "メッセージの削除中にエラーが発生しました。",
@@ -132,8 +123,6 @@ export const messageDelete = {
     "`before` には現在より前の日時を指定してください。（当日の指定は有効です）",
   "user-response.locked":
     "現在このサーバーでメッセージ削除コマンドを実行中です。完了後に再度お試しください。",
-  "user-response.channel_no_access":
-    "指定したチャンネルにアクセスできません。\nBotにReadMessageHistoryおよびManageMessages権限が必要です。\nサーバー管理者にBotの権限設定の確認をお願いします。",
   "user-response.webhook_invalid_format":
     "Webhook ID の形式が不正です。17〜20桁の数字を入力してください。",
   "user-response.channel_partial_skip":

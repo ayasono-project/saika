@@ -7,8 +7,6 @@ export const vac = {
   "vac-settings.create-trigger-vc.category.description":
     "作成先カテゴリ（TOP またはカテゴリ。未指定時は実行カテゴリ）",
   "vac-settings.remove-trigger-vc.description": "トリガーチャンネルを削除",
-  "vac-settings.remove-trigger-vc.category.description":
-    "削除対象（TOP またはカテゴリ。未指定時は実行カテゴリ）",
   "vac-settings.remove-trigger-vc.category.top": "TOP（カテゴリなし）",
   "vac-settings.view.description": "現在の設定を表示",
 
@@ -20,22 +18,13 @@ export const vac = {
   "user-response.triggers_removed":
     "{{count}}件のトリガーチャンネルを削除しました。",
   "user-response.not_configured": "VC自動作成機能が設定されていません。",
-  "user-response.trigger_not_found":
-    "指定されたカテゴリーにはトリガーチャンネルはありません。",
   "user-response.already_exists": "トリガーチャンネルが既に存在します。",
   "user-response.category_full":
     "カテゴリ内のチャンネル数が上限に達しています。",
-  "user-response.no_permission":
-    "チャンネルを作成または編集する権限がありません。",
-  "user-response.not_in_any_vc": "このコマンドはVC参加中にのみ使用できます。",
-
-  // ── embed: remove_error ────────────────────────
-  "embed.title.remove_error": "削除エラー",
 
   // ── embed: config_view ─────────────────────────
   "embed.title.config_view": "VC自動作成機能",
   "embed.field.name.trigger_channels": "トリガーチャンネル",
-  "embed.field.name.created_vcs": "作成されたVC数",
   "embed.field.name.created_vc_details": "作成されたVC",
   "embed.field.value.no_created_vcs": "なし",
   "embed.field.value.top": "TOP",

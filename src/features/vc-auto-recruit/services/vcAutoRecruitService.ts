@@ -9,6 +9,7 @@ import {
   type VoiceState,
 } from "discord.js";
 import type { BotClient } from "../../../bot/client";
+import { notifyWarnChannel } from "../../../bot/shared/errorChannelNotifier";
 import type { VcAutoRecruitRef } from "../../../shared/database/types";
 import { getGuildTranslator } from "../../../shared/locale/helpers";
 import { logPrefixed, tDefault } from "../../../shared/locale/localeManager";
@@ -338,6 +339,18 @@ export class VcAutoRecruitService {
             { guildId: guild.id, channelId: channel.id },
           ),
         );
+        // 黙って設定が消えると投稿が止まった理由が分からないため管理者へ知らせる
+        // （メンバーログと同じ扱い: エラーチャンネル＋システムチャンネル）
+        await notifyWarnChannel(guild, `Channel ${channel.id} not found`, {
+          feature: "VC自動募集",
+          action: "投稿先チャンネル消失→設定自動リセット",
+        });
+        const t = await getGuildTranslator(guild.id);
+        await guild.systemChannel
+          ?.send({
+            content: t("vcAutoRecruit:user-response.channel_deleted_notice"),
+          })
+          .catch(() => null);
       }
 
       // (c) 有効チャンネルが削除された → allowlist から除去

@@ -25,6 +25,11 @@ vi.mock("@/shared/utils/logger", () => ({
   logger: { debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() },
 }));
 
+const notifyWarnChannelMock = vi.fn();
+vi.mock("@/bot/shared/errorChannelNotifier", () => ({
+  notifyWarnChannel: (...args: unknown[]) => notifyWarnChannelMock(...args),
+}));
+
 type TestMember = {
   id: string;
   user: {
@@ -96,11 +101,13 @@ function makeGuild(
   postChannel: ReturnType<typeof makePostChannel>,
   afkChannelId: string | null = null,
   voiceChannel?: ReturnType<typeof makeVoiceChannel>,
+  systemChannel: { send: ReturnType<typeof vi.fn> } | null = null,
 ) {
   return {
     id: "g-1",
     name: "彩園",
     afkChannelId,
+    systemChannel,
     channels: {
       // デバウンス発火時に VC をキャッシュ経由でなく取り直すため、VC も解決できるようにする
       fetch: vi.fn(async (cid: string) => {
@@ -554,6 +561,64 @@ describe("features/vc-auto-recruit/vcAutoRecruitService", () => {
       expect(settingsService.disableAndClearChannel).toHaveBeenCalledWith(
         "g-1",
       );
+    });
+
+    it("投稿先チャンネル削除時に管理者へ通知すること", async () => {
+      const { settingsService, vacSettingsService } = createServices();
+      const post = makePostChannel();
+      const systemChannel = { send: vi.fn(async () => undefined) };
+      const guild = makeGuild(post, null, undefined, systemChannel);
+      settingsService.getVcAutoRecruitSettings.mockResolvedValue({
+        ...enabledConfig(),
+        activeInvites: [],
+      });
+
+      const service = new VcAutoRecruitService(
+        settingsService as never,
+        vacSettingsService as never,
+      );
+      await service.handleChannelDelete({
+        id: "ch-1",
+        guild,
+        isDMBased: () => false,
+        type: ChannelType.GuildText,
+      } as never);
+
+      // エラーチャンネルとシステムチャンネルの両方へ知らせる（メンバーログと同じ扱い）
+      expect(notifyWarnChannelMock).toHaveBeenCalledWith(
+        guild,
+        "Channel ch-1 not found",
+        expect.objectContaining({ feature: "VC自動募集" }),
+      );
+      expect(systemChannel.send).toHaveBeenCalledWith({
+        content: "vcAutoRecruit:user-response.channel_deleted_notice",
+      });
+    });
+
+    it("システムチャンネルが無いギルドでも設定クリアは完了すること", async () => {
+      const { settingsService, vacSettingsService } = createServices();
+      const post = makePostChannel();
+      const guild = makeGuild(post);
+      settingsService.getVcAutoRecruitSettings.mockResolvedValue({
+        ...enabledConfig(),
+        activeInvites: [],
+      });
+
+      const service = new VcAutoRecruitService(
+        settingsService as never,
+        vacSettingsService as never,
+      );
+      await service.handleChannelDelete({
+        id: "ch-1",
+        guild,
+        isDMBased: () => false,
+        type: ChannelType.GuildText,
+      } as never);
+
+      expect(settingsService.disableAndClearChannel).toHaveBeenCalledWith(
+        "g-1",
+      );
+      expect(notifyWarnChannelMock).toHaveBeenCalled();
     });
 
     it("有効チャンネルが削除されたら enabledChannelIds から除去すること", async () => {

@@ -6,8 +6,6 @@ export const messageDelete = {
     "Bulk delete messages (default: all channels in server)",
   "message-delete.count.description":
     "Number of messages to delete (1–1000, defaults to 1000 if omitted)",
-  "message-delete.user.description":
-    "Target user ID or mention (for webhooks, paste the user ID directly)",
   "message-delete.keyword.description":
     "Delete messages containing this keyword (case-insensitive partial match)",
   "message-delete.days.description":
@@ -16,8 +14,6 @@ export const messageDelete = {
     "Delete only messages after this date (YYYY-MM-DD or YYYY-MM-DDTHH:MM:SS)",
   "message-delete.before.description":
     "Delete only messages before this date (YYYY-MM-DD or YYYY-MM-DDTHH:MM:SS)",
-  "message-delete.channel.description":
-    "Restrict deletion to a specific channel (default: entire server)",
 
   // ── UI labels ──────────────────────────────────
   "ui.button.scan_cancel": "Preview Collected",
@@ -101,10 +97,6 @@ export const messageDelete = {
   "embed.field.value.jump_to_message": "↗ Jump to message",
 
   // ── User responses ─────────────────────────────
-  "user-response.user_invalid_format":
-    "Invalid `user` format. Enter a user ID or mention (e.g. `<@123456789>`).",
-  "user-response.no_filter":
-    "No filter condition specified. Please provide at least one of: `count`, `user`, `keyword`, `days`, `after`, `before`.",
   "user-response.days_and_date_conflict":
     "`days` cannot be combined with `after`/`before`. Use one or the other.",
   "user-response.after_invalid_format":
@@ -116,7 +108,6 @@ export const messageDelete = {
     "You do not have permission to perform this action.\nRequired permission: Manage Messages",
   "user-response.bot_no_permission":
     "The bot lacks the required permissions to perform this action.\nRequired: Manage Messages, Read Message History, View Channel\nPlease contact a server administrator to check the bot's permission settings.",
-  "user-response.text_channel_only": "Please specify a text channel.",
   "user-response.no_messages_found": "No deletable messages were found.",
   "user-response.delete_failed": "An error occurred while deleting messages.",
   "user-response.scan_failed": "An error occurred while scanning messages.",
@@ -131,8 +122,6 @@ export const messageDelete = {
     "Please specify a past date/time for `before`. (Today's date is valid.)",
   "user-response.locked":
     "A message-delete command is already running on this server. Please try again after it completes.",
-  "user-response.channel_no_access":
-    "Cannot access the specified channel.\nThe bot requires ReadMessageHistory and ManageMessages permissions.\nPlease contact a server administrator to check the bot's permission settings.",
   "user-response.webhook_invalid_format":
     "Invalid Webhook ID format. Please enter a 17-20 digit number.",
   "user-response.channel_partial_skip":

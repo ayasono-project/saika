@@ -56,7 +56,6 @@ export const bumpReminder = {
 
   // ── embed: config_view ─────────────────────────
   "embed.title.config_view": "Bump Reminder Feature",
-  "embed.description.config_view": "Current settings status",
 
   // ── embed: panel ───────────────────────────────
   "embed.title.panel": "Bump Reminder",
@@ -89,7 +88,6 @@ export const bumpReminder = {
   "log.config_users_removed":
     "mention users removed GuildId: {{guildId}} UserIds: {{userIds}}",
   "log.scheduler_task_failed": "Task failed GuildId: {{guildId}}",
-  "log.scheduler_description": "GuildId: {{guildId}} ExecuteAt: {{executeAt}}",
   "log.scheduler_scheduled":
     "Scheduled reminder in {{minutes}} minutes GuildId: {{guildId}}",
   "log.scheduler_cancelling":
@@ -112,8 +110,6 @@ export const bumpReminder = {
   "log.scheduler_duplicates_none": "No duplicate reminders to cancel",
   "log.scheduler_unregistered_channel":
     "Skipping unregistered channel GuildId: {{guildId}} ChannelId: {{channelId}} ExpectedChannelId: {{expectedChannelId}}",
-  "log.scheduler_orphaned_panel_delete_failed":
-    "Failed to delete orphaned panel message PanelMessageId: {{panelMessageId}}",
   "log.scheduler_panel_deleted":
     "Deleted panel message GuildId: {{guildId}} PanelMessageId: {{panelMessageId}}",
   "log.scheduler_panel_delete_failed":

@@ -40,16 +40,12 @@ export const stickyMessage = {
     "この操作を実行する権限がありません。チャンネル管理権限が必要です。",
   "user-response.empty_message": "メッセージ内容を入力してください。",
   "user-response.text_channel_only": "テキストチャンネルにのみ設定できます。",
-  "user-response.operation_failed":
-    "スティッキーメッセージの操作中にエラーが発生しました。",
 
   // ── Embed ─────────────────────────────────────
   "embed.title.set_success": "設定完了",
-  "embed.title.already_exists": "警告",
   "embed.title.remove_success": "削除完了",
   "embed.title.remove_not_found": "未設定",
   "embed.title.view": "スティッキーメッセージ設定",
-  "embed.title.view_not_found": "未設定",
   "embed.title.update_success": "更新完了",
   "embed.title.update_not_found": "未設定",
   "embed.field.name.removed_channels": "削除したチャンネル",

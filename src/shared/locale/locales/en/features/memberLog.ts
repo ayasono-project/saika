@@ -68,7 +68,6 @@ export const memberLog = {
   "embed.field.name.leave_member_count": "Member Count",
 
   // Embed field values (shared formatting)
-  "embed.field.value.days": "{{count}} days",
   "embed.field.value.member_count": "{{count}} members",
   "embed.field.value.unknown": "Unknown",
   "embed.field.value.age_years": "{{count}}yr",
@@ -92,8 +91,6 @@ export const memberLog = {
   "log.leave_notification_sent":
     "leave notification sent GuildId: {{guildId}} UserId: {{userId}}",
   "log.notification_failed": "failed to send notification GuildId: {{guildId}}",
-  "log.channel_not_found":
-    "channel not found GuildId: {{guildId}} ChannelId: {{channelId}}",
   "log.channel_deleted_config_cleared":
     "channel deleted, config cleared GuildId: {{guildId}} ChannelId: {{channelId}}",
   "log.config_set_channel":
@@ -107,10 +104,6 @@ export const memberLog = {
   "log.config_reset": "settings reset GuildId: {{guildId}}",
   "log.config_leave_message_cleared":
     "leave message cleared GuildId: {{guildId}}",
-  "log.database_user_setting_find_failed":
-    "Failed to find user setting UserId: {{userId}} GuildId: {{guildId}}",
-  "log.database_user_setting_upsert_failed":
-    "Failed to upsert user setting UserId: {{userId}} GuildId: {{guildId}}",
 } as const;
 
 export type MemberLogTranslations = typeof memberLog;

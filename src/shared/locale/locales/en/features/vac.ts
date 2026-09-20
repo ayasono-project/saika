@@ -8,8 +8,6 @@ export const vac = {
   "vac-settings.create-trigger-vc.category.description":
     "Destination category (TOP or category; defaults to current category)",
   "vac-settings.remove-trigger-vc.description": "Remove trigger channel",
-  "vac-settings.remove-trigger-vc.category.description":
-    "Target category (TOP or category; defaults to current category)",
   "vac-settings.remove-trigger-vc.category.top": "TOP (no category)",
   "vac-settings.view.description": "Show current settings",
 
@@ -19,21 +17,12 @@ export const vac = {
   "user-response.triggers_removed": "Removed {{count}} trigger channel(s).",
   "user-response.not_configured":
     "Voice auto-create feature is not configured.",
-  "user-response.trigger_not_found":
-    "There is no trigger channel in the specified category.",
   "user-response.already_exists": "A trigger channel already exists.",
   "user-response.category_full": "The category has reached the channel limit.",
-  "user-response.no_permission":
-    "Missing permission to create or edit channels.",
-  "user-response.not_in_any_vc": "This command can only be used while in a VC.",
-
-  // ── embed: remove_error ────────────────────────
-  "embed.title.remove_error": "Removal Error",
 
   // ── embed: config_view ─────────────────────────
   "embed.title.config_view": "Voice Auto-Create",
   "embed.field.name.trigger_channels": "Trigger channels",
-  "embed.field.name.created_vcs": "Created VC count",
   "embed.field.name.created_vc_details": "Created VCs",
   "embed.field.value.no_created_vcs": "None",
   "embed.field.value.top": "TOP",

@@ -59,8 +59,10 @@ export const guildSettings = {
   "embed.description.reset_all_confirm":
     "Reset all feature settings?\nAll settings below will be deleted. This action cannot be undone.",
   "embed.field.name.reset_all_target": "Targets",
+  // Confirmation text for an irreversible action. Keep it in sync with the tables
+  // GuildSettingsAggregateRepository.deleteAllSettings actually deletes.
   "embed.field.value.reset_all_target":
-    "Language / Error Channel / AFK / VAC / VC Recruit / Sticky Message / Member Log / Bump Reminder",
+    "Language / Error Channel / AFK / Auto VC (VAC) / VC Auto Recruit / Sticky Message / Member Log / Bump Reminder (incl. scheduled) / Tickets (settings and records) / Reaction Roles / Unverified Kick (incl. warnings)",
 
   // ── embed: import_confirm ─────────────────────
   "embed.title.import_confirm": "Import Guild Settings",

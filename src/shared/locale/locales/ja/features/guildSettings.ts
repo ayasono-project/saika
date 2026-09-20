@@ -58,8 +58,10 @@ export const guildSettings = {
   "embed.description.reset_all_confirm":
     "全機能の設定をリセットしますか？\n以下の設定がすべて削除されます。この操作は元に戻せません。",
   "embed.field.name.reset_all_target": "削除対象",
+  // 取り消せない操作の確認文言。GuildSettingsAggregateRepository.deleteAllSettings が
+  // 実際に消すテーブルと1対1で対応させること（過少申告すると利用者を騙すことになる）
   "embed.field.value.reset_all_target":
-    "言語設定 / エラー通知チャンネル / AFK / VAC / VC募集 / メッセージ固定 / メンバーログ / Bumpリマインダー",
+    "言語設定 / エラー通知チャンネル / AFK / VC自動作成（VAC）/ VC自動募集 / メッセージ固定 / メンバーログ / Bumpリマインダー（予約を含む）/ チケット（設定とチケット記録）/ リアクションロール / 未承認ユーザー自動キック（警告記録を含む）",
 
   // ── embed: import_confirm ─────────────────────
   "embed.title.import_confirm": "ギルド設定インポート確認",

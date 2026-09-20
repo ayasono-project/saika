@@ -11,6 +11,10 @@ export const about = {
   "embed.field.name.version": "Version",
   "embed.field.name.official": "🔗 Official site",
   "embed.field.value.official": "{{url}}",
+  "embed.field.name.manual": "📚 User manual",
+  "embed.field.value.manual": "{{url}}",
+  "embed.field.name.dashboard": "🌐 Dashboard",
+  "embed.field.value.dashboard": "Manage settings in your browser: {{url}}",
 } as const;
 
 export type AboutTranslations = typeof about;

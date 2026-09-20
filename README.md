@@ -2,7 +2,7 @@
 
 > 出来ないこと以外は何でも出来る！コミュニティに彩りを加えるサーバー管理 Bot「彩加 =Saika=」
 
-**開発開始**: 2026年2月 | **最終更新**: 2026年6月29日 | **AI利用**: コードおよびドキュメントの作成に生成AIを使用しています。
+**開発開始**: 2026年2月 | **最終更新**: 2026年9月20日 | **AI利用**: コードおよびドキュメントの作成に生成AIを使用しています。
 
 ## 概要
 
@@ -29,7 +29,6 @@
 | ------------------------ | -------------------------------------------------------- | :--: | --------------------------------------------------------------- |
 | 基本コマンド             | `/ping` `/help`                                          |  ✅  | [manual](docs/guides/USER_MANUAL.md#基本コマンド)               |
 | ギルド設定               | 言語・通知チャンネル設定と設定エクスポート・インポート   |  ✅  | [manual](docs/guides/USER_MANUAL.md#ギルド設定機能)             |
-| VC操作コマンド           | `/vc rename` `/vc limit` でBot管理VCの名前・人数制限変更 |  ✅  | [manual](docs/guides/USER_MANUAL.md#vc操作コマンド)             |
 | AFK                      | VC非アクティブメンバーを指定AFKチャンネルへ手動移動       |  ✅  | [manual](docs/guides/USER_MANUAL.md#afk機能)                    |
 | VC自動作成               | トリガーVC参加で専用VC自動作成・操作パネル・自動削除     |  ✅  | [manual](docs/guides/USER_MANUAL.md#vc自動作成機能)             |
 | VC募集                   | 専用チャンネルでパネルUIによるVC募集投稿・管理           |  ✅  | [manual](docs/guides/USER_MANUAL.md#vc募集機能)                 |
@@ -132,6 +131,7 @@ pnpm lint:fix         # Biome自動修正
 ### ガイド
 
 - [TODO](TODO.md) - タスク管理・残件リスト
+- [HISTORY](HISTORY.md) - 決定事項・取り下げ済み・完了済みの記録
 - [アーキテクチャガイド](docs/guides/ARCHITECTURE.md) - 全体設計方針・依存方向・責務境界
 - [Discord Bot セットアップ](docs/guides/DISCORD_BOT_SETUP.md) - Discord Developer Portal でのアプリ作成・サーバー招待手順
 - [デプロイガイド](docs/guides/DEPLOYMENT.md) - GitHub Actions による自動デプロイフロー詳細

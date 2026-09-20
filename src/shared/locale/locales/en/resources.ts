@@ -8,7 +8,6 @@ import {
   bumpReminder,
   guildSettings,
   help,
-  inactiveKick,
   memberLog,
   messageDelete,
   ping,
@@ -17,7 +16,6 @@ import {
   ticket,
   unverifiedKick,
   vac,
-  vc,
   vcAutoRecruit,
   vcRecruit,
 } from "./features";
@@ -32,11 +30,9 @@ export const en: {
   afk: typeof afk;
   bumpReminder: typeof bumpReminder;
   vac: typeof vac;
-  vc: typeof vc;
   vcAutoRecruit: typeof vcAutoRecruit;
   messageDelete: typeof messageDelete;
   memberLog: typeof memberLog;
-  inactiveKick: typeof inactiveKick;
   unverifiedKick: typeof unverifiedKick;
   reactionRole: typeof reactionRole;
   stickyMessage: typeof stickyMessage;
@@ -52,11 +48,9 @@ export const en: {
   afk,
   bumpReminder,
   vac,
-  vc,
   vcAutoRecruit,
   messageDelete,
   memberLog,
-  inactiveKick,
   unverifiedKick,
   reactionRole,
   stickyMessage,

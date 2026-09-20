@@ -16,7 +16,6 @@ const initGuildInviteCacheMock = vi.fn();
 const restoreAutoDeleteTimersMock = vi.fn();
 const getBotTicketRepositoryMock = vi.fn();
 const addJobMock = vi.fn();
-const runInactiveKickDailyCheckMock = vi.fn();
 const runUnverifiedKickDailyCheckMock = vi.fn();
 
 vi.mock("@/shared/locale/localeManager", () => ({
@@ -86,13 +85,6 @@ vi.mock("@/bot/services/botCompositionRoot", () => ({
 
 vi.mock("@/shared/scheduler/jobScheduler", () => ({
   jobScheduler: { addJob: (...args: unknown[]) => addJobMock(...args) },
-}));
-
-vi.mock("@/features/inactive-kick/services/inactiveKickRunner", () => ({
-  INACTIVE_KICK_JOB_ID: "inactive-kick:daily-check",
-  resolveInactiveKickSchedule: () => "0 * * * *",
-  runInactiveKickDailyCheck: (...args: unknown[]) =>
-    runInactiveKickDailyCheckMock(...args),
 }));
 
 vi.mock("@/features/unverified-kick/services/unverifiedKickRunner", () => ({
@@ -166,14 +158,6 @@ describe("bot/handlers/clientReadyHandler", () => {
     expect(initGuildInviteCacheMock).toHaveBeenCalledTimes(3);
     expect(restoreBumpRemindersOnStartupMock).toHaveBeenCalledWith(client);
     expect(cleanupVacOnStartupMock).toHaveBeenCalledWith(client);
-    // 非アクティブ自動キックの毎時スイープジョブが登録される
-    expect(addJobMock).toHaveBeenCalledWith(
-      expect.objectContaining({
-        id: "inactive-kick:daily-check",
-        schedule: "0 * * * *",
-        noOverlap: true,
-      }),
-    );
     // 未承認ユーザー自動キックの毎時スイープジョブが登録される
     expect(addJobMock).toHaveBeenCalledWith(
       expect.objectContaining({

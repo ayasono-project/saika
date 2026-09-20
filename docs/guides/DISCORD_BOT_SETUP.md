@@ -2,7 +2,7 @@
 
 > Discord Developer Portal でアプリを作成し、サーバーへ招待するまでの手順
 
-最終更新: 2026年8月19日
+最終更新: 2026年9月20日
 
 ---
 
@@ -76,10 +76,10 @@
 | 埋め込みリンク | Embed Links | 共通（embed 送信） |
 | メッセージ履歴を読む | Read Message History | 共通 |
 | メッセージの管理 | Manage Messages | message-delete / sticky / vc-recruit |
-| チャンネルの管理 | Manage Channels | ticket / vac / vc-recruit / vc-auto-recruit / vc-command |
+| チャンネルの管理 | Manage Channels | ticket / vac / vc-recruit / vc-auto-recruit|
 | ロールの管理 | Manage Roles | ticket / reaction-role / kick 系マーカーロール |
-| メンバーを移動 | Move Members | vac / vc-command / afk |
-| 接続 | Connect | vac / vc-command / afk（移動先VCへの接続。Move Members だけでは移動不可） |
+| メンバーを移動 | Move Members | vac / afk |
+| 接続 | Connect | vac / afk（移動先VCへの接続。Move Members だけでは移動不可） |
 | メンバーをキック | Kick Members | unverified-kick / inactive-kick |
 | 公開スレッドの作成 | Create Public Threads | vc-recruit（自動スレッド） |
 | スレッドの管理 | Manage Threads | vc-recruit（募集スレッド削除） |

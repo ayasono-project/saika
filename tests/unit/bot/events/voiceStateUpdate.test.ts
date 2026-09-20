@@ -5,7 +5,6 @@ import { voiceStateUpdateEvent } from "@/bot/events/voiceStateUpdate";
 
 const handleVacVoiceStateUpdateMock = vi.fn();
 const handleVcAutoRecruitVoiceStateUpdateMock = vi.fn();
-const handleInactiveKickVoiceActivityMock = vi.fn();
 
 vi.mock("@/features/vac/handlers/vacVoiceStateUpdate", () => ({
   handleVacVoiceStateUpdate: (...args: unknown[]) =>
@@ -19,11 +18,6 @@ vi.mock(
       handleVcAutoRecruitVoiceStateUpdateMock(...args),
   }),
 );
-
-vi.mock("@/features/inactive-kick/handlers/activityEventHandlers", () => ({
-  handleInactiveKickVoiceActivity: (...args: unknown[]) =>
-    handleInactiveKickVoiceActivityMock(...args),
-}));
 
 // voiceStateUpdate イベントの検証
 describe("bot/events/voiceStateUpdate", () => {
@@ -66,18 +60,6 @@ describe("bot/events/voiceStateUpdate", () => {
     await voiceStateUpdateEvent.execute(oldState as never, newState as never);
 
     expect(handleVcAutoRecruitVoiceStateUpdateMock).toHaveBeenCalledWith(
-      oldState,
-      newState,
-    );
-  });
-
-  it("旧・新ボイス状態が handleInactiveKickVoiceActivity へ委譲されることを確認", async () => {
-    const oldState = { channelId: "old" };
-    const newState = { channelId: "new" };
-
-    await voiceStateUpdateEvent.execute(oldState as never, newState as never);
-
-    expect(handleInactiveKickVoiceActivityMock).toHaveBeenCalledWith(
       oldState,
       newState,
     );

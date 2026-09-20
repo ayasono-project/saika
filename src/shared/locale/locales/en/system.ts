@@ -8,7 +8,6 @@ export const system = {
   "log_prefix.bump_reminder": "BumpReminder",
   "log_prefix.sticky_message": "StickyMessage",
   "log_prefix.member_log": "MemberLog",
-  "log_prefix.inactive_kick": "InactiveKick",
   "log_prefix.unverified_kick": "UnverifiedKick",
   "log_prefix.vac": "VAC",
   "log_prefix.vc_recruit": "VcRecruit",
@@ -27,6 +26,7 @@ export const system = {
   "log_prefix.message_delete": "messageDelete",
   "log_prefix.voice_state_update": "voiceStateUpdate",
   "log_prefix.channel_delete": "channelDelete",
+  "log_prefix.guild_create": "guildCreate",
   "log_prefix.guild_delete": "guildDelete",
   "log_prefix.ready": "ready",
   "log_prefix.ticket": "Ticket",
@@ -40,6 +40,10 @@ export const system = {
   "error_channel.send_warn_failed":
     "Failed to send warn notification GuildId: {{guildId}}",
 
+  // guildCreate (bot joined a guild)
+  "guild_create.joined":
+    "guild join detected GuildId: {{guildId}} GuildName: {{guildName}}",
+
   // guildDelete (cleanup on bot removal)
   "guild_delete.start":
     "guild removal detected, deleting config data GuildId: {{guildId}} GuildName: {{guildName}}",
@@ -52,6 +56,8 @@ export const system = {
   "bot.commands.registering": "Registering {{count}} commands...",
   "bot.commands.registered": "Commands registered",
   "bot.commands.command_registered": "  ✓ /{{name}}",
+  "bot.commands.global_cleared":
+    "Cleared global commands because this is a development environment",
   "bot.events.registering": "Registering {{count}} events...",
   "bot.events.registered": "Events registered",
   "bot.startup.error": "Error during bot startup:",

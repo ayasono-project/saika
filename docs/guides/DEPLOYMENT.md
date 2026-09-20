@@ -2,7 +2,7 @@
 
 > Coolify による saika の自動デプロイフロー
 
-最終更新: 2026年8月19日
+最終更新: 2026年9月20日
 
 ---
 
@@ -18,11 +18,48 @@ XServer VPS (Ubuntu 24.04)
 ├── Docker Compose (Infra スタック: infra)   ← /opt/infra/ で管理
 │   └── cloudflared コンテナ                 ← Cloudflare Tunnel（外部アクセス用）
 └── Coolify App (saika)                      ← Docker Compose デプロイ
-    └── bot コンテナ (saika-bot)             ← Discord Bot 本体
+    └── bot コンテナ                          ← Discord Bot 本体（+ API）
+```
+
+コンテナ名は Coolify が `<サービス名>-<UUID>` の形で自動的に付けるため固定ではない。`saika` では引けないので、公開ポートで探す。
+
+```bash
+docker ps --filter publish=8081 --format '{{.Names}}'
 ```
 
 Coolify は VPS にホスト直インストールされ、`https://coolify.sonozaki.net` からアクセスできる。
 Cloudflare Tunnel 経由のため VPS のポート公開は不要（Webhook 用の 8000 番ポートを除く）。
+
+### Web API の到達経路
+
+```
+ブラウザ（saika-dash）
+  → Cloudflare（X-Forwarded-For の末尾に本物のクライアント IP を追記）
+  → Cloudflare Tunnel
+  → cloudflared コンテナ（host ネットワーク。ヘッダには触れない）
+  → 127.0.0.1:8081
+  → docker-proxy（コンテナから見た接続元は Docker ネットワークのゲートウェイ）
+  → bot コンテナ :8080（Fastify API）
+```
+
+Traefik（coolify-proxy）は通らない。コンテナから見た接続元は 2026-09-20 の実測で `10.0.1.1`（Coolify の既定アドレスプール `10.0.0.0/8` の中）。saika はこの範囲からの接続だけを中継として信頼し、`X-Forwarded-For` を右から辿って最初の信頼できない要素をクライアント IP とする（`src/api/constants.ts` の `TRUSTED_PROXY_RANGES`）。
+
+**経路を変えたとき（Traefik を挟む・Coolify のアドレスプールを変える等）は `TRUSTED_PROXY_RANGES` を必ず見直す。** 範囲から外れると全員が同じ枠でレート制限に数えられ、全体で上限を超えるまではエラーにならず黙って劣化する。cloudflared を更新したときも同じ確認をする（latest タグ運用のため、ヘッダの扱いが変わりうる）。
+
+確認は、偽の `X-Forwarded-For` を付けて `/health` を3回叩く。残り回数が1つずつ減れば正しい。減らずに毎回同じ値なら、偽のヘッダが通っている。
+
+```bash
+for i in 1 2 3; do
+  curl -s -o /dev/null -D - -H "X-Forwarded-For: 198.51.100.$i" \
+    https://saika-api.sonozaki.net/health | grep -i x-ratelimit-remaining
+done
+```
+
+コンテナから見た接続元を確かめるときは、Coolify のターミナルで bot コンテナに入り、ダッシュボードを操作しながら次を実行する。各行の2列目（16進・リトルエンディアン）が接続元。
+
+```bash
+for i in $(seq 60); do grep -E ':1F90 [0-9A-F]{8}:[0-9A-F]{4} 01 ' /proc/net/tcp; sleep 1; done
+```
 
 ### デプロイフロー全体図
 

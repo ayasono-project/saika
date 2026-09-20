@@ -8,7 +8,6 @@ export const system = {
   "log_prefix.bump_reminder": "Bumpリマインダー",
   "log_prefix.sticky_message": "スティッキーメッセージ",
   "log_prefix.member_log": "メンバーログ",
-  "log_prefix.inactive_kick": "非アクティブキック",
   "log_prefix.unverified_kick": "未承認キック",
   "log_prefix.vac": "VAC",
   "log_prefix.vc_recruit": "VC募集",
@@ -27,6 +26,7 @@ export const system = {
   "log_prefix.message_delete": "messageDelete",
   "log_prefix.voice_state_update": "voiceStateUpdate",
   "log_prefix.channel_delete": "channelDelete",
+  "log_prefix.guild_create": "guildCreate",
   "log_prefix.guild_delete": "guildDelete",
   "log_prefix.ready": "ready",
   "log_prefix.ticket": "チケット",
@@ -39,6 +39,10 @@ export const system = {
     "エラー通知の送信に失敗しました GuildId: {{guildId}}",
   "error_channel.send_warn_failed":
     "警告通知の送信に失敗しました GuildId: {{guildId}}",
+
+  // guildCreate（Bot参加時）
+  "guild_create.joined":
+    "ギルドへの参加を検知しました GuildId: {{guildId}} GuildName: {{guildName}}",
 
   // guildDelete（Bot退出時クリーンアップ）
   "guild_delete.start":
@@ -53,6 +57,8 @@ export const system = {
   "bot.commands.registering": "{{count}}個のコマンドを登録しています...",
   "bot.commands.registered": "コマンド登録完了",
   "bot.commands.command_registered": "  ✓ /{{name}}",
+  "bot.commands.global_cleared":
+    "開発環境のためグローバルコマンドを空にしました（残骸の掃除）",
   "bot.events.registering": "{{count}}個のイベントを登録しています...",
   "bot.events.registered": "イベント登録完了",
   "bot.startup.error": "起動中にエラーが発生しました:",

@@ -2,7 +2,7 @@
 
 > Implementation Guidelines - 実装方針とコーディング規約
 
-最終更新: 2026年8月19日
+最終更新: 2026年9月20日
 
 ---
 
@@ -496,14 +496,13 @@ disableComponentsAfterTimeout(interaction, [selectRow, buttonRow], TIMEOUT_MS);
 - **エラー応答全般**（グローバルエラーハンドラ `interactionErrorHandler` が常に ephemeral で返す）
 - 破壊的操作の **確認ダイアログ本体**・キャンセル / タイムアウト応答・no-op（空振り）エラー
 
-> 確認ダイアログは ephemeral、確認後の **結果** は public、という分離を徹底する。一括操作（`/vc disconnect`・`/vc move`・`/afk` の target=channel）は確認を ephemeral で出し、実行結果は `interaction.followUp()` で public に送る。
+> 確認ダイアログは ephemeral、確認後の **結果** は public、という分離を徹底する。一括操作（`/afk` の target=channel）は確認を ephemeral で出し、実行結果は `interaction.followUp()` で public に送る。
 
 **コマンド分類（カテゴリ別）:**
 
 | カテゴリ | 可視性 | 該当コマンド | 備考 |
 | --- | --- | --- | --- |
-| 共有リソース変更（他メンバー干渉） | public | `/vc disconnect`・`/vc move`・`/afk` | 結果 Embed は public。確認 / エラー / キャンセルは ephemeral |
-| 自分の管理対象 VC 変更 | public | `/vc rename`・`/vc limit` | 共有リソース変更のため public（2026-05-30 に ephemeral から移行） |
+| 共有リソース変更（他メンバー干渉） | public | `/afk` | 結果 Embed は public。確認 / エラー / キャンセルは ephemeral |
 | 設定管理 | ephemeral | `*-settings` 全般（afk / bump-reminder / guild / member-log / reaction-role / ticket / vac / vc-recruit） | 実行者（管理者）向け |
 | 常設パネル投稿 | public | vc-recruit パネル、bump パネル、チケットパネル、リアクションロールパネル等 | チャンネルに残す UI |
 | 情報表示 | public または ephemeral | `/ping`・`/help`・`/about` | コマンドの性質に応じて選択 |

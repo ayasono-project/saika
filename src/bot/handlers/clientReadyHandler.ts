@@ -1,13 +1,8 @@
 // src/bot/handlers/clientReadyHandler.ts
 // clientReady 時のBot共通ハンドラー
 
-import { ActivityType, Events, PresenceUpdateStatus } from "discord.js";
+import { Events } from "discord.js";
 import { restoreBumpRemindersOnStartup } from "../../features/bump-reminder/handlers/bumpReminderStartup";
-import {
-  INACTIVE_KICK_JOB_ID,
-  resolveInactiveKickSchedule,
-  runInactiveKickDailyCheck,
-} from "../../features/inactive-kick/services/inactiveKickRunner";
 import { initGuildInviteCache } from "../../features/member-log/handlers/inviteTracker";
 import { restoreAutoDeleteTimers } from "../../features/ticket/services/ticketAutoDeleteService";
 import {
@@ -17,31 +12,12 @@ import {
 } from "../../features/unverified-kick/services/unverifiedKickRunner";
 import { cleanupVacOnStartup } from "../../features/vac/handlers/vacStartupCleanup";
 import { cleanupVcAutoRecruitOnStartup } from "../../features/vc-auto-recruit/handlers/vcAutoRecruitStartupCleanup";
-import { logPrefixed, tDefault } from "../../shared/locale/localeManager";
+import { logPrefixed } from "../../shared/locale/localeManager";
 import { jobScheduler } from "../../shared/scheduler/jobScheduler";
 import { logger } from "../../shared/utils/logger";
 import type { BotClient } from "../client";
 import { getBotTicketRepository } from "../services/botCompositionRoot";
-
-/**
- * 現在の稼働サーバー数を反映した「プレイ中」プレゼンスを適用する。
- * 初回 ready だけでなく再接続（shardReady / shardResume）後にも呼び、
- * 再 IDENTIFY でアクティビティが失われたまま復元されない問題を防ぐ。
- */
-function applyBotPresence(client: BotClient): void {
-  const serverCount = client.guilds.cache.size;
-  client.user?.setPresence({
-    activities: [
-      {
-        name: tDefault("system:bot.presence_activity", {
-          count: serverCount,
-        }),
-        type: ActivityType.Playing,
-      },
-    ],
-    status: PresenceUpdateStatus.Online,
-  });
-}
+import { applyBotPresence } from "../services/botPresence";
 
 /**
  * clientReady 発火時の初期化後処理をまとめて実行する関数
@@ -91,15 +67,6 @@ export async function handleClientReady(client: BotClient): Promise<void> {
     await cleanupVcAutoRecruitOnStartup(client);
     // クローズ済みチケットの自動削除タイマーを復元
     await restoreAutoDeleteTimers(client, getBotTicketRepository());
-
-    // 非アクティブ自動キックのスイープを登録（毎時・per-guild timezone/runHour で絞り込み）
-    // INACTIVE_KICK_CRON が設定されていれば検証用にスケジュールを上書きする
-    jobScheduler.addJob({
-      id: INACTIVE_KICK_JOB_ID,
-      schedule: resolveInactiveKickSchedule(),
-      noOverlap: true,
-      task: () => runInactiveKickDailyCheck(client),
-    });
 
     // 未承認ユーザー自動キックのスイープを登録（毎時・per-guild timezone/runHour で絞り込み）
     // UNVERIFIED_KICK_CRON が設定されていれば検証用にスケジュールを上書きする

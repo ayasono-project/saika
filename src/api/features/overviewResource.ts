@@ -20,7 +20,6 @@ import type { ApiServerDeps } from "../types";
 import { createAfkResource } from "./afkResource";
 import { createBumpResource } from "./bumpResource";
 import { createConfigResource } from "./configResource";
-import { createInactiveKickResource } from "./inactiveKickResource";
 import { createMemberLogResource } from "./memberLogResource";
 import { createUnverifiedKickResource } from "./unverifiedKickResource";
 import { createVacResource } from "./vacResource";
@@ -44,8 +43,6 @@ export interface OverviewInputs {
   bumpMentionRoleId: string | null;
   ticketCount: number;
   reactionRoleCount: number;
-  inactiveKickEnabled: boolean;
-  inactiveKickTierCount: number;
   unverifiedKickEnabled: boolean;
   unverifiedKickVerifiedRoleId: string | null;
 }
@@ -116,11 +113,6 @@ export function toFeatureStatuses(input: OverviewInputs): FeatureStatus[] {
       summary: `パネル: ${input.reactionRoleCount}件`,
     },
     {
-      key: "inactive-kick",
-      state: toggle(input.inactiveKickEnabled),
-      summary: `在籍階層: ${input.inactiveKickTierCount}件`,
-    },
-    {
       key: "unverified-kick",
       state: toggle(input.unverifiedKickEnabled),
       summary: input.unverifiedKickVerifiedRoleId
@@ -154,7 +146,6 @@ async function collectInputs(
     memberLog,
     bump,
     vcAuto,
-    inactive,
     unverified,
     vcRecruit,
     sticky,
@@ -167,7 +158,6 @@ async function collectInputs(
     createMemberLogResource(prisma).read(guildId),
     createBumpResource().read(guildId),
     createVcAutoRecruitResource(prisma).read(guildId),
-    createInactiveKickResource(prisma).read(guildId),
     createUnverifiedKickResource(prisma).read(guildId),
     getBotVcRecruitSettingsService().getVcRecruitSettingsOrDefault(guildId),
     getBotStickyMessageSettingsService().findAllByGuild(guildId),
@@ -192,8 +182,6 @@ async function collectInputs(
     bumpMentionRoleId: bump.mentionRoleId,
     ticketCount: tickets.length,
     reactionRoleCount: reactionRoles.length,
-    inactiveKickEnabled: inactive.enabled,
-    inactiveKickTierCount: inactive.tiers.length,
     unverifiedKickEnabled: unverified.enabled,
     unverifiedKickVerifiedRoleId: unverified.verifiedRoleId,
   };

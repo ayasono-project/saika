@@ -96,8 +96,16 @@ function createInteraction() {
   };
 }
 
+/** target-member に user-2 を指定した interaction を作る */
+function createInteractionWithTargetMember() {
+  const interaction = createInteraction();
+  interaction.options.getUser = vi.fn().mockReturnValue({ id: "user-2" });
+  return interaction;
+}
+
 // afkCommand.execute の個別移動 / 一括移動 / 各種バリデーションを検証する
 describe("features/afk/commands/afkCommand.execute", () => {
+  // 各ケースで AFK 設定を有効状態に戻し、モック呼び出し記録をリセットする
   beforeEach(() => {
     vi.clearAllMocks();
     getAfkSettingsMock.mockResolvedValue({
@@ -158,12 +166,25 @@ describe("features/afk/commands/afkCommand.execute", () => {
     ).rejects.toBeInstanceOf(ValidationError);
   });
 
-  it("target 省略時は実行者自身を AFK チャンネルへ移動し public で返信する", async () => {
+  it("target-member と target-channel をどちらも省略した場合は ValidationError を投げ、移動も確認ダイアログも行わない", async () => {
     const interaction = createInteraction();
+
+    await expect(executeAfkCommand(interaction as never)).rejects.toThrow(
+      "afk:user-response.target_required",
+    );
+    expect(interaction.guild.members.fetch).not.toHaveBeenCalled();
+    expect(interaction.setChannelMock).not.toHaveBeenCalled();
+    expect(presentBulkConfirmMock).not.toHaveBeenCalled();
+    expect(interaction.reply).not.toHaveBeenCalled();
+    expect(loggerInfoMock).not.toHaveBeenCalled();
+  });
+
+  it("target-member 指定時はそのメンバーを AFK チャンネルへ移動し public で返信する", async () => {
+    const interaction = createInteractionWithTargetMember();
 
     await executeAfkCommand(interaction as never);
 
-    expect(interaction.guild.members.fetch).toHaveBeenCalledWith("user-1");
+    expect(interaction.guild.members.fetch).toHaveBeenCalledWith("user-2");
     expect(interaction.setChannelMock).toHaveBeenCalledWith(
       interaction.afkChannel,
       "audit-reason",
@@ -172,7 +193,7 @@ describe("features/afk/commands/afkCommand.execute", () => {
       expect.objectContaining({
         action: "afk",
         invokerId: "user-1",
-        targetUserId: "user-1",
+        targetUserId: "user-2",
         destinationChannelId: "afk-channel",
       }),
     );
@@ -184,40 +205,35 @@ describe("features/afk/commands/afkCommand.execute", () => {
     expect(loggerInfoMock).toHaveBeenCalledTimes(1);
   });
 
-  it("target-member 指定時はそのメンバーを対象にする", async () => {
-    const interaction = createInteraction();
-    interaction.options.getUser = vi.fn().mockReturnValue({ id: "user-2" });
-
-    await executeAfkCommand(interaction as never);
-
-    expect(interaction.guild.members.fetch).toHaveBeenCalledWith("user-2");
-    expect(formatActionLogMock).toHaveBeenCalledWith(
-      expect.objectContaining({ targetUserId: "user-2" }),
-    );
-  });
-
-  it("対象メンバーが見つからない場合は ValidationError を投げる", async () => {
-    const interaction = createInteraction();
+  // target 必須化後も target_required で緑になって素通りしないよう、メッセージキーまで検証する
+  it("対象メンバーが見つからない場合は member_not_found の ValidationError を投げる", async () => {
+    const interaction = createInteractionWithTargetMember();
     interaction.guild.members.fetch = vi.fn().mockResolvedValue(null);
 
     await expect(
       executeAfkCommand(interaction as never),
     ).rejects.toBeInstanceOf(ValidationError);
+    await expect(executeAfkCommand(interaction as never)).rejects.toThrow(
+      "afk:user-response.member_not_found",
+    );
   });
 
-  it("対象メンバーが VC にいない場合は ValidationError を投げる", async () => {
-    const interaction = createInteraction();
+  it("対象メンバーが VC にいない場合は target_not_in_voice の ValidationError を投げる", async () => {
+    const interaction = createInteractionWithTargetMember();
     interaction.guild.members.fetch = vi
       .fn()
-      .mockResolvedValue({ id: "user-1", voice: { channel: null } });
+      .mockResolvedValue({ id: "user-2", voice: { channel: null } });
 
     await expect(
       executeAfkCommand(interaction as never),
     ).rejects.toBeInstanceOf(ValidationError);
+    await expect(executeAfkCommand(interaction as never)).rejects.toThrow(
+      "afk:user-response.target_not_in_voice",
+    );
   });
 
   it("setChannel で MissingPermissions エラーが発生した場合は上位ハンドラへ伝播する", async () => {
-    const interaction = createInteraction();
+    const interaction = createInteractionWithTargetMember();
     const apiError = new DiscordAPIError(
       {
         code: RESTJSONErrorCodes.MissingPermissions,
@@ -226,7 +242,7 @@ describe("features/afk/commands/afkCommand.execute", () => {
       RESTJSONErrorCodes.MissingPermissions,
       403,
       "PATCH",
-      "/guilds/guild-1/members/user-1",
+      "/guilds/guild-1/members/user-2",
       {},
     );
     interaction.setChannelMock.mockRejectedValue(apiError);
@@ -271,8 +287,7 @@ describe("features/afk/commands/afkCommand.execute", () => {
   });
 
   it("target-member と target-channel の同時指定は ValidationError を投げる", async () => {
-    const interaction = createInteraction();
-    interaction.options.getUser = vi.fn().mockReturnValue({ id: "user-2" });
+    const interaction = createInteractionWithTargetMember();
     interaction.options.getChannel = vi
       .fn()
       .mockReturnValue({ id: "src-1", type: GUILD_VOICE });

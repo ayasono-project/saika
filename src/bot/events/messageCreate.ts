@@ -3,7 +3,6 @@
 
 import { Events } from "discord.js";
 import { handleBumpMessageCreate } from "../../features/bump-reminder/handlers/bumpMessageCreateHandler";
-import { handleInactiveKickMessageActivity } from "../../features/inactive-kick/handlers/activityEventHandlers";
 import { handleStickyMessageCreate } from "../../features/sticky-message/handlers/stickyMessageCreateHandler";
 import type { BotEvent } from "../types/discord";
 
@@ -17,7 +16,5 @@ export const messageCreateEvent: BotEvent<typeof Events.MessageCreate> = {
     await handleBumpMessageCreate(message);
     // スティッキーメッセージ再送信ロジックは機能ハンドラへ委譲
     await handleStickyMessageCreate(message);
-    // 非アクティブ自動キックのアクティビティ記録
-    await handleInactiveKickMessageActivity(message);
   },
 };

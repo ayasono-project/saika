@@ -5,7 +5,6 @@ import type {
   AfkSettings,
   BumpReminderSettings,
   FullGuildState,
-  InactiveKickSettings,
   MemberLogSettings,
   UnverifiedKickSettings,
   VacSettings,
@@ -29,7 +28,6 @@ export interface GuildSettingsExportSettings {
   memberLog?: MemberLogSettings;
   vcRecruit?: VcRecruitSettings;
   vcAutoRecruit?: VcAutoRecruitSettings;
-  inactiveKick?: InactiveKickSettings;
   unverifiedKick?: UnverifiedKickSettings;
 }
 

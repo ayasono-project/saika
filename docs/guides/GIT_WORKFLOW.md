@@ -68,14 +68,14 @@ git push origin develop
 
 ```bash
 # フィーチャーブランチを作成
-git checkout -b feature/vc-recruit
+git checkout -b feature/vc-auto-recruit
 
 # 開発・コミット
-git commit -m "feat(vc-recruit): ..."
+git commit -m "feat(vc-auto-recruit): ..."
 
 # push して PR を作成
-git push origin feature/vc-recruit
-gh pr create --base develop --title "feat(vc-recruit): ..." --body "..."
+git push origin feature/vc-auto-recruit
+gh pr create --base develop --title "feat(vc-auto-recruit): ..." --body "..."
 # CI 通過後に自動でマージ（rebase 推奨）
 gh pr merge <PR番号> --rebase --auto
 ```
@@ -157,7 +157,6 @@ git push origin develop
 | `member-log`     | 入退室ログ                         |
 | `sticky-message` | スティッキーメッセージ             |
 | `vac`            | VAC（VC自動作成機能）              |
-| `vc-recruit`     | VC募集機能                         |
 | `vc-panel`       | VCコントロールパネル共通モジュール |
 | `scheduler`      | スケジューラー                     |
 | `db`             | データベース・マイグレーション     |

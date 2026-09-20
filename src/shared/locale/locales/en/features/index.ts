@@ -15,4 +15,3 @@ export { ticket } from "./ticket";
 export { unverifiedKick } from "./unverifiedKick";
 export { vac } from "./vac";
 export { vcAutoRecruit } from "./vcAutoRecruit";
-export { vcRecruit } from "./vcRecruit";

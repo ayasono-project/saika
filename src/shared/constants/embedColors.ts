@@ -25,5 +25,4 @@ export const EMBED_COLORS = {
   /** スティッキーメッセージ デフォルト（ビリジアン��� */
   STICKY_MESSAGE_DEFAULT: 0x008969,
   /** VC募集パネル・投稿（ターコイズ #24B9B8） */
-  VC_RECRUIT_PANEL: 0x24b9b8,
 } as const;

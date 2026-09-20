@@ -17,7 +17,6 @@ import {
   unverifiedKick,
   vac,
   vcAutoRecruit,
-  vcRecruit,
 } from "./features";
 import { system } from "./system";
 
@@ -37,7 +36,6 @@ export const ja: {
   reactionRole: typeof reactionRole;
   stickyMessage: typeof stickyMessage;
   ticket: typeof ticket;
-  vcRecruit: typeof vcRecruit;
   guildSettings: typeof guildSettings;
 } = {
   common,
@@ -55,7 +53,6 @@ export const ja: {
   reactionRole,
   stickyMessage,
   ticket,
-  vcRecruit,
   guildSettings,
 };
 

@@ -8,4 +8,3 @@ export * from "./reactionRoleTypes";
 export * from "./repositories";
 export * from "./stickyMessageTypes";
 export * from "./ticketTypes";
-export * from "./vcRecruitTypes";

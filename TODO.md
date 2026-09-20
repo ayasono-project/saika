@@ -31,10 +31,10 @@
 
 | 区分 | 残件 |
 | --- | ---: |
-| いま着手できる | 10 |
+| いま着手できる | 9 |
 | 完了待ち | 13 |
 | 未決（判断が要る） | 11 |
-| **合計** | **34** |
+| **合計** | **33** |
 
 > **着手順は「いま着手できる」の並び順そのもの**（1件＝1 PR）。番号付きの「次にやること」は 2026-09-20 に廃止。1件動くたびに本体・サマリー・リストの3箇所を直すことになり、番号も挿入のたびにずれるため。
 >
@@ -54,21 +54,6 @@
 ## いま着手できる
 
 依存なし。上から順に1件ずつ着手する（1件＝1 PR）。並び順が実行順を兼ねるので、順番を変えたいときはこのセクション内で移動する。
-
-### VC募集機能の削除 【実装・大】
-
-**依存なし。** 実測で**行は自鯖の1件のみ、かつ `setups` が空**（2026-09-05）。パネルも投稿先も存在せず稼働していない。他鯖はゼロ。根拠①。
-
-`enabled=true` になっているのは、`addSetup` が立てたフラグを**false に戻す経路が存在しない**ため（`enable`/`disable` サブコマンドが無く、teardown は `setups` から消すだけ）。デフォルト自体も `enabled: true`（`vcRecruitSettingsDefaults.ts:8`）。**このフラグは最初から意味を持たない。**
-
-- [ ] `src/features/vc-recruit/` **27ファイル**と `/vc-recruit-settings` コマンドを削除（`vcRecruitButton.ts` 583行 / `vcRecruitStringSelect.ts` 213行 / `vcRecruitSettingsSetup.ts` 201行 ほか）
-- [ ] 未配線のデッドコード `handleVcRecruitVoiceStateUpdate`（`vcRecruitVoiceStateUpdate.ts:20`）とその unit / integration テスト。**src のどこからも呼ばれておらずテストだけが維持している**（自動削除を廃止した時の残骸）
-- [ ] migration で `guild_vc_recruit_settings` を削除
-- [ ] ロケール ja/en の `vcRecruit` 名前空間（各128キー・うち**11キーは既に未使用**）
-- [ ] messageDelete / channelDelete ハンドラ・composition root・help・テスト
-
-> **「タイマー / スケジューラ実装の整理」から手書き `setTimeout` 2箇所（`vcRecruitButton.ts:416` / `vcRecruitStringSelect.ts:191`）が消える。**
-> 「予約募集（イベント募集）機能」構想はこの setup を流用する前提だったが、2026-09-20 にその前提ごと破棄した（→「機能拡張アイデア」）。**消しても構想は死なない。** RSVP もリマインダーも Discord Scheduled Events 任せなので、作るなら独立して作るほうが素直。
 
 ### VC自動募集のカテゴリ残骸とデッドコードの撤去 【実装・中・saika ＋ shared】
 
@@ -106,10 +91,6 @@ API
 
 - `vcAutoRecruitSettingsService.test.ts:261-413` — カテゴリ操作の8ケース
 - `vcAutoRecruitService.test.ts:101,474` — channelDelete のカテゴリ掃除ケース
-
-他機能のデッドコード
-
-- `vcRecruitVoiceStateUpdate.ts:20` の `handleVcRecruitVoiceStateUpdate` — 同じ棚卸しで検出。撤去は「VC募集機能の削除」に含む
 
 **やること**
 
@@ -196,12 +177,11 @@ VAC が建てた VC は ID が毎回新しく allowlist に入らないので、
 | デバウンス | 生 `setTimeout` ＋ module-level Map | スティッキー再送（`stickyMessageResendService.ts`） |
 | TTL 付きエントリ | 生 `setTimeout` ＋ 二重 Map | `cooldownManager.ts` / `shared/utils/ttlMap.ts` |
 | UI タイムアウト | 共通関数（13箇所で使用） | `bot/shared/disableComponentsAfterTimeout.ts` |
-| UI タイムアウト | **手書き `setTimeout`** | `vcRecruitButton.ts:416` / `vcRecruitStringSelect.ts:191` ← **VC募集の削除で消える** |
 | フェーズ中断 | `setTimeout` ＋ `AbortController` | message-delete（性質が違うので対象外） |
 
 **やること**
 
-- [x] ~~**vc-recruit の手書き無効化2箇所を `disableComponentsAfterTimeout` に寄せる。**~~ → **VC募集機能の削除で不要**（2026-09-05）。共通関数の引数型を `ButtonInteraction` / `StringSelectMenuInteraction` へ広げる話も、他に手書き箇所が無くなるため保留
+- [x] ~~**vc-recruit の手書き無効化2箇所を `disableComponentsAfterTimeout` に寄せる。**~~ → **VC募集機能の削除で消滅**（2026-09-20 削除完了）。共通関数の引数型を `ButtonInteraction` / `StringSelectMenuInteraction` へ広げる話も、手書き箇所が無くなったため不要
 - [ ] **`jobScheduler.stopAll()` を graceful shutdown に接続する。** 定義とテストだけで本番から呼ばれていない（`main.ts` の shutdown は `apiServer.close()` → `client.shutdown()` → `prisma.$disconnect()` のみ）。全ジョブが `unref()` 済みなのでプロセス終了は妨げないが、**シャットダウン中にジョブが発火しうる**
 - [ ] **スティッキー再送のデバウンスを `jobScheduler.addOneTimeJob` へ寄せる。** 同 ID を `replaceExistingJob` で置き換えるのでデバウンスそのものになる。ただし置換のたびに `system:scheduler.job_exists` の warn が出るため、**デバウンス用途で warn を抑止するオプションを先に足すこと**（無いまま寄せるとログが荒れる）
 
@@ -260,16 +240,15 @@ VAC が建てた VC は ID が毎回新しく allowlist に入らないので、
 
 ### 未使用ロケールキーの一括撤去 【実装・中】
 
-**機能削除の完了待ち。** 削除する2機能ぶん23件が先に消えるので、後にやるほど対象が減る。
+**カテゴリ残骸の撤去待ち。** VC募集の削除で `vcRecruit` 11件が実施済み。残るカテゴリ系13件も先に消えるので、後にやるほど対象が減る。
 
-2026-09-05 に全名前空間をスキャンし**未使用候補88件**（全体1000件超の約8%）を検出。代表4件はロケール定義にしか存在しないことを実地検証済み。
+2026-09-05 に全名前空間をスキャンし**未使用候補88件**（全体1000件超の約8%）を検出。代表4件はロケール定義にしか存在しないことを実地検証済み。うち `vcRecruit` の11件は機能削除で消えたため、**残りは77件**（着手時に再スキャンする）。
 
 | 名前空間 | 未使用 / 全体 | 中身 |
 | --- | ---: | --- |
 | **system** | 33 / 135 | `web.*` 16件（**Web API の認証・セッションが丸ごと**）/ `database.*` 8件（旧 DB ロギング層）/ `log_prefix.*` 7件 / `shutdown.*` 2件 |
 | **common** | 9 / 66 | `database.*` 6件（system と対）/ `validation.error_title` / `general.error_title` / `title_move_failed` |
 | vcAutoRecruit | 13 / 88 | カテゴリ系12 ＋ `log.post_failed`（→「VC自動募集のカテゴリ残骸とデッドコードの撤去」） |
-| vcRecruit | 11 / 128 | 機能ごと消えるので対象外 |
 | bumpReminder | 5 / 85 | **`user-response.reminder_message_disboard` / `dissoku`**（リマインダー本文）/ `embed.description.config_view` ほか |
 | messageDelete / stickyMessage / ticket | 各 3 | |
 | vac | 3 | トリガー設定系の残骸（`user-response.trigger_not_found` / `embed.title.remove_error` / `embed.field.name.created_vcs`）。VAC は残すので (a) として撤去 |
@@ -508,7 +487,7 @@ Bot 名義で任意のメッセージ（プレーンテキスト / embed）を�
 - [ ] 未承認キックのログチャンネル必須化を実施した場合はその差分（`enable` にログチャンネル必須・有効中の `clear-log-channel` 拒否・未設定時の自動無効化と通知先）。メンバーログの Bot 除外とキック時の退出ログ抑止も反映。**実装後のコードを実際に読んで確認してから書くこと**
 - [ ] 冒頭の「最終更新」日付を更新
 
-> **ついでに招待 URL の権限（`INVITE_PERMISSIONS`）を見直せる。** 3機能が消えて不要になる権限があるかもしれない。ただし削除完了後に何が不要になったか確定してから。
+> **招待 URL の権限（`INVITE_PERMISSIONS`）の見直しは実施済み**（2026-09-20）。VC募集の削除でスレッド操作が1箇所も無くなったため `CreatePublicThreads` / `ManageThreads` / `SendMessagesInThreads` の3件を外した。マニュアル側の「Botに必要なサーバー権限」もこの3件を落とすこと。
 > **`/help` のコマンド一覧はコード側**なので各削除タスクで自動的に正しくなる。マニュアルだけ遅れるが、削除3機能は他鯖で使われていないため実害はない。
 
 ### Bot 一般公開準備

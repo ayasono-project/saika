@@ -5,7 +5,6 @@ import { channelDeleteEvent } from "@/bot/events/channelDelete";
 
 const handleVacChannelDeleteMock = vi.fn();
 const handleStickyMessageChannelDeleteMock = vi.fn();
-const handleVcRecruitChannelDeleteMock = vi.fn();
 const handleTicketChannelDeleteMock = vi.fn();
 
 vi.mock("@/features/vac/handlers/vacChannelDelete", () => ({
@@ -29,11 +28,6 @@ vi.mock(
       handleStickyMessageChannelDeleteMock(...args),
   }),
 );
-
-vi.mock("@/features/vc-recruit/handlers/vcRecruitChannelDeleteHandler", () => ({
-  handleVcRecruitChannelDelete: (...args: unknown[]) =>
-    handleVcRecruitChannelDeleteMock(...args),
-}));
 
 vi.mock("@/features/ticket/handlers/ticketChannelDeleteHandler", () => ({
   handleTicketChannelDelete: (...args: unknown[]) =>
@@ -100,13 +94,5 @@ describe("bot/events/channelDelete", () => {
     await channelDeleteEvent.execute(channel as never);
 
     expect(handleStickyMessageChannelDeleteMock).toHaveBeenCalledWith(channel);
-  });
-
-  it("チャンネルが handleVcRecruitChannelDelete へ委譲されることを確認", async () => {
-    const channel = createChannel({ type: ChannelType.GuildText });
-
-    await channelDeleteEvent.execute(channel as never);
-
-    expect(handleVcRecruitChannelDeleteMock).toHaveBeenCalledWith(channel);
   });
 });

@@ -132,16 +132,6 @@ model GuildUnverifiedKickWarn {
   @@map("guild_unverified_kick_warns")
 }
 
-// VC募集設定
-model GuildVcRecruitSettings {
-  guildId        String  @id @map("guild_id")
-  enabled        Boolean @default(false)
-  mentionRoleIds Json    @default("[]") @map("mention_role_ids") // jsonb: string[]
-  setups         Json    @default("[]")                          // jsonb: VcRecruitSetup[]
-
-  @@map("guild_vc_recruit_settings")
-}
-
 // Sticky Message (スティッキーメッセージ)
 model StickyMessage {
   id            String   @id @default(cuid())

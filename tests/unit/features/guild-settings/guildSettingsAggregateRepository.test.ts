@@ -28,10 +28,6 @@ describe("shared/database/repositories/guildSettingsAggregateRepository", () => 
     getMemberLogSettings: Mock;
     updateMemberLogSettings: Mock;
   };
-  let vcRecruitRepo: {
-    getVcRecruitSettings: Mock;
-    updateVcRecruitSettings: Mock;
-  };
   let vcAutoRecruitRepo: {
     getVcAutoRecruitSettings: Mock;
     updateVcAutoRecruitSettings: Mock;
@@ -63,10 +59,6 @@ describe("shared/database/repositories/guildSettingsAggregateRepository", () => 
       getMemberLogSettings: vi.fn(),
       updateMemberLogSettings: vi.fn(),
     };
-    vcRecruitRepo = {
-      getVcRecruitSettings: vi.fn(),
-      updateVcRecruitSettings: vi.fn(),
-    };
     vcAutoRecruitRepo = {
       getVcAutoRecruitSettings: vi.fn(),
       updateVcAutoRecruitSettings: vi.fn(),
@@ -85,7 +77,6 @@ describe("shared/database/repositories/guildSettingsAggregateRepository", () => 
       guildAfkSettings: { upsert: vi.fn() },
       guildBumpReminderSettings: { upsert: vi.fn() },
       guildMemberLogSettings: { upsert: vi.fn() },
-      guildVcRecruitSettings: { upsert: vi.fn() },
       guildVcAutoRecruitSettings: { upsert: vi.fn() },
       guildUnverifiedKickSettings: { upsert: vi.fn() },
       guildVacSettings: { upsert: vi.fn(), findUnique: vi.fn() },
@@ -110,7 +101,6 @@ describe("shared/database/repositories/guildSettingsAggregateRepository", () => 
       bumpReminderRepo as never,
       vacRepo as never,
       memberLogRepo as never,
-      vcRecruitRepo as never,
       vcAutoRecruitRepo as never,
       unverifiedKickRepo as never,
       stickyMessageRepo as never,
@@ -148,7 +138,6 @@ describe("shared/database/repositories/guildSettingsAggregateRepository", () => 
         ],
       });
       memberLogRepo.getMemberLogSettings.mockResolvedValue(null);
-      vcRecruitRepo.getVcRecruitSettings.mockResolvedValue(null);
       ticketSettingsRepo.findAllByGuild.mockResolvedValue([
         {
           guildId: "g1",
@@ -293,7 +282,6 @@ describe("shared/database/repositories/guildSettingsAggregateRepository", () => 
       bumpReminderRepo.getBumpReminderSettings.mockResolvedValue(null);
       vacRepo.getVacSettings.mockResolvedValue(null);
       memberLogRepo.getMemberLogSettings.mockResolvedValue(null);
-      vcRecruitRepo.getVcRecruitSettings.mockResolvedValue(null);
       ticketSettingsRepo.findAllByGuild.mockResolvedValue([]);
       ticketRepo.findAllOpenByGuild.mockResolvedValue([]);
       stickyMessageRepo.findAllByGuild.mockResolvedValue([
@@ -317,42 +305,12 @@ describe("shared/database/repositories/guildSettingsAggregateRepository", () => 
       );
     });
 
-    it("VcRecruitSettings.setups[].createdVoiceChannelIds が export から除外されること", async () => {
-      coreRepo.getSettings.mockResolvedValue({ guildId: "g1", locale: "ja" });
-      afkRepo.getAfkSettings.mockResolvedValue(null);
-      bumpReminderRepo.getBumpReminderSettings.mockResolvedValue(null);
-      vacRepo.getVacSettings.mockResolvedValue(null);
-      memberLogRepo.getMemberLogSettings.mockResolvedValue(null);
-      vcRecruitRepo.getVcRecruitSettings.mockResolvedValue({
-        enabled: true,
-        mentionRoleIds: [],
-        setups: [
-          {
-            categoryId: "cat-1",
-            panelChannelId: "p-1",
-            postChannelId: "post-1",
-            panelMessageId: "m-1",
-            threadArchiveDuration: 1440,
-            createdVoiceChannelIds: ["should-be-stripped"],
-          },
-        ],
-      });
-      ticketSettingsRepo.findAllByGuild.mockResolvedValue([]);
-      ticketRepo.findAllOpenByGuild.mockResolvedValue([]);
-      stickyMessageRepo.findAllByGuild.mockResolvedValue([]);
-      reactionRolePanelRepo.findAllByGuild.mockResolvedValue([]);
-
-      const result = await repo.getFullSettings("g1");
-      expect(result?.vcRecruit?.setups[0]?.createdVoiceChannelIds).toEqual([]);
-    });
-
     it("vcAutoRecruit / unverifiedKick を設定系に含めること（activeInvites は除外）", async () => {
       coreRepo.getSettings.mockResolvedValue({ guildId: "g1", locale: "ja" });
       afkRepo.getAfkSettings.mockResolvedValue(null);
       bumpReminderRepo.getBumpReminderSettings.mockResolvedValue(null);
       vacRepo.getVacSettings.mockResolvedValue(null);
       memberLogRepo.getMemberLogSettings.mockResolvedValue(null);
-      vcRecruitRepo.getVcRecruitSettings.mockResolvedValue(null);
       vcAutoRecruitRepo.getVcAutoRecruitSettings.mockResolvedValue({
         enabled: true,
         channelId: "ch-1",
@@ -600,35 +558,6 @@ describe("shared/database/repositories/guildSettingsAggregateRepository", () => 
       });
     });
 
-    it("VcRecruit: setups[].createdVoiceChannelIds が空配列で書き込まれること", async () => {
-      const data: FullGuildSettings = {
-        locale: "ja",
-        vcRecruit: {
-          enabled: true,
-          mentionRoleIds: ["r-1"],
-          setups: [
-            {
-              categoryId: "cat-1",
-              panelChannelId: "p-1",
-              postChannelId: "post-1",
-              panelMessageId: "m-1",
-              threadArchiveDuration: 1440,
-              createdVoiceChannelIds: ["should-not-persist"],
-            },
-          ],
-        },
-      };
-
-      await repo.importFullSettings("g1", data);
-      expect(prismaTx.guildVcRecruitSettings?.upsert).toHaveBeenCalled();
-      const callArgs =
-        prismaTx.guildVcRecruitSettings?.upsert?.mock.calls[0]?.[0];
-      const setupsJson = callArgs.create.setups as {
-        createdVoiceChannelIds: string[];
-      }[];
-      expect(setupsJson[0]?.createdVoiceChannelIds).toEqual([]);
-    });
-
     it("vcAutoRecruit: activeInvites が空配列で書き込まれること", async () => {
       const data: FullGuildSettings = {
         locale: "ja",
@@ -756,7 +685,6 @@ describe("shared/database/repositories/guildSettingsAggregateRepository", () => 
       "guildVcAutoRecruitSettings",
       "guildUnverifiedKickSettings",
       "guildUnverifiedKickWarn",
-      "guildVcRecruitSettings",
       "stickyMessage",
       "guildTicketSettings",
       "ticket",
@@ -780,7 +708,6 @@ describe("shared/database/repositories/guildSettingsAggregateRepository", () => 
         bumpReminderRepo as never,
         vacRepo as never,
         memberLogRepo as never,
-        vcRecruitRepo as never,
         vcAutoRecruitRepo as never,
         unverifiedKickRepo as never,
         stickyMessageRepo as never,

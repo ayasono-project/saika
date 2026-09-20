@@ -12,7 +12,6 @@ import {
   getBotReactionRolePanelSettingsService,
   getBotStickyMessageSettingsService,
   getBotTicketSettingsService,
-  getBotVcRecruitSettingsService,
 } from "../../bot/services/botCompositionRoot";
 import { tDefault } from "../../shared/locale/localeManager";
 import { ApiHttpError } from "../lib/httpError";
@@ -32,8 +31,6 @@ export interface OverviewInputs {
   afkChannelId: string | null;
   vacEnabled: boolean;
   vacTriggerCount: number;
-  vcRecruitEnabled: boolean;
-  vcRecruitSetupCount: number;
   vcAutoRecruitEnabled: boolean;
   vcAutoRecruitCategoryCount: number;
   stickyCount: number;
@@ -74,11 +71,6 @@ export function toFeatureStatuses(input: OverviewInputs): FeatureStatus[] {
       key: "vac",
       state: toggle(input.vacEnabled),
       summary: `トリガー: ${input.vacTriggerCount}チャンネル`,
-    },
-    {
-      key: "vc-recruit",
-      state: toggle(input.vcRecruitEnabled),
-      summary: `セットアップ: ${input.vcRecruitSetupCount}件`,
     },
     {
       key: "vc-auto-recruit",
@@ -147,7 +139,6 @@ async function collectInputs(
     bump,
     vcAuto,
     unverified,
-    vcRecruit,
     sticky,
     tickets,
     reactionRoles,
@@ -159,7 +150,6 @@ async function collectInputs(
     createBumpResource().read(guildId),
     createVcAutoRecruitResource(prisma).read(guildId),
     createUnverifiedKickResource(prisma).read(guildId),
-    getBotVcRecruitSettingsService().getVcRecruitSettingsOrDefault(guildId),
     getBotStickyMessageSettingsService().findAllByGuild(guildId),
     getBotTicketSettingsService().findAllByGuild(guildId),
     getBotReactionRolePanelSettingsService().findAllByGuild(guildId),
@@ -171,8 +161,6 @@ async function collectInputs(
     afkChannelId: afk.channelId,
     vacEnabled: vac.enabled,
     vacTriggerCount: vac.triggerChannelIds.length,
-    vcRecruitEnabled: vcRecruit.enabled,
-    vcRecruitSetupCount: vcRecruit.setups.length,
     vcAutoRecruitEnabled: vcAuto.enabled,
     vcAutoRecruitCategoryCount: vcAuto.enabledCategoryIds.length,
     stickyCount: sticky.length,

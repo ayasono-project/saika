@@ -19,7 +19,6 @@ import {
   createVcAutoRecruitResource,
   listActiveInvites,
 } from "../features/vcAutoRecruitResource";
-import { createVcRecruitResource } from "../features/vcRecruitResource";
 import { getGuildId } from "../lib/request";
 import type { ApiServerDeps } from "../types";
 import { registerSettingsResource } from "./settingsResource";
@@ -46,7 +45,6 @@ export const settingsRoutes: FastifyPluginAsync<SettingsRoutesOptions> = async (
   registerSettingsResource(fastify, createBumpResource());
   registerSettingsResource(fastify, createVcAutoRecruitResource(deps.prisma));
   registerSettingsResource(fastify, createUnverifiedKickResource(deps.prisma));
-  registerSettingsResource(fastify, createVcRecruitResource(deps));
 
   const guarded = {
     preHandler: [fastify.authenticate, fastify.requireGuildAccess],

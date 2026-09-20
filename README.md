@@ -31,7 +31,6 @@
 | ギルド設定               | 言語・通知チャンネル設定と設定エクスポート・インポート   |  ✅  | [manual](docs/guides/USER_MANUAL.md#ギルド設定機能)             |
 | AFK                      | VC非アクティブメンバーを指定AFKチャンネルへ手動移動       |  ✅  | [manual](docs/guides/USER_MANUAL.md#afk機能)                    |
 | VC自動作成               | トリガーVC参加で専用VC自動作成・操作パネル・自動削除     |  ✅  | [manual](docs/guides/USER_MANUAL.md#vc自動作成機能)             |
-| VC募集                   | 専用チャンネルでパネルUIによるVC募集投稿・管理           |  ✅  | [manual](docs/guides/USER_MANUAL.md#vc募集機能)                 |
 | VC自動募集               | VC参加(0→1)時に指定チャンネルへ募集メッセージを自動投稿   |  ✅  | [manual](docs/guides/USER_MANUAL.md#vc自動募集機能)             |
 | メッセージ固定           | 指定メッセージを新着投稿時に再送しチャンネル最下部に維持 |  ✅  | [manual](docs/guides/USER_MANUAL.md#メッセージ固定機能)         |
 | メンバーログ             | 参加・脱退の通知パネルと参加経路・滞在期間の記録         |  ✅  | [manual](docs/guides/USER_MANUAL.md#メンバーログ機能)           |

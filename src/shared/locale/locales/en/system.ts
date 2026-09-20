@@ -10,7 +10,6 @@ export const system = {
   "log_prefix.member_log": "MemberLog",
   "log_prefix.unverified_kick": "UnverifiedKick",
   "log_prefix.vac": "VAC",
-  "log_prefix.vc_recruit": "VcRecruit",
   "log_prefix.vc_auto_recruit": "VcAutoRecruit",
   "log_prefix.msg_del": "MsgDel",
   "log_prefix.afk": "AFK",

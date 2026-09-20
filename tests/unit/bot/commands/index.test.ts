@@ -81,7 +81,6 @@ const KNOWN_COMMAND_NAMES = [
   "ticket",
   "ticket-settings",
   "vac-settings",
-  "vc-recruit-settings",
   "ping",
 ];
 

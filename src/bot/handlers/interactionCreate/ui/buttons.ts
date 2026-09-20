@@ -13,9 +13,6 @@ import { ticketButtonHandler } from "../../../../features/ticket/handlers/ui/tic
 import { ticketCreateButtonHandler } from "../../../../features/ticket/handlers/ui/ticketCreateButtonHandler";
 import { ticketTeardownButtonHandler } from "../../../../features/ticket/handlers/ui/ticketTeardownButtonHandler";
 import { ticketViewButtonHandler } from "../../../../features/ticket/handlers/ui/ticketViewButtonHandler";
-import { vcRecruitButtonHandler } from "../../../../features/vc-recruit/handlers/ui/vcRecruitButton";
-import { vcRecruitPostButtonHandler } from "../../../../features/vc-recruit/handlers/ui/vcRecruitPostButton";
-import { vcRecruitRoleButtonHandler } from "../../../../features/vc-recruit/handlers/ui/vcRecruitRoleButtonHandler";
 import { vcBulkActionButtonHandler } from "../../../shared/vcBulkAction";
 import type { ButtonHandler } from "./types";
 
@@ -45,11 +42,8 @@ export const buttonHandlers: ButtonHandler[] = [
   // リアクションロール remove-button の確認・キャンセルボタンを処理
   reactionRoleRemoveButtonButtonHandler,
   // VC募集パネルのボタン入力を処理
-  vcRecruitButtonHandler,
   // VC募集メッセージのボタン入力を処理（削除・終了・VC名変更）
-  vcRecruitPostButtonHandler,
   // VC募集 add-role / remove-role の確認・キャンセルボタンを処理
-  vcRecruitRoleButtonHandler,
   // /vc disconnect・/vc move・/afk の一括操作確認ダイアログのボタンを処理
   vcBulkActionButtonHandler,
 ];

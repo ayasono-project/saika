@@ -20,9 +20,6 @@ describe("shared/database standalone repository getters", () => {
     const { getMemberLogSettingsRepository } = await import(
       "@/features/member-log/memberLogSettingsRepository"
     );
-    const { getVcRecruitSettingsRepository } = await import(
-      "@/features/vc-recruit/vcRecruitSettingsRepository"
-    );
 
     expect(() => getGuildCoreRepository()).toThrow("not initialized");
     expect(() => getAfkSettingsRepository()).toThrow("not initialized");
@@ -31,7 +28,6 @@ describe("shared/database standalone repository getters", () => {
     );
     expect(() => getVacSettingsRepository()).toThrow("not initialized");
     expect(() => getMemberLogSettingsRepository()).toThrow("not initialized");
-    expect(() => getVcRecruitSettingsRepository()).toThrow("not initialized");
   });
 
   it("types モジュールから Bump リマインダー結果定数をエクスポートしていること", async () => {

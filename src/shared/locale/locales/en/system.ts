@@ -26,6 +26,7 @@ export const system = {
   "log_prefix.message_delete": "messageDelete",
   "log_prefix.voice_state_update": "voiceStateUpdate",
   "log_prefix.channel_delete": "channelDelete",
+  "log_prefix.guild_create": "guildCreate",
   "log_prefix.guild_delete": "guildDelete",
   "log_prefix.ready": "ready",
   "log_prefix.ticket": "Ticket",
@@ -38,6 +39,10 @@ export const system = {
     "Failed to send error notification GuildId: {{guildId}}",
   "error_channel.send_warn_failed":
     "Failed to send warn notification GuildId: {{guildId}}",
+
+  // guildCreate (bot joined a guild)
+  "guild_create.joined":
+    "guild join detected GuildId: {{guildId}} GuildName: {{guildName}}",
 
   // guildDelete (cleanup on bot removal)
   "guild_delete.start":

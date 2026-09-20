@@ -4,6 +4,7 @@
 const mockDeleteAllConfigs = vi.fn();
 const mockFindAllClosedByGuild = vi.fn();
 const mockCancelAllForGuild = vi.fn();
+const mockApplyBotPresence = vi.fn();
 
 vi.mock("@/shared/locale/localeManager", () => ({
   logPrefixed: (
@@ -27,6 +28,9 @@ vi.mock("@/shared/scheduler/jobScheduler", () => ({
     hasJob: vi.fn(),
     removeJob: vi.fn(),
   },
+}));
+vi.mock("@/bot/services/botPresence", () => ({
+  applyBotPresence: (...args: unknown[]) => mockApplyBotPresence(...args),
 }));
 vi.mock("@/bot/services/botCompositionRoot", () => ({
   getBotGuildSettingsService: () => ({
@@ -122,5 +126,24 @@ describe("bot/handlers/guildDeleteHandler", () => {
     await handleGuildDelete(guild as never);
 
     expect(mockDeleteAllConfigs).toHaveBeenCalledWith("guild-1");
+  });
+
+  it("プレゼンスを更新すること", async () => {
+    const client = {};
+    const guild = { id: "guild-1", name: "Test Guild", client };
+
+    await handleGuildDelete(guild as never);
+
+    expect(mockApplyBotPresence).toHaveBeenCalledWith(client);
+  });
+
+  it("設定削除が失敗してもプレゼンスは更新されること", async () => {
+    mockDeleteAllConfigs.mockRejectedValue(new Error("db error"));
+    const client = {};
+    const guild = { id: "guild-1", name: "Test Guild", client };
+
+    await handleGuildDelete(guild as never);
+
+    expect(mockApplyBotPresence).toHaveBeenCalledWith(client);
   });
 });

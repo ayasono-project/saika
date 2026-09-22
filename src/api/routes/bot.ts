@@ -21,8 +21,13 @@ export interface BotRoutesOptions {
  * - unverified-kick: KickMembers
  * - member-log（招待元トラッキング = guild.invites.fetch）: ManageGuild
  * - message-delete（削除対象に private スレッドを選べる）: ManageThreads
- *   ※ Bot はスレッドを作らず、スレッドへ投稿もしない。private スレッドへ
- *     アクセスするためだけに必要で、CreatePublicThreads / SendMessagesInThreads は不要
+ * - bump-reminder（スレッド内で Bump された場合の予約パネル・リマインダー送信）: SendMessagesInThreads
+ *   ※ Bot はスレッドを作らないため CreatePublicThreads は不要。
+ *     interaction 応答は interaction トークン経由で送信権限を要求しないため、
+ *     コマンド応答だけならこの権限は不要だが、Bump 検知は messageCreate 起点の
+ *     channel.send() なのでスレッドでは SendMessagesInThreads が必須になる。
+ *     ticket / reaction-role のパネルはアーカイブで見失うためスレッドへ設置させない
+ *     （rejectThreadChannel で拒否）。
  *
  * 注: @everyone/@here や「メンション不可ロール」への通知を実際に飛ばす MentionEveryone は
  * 含めない（メッセージ投稿自体は成功し、当該メンションが通知を飛ばさないだけ）。
@@ -40,6 +45,7 @@ const INVITE_PERMISSIONS: PermissionsString[] = [
   "KickMembers",
   "ManageGuild",
   "ManageThreads",
+  "SendMessagesInThreads",
 ];
 
 /**

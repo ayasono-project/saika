@@ -7,6 +7,7 @@ import {
 } from "discord.js";
 import type { ButtonHandler } from "../../../../bot/handlers/interactionCreate/ui/types";
 import { getBotReactionRolePanelSettingsService } from "../../../../bot/services/botCompositionRoot";
+import { rejectThreadChannel } from "../../../../bot/shared/channelGuards";
 import {
   createErrorEmbed,
   createSuccessEmbed,
@@ -103,6 +104,9 @@ async function handleSetupDone(interaction: ButtonInteraction): Promise<void> {
     });
     return;
   }
+
+  // deferUpdate より前に判定する。後だと deferred 応答となりセットアップ画面自体を上書きしてしまう
+  if (await rejectThreadChannel(interaction)) return;
 
   await interaction.deferUpdate();
 

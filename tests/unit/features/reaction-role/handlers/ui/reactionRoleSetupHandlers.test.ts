@@ -445,6 +445,31 @@ describe("bot/features/reaction-role/handlers/ui/reactionRoleSetupHandlers", () 
         );
       });
 
+      it("スレッド内で実行した場合は deferUpdate せずに拒否すること", async () => {
+        reactionRoleSetupSessions.set(
+          "s1",
+          createBaseSession({ mode: "toggle" }),
+        );
+
+        const threadChannelMock = {
+          id: "thread-1",
+          isThread: () => true,
+          send: vi.fn(),
+        };
+        const interaction = createMockButtonInteraction(
+          "reaction-role:setup-done:s1",
+          { channel: threadChannelMock },
+        );
+
+        await reactionRoleSetupButtonHandler.execute(interaction as never);
+
+        // deferUpdate 後に拒否するとセットアップ画面自体がエラー embed に置換されるため、
+        // その手前で止まっていることを保証する
+        expect(interaction.deferUpdate).not.toHaveBeenCalled();
+        expect(threadChannelMock.send).not.toHaveBeenCalled();
+        expect(mockConfigService.create).not.toHaveBeenCalled();
+      });
+
       it("有効なセッションでパネルをチャンネルに送信し、DBに保存し、成功通知を返す", async () => {
         const panelMessageMock = {
           id: "panel-msg-1",
@@ -452,6 +477,7 @@ describe("bot/features/reaction-role/handlers/ui/reactionRoleSetupHandlers", () 
         };
         const channelMock = {
           id: "ch-1",
+          isThread: () => false,
           send: vi.fn().mockResolvedValue(panelMessageMock),
         };
 

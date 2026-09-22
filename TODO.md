@@ -39,14 +39,16 @@
 
 | 区分 | 残件 |
 | --- | ---: |
-| いま着手できる | 14 |
+| いま着手できる | 16 |
 | 完了待ち | 6 |
 | 未決（判断が要る） | 2 |
-| **合計** | **22** |
+| **合計** | **24** |
 
 > **着手順は「いま着手できる」の並び順そのもの**（1件＝1 PR）。番号付きの「次にやること」は 2026-09-20 に廃止。1件動くたびに本体・サマリー・リストの3箇所を直すことになり、番号も挿入のたびにずれるため。
 >
 > **v3.1.1 のリリースと告知は 2026-09-20 に完了**（→ HISTORY.md）。サポートサーバーへ1本出し、Ikoitter へは購読で流した。次のリリースの告知も同じ形（管理者向け詳細をサポートサーバー、利用者向けの短い版を自鯖）で出す。
+>
+> **2026-09-23 にパッケージ更新の7グループ中3つを完了した**（PR #112 dev 依存 / #113 `@types/node` 引き下げ / #114 ランタイム9件）。**いずれも develop にマージ済みで、本番リリースはまだ**。残りは prisma 3点・dotenv 18・vitest 5・typescript 7 の4つで、すべて単独 PR。着手前に調査で判明した訂正（prisma の分離必須・vitest で分母は動かない・検証から `test:coverage` を外す）を本文に反映済み。
 >
 > **2026-09-23 にカバレッジの実態が判明し、タスクを2件起こした**（「カバレッジ設定の実態合わせ」「結合テストの穴」）。`pnpm test:coverage` は4項目とも閾値割れしているが、CI も pre-commit も `pnpm test` しか実行しないため見えていなかった。テスト自体は277ファイル全部通っている。**次回はここから着手する。**
 >
@@ -66,11 +68,12 @@
 
 **「掃除の完了待ち」だった理由は解消済み。** vitest 5 を待っていたのは「3機能の削除も coverage 閾値を動かすので調整が2回発生する」ためだったが、**その3機能の削除は 2026-09-20 に完了している**（→ HISTORY.md）。typescript 7 は「急ぐ理由が無い」だけでブロックではない。
 
-- [ ] **vitest 4 → 5 ＋ @vitest/coverage-istanbul 4 → 5**（必ず同時）。vitest 5 は coverage の include/exclude をプロジェクトルート相対の厳密マッチに変える。`vitest.config.ts` の `src/bot/features/**` 系は該当ディレクトリが無く既に死んでいるので、厳密マッチ化で分母が動く。**閾値の再調整はこの PR で1回だけ済む**
+- [ ] **vitest 4 → 5 ＋ @vitest/coverage-istanbul 4 → 5**（必ず同時）。vitest 5 は coverage の include/exclude をプロジェクトルート相対の厳密マッチに変えるが、**分母は動かない**。当初あった「厳密マッチ化で分母が動くので閾値調整が2回発生する」という想定は**誤りで、2026-09-23 に調査・検証が独立に picomatch で再現して否定された**。死んだ除外の修正と閾値の調整は「カバレッジ設定の実態合わせ」で扱う。**TS 7 より前に入れること**（TS 7 の最大リスクは `skipLibCheck` の抑制が弱まることで、`tests/tsconfig.json` がまさに node_modules の型エラー抑制に使っている。その主役が vite/vitest の型なので、先に vite の解決を確定させないと TS 7 で出たエラーの原因を切り分けられない）。`.vitest/` を `.gitignore` に追加すること（未登録）
 - [ ] **typescript 6 → 7**。TS 7 が削除した `baseUrl` / `target:es5` / `moduleResolution:node10` はどれも未使用、`erasableSyntaxOnly` と `isolatedDeclarations` は「TS 7 対応」として有効化済み。残るコストは新規に出る型エラーの修正だけ
-- [ ] ランタイムの minor / patch を1 PR（fastify / prisma 3点は必ず同時 / discord.js / pg / jose / i18next / zod / node-cron / @fastify/cookie / @fastify/cors）。discord.js 14.27.0 は undici の厳密固定を緩め `pnpm audit` のノイズが減る。prisma 系は Dockerfile 内で `prisma generate` が走るので `docker build` ＋ `docker run` の実機検証が要る
-- [ ] dev 依存を1 PR（biome / commitlint 2点 / lint-staged / tsx / @types/pg）。Dockerfile の runner が `--prod` で落とすので本番イメージは1バイトも変わらない。biome は `biome.json` が `"recommended": false` で有効ルールを明示列挙しており、パッチ更新で新ルールが既存コードに発火しない
-- [ ] **`@types/node` を 25 系から 24 系（24.13.6）へ引き下げる。** Node 25 は 2026-06-01 に EOL、実行環境は Node 24 LTS（`node:24-slim` / `engines >=24`）で、型定義だけ死んだ系列を指している。26 に上げると逆に Node 24 に無い API の型が通る
+- [x] ~~ランタイムの minor / patch を1 PR~~ → **2026-09-23 完了**（PR #114）。fastify / discord.js / pg / jose / i18next / zod / node-cron / @fastify/cookie / @fastify/cors の9件。**discord.js 14.27.0 が undici の完全固定 6.24.1 を `^6.27.0` へ緩め、6.28.1 に解決されて CVE 4件が解消**
+- [ ] **prisma 3点（`prisma` / `@prisma/client` / `@prisma/adapter-pg`）を 7.8.0 → 7.10.0 へ。必ず3点同時、かつ単独 PR・単独リリース。** 2026-09-23 に「ランタイム minor と同梱」から分離を決定。`Dockerfile:56` が `--ignore-scripts` のため prisma エンジンが本番イメージに含まれず、`docker-entrypoint.sh` の `migrate deploy` が**起動時に取得している**。7.8 → 7.10 で `@prisma/engines-version` が変わるので**今回まさに取得対象が変わる**。失敗すると `set -e` で即 exit → Coolify 再起動ループ＝**本番 Bot 停止**。他の更新と混ぜるとこの最悪ケースの原因を絞れない
+- [x] ~~dev 依存を1 PR（biome / commitlint 2点 / lint-staged / tsx / @types/pg）~~ → **2026-09-23 完了**（PR #112）。⚠️ **「パッチ更新で新ルールは発火しない」は半分外れた**。lint ルールの発火はゼロだったが、**biome 2.5.14 でフォーマッタの改行規則が変わり**テスト6ファイルが再整形された（`src/` は無変更）。`biome.json` の `$schema` も 2.4.8 → 2.5.14 に更新
+- [x] ~~**`@types/node` を 25 系から 24 系（24.13.6）へ引き下げる。**~~ → **2026-09-23 完了**（PR #113）。型エラーゼロ・ソース修正なし。**Node 26 移行 PR で上書きされる暫定措置**
 - [ ] dotenv 17 → 18（単独 PR）。削除されたのは `node -r` プリロードと .env.vault で、使っている `"dotenv/config"` サブパスは v18 にも残る。使用箇所は `env.ts` と `prisma.config.ts` の2ファイル。major かつランタイムなので他と混ぜない。**着手前に CHANGELOG を1度確認する**（未検証）
 
 **期日が外部で決まるもの**（この2件だけは着手できない）
@@ -139,6 +142,17 @@
 
 > **次の2タスクがこの2機能を直撃し、どちらもチェックリストに「テスト」が入っている。** afk と同じ形で結合テストを書けば作業の副産物として埋まるので、**このタスクを単独で先に潰す必要はない**。
 
+### biome の `recommended` 非推奨対応 【保守・小】
+
+**依存なし。急がない**（biome 2.x の間は動き続ける）。2026-09-23 に biome 2.5.14 へ更新した際、IDE の診断で判明。
+
+`biome.json` の `linter.rules.recommended: false` は**非推奨になり、次のメジャー（biome 3）で削除される**。代替は `preset`。
+
+- [ ] `preset` への正しい置換を**公式ドキュメントで確認してから**変更する。このリポジトリは `recommended: false` ＋ 有効ルールの明示列挙という構成なので、**置換を誤ると687ファイルに対して有効ルールが黙って変わる**
+- [ ] 変更前後で `pnpm lint` の指摘件数が一致することを確認する（増減があれば置換が間違っている）
+
+> **`biome.json` にも死んだオーバーライドがある**: `overrides` の `src/bot/features/**/*.ts`（feature ローカル barrel import の禁止ルール）は、機能が `src/features/` へ移動したため**どのファイルにも当たっていない**。ついでに直すこと。
+
 ### `/bump-reminder-settings disable` が予約をキャンセルできていない 【実装・小・バグ】
 
 **依存なし。最小。** 2026-08-20 の棚卸しで発見（既存の記載なし）。
@@ -171,6 +185,23 @@
 - [ ] ja/en ロケールキー・テスト
 
 > **スキーマ整備の PR には混ぜない。** あちらは「挙動を変えない」ことが価値なので、文言が変わる変更を同じ PR に入れると切り分けられなくなる。
+
+### カスタム文面の置換で `$&` 等が展開される 【実装・小・バグ】
+
+**依存なし。最小。** 2026-09-23 に依存更新の調査で発見。
+
+プレースホルダー置換が `String.replace` の**文字列置換形式**で書かれているため、**置換される側の値に `$&` / `` $` `` / `$'` / `$$` が含まれると特殊置換シーケンスとして展開される**。`userName` は本人が、`serverName` はサーバー管理者が自由に設定でき、彩加は公開 Bot なので外部から到達する。
+
+| 箇所 | 対象プレースホルダー |
+| --- | --- |
+| `memberLogUtils.ts:22-26` の `formatCustomMessage` | `{userMention}` / `{userName}` / `{memberCount}` / `{serverName}` |
+| `vcAutoRecruitMessageBuilder.ts:41-46` の `formatInviteMessage` | 同上 ＋ `{channelMention}` / `{channelName}` |
+
+- [ ] 置換を**関数形式**（`.replace(/\{userName\}/g, () => username)`）に変えるか、値側の `$` をエスケープする。**両ファイルとも全プレースホルダーを同時に直す**（片方だけ直すと非対称が残る）
+- [ ] 他に同じ書き方が無いか横断確認する
+- [ ] テスト: 表示名に `$&` を含むケースで文面が壊れないこと
+
+> i18next 26.4.2 が**同種の不具合**（補間値の `$&` 展開・`$&` を含む値での無限ループ）を修正しているが、**こちらはリポジトリ自前の `String.replace` なので i18next の更新では直らない**。
 
 ### 未承認キックのログチャンネル必須化 【実装・中】
 
@@ -531,7 +562,7 @@ Bot 名義で任意のメッセージ（プレーンテキスト / embed）を�
 - `POST /:guildId/reset-all` にフロント側の確認ダイアログがあるか（web リポジトリ側）
 - 変更履歴のフック対象となる各リポジトリの upsert 実装（member-log 以外は未確認）
 - 遅延削除を入れたとき、Bot が居ないギルドの設定がダッシュボードでどう見えるか
-- `vitest.config.ts` の `coverage.exclude` が旧パス（`src/bot/features/**`）を参照しており実質無効。コード側の修正が要る（2026-08-19 のドキュメント監査で発見・→「パッケージ更新」の vitest 5 で分母が動く）
+- ~~`vitest.config.ts` の `coverage.exclude` が旧パスを参照しており実質無効~~ → **2026-09-23 に死んだ除外6件を特定し「カバレッジ設定の実態合わせ」として起票済み**。未確認事項から外した
 - ja / en の翻訳キー突合を機械的に検証するテストが無い。ja だけ追加しても型・実行時とも検出されず、en 環境で日本語が出る（I18N_GUIDE に運用ルールとして明記済み・テスト化の余地あり）
 
 ---

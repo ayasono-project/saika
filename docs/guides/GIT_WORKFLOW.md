@@ -2,7 +2,7 @@
 
 > Git Workflow & Commit Convention Guide
 
-最終更新: 2026年5月29日（ブランチ保護を Rulesets 実態に追従・head ブランチ自動削除を追記）
+最終更新: 2026年9月23日
 
 ---
 
@@ -157,7 +157,6 @@ git push origin develop
 | `member-log`     | 入退室ログ                         |
 | `sticky-message` | スティッキーメッセージ             |
 | `vac`            | VAC（VC自動作成機能）              |
-| `vc-panel`       | VCコントロールパネル共通モジュール |
 | `scheduler`      | スケジューラー                     |
 | `db`             | データベース・マイグレーション     |
 | `web`            | Webサーバー・API                   |

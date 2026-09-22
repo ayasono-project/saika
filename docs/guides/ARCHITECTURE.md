@@ -2,7 +2,7 @@
 
 > Architecture Guide - コード設計・モジュール構成・設計パターンの解説
 
-最終更新: 2026年9月20日
+最終更新: 2026年9月23日
 
 ---
 
@@ -137,7 +137,7 @@ intents: [
 
 ### Bot パーミッション
 
-Bot の招待時は **Administrator は要求せず、最小権限セット**を付与します。招待リンクの権限は [`INVITE_PERMISSIONS`](../../src/api/routes/bot.ts) で定義し、各機能の実 API 呼び出しに必要な個別権限のみを列挙します（ViewChannel / SendMessages / EmbedLinks / ReadMessageHistory / ManageMessages / ManageChannels / ManageRoles / MoveMembers / Connect / KickMembers / CreatePublicThreads / ManageThreads / SendMessagesInThreads / ManageGuild）。`MentionEveryone` は最小権限維持のため含めない（@everyone/@here 等の通知は飛ばないがメッセージ投稿自体は成功する）。
+Bot の招待時は **Administrator は要求せず、最小権限セット**を付与します。招待リンクの権限は [`INVITE_PERMISSIONS`](../../src/api/routes/bot.ts) で定義し、各機能の実 API 呼び出しに必要な個別権限のみを列挙します（ViewChannel / SendMessages / EmbedLinks / ReadMessageHistory / ManageMessages / ManageChannels / ManageRoles / MoveMembers / Connect / KickMembers / ManageGuild の11権限）。`MentionEveryone` は最小権限維持のため含めない（@everyone/@here 等の通知は飛ばないがメッセージ投稿自体は成功する）。
 
 > チャンネル作成時の overwrite には昇格権限ビット（ManageChannels / ManageRoles）を含めない。Administrator を持たない Bot が overwrite で昇格ビットを付与しようとすると `403 Missing Permissions` になるため、これらはギルド全体の権限で保持する。
 
@@ -148,15 +148,15 @@ Bot の招待時は **Administrator は要求せず、最小権限セット**を
 | clientReady       | Bot 起動時の初期化処理                                       |
 | interactionCreate | スラッシュコマンド・ボタン・モーダル等のインタラクション処理 |
 | messageCreate     | Bump 検知・Sticky Message 再送信                             |
-| messageDelete     | VC 募集パネル・チケットパネルの自己修復                      |
-| voiceStateUpdate  | VAC（VC 自動作成）の同期処理                                 |
+| messageDelete     | チケットパネル・リアクションロールパネルの自己修復           |
+| voiceStateUpdate  | VC自動募集・VAC の同期処理（VC自動募集を先に await する）    |
 | guildMemberAdd    | メンバー参加ログ通知                                         |
 | guildMemberRemove | メンバー退出ログ・退出ユーザーの記録削除                     |
 | guildMemberUpdate | 未承認自動キックの対象ロール解除の検知                       |
-| messageReactionAdd | 非アクティブ自動キックのアクティビティ記録                  |
 | channelDelete     | 削除チャンネル関連設定のクリーンアップ                       |
 | roleDelete        | 削除ロールの Bump リマインダー設定除去                       |
-| guildDelete       | Bot 退出時の全設定クリーンアップ（`purgeGuildDataUsecase` 経由） |
+| guildCreate       | 参加ログ・稼働サーバー数のプレゼンス更新                     |
+| guildDelete       | Bot 退出時のジョブ停止（`stopGuildJobsUsecase` 経由・**設定データは保持する**） |
 
 ### BotClient クラス
 

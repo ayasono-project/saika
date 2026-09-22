@@ -2,7 +2,7 @@
 
 > Implementation Guidelines - 実装方針とコーディング規約
 
-最終更新: 2026年9月20日
+最終更新: 2026年9月23日
 
 ---
 
@@ -325,7 +325,7 @@ async function getGuildSettings(guildId: string): Promise<GuildSettings | null> 
 該当するものがない場合はテーブルに追加してから使用する。
 
 カスタムレイアウトが必要な機能固有の Embed（パネル・サマリー等）は `new EmbedBuilder()` を直接使用してよい。
-その場合のカラーは feature の `*.constants.ts` にブランドカラー定数を定義して使う（例: `VC_RECRUIT_PANEL_COLOR = 0x24b9b8`）。
+その場合のカラーは feature の `*.constants.ts` にブランドカラー定数を定義して使う（例: `VC_AUTO_RECRUIT_EMBED_COLOR = 0x5865f2`）。
 
 **STATUS_COLORS 一覧:**
 

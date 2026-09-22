@@ -13,14 +13,20 @@ export interface BotRoutesOptions {
 /**
  * Bot 招待時に要求する権限（最小権限セット・型は discord.js で検証）。
  * Administrator は要求しない。各機能の実 API 呼び出しに必要な個別権限のみを列挙する:
- * - 共通（コマンド応答）: ViewChannel / SendMessages / EmbedLinks / ReadMessageHistory
+ * - 共通（対象チャンネルの把握・message-delete のスキャン）: ViewChannel / ReadMessageHistory
+ * - Bot 自発の投稿（sticky / bump / member-log / vc-auto-recruit / unverified-kick）:
+ *   SendMessages / EmbedLinks
+ *   ※ interaction 応答（reply / editReply / followUp）は interaction トークン経由で
+ *     チャンネルの送信権限を要求しないため、コマンド応答のためだけには要らない
  * - reaction-role / ticket / kick 系マーカーロール: ManageRoles
  * - message-delete / sticky-message: ManageMessages
- * - ticket / vac / vc-auto-recruit（チャンネル作成・編集・overwrite）: ManageChannels
+ * - ticket / vac（チャンネル作成・編集・overwrite）: ManageChannels
  * - vac / afk（メンバー移動）: MoveMembers / Connect（移動先VCへの接続権限が別途必要）
  * - unverified-kick: KickMembers
  * - member-log（招待元トラッキング = guild.invites.fetch）: ManageGuild
- * - message-delete（削除対象に private スレッドを選べる）: ManageThreads
+ * - message-delete（削除対象にスレッドを選べる）: ManageThreads
+ *   ※ 現時点では buildTargetChannels の guild.channels.fetch() がスレッドを返さないため
+ *     この機能自体が動作しない（init からの不具合）。修正は TODO に積んである
  * - bump-reminder（スレッド内で Bump された場合の予約パネル・リマインダー送信）: SendMessagesInThreads
  *   ※ Bot はスレッドを作らないため CreatePublicThreads は不要。
  *     interaction 応答は interaction トークン経由で送信権限を要求しないため、

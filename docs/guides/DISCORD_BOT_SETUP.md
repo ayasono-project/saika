@@ -71,18 +71,18 @@
 
 | 権限 | Developer Portal 表記 | 主な用途 |
 | -- | -- | -- |
-| チャンネルを見る | View Channels | 共通（コマンド応答） |
-| メッセージを送信 | Send Messages | 共通（コマンド応答） |
-| 埋め込みリンク | Embed Links | 共通（embed 送信） |
-| メッセージ履歴を読む | Read Message History | 共通 |
+| チャンネルを見る | View Channels | 共通（対象チャンネルの把握 / message-delete のスキャン） |
+| メッセージを送信 | Send Messages | Bot 自発の投稿（sticky / bump / member-log / vc-auto-recruit / unverified-kick） |
+| 埋め込みリンク | Embed Links | 上記の投稿とコマンド応答の embed |
+| メッセージ履歴を読む | Read Message History | message-delete のスキャン / sticky の再送判定 |
 | メッセージの管理 | Manage Messages | message-delete / sticky |
-| チャンネルの管理 | Manage Channels | ticket / vac / vc-auto-recruit |
+| チャンネルの管理 | Manage Channels | ticket / vac |
 | ロールの管理 | Manage Roles | ticket / reaction-role / kick 系マーカーロール |
 | メンバーを移動 | Move Members | vac / afk |
 | 接続 | Connect | vac / afk（移動先VCへの接続。Move Members だけでは移動不可） |
 | メンバーをキック | Kick Members | unverified-kick |
 | サーバー管理 | Manage Server | member-log（招待元トラッキング） |
-| スレッドを管理 | Manage Threads | message-delete（削除対象に private スレッドを選べるようにするため） |
+| スレッドを管理 | Manage Threads | message-delete（削除対象にスレッドを選べるようにするため。**現時点ではスレッドの解決自体が未実装で動作しない** — 次リリースで修正予定） |
 | スレッドでメッセージを送る | Send Messages in Threads | bump-reminder（スレッド内で Bump された場合の予約パネル・リマインド送信。Bot はスレッドを作らないので `Create Public Threads` は**不要**） |
 
 > **最小権限の方針**: 彩加は Administrator を要求しない。上記は各機能が実際に呼び出す Discord API に必要な個別権限のみ。チャンネル単位の上書き（overwrite）で Bot の権限を制限すると一部機能が動かなくなる点に注意。

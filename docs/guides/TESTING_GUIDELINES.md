@@ -2,7 +2,7 @@
 
 > Testing Guidelines - テスト設計とベストプラクティス
 
-最終更新: 2026年8月19日
+最終更新: 2026年9月23日
 
 ---
 
@@ -53,7 +53,7 @@ tests/
 ├── setup.ts
 ├── tsconfig.json
 ├── helpers/
-│   └── testHelpers.ts
+│   └── interactionMocks.ts
 ├── unit/                    # src 対称
 │   ├── api/
 │   ├── bot/
@@ -160,16 +160,17 @@ it("years=0, months=0 の場合でも送信される", async () => {
 
 ### テストヘルパー
 
-`tests/helpers/testHelpers.ts` の主要ヘルパー:
+`tests/helpers/interactionMocks.ts` の主要ヘルパー:
 
 | ヘルパー | 用途 |
 | --- | --- |
-| `createMockUser()` / `createMockGuild()` / `createMockMember()` | Discord オブジェクトのモック |
-| `createMockTextChannel()` / `createMockInteraction()` | チャンネル・インタラクションのモック |
-| `generateSnowflake()` | ユニークな Snowflake ID 生成 |
-| `createTestGuildSettings()` | テスト用ギルド設定 |
-| `expectError()` | エラーアサーション |
-| `wait()` | 非同期待機 |
+| `createMockButtonInteraction()` | ボタンインタラクションのモック |
+| `createMockStringSelectInteraction()` | 文字列セレクトメニューのモック |
+| `createMockRoleSelectInteraction()` | ロールセレクトメニューのモック |
+| `createMockModalInteraction()` | モーダル送信のモック |
+| `MockInteraction` / `MockInteractionMethods` | 上記が返すオブジェクトの型 |
+
+いずれも `reply` / `update` / `deferUpdate` / `editReply` / `deleteReply` / `followUp` / `showModal` を `vi.fn()` で備え、第2引数の overrides で差し替えられる。チャンネルやギルドのモックに共通ファクトリは無く、各テストでインライン定義する。
 
 ### 実行方法
 

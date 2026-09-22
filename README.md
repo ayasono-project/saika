@@ -51,7 +51,7 @@
 ### コア技術
 
 - **Runtime**: Node.js 24以上
-- **Language**: TypeScript 6.x - 厳格な型チェックで品質向上
+- **Language**: TypeScript 7.x - 厳格な型チェックで品質向上
 - **Framework**: Discord.js 14.x - Discord Bot開発フレームワーク
 - **Package Manager**: pnpm - 高速で効率的なパッケージ管理
 - **共通基盤**: `@ayasono/shared/core` - logger / エラークラス（`BaseError` 階層）/ Discord Webhook 通知を提供する ayasono 共通パッケージ（git タグ + コミット済み dist で取り込み）
@@ -79,7 +79,7 @@
 ### 必要環境
 
 - Node.js 24以上
-- pnpm 10以上
+- pnpm 11以上
 
 ### セットアップ
 

@@ -34,6 +34,10 @@ WORKDIR /app
 # pnpm 11 の非対話モード（modules purge 等の confirm を抑止）
 ENV CI=true
 
+# dotenv 18 は読み込みのたびに `◇ injected env (N) from .env` を stderr へ出すため抑止する。
+# .env ファイル内に書いても 18.0.0〜18.0.2 では効かないので、実環境変数として与える
+ENV DOTENV_QUIET=true
+
 # OS パッケージを最新化してセキュリティ脆弱性を修正 + OpenSSL（Prisma が必要）
 # gosu: entrypoint で root → node への安全な権限降格に使用
 # tini: PID 1 の init プロセスとしてゾンビプロセスを自動回収

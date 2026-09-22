@@ -22,8 +22,6 @@ import { vcAutoRecruitSetMessageModalHandler } from "../../../../features/vc-aut
 import type { ModalHandler } from "./types";
 
 export const modalHandlers: ModalHandler[] = [
-  // VC募集モーダル送信（ステップ1→2）を処理
-  // VC募集メッセージからのVC名変更モーダルを処理
   // sticky-message set プレーンテキストモーダルを処理
   stickyMessageSetModalHandler,
   // sticky-message set Embed モーダルを処理

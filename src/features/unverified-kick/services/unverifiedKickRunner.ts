@@ -133,7 +133,7 @@ export function buildCandidateBuckets(
 }
 
 /**
- * 対象ロールの整合性を全メンバー単位で保証する（inactive-kick の applyMarkerRoleConsistency と同方式）。
+ * 対象ロールの整合性を全メンバー単位で保証する。
  * - warn・kick バケットのメンバーはロールを付与する（未付与なら追加）
  * - それ以外でロールを保持しているメンバーは剥奪する（認証済み/再参加リセット等を一括修正）
  */

@@ -62,8 +62,6 @@ export const system = {
   // エラーハンドリング
   "error.reply_failed": "エラーメッセージの送信に失敗しました。",
   "error.missing_permissions": "Bot権限不足 URL: {{url}} Method: {{method}}",
-  "error.unhandled_rejection": "未処理のPromise拒否:",
-  "error.uncaught_exception": "未処理の例外:",
   "error.unhandled_rejection_log": "未処理のPromise拒否:",
   "error.uncaught_exception_log": "未捕捉の例外:",
   "error.node_warning": "Node警告:",

@@ -7,7 +7,7 @@ type CommandLocalizationMap = Record<string, string>;
 /**
  * コマンド説明文のローカライゼーションを取得
  * @param namespace 翻訳名前空間（例: "ping"）
- * @param key 翻訳キー（例: "description"）
+ * @param key 翻訳キー（例: "ping.description"）
  * @returns Discord APIのLocalizationMap形式
  */
 export function getCommandLocalizations<NS extends keyof typeof resources.ja>(

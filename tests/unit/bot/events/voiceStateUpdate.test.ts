@@ -47,7 +47,7 @@ describe("bot/events/voiceStateUpdate", () => {
 
     await voiceStateUpdateEvent.execute(oldState as never, newState as never);
 
-    // VAC のみが呼ばれ、VC募集のハンドラーは存在しない
+    // 呼ばれるのは VC自動募集と VAC の2つだけで、削除済み VC募集のハンドラーは存在しない
     expect(handleVacVoiceStateUpdateMock).toHaveBeenCalledTimes(1);
   });
 

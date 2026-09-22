@@ -1,6 +1,3 @@
-vi.mock("@/bot/services/botCompositionRoot", () => ({
-  tInteraction: vi.fn((_l: string, k: string) => k),
-}));
 vi.mock("@/shared/locale/localeManager", () => ({
   tInteraction: vi.fn((_l: string, k: string) => k),
   logPrefixed: (

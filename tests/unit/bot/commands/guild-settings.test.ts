@@ -57,11 +57,6 @@ vi.mock("@/bot/services/botCompositionRoot", () => ({
       createdChannels: [],
     }),
   }),
-  getBotVcRecruitSettingsService: () => ({
-    getVcRecruitSettingsOrDefault: vi
-      .fn()
-      .mockResolvedValue({ enabled: false, mentionRoleIds: [], setups: [] }),
-  }),
   getBotStickyMessageSettingsService: () => ({
     findAllByGuild: vi.fn().mockResolvedValue([]),
   }),

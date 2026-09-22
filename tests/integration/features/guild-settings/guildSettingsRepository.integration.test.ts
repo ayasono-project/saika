@@ -71,10 +71,6 @@ const mockPrismaClient = {
     findUnique: vi.fn(),
     upsert: vi.fn(),
   },
-  guildVcRecruitSettings: {
-    findUnique: vi.fn(),
-    upsert: vi.fn(),
-  },
 };
 
 describe("GuildCoreRepository", () => {

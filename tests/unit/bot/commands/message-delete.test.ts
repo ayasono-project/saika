@@ -20,22 +20,6 @@ vi.mock("@/bot/errors/interactionErrorHandler", () => ({
   handleCommandError: (...args: unknown[]) => handleCommandErrorMock(...args),
 }));
 
-vi.mock(
-  "@/features/message-delete/commands/messageDeleteCommand.constants",
-  () => ({
-    MSG_DEL_COMMAND: {
-      NAME: "message-delete",
-      OPTION: {
-        COUNT: "count",
-        USER: "user",
-        KEYWORD: "keyword",
-        AFTER: "after",
-        BEFORE: "before",
-      },
-    },
-  }),
-);
-
 import { messageDeleteCommand } from "@/bot/commands/message-delete";
 
 // messageDeleteCommand ラッパーのエラーハンドリング委譲を検証

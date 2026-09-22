@@ -39,6 +39,8 @@ export const common = {
   // Validation errors
   "validation.guild_only": "This command can only be used within a server",
   "validation.invalid_subcommand": "Invalid subcommand",
+  "validation.thread_not_supported":
+    "This cannot be used inside a thread. Please run it in a regular text channel.",
 
   // Permission errors
   "permission.manage_guild_required":

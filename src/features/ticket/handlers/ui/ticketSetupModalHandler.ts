@@ -11,6 +11,7 @@ import {
 } from "discord.js";
 import type { ModalHandler } from "../../../../bot/handlers/interactionCreate/ui/types";
 import { getBotTicketSettingsService } from "../../../../bot/services/botCompositionRoot";
+import { rejectThreadChannel } from "../../../../bot/shared/channelGuards";
 import {
   createErrorEmbed,
   createSuccessEmbed,
@@ -64,6 +65,9 @@ export const ticketSetupModalHandler: ModalHandler = {
       });
       return;
     }
+
+    // パネルは実行チャンネルへ設置するため、置けない場所なら入力値の検証前に弾く
+    if (await rejectThreadChannel(interaction)) return;
 
     const title = interaction.fields.getTextInputValue(
       TICKET_CUSTOM_ID.SETUP_MODAL_TITLE,

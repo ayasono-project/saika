@@ -137,7 +137,11 @@ intents: [
 
 ### Bot パーミッション
 
-Bot の招待時は **Administrator は要求せず、最小権限セット**を付与します。招待リンクの権限は [`INVITE_PERMISSIONS`](../../src/api/routes/bot.ts) で定義し、各機能の実 API 呼び出しに必要な個別権限のみを列挙します（ViewChannel / SendMessages / EmbedLinks / ReadMessageHistory / ManageMessages / ManageChannels / ManageRoles / MoveMembers / Connect / KickMembers / ManageGuild / ManageThreads の12権限）。`MentionEveryone` は最小権限維持のため含めない（@everyone/@here 等の通知は飛ばないがメッセージ投稿自体は成功する）。
+Bot の招待時は **Administrator は要求せず、最小権限セット**を付与します。招待リンクの権限は [`INVITE_PERMISSIONS`](../../src/api/routes/bot.ts) で定義し、各機能の実 API 呼び出しに必要な個別権限のみを列挙します（ViewChannel / SendMessages / EmbedLinks / ReadMessageHistory / ManageMessages / ManageChannels / ManageRoles / MoveMembers / Connect / KickMembers / ManageGuild / ManageThreads / SendMessagesInThreads の13権限）。`MentionEveryone` は最小権限維持のため含めない（@everyone/@here 等の通知は飛ばないがメッセージ投稿自体は成功する）。
+
+> `SendMessagesInThreads` が必要なのは **Bump 検知だけ**。インタラクション応答（reply / editReply / followUp）は interaction トークン経由のためチャンネルの送信権限を要求せず、スレッド内でコマンドを実行しても応答は返る。Bump 検知は messageCreate 起点の `channel.send()` なので、この権限が無いとスレッド内の Bump で予約パネルとリマインドが送れない。
+>
+> 一方、ticket / reaction-role のパネルは**スレッドへ設置させない**（[`rejectThreadChannel`](../../src/bot/shared/channelGuards.ts) で拒否）。権限の問題ではなく、スレッドはアーカイブされるとチャンネル一覧から消えるため、恒久設置物を置くと管理者が見失うという設計判断。
 
 > チャンネル作成時の overwrite には昇格権限ビット（ManageChannels / ManageRoles）を含めない。Administrator を持たない Bot が overwrite で昇格ビットを付与しようとすると `403 Missing Permissions` になるため、これらはギルド全体の権限で保持する。
 

@@ -20,6 +20,9 @@ export interface BotRoutesOptions {
  * - vac / afk（メンバー移動）: MoveMembers / Connect（移動先VCへの接続権限が別途必要）
  * - unverified-kick: KickMembers
  * - member-log（招待元トラッキング = guild.invites.fetch）: ManageGuild
+ * - message-delete（削除対象に private スレッドを選べる）: ManageThreads
+ *   ※ Bot はスレッドを作らず、スレッドへ投稿もしない。private スレッドへ
+ *     アクセスするためだけに必要で、CreatePublicThreads / SendMessagesInThreads は不要
  *
  * 注: @everyone/@here や「メンション不可ロール」への通知を実際に飛ばす MentionEveryone は
  * 含めない（メッセージ投稿自体は成功し、当該メンションが通知を飛ばさないだけ）。
@@ -36,6 +39,7 @@ const INVITE_PERMISSIONS: PermissionsString[] = [
   "Connect",
   "KickMembers",
   "ManageGuild",
+  "ManageThreads",
 ];
 
 /**

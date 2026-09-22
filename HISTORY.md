@@ -144,6 +144,40 @@ VAC を残す判断（→「VAC（トリガー VC 方式）は残し、募集は
 
 > 詳細な作業経過は git log を参照。
 
+### パッケージ更新（2026-09-23 develop merge）
+
+7グループを7 PR に分けて実施（#112〜#118）。**develop マージ止まりで本番リリースはまだ。** 実施順は「本番影響ゼロ → ランタイム → 開発ツールの大物」。
+
+| PR | 内容 | 結果 |
+| --- | --- | --- |
+| #112 | dev 依存6件（biome / commitlint 2点 / lint-staged / tsx / @types/pg） | biome の**フォーマッタ変更**でテスト6ファイルが再整形 |
+| #113 | `@types/node` 25.9.4 → 24.13.6（**引き下げ**） | 型エラーゼロ |
+| #114 | ランタイム9件（fastify / discord.js / i18next / zod / jose / pg / node-cron / @fastify/cookie / @fastify/cors） | **undici 6.24.1 → 6.28.1 で CVE 4件解消** |
+| #115 | prisma 3点 7.8.0 → 7.10.0 | 本番イメージで `migrate deploy` 完走を確認 |
+| #116 | dotenv 17 → 18 | 新規の stderr 出力を `DOTENV_QUIET` で抑止 |
+| #117 | vitest ＋ coverage-istanbul 4.1.9 → 5.0.1 | **設定変更不要** |
+| #118 | typescript 6.0.3 → 7.0.2 | **型エラーゼロ・tsconfig 無変更** |
+
+**当初の想定が外れた点（TODO に誤って書かれていたもの）**
+
+- **「vitest 5 の厳密マッチ化で coverage の分母が動く」は誤り。** 実測でカバレッジが vitest 4 と**1ビットも一致**（Stmts 6433/7686・Branches 2700→2697/3502・Funcs 1249/1611・Lines 6243/7356）。閾値調整が2回発生するという懸念自体が存在しなかった
+- **「biome はパッチ更新で新ルールが発火しない」は半分外れ。** lint ルールの発火はゼロだったが、**フォーマッタの改行規則が変わり**テスト6ファイルが再整形された（`src/` は無変更）。`recommended: false` は有効ルールを縛るだけでフォーマッタには効かない
+- **prisma 3点は他のランタイム更新と同梱してはいけない。** `Dockerfile:56` が `--ignore-scripts` のため prisma エンジンが本番イメージに含まれず、`docker-entrypoint.sh:15` の `migrate deploy` が起動時に取得している。7.8 → 7.10 で `@prisma/engines-version` が変わり取得対象が変わるうえ、`docker-entrypoint.sh:12` は `set -e` なので失敗すると**再起動ループ＝本番停止**。原因を切り分けるため単独 PR・単独リリースにした
+
+**却下した案**
+
+- **dotenv の抑止をコード側で `dotenv.config({ quiet: true })` にする案。** 副作用インポート `import "dotenv/config"` はプロセス内で1度きりだが、`config()` を本体に置くと**モジュール再評価のたびに再読み込み**する。`env.test.ts` が `DISCORD_TOKEN` を削除して検証失敗を期待しているケースで dotenv が `.env` から値を復活させ、テストが落ちた。本番影響は無いが**テストが `process.env` を操作できなくなる**ため不採用。代わりに `Dockerfile` の runner に `ENV DOTENV_QUIET=true`、`package.json` の `dev` / `start` にも付与（**Coolify の環境変数も `docker-compose.coolify.yml` も触らずに済む**）
+- **dotenv 18.0.3 へのピン。** pnpm 11 のリリース経過時間ゲートが通さず、明示ピンすると `pnpm-workspace.yaml` に `minimumReleaseAgeExclude` が自動追記される（サプライチェーン防御に穴）。18.0.3 の修正点は採用方式では不要なのでゲートに従い 18.0.1 を使用
+
+**作業上の知見**
+
+- **依存更新のたびに `pnpm db:generate` を回すこと。** vitest 更新で `@prisma/client` の peer 解決ハッシュが変わり（`magicast@0.5.3` → `0.5.5`）、生成済みクライアントが旧パスに取り残されて16ファイルが `Cannot find module '.prisma/client/default'` で落ちた。vitest 5 の非互換ではない
+- **`pnpm update --latest` は必ずパッケージ名を明示列挙する。** 裸で叩くと prisma の latest（`8.0.0-rc.15` の RC）と github: 依存の `@ayasono/shared` を巻き込む
+- **型チェックが通っただけでは宣言拡張の健在を証明できない。** TS 7 では不正な i18n キーを渡すプローブを一時的に置き、`TS2345`（1163件の union に対する拒否）と `TS9010`（`isolatedDeclarations`）が出ることを確認した
+- **`docker run --env-file .env` は使えない。** docker が値の引用符を剥がさないため `LOG_LEVEL` 等の env 検証で弾かれる。実機確認は dotenv が引用符を正しく扱う `pnpm start` で行う
+
+**残り2件は着手できない**（期日が外部で決まる）。Node 24 → 26 は 26 の LTS 入り（2026-10-28）待ち、prisma 8 は GA（2026年10月予定）待ち。
+
 ### `/guild-settings reset-all` の確認ダイアログが削除範囲を過少申告していた（2026-09-20 完了・本番デプロイ済み）
 
 **取り消せない操作の確認ダイアログが、実際に消すものより少なく書いていた。** `reset-all` は `purgeGuildDataUsecase` → `deleteAllSettings` で **13テーブルすべて**を削除するが、ダイアログの「削除対象」は8項目しか挙げておらず、しかも削除済みの機能を含んでいた。

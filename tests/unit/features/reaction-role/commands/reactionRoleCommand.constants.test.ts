@@ -7,14 +7,12 @@ import {
 // isValidButtonStyle / isValidEmoji / normalizeEmoji のユーティリティ関数を検証する
 describe("bot/features/reaction-role/commands/reactionRoleCommand.constants", () => {
   describe("isValidButtonStyle", () => {
-    it.each([
-      "primary",
-      "secondary",
-      "success",
-      "danger",
-    ])("有効なスタイル '%s' に対して true を返すこと", (style) => {
-      expect(isValidButtonStyle(style)).toBe(true);
-    });
+    it.each(["primary", "secondary", "success", "danger"])(
+      "有効なスタイル '%s' に対して true を返すこと",
+      (style) => {
+        expect(isValidButtonStyle(style)).toBe(true);
+      },
+    );
 
     it("無効なスタイル文字列に対して false を返すこと", () => {
       expect(isValidButtonStyle("link")).toBe(false);
@@ -33,15 +31,12 @@ describe("bot/features/reaction-role/commands/reactionRoleCommand.constants", ()
       expect(isValidEmoji("")).toBe(true);
     });
 
-    it.each([
-      "👍",
-      "🎉",
-      "❤️",
-      "🇯🇵",
-      "👨‍👩‍👧‍👦",
-    ])("Unicode絵文字 '%s' に対して true を返すこと", (emoji) => {
-      expect(isValidEmoji(emoji)).toBe(true);
-    });
+    it.each(["👍", "🎉", "❤️", "🇯🇵", "👨‍👩‍👧‍👦"])(
+      "Unicode絵文字 '%s' に対して true を返すこと",
+      (emoji) => {
+        expect(isValidEmoji(emoji)).toBe(true);
+      },
+    );
 
     it.each([
       "<:custom:123456789012345678>",
@@ -55,15 +50,12 @@ describe("bot/features/reaction-role/commands/reactionRoleCommand.constants", ()
       expect(isValidEmoji("✅️")).toBe(true);
     });
 
-    it.each([
-      "hello",
-      "abc",
-      ":invalid:",
-      "<:>",
-      "12345",
-    ])("無効な文字列 '%s' に対して false を返すこと", (emoji) => {
-      expect(isValidEmoji(emoji)).toBe(false);
-    });
+    it.each(["hello", "abc", ":invalid:", "<:>", "12345"])(
+      "無効な文字列 '%s' に対して false を返すこと",
+      (emoji) => {
+        expect(isValidEmoji(emoji)).toBe(false);
+      },
+    );
   });
 
   describe("normalizeEmoji", () => {

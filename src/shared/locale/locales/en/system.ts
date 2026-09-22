@@ -37,10 +37,10 @@ export const system = {
 
   // guildDelete (cleanup on bot removal)
   "guild_delete.start":
-    "guild removal detected, deleting config data GuildId: {{guildId}} GuildName: {{guildName}}",
-  "guild_delete.complete": "guild config data deleted GuildId: {{guildId}}",
-  "guild_delete.failed":
-    "failed to delete guild config data GuildId: {{guildId}}",
+    "guild removal detected, stopping jobs (config data retained) GuildId: {{guildId}} GuildName: {{guildName}}",
+  "guild_delete.complete":
+    "jobs stopped, config data retained GuildId: {{guildId}}",
+  "guild_delete.failed": "failed to stop guild jobs GuildId: {{guildId}}",
 
   // Bot startup & shutdown
   "bot.starting": "Starting Discord Bot...",

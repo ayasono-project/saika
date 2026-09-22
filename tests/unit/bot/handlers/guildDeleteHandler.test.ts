@@ -31,6 +31,7 @@ vi.mock("@/shared/scheduler/jobScheduler", () => ({
 vi.mock("@/bot/services/botPresence", () => ({
   applyBotPresence: (...args: unknown[]) => mockApplyBotPresence(...args),
 }));
+// deleteAllSettings は「呼ばれないこと」を検証するために用意する
 vi.mock("@/bot/services/botCompositionRoot", () => ({
   getBotGuildSettingsService: () => ({
     deleteAllSettings: mockDeleteAllConfigs,
@@ -47,7 +48,7 @@ import { handleGuildDelete } from "@/bot/handlers/guildDeleteHandler";
 import { jobScheduler } from "@/shared/scheduler/jobScheduler";
 import { logger } from "@/shared/utils/logger";
 
-// Bot退出時の全設定クリーンアップ動作を検証する
+// Bot退出時にジョブだけを停止し、設定データを保持する動作を検証する
 describe("bot/handlers/guildDeleteHandler", () => {
   // 各テストでモックをリセットする
   beforeEach(() => {
@@ -57,12 +58,19 @@ describe("bot/handlers/guildDeleteHandler", () => {
     mockCancelAllForGuild.mockResolvedValue(0);
   });
 
-  it("ギルドの全設定データを削除してログ出力すること", async () => {
+  it("設定データを削除しないこと（Bot を外しただけで設定が消えるのを防ぐ回帰ガード）", async () => {
     const guild = { id: "guild-1", name: "Test Guild" };
 
     await handleGuildDelete(guild as never);
 
-    expect(mockDeleteAllConfigs).toHaveBeenCalledWith("guild-1");
+    expect(mockDeleteAllConfigs).not.toHaveBeenCalled();
+  });
+
+  it("ジョブ停止の開始と完了をログ出力すること", async () => {
+    const guild = { id: "guild-1", name: "Test Guild" };
+
+    await handleGuildDelete(guild as never);
+
     expect(logger.info).toHaveBeenCalledTimes(2);
   });
 
@@ -92,25 +100,8 @@ describe("bot/handlers/guildDeleteHandler", () => {
     expect(mockCancelAllForGuild).toHaveBeenCalledWith("guild-1");
   });
 
-  it("タイマー解除を DB 削除より先に実行すること", async () => {
-    const order: string[] = [];
-    mockCancelAllForGuild.mockImplementation(async () => {
-      order.push("cancel");
-      return 0;
-    });
-    mockDeleteAllConfigs.mockImplementation(async () => {
-      order.push("delete");
-    });
-
-    const guild = { id: "guild-1", name: "Test Guild" };
-    await handleGuildDelete(guild as never);
-
-    // 逆順だと削除済み行への updateStatus が P2025 で失敗しログが荒れる
-    expect(order).toEqual(["cancel", "delete"]);
-  });
-
-  it("deleteAllSettings がエラーを投げた場合はエラーログを出力すること", async () => {
-    mockDeleteAllConfigs.mockRejectedValue(new Error("db error"));
+  it("ジョブ停止がエラーを投げた場合はエラーログを出力すること", async () => {
+    mockCancelAllForGuild.mockRejectedValue(new Error("scheduler error"));
 
     const guild = { id: "guild-1", name: "Test Guild" };
     await handleGuildDelete(guild as never);
@@ -118,13 +109,13 @@ describe("bot/handlers/guildDeleteHandler", () => {
     expect(logger.error).toHaveBeenCalled();
   });
 
-  it("findAllClosedByGuild がエラーを投げた場合でも deleteAllSettings は実行されること", async () => {
+  it("findAllClosedByGuild がエラーを投げても Bump の解除は実行されること", async () => {
     mockFindAllClosedByGuild.mockRejectedValue(new Error("fetch error"));
 
     const guild = { id: "guild-1", name: "Test Guild" };
     await handleGuildDelete(guild as never);
 
-    expect(mockDeleteAllConfigs).toHaveBeenCalledWith("guild-1");
+    expect(mockCancelAllForGuild).toHaveBeenCalledWith("guild-1");
   });
 
   it("プレゼンスを更新すること", async () => {
@@ -136,8 +127,8 @@ describe("bot/handlers/guildDeleteHandler", () => {
     expect(mockApplyBotPresence).toHaveBeenCalledWith(client);
   });
 
-  it("設定削除が失敗してもプレゼンスは更新されること", async () => {
-    mockDeleteAllConfigs.mockRejectedValue(new Error("db error"));
+  it("ジョブ停止が失敗してもプレゼンスは更新されること", async () => {
+    mockCancelAllForGuild.mockRejectedValue(new Error("scheduler error"));
     const client = {};
     const guild = { id: "guild-1", name: "Test Guild", client };
 

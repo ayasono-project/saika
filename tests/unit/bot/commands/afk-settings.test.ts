@@ -199,21 +199,24 @@ describe("bot/commands/afk-settings", () => {
   it.each([
     { enabled: false, channelId: "afk-channel" },
     { enabled: true, channelId: null },
-  ])("設定が不正な場合も統一フォーマットで表示することを確認: %j", async (config) => {
-    getAfkSettingsMock.mockResolvedValueOnce(config);
-    const interaction = createInteraction({
-      options: {
-        getSubcommand: vi.fn(() => "view"),
-        getChannel: vi.fn(),
-      },
-    });
+  ])(
+    "設定が不正な場合も統一フォーマットで表示することを確認: %j",
+    async (config) => {
+      getAfkSettingsMock.mockResolvedValueOnce(config);
+      const interaction = createInteraction({
+        options: {
+          getSubcommand: vi.fn(() => "view"),
+          getChannel: vi.fn(),
+        },
+      });
 
-    await afkSettingsCommand.execute(
-      interaction as unknown as ChatInputCommandInteraction,
-    );
+      await afkSettingsCommand.execute(
+        interaction as unknown as ChatInputCommandInteraction,
+      );
 
-    expect(createInfoEmbedMock).toHaveBeenCalled();
-  });
+      expect(createInfoEmbedMock).toHaveBeenCalled();
+    },
+  );
 
   it("view サブコマンドで設定済みの場合は AFK チャンネル情報が表示されることを確認", async () => {
     getAfkSettingsMock.mockResolvedValueOnce({

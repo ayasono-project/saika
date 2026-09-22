@@ -43,14 +43,17 @@ describe("shared/locale/i18n", () => {
     ["development" as const, true],
     ["production" as const, false],
     ["test" as const, false],
-  ])("%s 環境では debug=%s が設定されること", async (nodeEnv, expectedDebug) => {
-    const { module, i18nextMock } = await loadModule(nodeEnv);
-    await module.initI18n();
+  ])(
+    "%s 環境では debug=%s が設定されること",
+    async (nodeEnv, expectedDebug) => {
+      const { module, i18nextMock } = await loadModule(nodeEnv);
+      await module.initI18n();
 
-    expect(i18nextMock.init).toHaveBeenCalledWith(
-      expect.objectContaining({ debug: expectedDebug }),
-    );
-  });
+      expect(i18nextMock.init).toHaveBeenCalledWith(
+        expect.objectContaining({ debug: expectedDebug }),
+      );
+    },
+  );
 
   // addResources が merge フラグ付きで addResourceBundle を呼び出し、changeLanguage が委譲されることを確認
   it("addResources と changeLanguage が i18next へ委譲されること", async () => {

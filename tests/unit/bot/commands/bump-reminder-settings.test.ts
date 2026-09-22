@@ -222,27 +222,24 @@ describe("bot/commands/bump-reminder-settings", () => {
   });
 
   // 各サブコマンドの権限不足時にエラーハンドラへ委譲されることを検証
-  it.each([
-    "enable",
-    "disable",
-    "set-mention",
-    "remove-mention",
-    "view",
-  ])("%s サブコマンドで権限不足の場合は handleCommandError へ委譲されることを確認", async (subcommand) => {
-    const interaction = createInteraction({
-      memberPermissions: { has: vi.fn(() => false) },
-      options: {
-        getSubcommand: vi.fn(() => subcommand),
-        getRole: vi.fn(() => null),
-      },
-    });
+  it.each(["enable", "disable", "set-mention", "remove-mention", "view"])(
+    "%s サブコマンドで権限不足の場合は handleCommandError へ委譲されることを確認",
+    async (subcommand) => {
+      const interaction = createInteraction({
+        memberPermissions: { has: vi.fn(() => false) },
+        options: {
+          getSubcommand: vi.fn(() => subcommand),
+          getRole: vi.fn(() => null),
+        },
+      });
 
-    await bumpReminderSettingsCommand.execute(
-      interaction as unknown as ChatInputCommandInteraction,
-    );
+      await bumpReminderSettingsCommand.execute(
+        interaction as unknown as ChatInputCommandInteraction,
+      );
 
-    expect(handleCommandError).toHaveBeenCalledTimes(1);
-  });
+      expect(handleCommandError).toHaveBeenCalledTimes(1);
+    },
+  );
 
   it("set-mention で role が null の場合はエラーが委譲されることを確認", async () => {
     const interaction = createInteraction({

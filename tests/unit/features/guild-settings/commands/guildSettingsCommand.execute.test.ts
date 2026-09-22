@@ -98,11 +98,14 @@ describe("bot/features/guild-settings/commands/guildSettingsCommand.execute", ()
     ["reset-all", handleResetAllMock],
     ["export", handleExportMock],
     ["import", handleImportMock],
-  ])("サブコマンド '%s' が正しいハンドラに委譲されること", async (subcommand, mock) => {
-    const interaction = createInteraction(subcommand);
-    await executeGuildSettingsCommand(interaction);
-    expect(mock).toHaveBeenCalledWith(interaction, "guild-1");
-  });
+  ])(
+    "サブコマンド '%s' が正しいハンドラに委譲されること",
+    async (subcommand, mock) => {
+      const interaction = createInteraction(subcommand);
+      await executeGuildSettingsCommand(interaction);
+      expect(mock).toHaveBeenCalledWith(interaction, "guild-1");
+    },
+  );
 
   it("不正なサブコマンドの場合は ValidationError をスローすること", async () => {
     const interaction = createInteraction("invalid-command");

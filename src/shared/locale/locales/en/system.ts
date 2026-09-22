@@ -62,8 +62,6 @@ export const system = {
   "error.reply_failed": "Failed to send error message",
   "error.missing_permissions":
     "Bot missing permissions URL: {{url}} Method: {{method}}",
-  "error.unhandled_rejection": "Unhandled Promise rejection:",
-  "error.uncaught_exception": "Uncaught exception:",
   "error.unhandled_rejection_log": "Unhandled Promise Rejection:",
   "error.uncaught_exception_log": "Uncaught Exception:",
   "error.node_warning": "Node Warning:",

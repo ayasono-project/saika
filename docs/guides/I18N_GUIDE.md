@@ -2,7 +2,7 @@
 
 > 多言語対応の実装ガイド — 翻訳の取得・キーの追加・命名規則
 
-最終更新: 2026年9月20日
+最終更新: 2026年9月23日
 
 ---
 
@@ -27,13 +27,12 @@
 
 ```typescript
 // 実行者本人への応答 → tInteraction
-await interaction.reply(tInteraction(interaction.locale, "afk:user-response.moved", {
-  user: member.displayName,
+await interaction.reply(tInteraction(interaction.locale, "afk:user-response.set_channel_success", {
   channel: channel.name,
 }));
 
 // 通知チャンネルへの投稿 → tGuild
-const message = await tGuild(guild.id, "inactiveKick:embed.title.kick", { total: 5 });
+const message = await tGuild(guild.id, "unverifiedKick:embed.title.kick", { total: 5 });
 
 // 同一ギルドで複数キーを引く → getGuildTranslator
 const t = await getGuildTranslator(guild.id);
@@ -68,13 +67,13 @@ import { getGuildTranslator } from "../../shared/locale/helpers";
 
 ## 名前空間
 
-キーは `"名前空間:キー"` の形式で指定します。名前空間は **18個**あり、`src/shared/locale/i18n.ts` の `I18N_NAMESPACES` が定義元です。
+キーは `"名前空間:キー"` の形式で指定します。名前空間は **16個**あり、`src/shared/locale/i18n.ts` の `I18N_NAMESPACES` が定義元です。
 
 | 分類 | 名前空間 |
 | --- | --- |
 | 横断 | `common`（デフォルト）/ `system` |
 | 汎用コマンド | `about` / `ping` / `help` |
-| 機能別 | `afk` / `bumpReminder` / `vac` / `vcAutoRecruit` / `messageDelete` / `memberLog` / `inactiveKick` / `unverifiedKick` / `reactionRole` / `stickyMessage` / `ticket` / `guildSettings` |
+| 機能別 | `afk` / `bumpReminder` / `vac` / `vcAutoRecruit` / `messageDelete` / `memberLog` / `unverifiedKick` / `reactionRole` / `stickyMessage` / `ticket` / `guildSettings` |
 
 - `common`: 共通ラベル・タイトル・機能横断のエラー文言
 - `system`: 機能横断の内部ログ（Bot 起動/終了・DB・Web など）
@@ -100,7 +99,7 @@ src/shared/locale/
     │   ├── system.ts
     │   ├── resources.ts
     │   └── features/
-    │       ├── index.ts     ← 16機能の re-export
+    │       ├── index.ts     ← 14機能の re-export
     │       ├── afk.ts
     │       ├── bumpReminder.ts
     │       └── ...
@@ -117,15 +116,15 @@ src/shared/locale/
 
 | 接頭辞 | 用途 | 例 |
 | --- | --- | --- |
-| `user-response.` | ユーザーへの応答文 | `"user-response.moved": "{{user}} を {{channel}} に移動しました。"` |
+| `user-response.` | ユーザーへの応答文 | `"user-response.set_channel_success": "AFKチャンネルを {{channel}} に設定しました。"` |
 | `embed.title.` | Embed のタイトル | `"embed.title.created"` |
 | `embed.field.` | Embed のフィールド名 | `"embed.field.target_channel"` |
 | `embed.description.` | Embed の本文 | `"embed.description.confirm"` |
 | `ui.button.` | ボタンのラベル | `"ui.button.page_next": "次へ"` |
-| `ui.select.` | セレクトメニューの placeholder 等 | `"ui.select.add_category_placeholder"` |
+| `ui.select.` | セレクトメニューの placeholder 等 | `"ui.select.add_channel_placeholder"` |
 | `ui.modal.` | モーダルのラベル・placeholder | `"ui.modal.set_message_label"` |
-| `log.` | ロガー出力 | `"log.move_executed"` |
-| `audit_reason.` | Discord 監査ログの理由 | `"audit_reason.kick": "一定期間非アクティブのため自動キック"` |
+| `log.` | ロガー出力 | `"log.detected"` |
+| `audit_reason.` | Discord 監査ログの理由 | `"audit_reason.kick": "参加から {{days}} 日以内に認証されなかったため自動キック"` |
 | `log_prefix.` | ログのタグ（`system` 名前空間専用） | `"log_prefix.bump_reminder"` |
 
 コマンド定義の説明文だけは接頭辞を持たず、**コマンド構造をそのままキーにします**。
@@ -145,10 +144,10 @@ afk-settings.set-channel.channel.description
 
 ```typescript
 // ja/features/afk.ts
-"user-response.moved": "{{user}} を {{channel}} に移動しました。",
+"user-response.set_channel_success": "AFKチャンネルを {{channel}} に設定しました。",
 
 // 呼び出し側
-tInteraction(locale, "afk:user-response.moved", { user: "そのざき", channel: "雑談" });
+tInteraction(locale, "afk:user-response.set_channel_success", { channel: "雑談" });
 ```
 
 HTML エスケープは無効化されているため、Discord のメンション記法などをそのまま埋め込めます。
@@ -269,7 +268,7 @@ localeManager.invalidateLocaleCache(guildId);
 `ja` / `en` 以外を追加する場合、以下をすべて更新します。**1つでも漏れると実行時に落ちるか、その言語だけ翻訳されません。**
 
 1. `i18n.ts` の `SUPPORTED_LOCALES`
-2. `locales/<新locale>/` 一式（`common.ts` / `system.ts` / `features/*` 16ファイル + `index.ts` / `resources.ts`）
+2. `locales/<新locale>/` 一式（`common.ts` / `system.ts` / `features/*` 14ファイル + `index.ts` / `resources.ts`）
 3. `locales/resources.ts` への登録
 4. `localeManager.ts` の `resources` リテラル
 5. `localeManager.ts` の `tInteraction` と `helpers.ts` の `getInteractionTranslator` の言語判定分岐

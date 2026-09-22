@@ -40,9 +40,6 @@ export const buttonHandlers: ButtonHandler[] = [
   reactionRoleAddButtonButtonHandler,
   // リアクションロール remove-button の確認・キャンセルボタンを処理
   reactionRoleRemoveButtonButtonHandler,
-  // VC募集パネルのボタン入力を処理
-  // VC募集メッセージのボタン入力を処理（削除・終了・VC名変更）
-  // VC募集 add-role / remove-role の確認・キャンセルボタンを処理
-  // /vc disconnect・/vc move・/afk の一括操作確認ダイアログのボタンを処理
+  // /afk の一括操作確認ダイアログのボタンを処理
   vcBulkActionButtonHandler,
 ];

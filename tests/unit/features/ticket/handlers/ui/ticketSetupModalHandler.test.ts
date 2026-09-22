@@ -80,6 +80,7 @@ function createMockModalInteraction(
     },
     channelId: "channel-1",
     channel: {
+      isThread: () => false,
       send: vi.fn().mockResolvedValue({ id: "msg-1", channelId: "channel-1" }),
     },
     user: { id: "user-1" },
@@ -203,6 +204,32 @@ describe("bot/features/ticket/handlers/ui/ticketSetupModalHandler", () => {
       await ticketSetupModalHandler.execute(interaction as never);
 
       expect(mockConfigService.create).not.toHaveBeenCalled();
+    });
+
+    it("スレッド内で実行した場合はパネルを設置せず拒否すること", async () => {
+      vi.mocked(ticketSetupSessions.get).mockReturnValue({
+        categoryId: "cat-1",
+        staffRoleIds: ["role-1"],
+        commandInteraction: {
+          deleteReply: vi.fn().mockResolvedValue(undefined),
+        } as never,
+      });
+      mockConfigService.findByGuildAndCategory.mockResolvedValue(null);
+
+      const interaction = createMockModalInteraction(
+        "ticket:setup-modal:session-1",
+        {
+          "ticket:setup-title": "Title",
+          "ticket:setup-description": "Desc",
+        },
+        { channel: { isThread: () => true, send: vi.fn() } },
+      );
+
+      await ticketSetupModalHandler.execute(interaction as never);
+
+      expect(interaction.channel.send).not.toHaveBeenCalled();
+      expect(mockConfigService.create).not.toHaveBeenCalled();
+      expect(interaction.reply).toHaveBeenCalled();
     });
 
     it("正常系: パネルメッセージを送信しDB設定を保存する", async () => {

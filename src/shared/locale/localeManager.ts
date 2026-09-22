@@ -282,7 +282,7 @@ export const tDefault = (
 /**
  * プレフィックス付きログメッセージを生成する
  * @param prefixKey ログプレフィックスの i18n キー（例: "system:log_prefix.bump_reminder"）
- * @param messageKey ログメッセージの i18n キー（例: "bumpReminder:bump-reminder.log.detected"）
+ * @param messageKey ログメッセージの i18n キー（例: "bumpReminder:log.detected"）
  * @param params メッセージの補間パラメータ
  * @param sub サブプレフィックス（例: "command"）— "[interactionCreate:command]" の形式になる
  * @returns "[プレフィックス] メッセージ" 形式の文字列

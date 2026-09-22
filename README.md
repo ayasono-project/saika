@@ -2,7 +2,7 @@
 
 > 出来ないこと以外は何でも出来る！コミュニティに彩りを加えるサーバー管理 Bot「彩加 =Saika=」
 
-**開発開始**: 2026年2月 | **最終更新**: 2026年9月20日 | **AI利用**: コードおよびドキュメントの作成に生成AIを使用しています。
+**開発開始**: 2026年2月 | **最終更新**: 2026年9月23日 | **AI利用**: コードおよびドキュメントの作成に生成AIを使用しています。
 
 ## 概要
 
@@ -38,7 +38,6 @@
 | Bumpリマインダー         | Bump検知と2時間後の自動通知・メンション設定・通知登録UI   |  ✅  | [manual](docs/guides/USER_MANUAL.md#bumpリマインダー機能)       |
 | チケット                 | チケットチャンネルでサポート対応                         |  ✅  | [manual](docs/guides/USER_MANUAL.md#チケット機能)               |
 | リアクションロール       | ボタンクリックでロール付与・解除                         |  ✅  | [manual](docs/guides/USER_MANUAL.md#リアクションロール機能)     |
-| 非アクティブ自動キック   | 一定期間活動のないメンバーを事前通知のうえ自動キック     |  ✅  | [manual](docs/guides/USER_MANUAL.md#非アクティブ自動キック機能) |
 | 未承認ユーザー自動キック | 認証ロール未取得のメンバーを事前警告のうえ自動キック     |  ✅  | [manual](docs/guides/USER_MANUAL.md#未承認ユーザー自動キック機能) |
 
 ---
@@ -52,7 +51,7 @@
 ### コア技術
 
 - **Runtime**: Node.js 24以上
-- **Language**: TypeScript 6.x - 厳格な型チェックで品質向上
+- **Language**: TypeScript 7.x - 厳格な型チェックで品質向上
 - **Framework**: Discord.js 14.x - Discord Bot開発フレームワーク
 - **Package Manager**: pnpm - 高速で効率的なパッケージ管理
 - **共通基盤**: `@ayasono/shared/core` - logger / エラークラス（`BaseError` 階層）/ Discord Webhook 通知を提供する ayasono 共通パッケージ（git タグ + コミット済み dist で取り込み）
@@ -80,7 +79,7 @@
 ### 必要環境
 
 - Node.js 24以上
-- pnpm 10以上
+- pnpm 11以上
 
 ### セットアップ
 

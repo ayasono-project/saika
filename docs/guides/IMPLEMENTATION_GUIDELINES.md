@@ -2,7 +2,7 @@
 
 > Implementation Guidelines - 実装方針とコーディング規約
 
-最終更新: 2026年9月20日
+最終更新: 2026年9月23日
 
 ---
 
@@ -45,7 +45,7 @@
 - Bot/Web 両方で再利用する横断実装のみ配置し、`bot` / `features` / `web` へ逆依存しない
 - **`database/types/`**: エンティティ・リポジトリインターフェースの唯一の定義場所
 - **`scheduler/`**: JobScheduler（saika 固有だが横断利用のため shared に維持）
-- **`config/` / `constants/` / `errors/` / `locale/` / `utils/`**: 環境変数・定数・エラー・i18n・ユーティリティ（`serviceFactory.ts`・`jsonUtils.ts`・`ttlMap.ts` 等）
+- **`config/` / `constants/` / `errors/` / `locale/` / `utils/`**: 環境変数・定数・エラー・i18n・ユーティリティ（`serviceFactory.ts`・`errorHandling.ts`・`ttlMap.ts` 等）
 
 #### settingsService 経由の DB アクセス
 
@@ -298,15 +298,13 @@ async function getGuildSettings(guildId: string): Promise<GuildSettings | null> 
 | --- | --- |
 | 権限不足 | ユーザーの権限が不足している場合 |
 | Bot権限不足 | Botの権限が不足している場合 |
-| 入力エラー | ユーザー入力の形式不正・範囲外 |
+| 入力不備 | ユーザー入力の形式不正・範囲外 |
 | オプション競合 | 同時指定不可のオプションが競合した場合 |
 | フィルタ不足 | 必須のフィルタ条件が未指定 |
-| チャンネルエラー | チャンネル種別の不一致（非対象チャンネル） |
-| チャンネル不在 | 対象チャンネルが見つからない・削除済み |
+| チャンネル不正 | チャンネル種別の不一致（非対象チャンネル・スレッド） |
 | VC未参加 | VC参加が必要な操作でVC未参加 |
 | 設定不足 | 事前設定が完了していない |
 | リソース不在 | 対象リソースが削除済み・見つからない |
-| 上限超過 | チャンネル数等の上限に達した場合 |
 | タイムアウト | 操作・処理がタイムアウトした場合 |
 | 実行中 | 同一処理が既に実行中（ロック） |
 | 登録済み | 重複登録を検出した場合 |
@@ -315,8 +313,6 @@ async function getGuildSettings(guildId: string): Promise<GuildSettings | null> 
 | 操作エラー | DB操作・API呼び出し等の処理失敗 |
 | 収集エラー | メッセージ収集等のスキャン処理失敗 |
 | 削除エラー | メッセージ削除等の削除処理失敗 |
-| 移動失敗 | ユーザー移動等の操作失敗 |
-| ロール上限超過 | ロール登録数の上限に達した場合 |
 | 設定エラー | 設定値の不整合・不正 |
 | レート制限 | レート制限に到達した場合 |
 | エラー | 上記に該当しない汎用フォールバック |
@@ -325,7 +321,7 @@ async function getGuildSettings(guildId: string): Promise<GuildSettings | null> 
 該当するものがない場合はテーブルに追加してから使用する。
 
 カスタムレイアウトが必要な機能固有の Embed（パネル・サマリー等）は `new EmbedBuilder()` を直接使用してよい。
-その場合のカラーは feature の `*.constants.ts` にブランドカラー定数を定義して使う（例: `VC_RECRUIT_PANEL_COLOR = 0x24b9b8`）。
+その場合のカラーは feature の `*.constants.ts` にブランドカラー定数を定義して使う（例: `VC_AUTO_RECRUIT_EMBED_COLOR = 0x5865f2`）。
 
 **STATUS_COLORS 一覧:**
 

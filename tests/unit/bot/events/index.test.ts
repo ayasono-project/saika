@@ -34,19 +34,10 @@ vi.mock("@/shared/locale/localeManager", () => ({
     const m = params ? `${messageKey}:${JSON.stringify(params)}` : messageKey;
     return `[${commandName}] ${m}`;
   },
-  tShared: vi.fn((key: string) => key),
   tDefault: vi.fn((key: string) => key),
   tInteraction: (...args: unknown[]) => args[1],
 }));
 vi.mock("@/bot/services/botCompositionRoot", () => ({
-  getBotCompositionRoot: vi.fn(() => ({
-    afkService: {},
-    memberLogService: {},
-    bumpReminderService: {},
-    messageDeleteService: {},
-    stickyMessageService: {},
-    vacService: {},
-  })),
   getBotTicketSettingsService: vi.fn(() => ({})),
   getBotTicketRepository: vi.fn(() => ({})),
 }));

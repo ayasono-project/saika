@@ -21,12 +21,9 @@ export const common = {
   title_option_conflict: "オプション競合",
   title_filter_required: "フィルタ不足",
   title_channel_invalid: "チャンネル不正",
-  title_channel_not_found: "チャンネル不在",
   title_not_in_vc: "VC未参加",
   title_config_required: "設定不足",
   title_resource_not_found: "リソース不在",
-  title_limit_exceeded: "上限超過",
-  title_role_limit_exceeded: "ロール上限超過",
   title_timeout: "タイムアウト",
   title_already_running: "実行中",
   title_already_registered: "登録済み",
@@ -35,7 +32,6 @@ export const common = {
   title_operation_error: "操作エラー",
   title_scan_error: "収集エラー",
   title_delete_error: "削除エラー",
-  title_move_failed: "移動失敗",
   title_rate_limited: "レート制限",
   title_config_error: "設定エラー",
 
@@ -43,6 +39,8 @@ export const common = {
   // バリデーションエラー
   "validation.guild_only": "このコマンドはサーバー内でのみ使用できます。",
   "validation.invalid_subcommand": "無効なサブコマンドです。",
+  "validation.thread_not_supported":
+    "スレッド内では実行できません。通常のテキストチャンネルで実行してください。",
 
   // 権限エラー
   "permission.manage_guild_required":

@@ -375,7 +375,9 @@ Bot 起動
 
 ### ギルド単位の後始末
 
-ギルドのデータを消す経路は3つあり（`/guild-settings reset-all` / `guildDelete` / Web API `POST /:guildId/reset-all`）、いずれも **`purgeGuildDataUsecase`**（`src/features/guild-settings/usecases/purgeGuildDataUsecase.ts`）に集約されています。
+ギルドのデータを消す経路は2つあり（`/guild-settings reset-all` / Web API `POST /:guildId/reset-all`）、いずれも **`purgeGuildDataUsecase`**（`src/features/guild-settings/usecases/purgeGuildDataUsecase.ts`）に集約されています。
+
+`guildDelete`（Bot の退出・キック・BAN）は**データを消しません**。`stopGuildJobsUsecase` を呼んでインメモリのタイマー（チケット自動削除ジョブ・Bump リマインダー）を止めるだけで、DB には一切触れません。Bot を外しただけで不可逆に設定が消えるのは「再招待は破壊的操作ではない」という利用者の期待に反するため、2026-09-23（v3.1.3）に即時削除をやめました。
 
 ```
 purgeGuildDataUsecase(deps, guildId)

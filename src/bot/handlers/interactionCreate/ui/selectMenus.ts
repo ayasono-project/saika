@@ -49,7 +49,6 @@ export const roleSelectHandlers: RoleSelectHandler[] = [
   ticketSetupRoleSelectHandler,
   // チケット set-roles / add-roles / remove-roles のロール選択を処理
   ticketRoleSelectHandler,
-  // VC募集 add-role のロール選択を処理
 ];
 
 export const stringSelectHandlers: StringSelectHandler[] = [
@@ -81,8 +80,6 @@ export const stringSelectHandlers: StringSelectHandler[] = [
   stickyMessageRemoveSelectHandler,
   // sticky-message view コマンドのチャンネル選択を処理
   stickyMessageViewSelectHandler,
-  // VC募集のメンション/VC選択を処理
-  // VC募集 remove-role のロール選択を処理
   // チケット teardown のカテゴリ選択を処理
   ticketTeardownSelectHandler,
   // チケット view のカテゴリ選択を処理

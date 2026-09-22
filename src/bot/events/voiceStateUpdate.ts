@@ -24,6 +24,5 @@ export const voiceStateUpdateEvent: BotEvent<typeof Events.VoiceStateUpdate> = {
     await handleVcAutoRecruitVoiceStateUpdate(oldState, newState);
     // VAC同期ロジック（トリガー参加→VC生成→移動 / 空室削除）を専用ハンドラへ委譲
     await handleVacVoiceStateUpdate(oldState, newState);
-    // VC募集で作成したVCは明示的削除（ボタン）のみ。自動削除は行わない
   },
 };

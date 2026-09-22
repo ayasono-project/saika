@@ -39,14 +39,16 @@
 
 | 区分 | 残件 |
 | --- | ---: |
-| いま着手できる | 12 |
+| いま着手できる | 14 |
 | 完了待ち | 6 |
 | 未決（判断が要る） | 2 |
-| **合計** | **20** |
+| **合計** | **22** |
 
 > **着手順は「いま着手できる」の並び順そのもの**（1件＝1 PR）。番号付きの「次にやること」は 2026-09-20 に廃止。1件動くたびに本体・サマリー・リストの3箇所を直すことになり、番号も挿入のたびにずれるため。
 >
 > **v3.1.1 のリリースと告知は 2026-09-20 に完了**（→ HISTORY.md）。サポートサーバーへ1本出し、Ikoitter へは購読で流した。次のリリースの告知も同じ形（管理者向け詳細をサポートサーバー、利用者向けの短い版を自鯖）で出す。
+>
+> **2026-09-23 にカバレッジの実態が判明し、タスクを2件起こした**（「カバレッジ設定の実態合わせ」「結合テストの穴」）。`pnpm test:coverage` は4項目とも閾値割れしているが、CI も pre-commit も `pnpm test` しか実行しないため見えていなかった。テスト自体は277ファイル全部通っている。**次回はここから着手する。**
 >
 > **2026-09-23 に未決を9件から2件へ減らした**（→ HISTORY.md）。残るのは「メッセージ出力機能の設計」と「変更履歴を作るか」の2件で、どちらも新機能の番が来るまで止めておける。決着に伴い、`deleteAllSettings` のレジストリ化（親テーブルで不要）とドキュメント整理（役割が HISTORY.md へ移行）を取り下げ、パッケージ更新・bump ポーリング化・メンバーログの join/leave 分離が着手可能になった。
 
@@ -78,6 +80,64 @@
 
 > **Coolify のビルドは1本ずつ。** develop に複数 PR を積んでも、main へのリリースは1回にまとめる。
 > **`@fastify/rate-limit` は 2026-09-20 に 11.2.0 へ上げ済み**（→ HISTORY.md「Web API のレート制限すり抜けの恒久対応」）。このタスクの対象外。
+
+### カバレッジ設定の実態合わせ 【保守・小〜中】
+
+**依存なし。2026-09-23 に発見し「次回の最初にやる」と決めた。** パッケージ更新の下に置いてあるのは、パッケージ更新が同日に着手済みのため。
+
+**発端**: `pnpm test:coverage` が**現時点で4項目とも閾値割れしている**（下表）。CI（`ci.yml:75`）も pre-commit もどちらも `pnpm test` を実行しており、**`test:coverage` はどこからも自動実行されていない**ため、長期間見えていなかった。テスト自体は277ファイル全部通っている。
+
+| 項目 | 実測 | 閾値 |
+| --- | ---: | ---: |
+| Statements | 83.69 | 95 |
+| Lines | 84.86 | 95 |
+| Functions | 77.52 | 87 |
+| Branches | 77.01 | 92 |
+
+**やること**
+
+- [ ] **死んだ除外6件を直す**（意図の復元であって基準の引き下げではない）。`src/bot/features/` は存在せず機能は `src/features/` へ移動済み
+  - `src/bot/features/**/repositories/*.ts` → 実際は `src/features/{bump-reminder,sticky-message,ticket}/repositories/`
+  - `src/bot/features/bump-reminder/repositories/usecases/deleteBumpReminder.ts` / `findBumpReminderById.ts`
+  - `src/bot/features/ticket/services/ticketCleanupService.ts` → 実際は `src/features/ticket/services/`
+  - `src/shared/database/repositories/*.ts` → ディレクトリごと存在しない
+  - `src/bot/handlers/index.ts` → バレル廃止で消滅
+- [ ] **委譲ラッパー3件を除外に追加する。** いずれも15〜17行・分岐ゼロで、サービス層を1行呼ぶだけ（`ticketCleanupService.ts` を除外したのと同じ判断）
+  - `src/features/vc-auto-recruit/handlers/vcAutoRecruitChannelDelete.ts`
+  - `src/features/vc-auto-recruit/handlers/vcAutoRecruitStartupCleanup.ts`
+  - `src/features/vc-auto-recruit/handlers/vcAutoRecruitVoiceStateUpdate.ts`
+- [ ] **測り直して、実測のわずかに下に閾値を置く（ラチェット）。** 「今の数字が通る値」にすると基準ではなく現状の記録になる。少し下に置けば新しいテストを書かずに**回帰だけ止められ**、以後は上げる方向にしか動かない
+- [ ] **TESTING_GUIDELINES.md を2箇所直す**（詳細は下記）
+- [ ] **`test:coverage` を CI で回すか決める。** 回さないなら閾値は飾りのままなので、ラチェットの意味も半減する
+
+**TESTING_GUIDELINES.md の修正内容**（2026-09-23 決定）
+
+冒頭の原則「**ロジックがある層だけをテストする**」は既に正しいが、それを具体化した2箇所が委譲ラッパーを拾えていない。
+
+- **除外基準**（41行目）: 「Prisma への純粋委譲」→「**純粋委譲（Prisma / サービス層への委譲ラッパー）**」へ広げる。現在の文言はリポジトリしか想定していない
+- **レイヤ別表**（33行目）: `features/*/handlers/*.ts` を **必須** → **要判断** へ。リポジトリ行（「独自ロジックがあれば必須、純粋委譲なら不要」）と同じ扱いに揃える。無条件必須は冒頭の原則と矛盾している
+- **歯止めを必ず書くこと**: 判定条件は「**分岐・変換・副作用制御をひとつも持たない**」。後からラッパーに条件分岐が入ったら計測へ戻す。これが無いと「そこそこ薄いファイルは何でも外せる」抜け道になる
+- カバレッジ目標の数値（現在「Stmts/Lines 95%以上・Functions 87%以上・Branches 92%以上」）もラチェット後の値に合わせる
+
+> **未承認キックと VC自動募集の結合テスト不在は、このタスクでは埋めない。** → 下記「結合テストの穴」参照。
+
+### 結合テストの穴（未承認キック / VC自動募集） 【テスト・中】
+
+**依存なし。ただし急いで単独で着手する必要はない**（下記のとおり、次の2機能タスクで自然に埋まる）。2026-09-23 に発見。
+
+**結合テストは11本あり、member-log / ticket / guild-settings / message-delete / bump-reminder / sticky-message / vac / afk をカバーしている。入っていないのは未承認キックと VC自動募集の2つだけ。** 方針の問題ではなく単に抜けている。`tests/integration/` は vitest の `include` に入っているのでカバレッジに算入される。つまりこの2機能の 0% は「ユニットも結合も無い」という意味。
+
+**やり方は afk が手本**: `tests/integration/features/afk/commands/afkCommands.integration.test.ts` があるおかげで `features/afk/commands` は 95.31%。コマンド層をユニットで細かくモックせず、結合テストで通して救う形。
+
+| 対象 | Stmts | 備考 |
+| --- | ---: | --- |
+| `unverifiedKickSettingsCommand.simple.ts` | 2.59 | 300行が未到達。**「未承認キックのログチャンネル必須化」でここに検証を足す** |
+| `unverifiedKickVerifyHandler.ts` | 7.14 | 45行・実ロジックあり |
+| `unverified-kick/handlers/ui` | 12.5 | |
+| `vcAutoRecruitSettingsCommand.*` | 4.08 | **「VAC 作成 VC の募集ボタン」でここを拡張する** |
+| `vc-auto-recruit/handlers/ui` | 9.37 | |
+
+> **次の2タスクがこの2機能を直撃し、どちらもチェックリストに「テスト」が入っている。** afk と同じ形で結合テストを書けば作業の副産物として埋まるので、**このタスクを単独で先に潰す必要はない**。
 
 ### `/bump-reminder-settings disable` が予約をキャンセルできていない 【実装・小・バグ】
 

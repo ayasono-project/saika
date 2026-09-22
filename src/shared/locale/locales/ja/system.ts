@@ -37,11 +37,10 @@ export const system = {
 
   // guildDelete（Bot退出時クリーンアップ）
   "guild_delete.start":
-    "ギルド退出を検知 設定データを削除します GuildId: {{guildId}} GuildName: {{guildName}}",
+    "ギルド退出を検知 ジョブを停止します（設定データは保持） GuildId: {{guildId}} GuildName: {{guildName}}",
   "guild_delete.complete":
-    "ギルド設定データの削除が完了しました GuildId: {{guildId}}",
-  "guild_delete.failed":
-    "ギルド設定データの削除に失敗しました GuildId: {{guildId}}",
+    "ジョブ停止が完了しました 設定データは保持しています GuildId: {{guildId}}",
+  "guild_delete.failed": "ジョブ停止に失敗しました GuildId: {{guildId}}",
 
   // Bot起動・シャットダウン
   "bot.starting": "Discord Botを起動しています...",

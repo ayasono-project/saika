@@ -4,6 +4,7 @@ const mockDeleteAllConfigs = vi.fn();
 const mockFindAllClosedByGuild = vi.fn();
 const mockCancelAllForGuild = vi.fn();
 const mockApplyBotPresence = vi.fn();
+const mockScheduleDeletion = vi.fn();
 
 vi.mock("@/shared/locale/localeManager", () => ({
   logPrefixed: (
@@ -42,13 +43,16 @@ vi.mock("@/bot/services/botCompositionRoot", () => ({
   getBotBumpReminderManager: () => ({
     cancelAllForGuild: mockCancelAllForGuild,
   }),
+  getBotGuildRegistryRepository: () => ({
+    scheduleDeletion: (...args: unknown[]) => mockScheduleDeletion(...args),
+  }),
 }));
 
 import { handleGuildDelete } from "@/bot/handlers/guildDeleteHandler";
 import { jobScheduler } from "@/shared/scheduler/jobScheduler";
 import { logger } from "@/shared/utils/logger";
 
-// Bot退出時にジョブだけを停止し、設定データを保持する動作を検証する
+// Bot退出時にジョブを停止し、データは削除せず猶予後の削除を予約する動作を検証する
 describe("bot/handlers/guildDeleteHandler", () => {
   // 各テストでモックをリセットする
   beforeEach(() => {
@@ -56,6 +60,7 @@ describe("bot/handlers/guildDeleteHandler", () => {
     mockFindAllClosedByGuild.mockResolvedValue([]);
     mockDeleteAllConfigs.mockResolvedValue(undefined);
     mockCancelAllForGuild.mockResolvedValue(0);
+    mockScheduleDeletion.mockResolvedValue(undefined);
   });
 
   it("設定データを削除しないこと（Bot を外しただけで設定が消えるのを防ぐ回帰ガード）", async () => {
@@ -64,6 +69,29 @@ describe("bot/handlers/guildDeleteHandler", () => {
     await handleGuildDelete(guild as never);
 
     expect(mockDeleteAllConfigs).not.toHaveBeenCalled();
+  });
+
+  it("猶予日数（30日）後の削除を予約すること", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-09-24T00:00:00.000Z"));
+    const guild = { id: "guild-1", name: "Test Guild" };
+
+    await handleGuildDelete(guild as never);
+
+    expect(mockScheduleDeletion).toHaveBeenCalledWith(
+      "guild-1",
+      new Date("2026-10-24T00:00:00.000Z"),
+    );
+    vi.useRealTimers();
+  });
+
+  it("予約の書き込みが失敗した場合はエラーログを出力すること", async () => {
+    mockScheduleDeletion.mockRejectedValue(new Error("db error"));
+
+    const guild = { id: "guild-1", name: "Test Guild" };
+    await handleGuildDelete(guild as never);
+
+    expect(logger.error).toHaveBeenCalled();
   });
 
   it("ジョブ停止の開始と完了をログ出力すること", async () => {

@@ -28,13 +28,42 @@ import type { GuildTicketSettings, Ticket } from "./ticketTypes";
  * ギルド親レコード（guilds テーブル）の登録
  *
  * 全機能テーブルが guilds へ FK を張っているため、親行が無いギルドでは
- * どの機能の設定も保存できない。参加時と起動時スイープの2経路から呼ぶ。
+ * どの機能の設定も保存できない。参加時と照合（起動時・日次）の2経路から呼ぶ。
  */
 export interface IGuildRegistryRepository {
   /** 単一ギルドの親行を作る（既にあれば何もしない） */
   ensureGuild(guildId: string): Promise<void>;
   /** 複数ギルドの親行をまとめて作る（既にあるものは読み飛ばす） */
   ensureGuilds(guildIds: string[]): Promise<void>;
+  /** 退出したギルドのデータ削除を予約する（親行が無ければ何もしない） */
+  scheduleDeletion(guildId: string, deleteAt: Date): Promise<void>;
+  /** 削除予約を取り消す（再導入でデータを復活させる） */
+  cancelScheduledDeletion(guildId: string): Promise<void>;
+  /**
+   * 複数ギルドの削除予約を取り消し、取り消した件数を返す
+   * @returns 実際に予約が入っていて取り消した件数
+   */
+  cancelScheduledDeletions(guildIds: string[]): Promise<number>;
+  /**
+   * 参加中でないのに削除予約の無いギルドへ、削除を予約する
+   *
+   * `guildDelete` を取りこぼしたギルド（Bot の停止中に外された等）を拾うための照合。
+   * 既に予約が入っているギルドの予定日時は動かさない。
+   * @param joinedGuildIds いま参加しているギルドの ID（これ以外が対象）
+   * @param deleteAt 書き込む削除予定時刻
+   * @returns 新たに予約した件数
+   */
+  scheduleDeletionForAbsentGuilds(
+    joinedGuildIds: string[],
+    deleteAt: Date,
+  ): Promise<number>;
+  /** 猶予が切れたギルドの ID を列挙する */
+  findGuildsDueForDeletion(now: Date): Promise<string[]>;
+  /**
+   * 猶予が切れたギルドを削除する（カスケードで全機能テーブルが落ちる）
+   * @returns 実際に削除した件数
+   */
+  deleteGuildsDueForDeletion(guildIds: string[], now: Date): Promise<number>;
 }
 
 /** ギルド設定のコアCRUD・locale操作 */

@@ -19,6 +19,7 @@ export const system = {
   "log_prefix.interaction_create": "interactionCreate",
   "log_prefix.guild_create": "guildCreate",
   "log_prefix.guild_delete": "guildDelete",
+  "log_prefix.guild_deletion": "GuildDeletion",
   "log_prefix.ready": "ready",
   "log_prefix.ticket": "Ticket",
   "log_prefix.reaction_role": "ReactionRole",
@@ -35,14 +36,25 @@ export const system = {
   "guild_create.joined":
     "guild join detected GuildId: {{guildId}} GuildName: {{guildName}}",
   "guild_create.registry_failed":
-    "failed to create guild parent record, will be backfilled on next startup GuildId: {{guildId}}",
+    "failed to create guild parent record, will be backfilled by the next reconciliation (startup and daily at 4:00) GuildId: {{guildId}}",
 
   // guildDelete (cleanup on bot removal)
   "guild_delete.start":
     "guild removal detected, stopping jobs (config data retained) GuildId: {{guildId}} GuildName: {{guildName}}",
   "guild_delete.complete":
-    "jobs stopped, config data retained GuildId: {{guildId}}",
-  "guild_delete.failed": "failed to stop guild jobs GuildId: {{guildId}}",
+    "jobs stopped, data scheduled for deletion after the grace period GuildId: {{guildId}} DeleteAt: {{deleteAt}}",
+  "guild_delete.failed":
+    "failed to stop guild jobs or schedule data deletion GuildId: {{guildId}}",
+
+  // Guild registry reconciliation and deletion sweep for guilds past the grace period
+  "guild_deletion.purged": "deleted data for expired guilds Count: {{count}}",
+  "guild_deletion.no_target": "reconciliation made no changes",
+  "guild_deletion.schedule_cancelled":
+    "cancelled scheduled deletion for joined guilds Count: {{count}}",
+  "guild_deletion.schedule_added":
+    "scheduled deletion for guilds the bot is not in that had no schedule Count: {{count}}",
+  "guild_deletion.sweep_failed":
+    "failed to reconcile the guild registry or delete expired guild data",
 
   // Bot startup & shutdown
   "bot.starting": "Starting Discord Bot...",

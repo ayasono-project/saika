@@ -92,7 +92,7 @@ export async function buildApiServer(
   // 認証層: JWT 検証 preHandler をデコレート。
   // デコレータは子プラグイン（apiRoutes 配下の機能ルート）から参照される。
   app.decorate("authenticate", createAuthenticate());
-  app.decorate("requireGuildAccess", createRequireGuildAccess());
+  app.decorate("requireGuildAccess", createRequireGuildAccess(deps.client));
 
   // 例外 → エラー封筒への一元変換
   app.setErrorHandler((error, _request, reply) => {

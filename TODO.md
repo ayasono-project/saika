@@ -281,7 +281,7 @@ HISTORY.md「saika のメジャー更新は『利用者の操作が変わるか�
 - [x] **列名のスネークケース統一（11列）**。`guild_settings`（`guildId` / `createdAt` / `updatedAt`）と `bump_reminders`（`guildId` / `channelId` / `messageId` / `panelMessageId` / `serviceName` / `scheduledAt` / `createdAt` / `updatedAt`）に `@map` を足す。**Prisma のフィールド名は変えないのでアプリコードは1行も変わらない**
 - [x] マイグレーション: `guilds` 作成 → 既存ギルドをバックフィル → 列名リネーム11本 → FK 追加。**`guild_settings.id` は Prisma 側で cuid を生成する設計で DB デフォルトが無い**が、この migration は親行だけ作るので影響しない
 - [x] **インデックス・制約名のリネーム4本**（着手時に追加）。Prisma の制約名はフィールド名ではなく**DB 列名**から生成されるため、列をリネームしただけでは `migrate diff` が名前違いの差分を検出し続ける。`guild_settings_guildId_key` / `bump_reminders_guildId_idx` / `bump_reminders_status_scheduledAt_idx` ＋ 2026-09-20 のテーブル改称で取り残されていた `guild_vc_invite_settings_pkey`
-- [x] **`guildCreate` で親行を作る。** `handleGuildCreate` を async 化し `GuildRegistryRepository.ensureGuild` を呼ぶ。失敗は error ログのみで継続（throw するとプレゼンス更新まで止まる。取りこぼしは起動時スイープが拾う）
+- [x] **`guildCreate` で親行を作る。** `handleGuildCreate` を async 化し `GuildRegistryRepository.ensureGuild` を呼ぶ。失敗は error ログのみで継続（throw するとプレゼンス更新まで止まる。取りこぼしは照合（起動時・日次）が拾う）
 - [x] **起動時に親行が無いギルドを補完する**（`handleClientReady` で `ensureGuilds`。Bot が落ちている間に追加されたケース）
 - [x] テスト（親行 upsert / 一括登録の重複スキップ・空配列ガード / guildCreate の失敗時継続 / 起動時スイープ）
 
@@ -291,14 +291,26 @@ HISTORY.md「saika のメジャー更新は『利用者の操作が変わるか�
 >
 > **原子性の検証（2026-09-25）**: マイグレーションを `BEGIN;` / `COMMIT;` で囲んだ（`migrate deploy` は1文ずつ自動コミットで流すため、囲まないと途中失敗で先行の文だけが残る）。使い捨て DB で途中（手順4のインデックス改名）を意図的に失敗させ、`guilds` も列名リネームも残らず完全に戻ること、原因を除いて `prisma migrate resolve --rolled-back 20260924000000_add_guild_parent_table` → 再デプロイで正常に適用できることを確認した。**失敗時の本当の原因は Prisma の出力に出ない**（「current transaction is aborted」に隠れる）ので、PostgreSQL のサーバーログで見る
 
-**遅延削除の本体**
+**遅延削除の本体** — **2026-09-24 実装完了・develop マージ待ち**
 
-- [ ] `guildDelete` に「`scheduled_deletion_at` に30日後を書く」処理を足す（即削除は v3.1.3 で撤去済みで、現在は何も書いていない）
+- [x] `guildDelete` に「`scheduled_deletion_at` に30日後を書く」処理を足す（即削除は v3.1.3 で撤去済みで、現在は何も書いていない）
 - [x] ~~**ジョブは即停止する。**~~ → **v3.1.3 で実装済み**（`stopGuildJobsUsecase`）。猶予中 Bot はそのギルドに居ないので、ジョブが生きているとエラーログを吐き続ける。データの削除だけを遅らせ、実行中ジョブの停止は遅らせない、という形になっている
-- [ ] `guildCreate` で予約をクリアする（再導入で復活）。クリアしないと、生きている設定が期限後に消える
-- [ ] 猶予切れを拾う日次ジョブ ＋ 起動時スイープ（Bot 停止中に期限が来たケース）。削除は**親行を1つ消すだけ**
-- [ ] `deleteAllSettings` を親行削除に置き換える。`purgeGuildDataUsecase` は reset-all 経路で**残る**（即時削除の経路は消えない）
-- [ ] テスト
+- [x] `guildCreate` で予約をクリアする（再導入で復活）。クリアしないと、生きている設定が期限後に消える
+- [x] 猶予切れを拾う日次ジョブ（毎日 4 時 JST）＋ 起動時スイープ（Bot 停止中に期限が来たケース）。削除は**親行を1つ消すだけ**
+- [x] **起動時は参加中ギルドの予約取り消しをスイープより先に行う**（着手時に追加）。Bot 停止中に外されて入れ直された場合は `guildCreate` が飛ばず予約だけが残るため、順序を逆にすると参加中のギルドのデータを消す
+- [x] **削除の直前にもう一度ジョブを止める**（着手時に追加）。猶予中に再起動すると `restoreBumpRemindersOnStartup` が pending レコードからタイマーを組み直すため、`purgeGuildDataUsecase` と同じ「タイマー解除 → DB 削除」の順序が要る
+- [x] `deleteAllSettings` を親行の削除＋再作成に置き換える（Bot はまだ参加しているので登録は残す・`joinedAt` は保持）。`purgeGuildDataUsecase` は reset-all 経路で**残る**（即時削除の経路は消えない）
+- [x] **照合を起動時・再 IDENTIFY の後（`ShardReady`）・日次ジョブで実行する**（2026-09-25 のレビューで追加）。当初は予約を `guildCreate` / `guildDelete` のイベントだけで管理しており、Bot の停止中に外されたギルドは予約されず**永久に残っていた**（本番の孤児4件もこれ）。`reconcileGuildsUsecase` が DB の `guilds` と参加中ギルドの一覧を突き合わせ、①親行の補完 ②参加中の予約取り消し ③不参加で予約なしのギルドへ30日後を予約 ④猶予切れの削除、の順に揃える。**参加ギルドが0件のときは ③ を行わない**（設定ミスで全ギルドを予約しない。API の失敗は例外になり照合ごと中止される）。既存の孤児4件はリリース時の照合で予約され、30日後に消える。`ShardReady` でも走らせるのは、切断中に導入されたギルドでは `guildCreate` が飛ばず（`guildAvailable` になる）、日次ジョブまで最長24時間設定を保存できなくなるため。**参加中の一覧はゲートウェイのキャッシュではなく REST（`GET /users/@me/guilds`・200件ずつページング）で取る** — discord.js は再 IDENTIFY 後の READY で消えたギルドをキャッシュから取り除かないため、キャッシュだと切断中に外されたギルドが参加中に見え続け、再起動まで予約されない
+- [x] **reset-all の親行作り直しで削除予約を引き継ぐ**（同上）。落とすと次の照合で改めて30日後に予約され、元の期限より削除が遅れる
+- [x] **API の `requireGuildAccess` で Bot 未参加のギルドを 404 にする**（同上）。`claims.guilds` には Bot 未参加のギルドも入るため、親行の無いギルドへの書き込みが FK 違反の 500 になっていた。同じ判定が4箇所に散っていたので `requireBotGuild`（`src/api/lib/botGuild.ts`）へ共通化した
+- [x] テスト（予約の書き込み・取り消し・期限列挙・削除時の期限再評価・スイープの配線・reset-all のカスケード）
+- [x] テスト（照合の順序・予約の起点・0件のガード・件数集計・REST のページング・予約の引き継ぎ・API の 404 と 403 の優先順）
+
+> **実機検証（2026-09-24）**: 使い捨て DB で「期限切れ1件・未来日1件・予約なし1件」を作り、スイープが期限切れだけをカスケード削除すること／再導入で予約が取り消されること／列挙後に再導入されたギルドは削除側の再評価で消えないこと／reset-all 後も親行と `joinedAt` が残ることを確認した。開発 DB で `pnpm start` のフル起動と日次ジョブ登録も確認済み。
+>
+> **照合の実機検証（2026-09-25）**: 本番の形を再現した使い捨て DB（不参加で予約なし2件・不参加で期限切れ1件・参加中なのに予約が残った1件）で `pnpm start` し、1件取り消し・2件予約（30日後）・1件カスケード削除になること、再起動しても予定日時が延びず「変更なし」になること、エラー・警告ゼロを確認した
+>
+> **既知の制限: 再導入してもタイマーは元に戻らない。** 退出時にジョブを止めるが、猶予内に再導入されても止めたタイマーは組み直さない。チケットの自動削除タイマーは次回の再起動で復元される（DB は触っていないため）。Bump リマインダーは退出時に DB の status も `cancelled` にしているので**再起動しても戻らず**、次に誰かが Bump したときに改めて予約される（失うのは進行中の1回分だけ）。「タイマー / スケジューラ実装の整理」で `guildCreate` からの復元を足すときに一緒に直す
 
 **導入時／再導入時 DM ＋ プライバシーポリシー**
 
@@ -338,6 +350,7 @@ HISTORY.md「saika のメジャー更新は『利用者の操作が変わるか�
 - [x] ~~**vc-recruit の手書き無効化2箇所を `disableComponentsAfterTimeout` に寄せる。**~~ → **VC募集機能の削除で消滅**（2026-09-20 削除完了）。共通関数の引数型を `ButtonInteraction` / `StringSelectMenuInteraction` へ広げる話も、手書き箇所が無くなったため不要
 - [ ] **`jobScheduler.stopAll()` を graceful shutdown に接続する。** 定義とテストだけで本番から呼ばれていない（`main.ts` の shutdown は `apiServer.close()` → `client.shutdown()` → `prisma.$disconnect()` のみ）。全ジョブが `unref()` 済みなのでプロセス終了は妨げないが、**シャットダウン中にジョブが発火しうる**
 - [ ] **スティッキー再送のデバウンスを `jobScheduler.addOneTimeJob` へ寄せる。** 同 ID を `replaceExistingJob` で置き換えるのでデバウンスそのものになる。**warn 抑止オプション（`{ quiet: true }`）は 2026-09-20 に実装済み**なので、そのまま寄せられる
+- [ ] **猶予内の再導入でチケット自動削除タイマーを組み直す。** 退出時に止めたタイマーは、再導入しても次回の再起動まで戻らない（→「退出時データの遅延削除」の既知の制限）。`guildCreate` から `restoreAutoDeleteTimers` 相当をギルド単位で呼ぶ。Bump リマインダー側は退出時に DB の status まで `cancelled` にしているので復元対象が無く、次の Bump で再予約されるのに任せる
 
 **判断が要るもの**
 

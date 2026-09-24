@@ -34,6 +34,8 @@ export const system = {
   // guildCreate（Bot参加時）
   "guild_create.joined":
     "ギルドへの参加を検知しました GuildId: {{guildId}} GuildName: {{guildName}}",
+  "guild_create.registry_failed":
+    "ギルドの親レコード作成に失敗しました 次回起動時に補完します GuildId: {{guildId}}",
 
   // guildDelete（Bot退出時クリーンアップ）
   "guild_delete.start":

@@ -15,7 +15,10 @@ import { logPrefixed } from "../../shared/locale/localeManager";
 import { jobScheduler } from "../../shared/scheduler/jobScheduler";
 import { logger } from "../../shared/utils/logger";
 import type { BotClient } from "../client";
-import { getBotTicketRepository } from "../services/botCompositionRoot";
+import {
+  getBotGuildRegistryRepository,
+  getBotTicketRepository,
+} from "../services/botCompositionRoot";
 import { applyBotPresence } from "../services/botPresence";
 
 /**
@@ -52,6 +55,13 @@ export async function handleClientReady(client: BotClient): Promise<void> {
     // clientReady は once なので本リスナー登録も一度だけ行われる。
     client.on(Events.ShardReady, () => applyBotPresence(client));
     client.on(Events.ShardResume, () => applyBotPresence(client));
+
+    // FK 先の親行が無いギルドを補完する。Bot の停止中に追加されたギルドには
+    // guildCreate が飛ばないため、ここで拾わないと設定を1件も保存できない。
+    // 以降の復元処理が guild 単位のデータを書くので、それらより前に行う
+    await getBotGuildRegistryRepository().ensureGuilds([
+      ...client.guilds.cache.keys(),
+    ]);
 
     // 全サーバーの招待リンクをキャッシュ（メンバーログの招待追跡に使用）
     await Promise.all(

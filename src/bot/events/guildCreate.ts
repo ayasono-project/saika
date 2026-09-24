@@ -14,6 +14,6 @@ export const guildCreateEvent: BotEvent<typeof Events.GuildCreate> = {
    * @returns 実行完了を示す Promise
    */
   async execute(guild) {
-    handleGuildCreate(guild);
+    await handleGuildCreate(guild);
   },
 };

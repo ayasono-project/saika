@@ -2,7 +2,7 @@
 
 > タスク管理・進捗状況・残件リスト。web ダッシュボード・インフラ（VPS / Cloudflare / Coolify）は別リポジトリで管理。
 
-最終更新: 2026年9月23日
+最終更新: 2026年9月24日
 
 **分類の基準**: 着手できるかどうかだけで分ける。①いま着手できる → ②完了待ち → ③未決（判断が要る）。**「いま着手できる」の並び順が実行順を兼ねる。** 実害の有無・依存関係・何を待っているかは各タスクの本文に書く。
 
@@ -274,17 +274,22 @@ HISTORY.md「saika のメジャー更新は『利用者の操作が変わるか�
 
 **この順に上から実装する（1つ = 1 PR）**
 
-**スキーマ整備**（挙動は変わらない）
+**スキーマ整備**（挙動は変わらない）— **2026-09-24 実装完了・develop マージ待ち**
 
-- [ ] `guilds` テーブルを新設（`guild_id` PK ／ `scheduled_deletion_at` ／ 導入日時）
-- [ ] 既存13テーブルに `guild Guild @relation(...)` を1行ずつ追加し、FK を張る（`onDelete: Cascade`）
-- [ ] **列名のスネークケース統一（11列）**。`guild_settings`（`guildId` / `createdAt` / `updatedAt`）と `bump_reminders`（`guildId` / `channelId` / `messageId` / `panelMessageId` / `serviceName` / `scheduledAt` / `createdAt` / `updatedAt`）に `@map` を足す。**Prisma のフィールド名は変えないのでアプリコードは1行も変わらない**
-- [ ] マイグレーション: `guilds` 作成 → 既存6ギルドをバックフィル → FK 追加 → 列名リネーム11本。**`guild_settings.id` は Prisma 側で cuid を生成する設計で DB デフォルトが無い**点に注意
-- [ ] **`guildCreate` で親行を作る。** `handleGuildCreate` は現在 `void` を返す同期関数なので async 化が要る。**これを入れないと、FK 導入後に追加されたギルドで全機能が FK 違反で落ちる**
-- [ ] **起動時に親行が無いギルドを補完する**（Bot が落ちている間に追加されたケース）
-- [ ] テスト
+- [x] `guilds` テーブルを新設（`guild_id` PK ／ `scheduled_deletion_at` ／ 導入日時 `joined_at`）
+- [x] 既存13テーブルに `guild Guild @relation(...)` を1行ずつ追加し、FK を張る（`onDelete: Cascade`）
+- [x] **列名のスネークケース統一（11列）**。`guild_settings`（`guildId` / `createdAt` / `updatedAt`）と `bump_reminders`（`guildId` / `channelId` / `messageId` / `panelMessageId` / `serviceName` / `scheduledAt` / `createdAt` / `updatedAt`）に `@map` を足す。**Prisma のフィールド名は変えないのでアプリコードは1行も変わらない**
+- [x] マイグレーション: `guilds` 作成 → 既存ギルドをバックフィル → 列名リネーム11本 → FK 追加。**`guild_settings.id` は Prisma 側で cuid を生成する設計で DB デフォルトが無い**が、この migration は親行だけ作るので影響しない
+- [x] **インデックス・制約名のリネーム4本**（着手時に追加）。Prisma の制約名はフィールド名ではなく**DB 列名**から生成されるため、列をリネームしただけでは `migrate diff` が名前違いの差分を検出し続ける。`guild_settings_guildId_key` / `bump_reminders_guildId_idx` / `bump_reminders_status_scheduledAt_idx` ＋ 2026-09-20 のテーブル改称で取り残されていた `guild_vc_invite_settings_pkey`
+- [x] **`guildCreate` で親行を作る。** `handleGuildCreate` を async 化し `GuildRegistryRepository.ensureGuild` を呼ぶ。失敗は error ログのみで継続（throw するとプレゼンス更新まで止まる。取りこぼしは起動時スイープが拾う）
+- [x] **起動時に親行が無いギルドを補完する**（`handleClientReady` で `ensureGuilds`。Bot が落ちている間に追加されたケース）
+- [x] テスト（親行 upsert / 一括登録の重複スキップ・空配列ガード / guildCreate の失敗時継続 / 起動時スイープ）
 
 > **これは挙動を変えないので単独で本番に出せる。** FK 導入の見落としで設定の書き込みが落ちるのが最悪シナリオなので、削除ロジックの変更と同時に出さず、切り分けられる形にする。
+>
+> **マイグレーションの検証（2026-09-24）**: 本番の形（`guild_settings` 行が無いギルド・孤児2件）を再現した使い捨て DB へ旧マイグレーションを適用 → seed → 新マイグレーションを適用し、バックフィル・カスケード削除・未登録ギルドの FK 違反を実際に確認した。`migrate diff` の差分ゼロ・開発 DB へ適用して `pnpm start` のフル起動も確認済み。
+>
+> **原子性の検証（2026-09-25）**: マイグレーションを `BEGIN;` / `COMMIT;` で囲んだ（`migrate deploy` は1文ずつ自動コミットで流すため、囲まないと途中失敗で先行の文だけが残る）。使い捨て DB で途中（手順4のインデックス改名）を意図的に失敗させ、`guilds` も列名リネームも残らず完全に戻ること、原因を除いて `prisma migrate resolve --rolled-back 20260924000000_add_guild_parent_table` → 再デプロイで正常に適用できることを確認した。**失敗時の本当の原因は Prisma の出力に出ない**（「current transaction is aborted」に隠れる）ので、PostgreSQL のサーバーログで見る
 
 **遅延削除の本体**
 
@@ -484,7 +489,7 @@ VAC が建てた VC は ID が毎回新しく allowlist に入らないので、
 
 > **既知の未修正バグ（削除により解消）**: `getFullSettings` は `GuildSettings` 行が無いと即 `null` を返すため（`guildSettingsAggregateRepository.ts:84-85`）、`/guild-settings set-locale` も `set-error-channel` も未実行のギルドでは、他9機能が設定済みでも export が「設定がありません」で失敗する。**削除するため修正しない方針**。なお「除外前に export 失敗 → 設定が無いと誤解 → そのまま Bot を外す」の導線は残るが、**データ消失はしない**（v3.1.3 で `guildDelete` の即削除を撤去済み）。残る実害は export が失敗して設定が無いと誤解するところまで。
 >
-> **2026-09-23 実測: データを持つ6ギルドのうち4ギルドが該当（67%）。** 想定より実害が大きかったため、遅延削除＋スキーマ整備を「いま着手できる」の上位へ引き上げた。**親テーブル導入で `guild_settings` 行が必ず存在するようになるので、この穴は export 削除を待たずに構造的に消える**（暫定修正は不要になった）。
+> **2026-09-23 実測: データを持つ6ギルドのうち4ギルドが該当（67%）。** 想定より実害が大きかったため、遅延削除＋スキーマ整備を「いま着手できる」の上位へ引き上げた。**親テーブルを入れても `guild_settings` 行は作られないので、この穴は export 削除まで残る**（2026-09-25 訂正。当初「構造的に消える」と書いたのは誤りで、欠落が無くなるのは `guilds` の親行だけ）。暫定修正はせず、export 削除で消す方針は変えない。
 
 ### キック機能の DM 通知トグル化 【実装】
 

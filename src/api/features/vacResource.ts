@@ -8,8 +8,7 @@ import type { Guild as DiscordGuild } from "discord.js";
 import type { BotClient } from "../../bot/client";
 import { getBotVacSettingsService } from "../../bot/services/botCompositionRoot";
 import type { VacChannelPair, VacSettings } from "../../shared/database/types";
-import { tDefault } from "../../shared/locale/localeManager";
-import { ApiHttpError } from "../lib/httpError";
+import { requireBotGuild } from "../lib/botGuild";
 import { relativeLabel } from "../lib/time";
 import type { SettingsResource } from "../routes/settingsResource";
 
@@ -85,10 +84,7 @@ export async function listActiveVacs(
   client: BotClient,
   guildId: string,
 ): Promise<ActiveVac[]> {
-  const guild = client.guilds.cache.get(guildId);
-  if (!guild) {
-    throw ApiHttpError.notFound(tDefault("system:web.bot_not_in_guild"));
-  }
+  const guild = requireBotGuild(client, guildId);
   const settings =
     await getBotVacSettingsService().getVacSettingsOrDefault(guildId);
   return settings.createdChannels.map((pair) => toActiveVac(pair, guild));

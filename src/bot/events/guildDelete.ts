@@ -1,4 +1,4 @@
-// ギルド退出イベント（全設定クリーンアップ）
+// ギルド退出イベント（ジョブ停止＋データ削除予約）
 
 import { Events } from "discord.js";
 import { handleGuildDelete } from "../handlers/guildDeleteHandler";
@@ -9,7 +9,7 @@ export const guildDeleteEvent: BotEvent<typeof Events.GuildDelete> = {
   once: false,
 
   /**
-   * guildDelete イベント発火時にギルドの全設定データを削除する
+   * guildDelete イベント発火時にジョブを停止し、データ削除を予約する
    * @param guild 退出したギルド
    * @returns 実行完了を示す Promise
    */

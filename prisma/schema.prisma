@@ -22,7 +22,8 @@ model Guild {
   guildId             String    @id @map("guild_id")
   // Bot がこのギルドへ導入された時刻（親行を作った時刻）
   joinedAt            DateTime  @default(now()) @map("joined_at")
-  // 猶予後の自動削除の予定時刻（null = 削除予定なし）。書き込みは後続タスクで実装する
+  // 猶予後の自動削除の予定時刻（null = 削除予定なし）。退出時（guildDelete）と
+  // 照合（起動時・日次）が書き、再導入と照合が消す。期限切れの削除も照合が行う
   scheduledDeletionAt DateTime? @map("scheduled_deletion_at")
 
   settings               GuildSettings?

@@ -13,7 +13,8 @@ const cleanupVacOnStartupMock = vi.fn();
 const initGuildInviteCacheMock = vi.fn();
 const restoreAutoDeleteTimersMock = vi.fn();
 const getBotTicketRepositoryMock = vi.fn();
-const ensureGuildsMock = vi.fn();
+const runGuildDeletionSweepMock = vi.fn();
+const registerGuildDeletionJobMock = vi.fn();
 const addJobMock = vi.fn();
 const runUnverifiedKickDailyCheckMock = vi.fn();
 
@@ -80,9 +81,13 @@ vi.mock("@/features/ticket/services/ticketAutoDeleteService", () => ({
 vi.mock("@/bot/services/botCompositionRoot", () => ({
   getBotTicketRepository: (...args: unknown[]) =>
     getBotTicketRepositoryMock(...args),
-  getBotGuildRegistryRepository: () => ({
-    ensureGuilds: (...args: unknown[]) => ensureGuildsMock(...args),
-  }),
+}));
+
+vi.mock("@/bot/services/guildDeletionSweep", () => ({
+  runGuildDeletionSweep: (...args: unknown[]) =>
+    runGuildDeletionSweepMock(...args),
+  registerGuildDeletionJob: (...args: unknown[]) =>
+    registerGuildDeletionJobMock(...args),
 }));
 
 vi.mock("@/shared/scheduler/jobScheduler", () => ({
@@ -107,7 +112,7 @@ describe("bot/handlers/clientReadyHandler", () => {
     initGuildInviteCacheMock.mockResolvedValue(undefined);
     restoreAutoDeleteTimersMock.mockResolvedValue(undefined);
     getBotTicketRepositoryMock.mockReturnValue({});
-    ensureGuildsMock.mockResolvedValue(undefined);
+    runGuildDeletionSweepMock.mockResolvedValue(undefined);
   });
 
   it("起動ログ・プレゼンス設定・各スタートアップタスクが正しく実行されることを確認", async () => {
@@ -159,8 +164,9 @@ describe("bot/handlers/clientReadyHandler", () => {
       activities: [{ name: "presence:3", type: ActivityType.Playing }],
       status: PresenceUpdateStatus.Online,
     });
-    // FK 先の親行スイープは招待キャッシュ・各種復元より前に走る
-    expect(ensureGuildsMock).toHaveBeenCalledWith(["g1", "g2", "g3"]);
+    // ギルド登録の照合（親行の補完・削除予約・猶予切れ削除）と日次ジョブ登録
+    expect(runGuildDeletionSweepMock).toHaveBeenCalledWith(client);
+    expect(registerGuildDeletionJobMock).toHaveBeenCalledWith(client);
     expect(initGuildInviteCacheMock).toHaveBeenCalledTimes(3);
     expect(restoreBumpRemindersOnStartupMock).toHaveBeenCalledWith(client);
     expect(cleanupVacOnStartupMock).toHaveBeenCalledWith(client);
@@ -172,6 +178,58 @@ describe("bot/handlers/clientReadyHandler", () => {
         noOverlap: true,
       }),
     );
+  });
+
+  it("ギルド登録の照合は招待キャッシュ・各種復元より先に実行されること（復元処理が親行を前提に書き込むため）", async () => {
+    const client = {
+      user: { tag: "bot#0001", setPresence: vi.fn() },
+      on: vi.fn(),
+      guilds: {
+        cache: {
+          size: 1,
+          map: (fn: (g: unknown) => unknown) => [{ id: "g1" }].map(fn),
+          keys: () => ["g1"],
+        },
+      },
+      users: { cache: { size: 1 } },
+      commands: { size: 1 },
+    };
+
+    await handleClientReady(client as never);
+
+    const sweepOrder = runGuildDeletionSweepMock.mock.invocationCallOrder[0];
+    expect(sweepOrder).toBeLessThan(
+      initGuildInviteCacheMock.mock.invocationCallOrder[0],
+    );
+    expect(sweepOrder).toBeLessThan(
+      restoreBumpRemindersOnStartupMock.mock.invocationCallOrder[0],
+    );
+  });
+
+  it("再 IDENTIFY の後（ShardReady）にも照合が走ること（切断中の導入・退出を日次ジョブまで待たない）", async () => {
+    const onMock = vi.fn();
+    const client = {
+      user: { tag: "bot#0001", setPresence: vi.fn() },
+      on: onMock,
+      guilds: {
+        cache: {
+          size: 1,
+          map: (fn: (g: unknown) => unknown) => [{ id: "g1" }].map(fn),
+          keys: () => ["g1"],
+        },
+      },
+      users: { cache: { size: 1 } },
+      commands: { size: 1 },
+    };
+
+    await handleClientReady(client as never);
+    runGuildDeletionSweepMock.mockClear();
+    for (const [event, listener] of onMock.mock.calls) {
+      if (event === Events.ShardReady) (listener as () => void)();
+    }
+
+    expect(runGuildDeletionSweepMock).toHaveBeenCalledTimes(1);
+    expect(runGuildDeletionSweepMock).toHaveBeenCalledWith(client);
   });
 
   it("先行スタートアップタスクが失敗した場合にエラーがログされ例外は伝播しないことを確認", async () => {

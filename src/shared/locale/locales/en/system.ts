@@ -35,6 +35,10 @@ export const system = {
   // guildCreate (bot joined a guild)
   "guild_create.joined":
     "guild join detected GuildId: {{guildId}} GuildName: {{guildName}}",
+  "guild_create.dm_sent":
+    "sent the welcome DM to the owner GuildId: {{guildId}}",
+  "guild_create.dm_failed":
+    "failed to send the welcome DM to the owner (DMs closed, etc.) GuildId: {{guildId}}",
   "guild_create.registry_failed":
     "failed to create guild parent record, will be backfilled by the next reconciliation (startup and daily at 4:00) GuildId: {{guildId}}",
 

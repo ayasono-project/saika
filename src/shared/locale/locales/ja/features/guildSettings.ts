@@ -72,6 +72,23 @@ export const guildSettings = {
   "embed.field.value.import_state_summary":
     "チケット設定: {{ticketSettings}} 件 / open チケット: {{openTickets}} 件 / スティッキー: {{stickyMessages}} 件 / リアクションロール: {{reactionRolePanels}} 件 / VAC 作成 VC: {{vacCreatedChannels}} 件",
 
+  // ── embed: join_intro（導入時 DM） ──────────────
+  "embed.title.join_intro": "彩加を導入いただきありがとうございます",
+  "embed.description.join_intro":
+    "サーバー管理 Bot「彩加」です。\nまずは `/help` でできることを確認してみてください。設定は各機能の `*-settings` コマンド、または web ダッシュボードから行えます。",
+  "embed.field.name.data_retention": "データの保持について",
+  "embed.field.value.data_retention":
+    "彩加をサーバーから外しても、設定は**{{days}}日間**保持されます。その間に入れ直せば以前の設定のまま使えます。{{days}}日を過ぎると自動的に削除されます。\nすぐに削除したい場合は、**外す前に** `/guild-settings reset-all` を実行してください（即時削除・取り消せません）。外した後はコマンドを実行できないため、{{days}}日後の自動削除を待つことになります。",
+  "embed.field.name.manual": "マニュアル",
+  "embed.field.name.dashboard": "web ダッシュボード",
+  "embed.field.name.privacy_policy": "プライバシーポリシー",
+  "embed.field.name.support_server": "サポートサーバー",
+
+  // ── embed: join_return（猶予期間内の再導入 DM） ──
+  "embed.title.join_return": "以前のデータを引き継ぎました",
+  "embed.description.join_return":
+    "おかえりなさい。このサーバーのデータは **{{deleteAt}}** に自動削除される予定でしたが、再導入を検知したため削除を取り消し、以前のデータを引き継ぎました。",
+
   // ── UIラベル ──────────────────────────────────
   "ui.button.reset_all_confirm": "リセットする",
   "ui.button.reset_all_cancel": "キャンセル",

@@ -37,8 +37,11 @@ export interface IGuildRegistryRepository {
   ensureGuilds(guildIds: string[]): Promise<void>;
   /** 退出したギルドのデータ削除を予約する（親行が無ければ何もしない） */
   scheduleDeletion(guildId: string, deleteAt: Date): Promise<void>;
-  /** 削除予約を取り消す（再導入でデータを復活させる） */
-  cancelScheduledDeletion(guildId: string): Promise<void>;
+  /**
+   * 削除予約を取り消す（再導入でデータを復活させる）
+   * @returns 取り消した削除予定時刻。予約が無かった場合は null
+   */
+  cancelScheduledDeletion(guildId: string): Promise<Date | null>;
   /**
    * 複数ギルドの削除予約を取り消し、取り消した件数を返す
    * @returns 実際に予約が入っていて取り消した件数

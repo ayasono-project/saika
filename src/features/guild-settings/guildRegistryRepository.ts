@@ -49,10 +49,21 @@ export class GuildRegistryRepository implements IGuildRegistryRepository {
     });
   }
 
-  async cancelScheduledDeletion(guildId: string): Promise<void> {
-    await this.prisma.guild.updateMany({
-      where: { guildId },
-      data: { scheduledDeletionAt: null },
+  async cancelScheduledDeletion(guildId: string): Promise<Date | null> {
+    // 取り消した予約日時を再導入 DM で使うため、読み取りと更新を同一
+    // トランザクションで行う（スイープが同時に走っても食い違わないようにする）
+    return this.prisma.$transaction(async (tx) => {
+      const existing = await tx.guild.findUnique({
+        where: { guildId },
+        select: { scheduledDeletionAt: true },
+      });
+      if (!existing?.scheduledDeletionAt) return null;
+
+      await tx.guild.update({
+        where: { guildId },
+        data: { scheduledDeletionAt: null },
+      });
+      return existing.scheduledDeletionAt;
     });
   }
 

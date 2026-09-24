@@ -8,6 +8,15 @@ const createManyMock = vi.fn();
 const updateManyMock = vi.fn();
 const findManyMock = vi.fn();
 const deleteManyMock = vi.fn();
+const findUniqueMock = vi.fn();
+const updateMock = vi.fn();
+
+// cancelScheduledDeletion は読み取りと更新をトランザクションで行うため、
+// コールバックへ渡す tx を同じモック群で受けられるようにしておく
+const txGuild = {
+  findUnique: (...args: unknown[]) => findUniqueMock(...args),
+  update: (...args: unknown[]) => updateMock(...args),
+};
 
 const prisma = {
   guild: {
@@ -17,6 +26,8 @@ const prisma = {
     findMany: (...args: unknown[]) => findManyMock(...args),
     deleteMany: (...args: unknown[]) => deleteManyMock(...args),
   },
+  $transaction: async (fn: (tx: { guild: typeof txGuild }) => unknown) =>
+    fn({ guild: txGuild }),
 } as unknown as PrismaClient;
 
 // 親行の登録・削除予約の書き込みと取り消し・猶予切れの列挙と削除を検証する
@@ -31,6 +42,8 @@ describe("features/guild-settings/GuildRegistryRepository", () => {
     updateManyMock.mockResolvedValue({ count: 0 });
     findManyMock.mockResolvedValue([]);
     deleteManyMock.mockResolvedValue({ count: 0 });
+    findUniqueMock.mockResolvedValue(null);
+    updateMock.mockResolvedValue(undefined);
     repository = new GuildRegistryRepository(prisma);
   });
 
@@ -77,13 +90,35 @@ describe("features/guild-settings/GuildRegistryRepository", () => {
   });
 
   describe("cancelScheduledDeletion", () => {
-    it("削除予定時刻を null に戻すこと", async () => {
-      await repository.cancelScheduledDeletion("guild-1");
+    it("予約があれば null に戻し、取り消した日時を返すこと", async () => {
+      const scheduledDeletionAt = new Date("2026-10-24T00:00:00.000Z");
+      findUniqueMock.mockResolvedValueOnce({ scheduledDeletionAt });
 
-      expect(updateManyMock).toHaveBeenCalledWith({
+      const cancelled = await repository.cancelScheduledDeletion("guild-1");
+
+      expect(updateMock).toHaveBeenCalledWith({
         where: { guildId: "guild-1" },
         data: { scheduledDeletionAt: null },
       });
+      expect(cancelled).toEqual(scheduledDeletionAt);
+    });
+
+    it("予約が無ければ更新せず null を返すこと", async () => {
+      findUniqueMock.mockResolvedValueOnce({ scheduledDeletionAt: null });
+
+      const cancelled = await repository.cancelScheduledDeletion("guild-1");
+
+      expect(updateMock).not.toHaveBeenCalled();
+      expect(cancelled).toBeNull();
+    });
+
+    it("親行そのものが無ければ更新せず null を返すこと", async () => {
+      findUniqueMock.mockResolvedValueOnce(null);
+
+      const cancelled = await repository.cancelScheduledDeletion("guild-1");
+
+      expect(updateMock).not.toHaveBeenCalled();
+      expect(cancelled).toBeNull();
     });
   });
 

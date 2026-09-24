@@ -117,6 +117,28 @@ describe("Environment Configuration", () => {
 
       expect(env.DISCORD_GUILD_ID).toBe("9876543210");
     });
+
+    it("任意の URL 項目が空文字のときは未設定として扱うこと（compose の ${VAR:-} で起動が落ちない）", async () => {
+      process.env.DISCORD_TOKEN = "a".repeat(50);
+      process.env.DISCORD_APP_ID = "1234567890";
+      process.env.PRIVACY_POLICY_URL = "";
+      process.env.SUPPORT_SERVER_URL = "";
+
+      const { env } = await import("@/shared/config/env");
+
+      expect(env.PRIVACY_POLICY_URL).toBeUndefined();
+      expect(env.SUPPORT_SERVER_URL).toBeUndefined();
+    });
+
+    it("任意の URL 項目に URL を設定したときはその値を返すこと", async () => {
+      process.env.DISCORD_TOKEN = "a".repeat(50);
+      process.env.DISCORD_APP_ID = "1234567890";
+      process.env.SUPPORT_SERVER_URL = "https://discord.gg/example";
+
+      const { env } = await import("@/shared/config/env");
+
+      expect(env.SUPPORT_SERVER_URL).toBe("https://discord.gg/example");
+    });
   });
 
   describe("Database Configuration", () => {

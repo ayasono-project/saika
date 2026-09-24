@@ -2,6 +2,8 @@
 
 const mockApplyBotPresence = vi.fn();
 const ensureGuildMock = vi.fn();
+const cancelScheduledDeletionMock = vi.fn();
+const sendGuildJoinDmUsecaseMock = vi.fn();
 
 vi.mock("@/shared/locale/localeManager", () => ({
   logPrefixed: (
@@ -23,18 +25,27 @@ vi.mock("@/bot/services/botPresence", () => ({
 vi.mock("@/bot/services/botCompositionRoot", () => ({
   getBotGuildRegistryRepository: () => ({
     ensureGuild: (...args: unknown[]) => ensureGuildMock(...args),
+    cancelScheduledDeletion: (...args: unknown[]) =>
+      cancelScheduledDeletionMock(...args),
   }),
+}));
+vi.mock("@/features/guild-settings/usecases/sendGuildJoinDmUsecase", () => ({
+  sendGuildJoinDmUsecase: (...args: unknown[]) =>
+    sendGuildJoinDmUsecaseMock(...args),
 }));
 
 import { handleGuildCreate } from "@/bot/handlers/guildCreateHandler";
 import { logger } from "@/shared/utils/logger";
 
-// 参加ログ・親レコード作成・プレゼンス更新と、親レコード作成失敗時の継続を検証する
+// 参加ログ・親レコード作成・削除予約の取り消し・DM 送信・プレゼンス更新と、
+// 親レコード作成失敗時の継続を検証する
 describe("bot/handlers/guildCreateHandler", () => {
   // 各ケースでモック呼び出し記録と既定の解決値をリセットし、テスト間の影響を断つ
   beforeEach(() => {
     vi.clearAllMocks();
     ensureGuildMock.mockResolvedValue(undefined);
+    cancelScheduledDeletionMock.mockResolvedValue(null);
+    sendGuildJoinDmUsecaseMock.mockResolvedValue(undefined);
   });
 
   it("参加したギルドの情報をログ出力すること", async () => {
@@ -53,6 +64,41 @@ describe("bot/handlers/guildCreateHandler", () => {
     await handleGuildCreate(guild as never);
 
     expect(ensureGuildMock).toHaveBeenCalledWith("guild-1");
+  });
+
+  it("猶予中の削除予約を取り消すこと", async () => {
+    const guild = { id: "guild-1", name: "Test Guild", client: {} };
+
+    await handleGuildCreate(guild as never);
+
+    expect(cancelScheduledDeletionMock).toHaveBeenCalledWith("guild-1");
+  });
+
+  it("予約が無かった場合は DM へ null を渡すこと（新規導入として扱わせる）", async () => {
+    const guild = { id: "guild-1", name: "Test Guild", client: {} };
+
+    await handleGuildCreate(guild as never);
+
+    expect(sendGuildJoinDmUsecaseMock).toHaveBeenCalledWith(guild, null);
+  });
+
+  it("取り消した予約日時をそのまま DM へ渡すこと（再導入として扱わせる）", async () => {
+    const deleteAt = new Date("2026-10-24T00:00:00.000Z");
+    cancelScheduledDeletionMock.mockResolvedValueOnce(deleteAt);
+    const guild = { id: "guild-1", name: "Test Guild", client: {} };
+
+    await handleGuildCreate(guild as never);
+
+    expect(sendGuildJoinDmUsecaseMock).toHaveBeenCalledWith(guild, deleteAt);
+  });
+
+  it("親レコードの処理が失敗しても DM は送ること（新規導入扱いで案内だけは届ける）", async () => {
+    ensureGuildMock.mockRejectedValueOnce(new Error("db down"));
+    const guild = { id: "guild-1", name: "Test Guild", client: {} };
+
+    await handleGuildCreate(guild as never);
+
+    expect(sendGuildJoinDmUsecaseMock).toHaveBeenCalledWith(guild, null);
   });
 
   it("プレゼンスを更新すること", async () => {

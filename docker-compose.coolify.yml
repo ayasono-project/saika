@@ -46,6 +46,13 @@ services:
       # /help にダッシュボード案内を出す（ダッシュボード本番稼働後に設定）。
       # 例: https://saika-dash.sonozaki.net
       DASHBOARD_URL: ${DASHBOARD_URL:-}
+      # /about に公式サイト（LP）の案内を出す（LP 公開後に設定）
+      OFFICIAL_URL: ${OFFICIAL_URL:-}
+      # 導入時 DM に載せるリンク（未設定なら DM の該当行を省略する）。
+      # プライバシーポリシーは公開ページが無いため GitHub のファイルを指す:
+      # https://github.com/ayasono-project/saika/blob/main/docs/legal/PRIVACY_POLICY.md
+      PRIVACY_POLICY_URL: ${PRIVACY_POLICY_URL:-}
+      SUPPORT_SERVER_URL: ${SUPPORT_SERVER_URL:-}
     ports:
       # web ダッシュボード API。Cloudflare Tunnel が 127.0.0.1:8081 に転送する。
       # ホスト側は 8081（8080 は coolify-proxy が使用済みのため回避）、コンテナ側は

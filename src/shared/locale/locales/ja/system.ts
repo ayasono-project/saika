@@ -35,6 +35,10 @@ export const system = {
   // guildCreate（Bot参加時）
   "guild_create.joined":
     "ギルドへの参加を検知しました GuildId: {{guildId}} GuildName: {{guildName}}",
+  "guild_create.dm_sent":
+    "オーナーへ導入 DM を送信しました GuildId: {{guildId}}",
+  "guild_create.dm_failed":
+    "オーナーへの導入 DM の送信に失敗しました（DM 拒否など）GuildId: {{guildId}}",
   "guild_create.registry_failed":
     "ギルドの親レコード作成に失敗しました 次回の照合（起動時・毎日4時）で補完します GuildId: {{guildId}}",
 

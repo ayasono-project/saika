@@ -32,6 +32,8 @@ export type Env = {
   USER_MANUAL_URL?: string | undefined;
   DASHBOARD_URL?: string | undefined;
   OFFICIAL_URL?: string | undefined;
+  PRIVACY_POLICY_URL?: string | undefined;
+  SUPPORT_SERVER_URL?: string | undefined;
   // ── 未承認ユーザー自動キック ──
   UNVERIFIED_KICK_CRON_OVERRIDE?: string | undefined;
   /** true のときキック実行をスキップ（通知のみ送信） */
@@ -50,6 +52,18 @@ export type Env = {
   WEB_ORIGIN: string;
   JWT_SECRET?: string | undefined;
 };
+
+/**
+ * 任意の URL 項目のスキーマ。空文字は未設定として扱う
+ *
+ * docker-compose の `${VAR:-}` は未設定の変数を空文字で渡すため、そのまま
+ * `.url()` にかけると起動時の検証で落ちる（Coolify に値を入れ忘れただけで
+ * Bot が起動しなくなる）。
+ */
+const optionalUrl = z.preprocess(
+  (value) => (value === "" ? undefined : value),
+  z.string().url().optional(),
+);
 
 // 環境変数スキーマ定義（起動時バリデーション用）
 export const envSchema: z.ZodType<Env> = z.object({
@@ -74,15 +88,22 @@ export const envSchema: z.ZodType<Env> = z.object({
     .default("info"),
 
   // ユーザーマニュアルURL（/help コマンドで表示、未設定時は省略）
-  USER_MANUAL_URL: z.string().url().optional(),
+  USER_MANUAL_URL: optionalUrl,
 
   // web ダッシュボードURL（/help で案内、未設定時は省略）。本番でダッシュボードが
   // 稼働してから設定する想定（死んだリンクを出さないため env 出し分け）
-  DASHBOARD_URL: z.string().url().optional(),
+  DASHBOARD_URL: optionalUrl,
 
   // ayasono プロジェクト公式サイト（LP）URL（/about で案内、未設定時は省略）。
   // 専用 LP 公開後に設定する想定（死んだリンクを出さないため env 出し分け）
-  OFFICIAL_URL: z.string().url().optional(),
+  OFFICIAL_URL: optionalUrl,
+
+  // プライバシーポリシーURL（導入時 DM で案内、未設定時は省略）。公開ページが
+  // 未作成のため、当面は GitHub 上の docs/legal/PRIVACY_POLICY.md を指す
+  PRIVACY_POLICY_URL: optionalUrl,
+
+  // サポートサーバーの招待URL（導入時 DM で案内、未設定時は省略）
+  SUPPORT_SERVER_URL: optionalUrl,
 
   // ── 未承認ユーザー自動キック ──
   // cron 上書き（dev/検証用・未設定時は既定の毎時 0 分）

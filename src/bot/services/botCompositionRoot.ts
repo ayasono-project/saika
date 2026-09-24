@@ -10,6 +10,7 @@ import type { BumpReminderManager } from "../../features/bump-reminder/services/
 import { getBumpReminderManager } from "../../features/bump-reminder/services/bumpReminderService";
 import { createBumpReminderFeatureSettingsService } from "../../features/bump-reminder/services/bumpReminderSettingsServiceResolver";
 import { getGuildCoreRepository } from "../../features/guild-settings/guildCoreRepository";
+import { getGuildRegistryRepository } from "../../features/guild-settings/guildRegistryRepository";
 import { GuildSettingsAggregateRepository } from "../../features/guild-settings/guildSettingsAggregateRepository";
 import type { GuildSettingsService } from "../../features/guild-settings/guildSettingsService";
 import { createGuildSettingsService } from "../../features/guild-settings/guildSettingsService";
@@ -43,6 +44,7 @@ import { getVcAutoRecruitSettingsRepository } from "../../features/vc-auto-recru
 import type { VcAutoRecruitSettingsService } from "../../features/vc-auto-recruit/vcAutoRecruitSettingsService";
 import { createVcAutoRecruitSettingsService } from "../../features/vc-auto-recruit/vcAutoRecruitSettingsService";
 import type {
+  IGuildRegistryRepository,
   ITicketRepository,
   IUnverifiedKickWarnRepository,
 } from "../../shared/database/types";
@@ -55,6 +57,7 @@ import { createBotServiceAccessor } from "../../shared/utils/serviceFactory";
 
 export interface BotServices {
   guildSettingsService: GuildSettingsService;
+  guildRegistryRepository: IGuildRegistryRepository;
   bumpReminderSettingsService: BumpReminderSettingsService;
   bumpReminderRepository: BumpReminderRepositoryType;
   bumpReminderManager: BumpReminderManager;
@@ -81,6 +84,14 @@ export const getBotGuildSettingsService: () => GuildSettingsService =
   _guildSettingsServiceAccessor[0];
 export const setBotGuildSettingsService: (value: GuildSettingsService) => void =
   _guildSettingsServiceAccessor[1];
+
+const _guildRegistryRepositoryAccessor =
+  createBotServiceAccessor<IGuildRegistryRepository>("GuildRegistryRepository");
+export const getBotGuildRegistryRepository: () => IGuildRegistryRepository =
+  _guildRegistryRepositoryAccessor[0];
+export const setBotGuildRegistryRepository: (
+  value: IGuildRegistryRepository,
+) => void = _guildRegistryRepositoryAccessor[1];
 
 const _bumpReminderSettingsServiceAccessor =
   createBotServiceAccessor<BumpReminderSettingsService>(
@@ -225,6 +236,7 @@ export function initializeBotCompositionRoot(
 ): BotServices {
   // スタンドアロンリポジトリ群
   const guildCoreRepo = getGuildCoreRepository(prisma);
+  const guildRegistryRepo = getGuildRegistryRepository(prisma);
   const afkRepo = getAfkSettingsRepository(prisma);
   const bumpReminderSettingsRepo = getBumpReminderSettingsRepository(prisma);
   const vacRepo = getVacSettingsRepository(prisma);
@@ -262,6 +274,7 @@ export function initializeBotCompositionRoot(
     aggregateRepo,
   );
   setBotGuildSettingsService(guildSettingsService);
+  setBotGuildRegistryRepository(guildRegistryRepo);
 
   // BumpReminder
   const bumpReminderSettingsService = createBumpReminderFeatureSettingsService(
@@ -324,6 +337,7 @@ export function initializeBotCompositionRoot(
 
   return {
     guildSettingsService,
+    guildRegistryRepository: guildRegistryRepo,
     bumpReminderSettingsService,
     bumpReminderRepository,
     bumpReminderManager,

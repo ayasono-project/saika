@@ -2,11 +2,11 @@
 
 > Architecture Guide - コード設計・モジュール構成・設計パターンの解説
 
-最終更新: 2026年9月23日
+最終更新: 2026年9月24日
 
 ---
 
-> DB は **PostgreSQL（`@prisma/adapter-pg` 経由）**（テーブル名は `guild_*_settings`、JSON 配列は jsonb）。ディレクトリ構成は `src/{bot,api,features,shared}/`。Fastify API 層（`src/api/`）は実装・本番稼働済み。プロジェクト全体方針は [infra/docs/PROJECT_ARCHITECTURE.md](../../../infra/docs/PROJECT_ARCHITECTURE.md) を参照。
+> DB は **PostgreSQL（`@prisma/adapter-pg` 経由）**（テーブル名は `guild_*_settings`、列名はスネークケース、JSON 配列は jsonb。全テーブルが親テーブル `guilds` へ FK を張る）。ディレクトリ構成は `src/{bot,api,features,shared}/`。Fastify API 層（`src/api/`）は実装・本番稼働済み。プロジェクト全体方針は [infra/docs/PROJECT_ARCHITECTURE.md](../../../infra/docs/PROJECT_ARCHITECTURE.md) を参照。
 
 ---
 
@@ -159,7 +159,7 @@ Bot の招待時は **Administrator は要求せず、最小権限セット**を
 | guildMemberUpdate | 未承認自動キックの対象ロール解除の検知                       |
 | channelDelete     | 削除チャンネル関連設定のクリーンアップ                       |
 | roleDelete        | 削除ロールの Bump リマインダー設定除去                       |
-| guildCreate       | 参加ログ・稼働サーバー数のプレゼンス更新                     |
+| guildCreate       | 参加ログ・**親レコード（`guilds`）の作成**・稼働サーバー数のプレゼンス更新 |
 | guildDelete       | Bot 退出時のジョブ停止（`stopGuildJobsUsecase` 経由・**設定データは保持する**） |
 
 ### BotClient クラス
@@ -277,10 +277,11 @@ const prisma = getPrismaClient(); // null の場合あり
 
 ### スキーマ構成
 
-機能ごとに独立したテーブルを持ちます。`GuildSettings` テーブルは共通設定（locale 等）のみを保持し、機能設定は専用テーブルに分離されています。
+機能ごとに独立したテーブルを持ちます。`GuildSettings` テーブルは共通設定（locale 等）のみを保持し、機能設定は専用テーブルに分離されています。`Guild` が全テーブルの親で、機能テーブルは例外なくここへ FK を張ります。
 
 | テーブル                  | 用途                                       |
 | ------------------------- | ------------------------------------------ |
+| `Guild`                     | ギルドの親レコード（導入日時・削除予定日時）。全機能テーブルの FK 先 |
 | `GuildSettings`             | ギルド共通設定（locale 等）                |
 | `GuildAfkSettings`          | AFK 機能設定                               |
 | `GuildBumpReminderSettings` | Bump リマインダー設定                      |
@@ -308,6 +309,7 @@ JSON 配列・オブジェクトフィールド（`mentionUserIds`, `triggerChan
 
 ```
 GuildCoreRepository              ← ギルド設定コアCRUD（IGuildCoreRepository）
+GuildRegistryRepository          ← ギルド親レコードの登録（IGuildRegistryRepository）
 GuildSettingsAggregateRepository   ← 全設定一括操作（IGuildSettingsAggregateRepository）
 AfkSettingsRepository              ← AFK設定（IAfkSettingsRepository）
 BumpReminderSettingsRepository     ← Bumpリマインダー設定（IBumpReminderSettingsRepository）
@@ -320,7 +322,13 @@ TicketSettingsRepository           ← チケット機能設定（IGuildTicketSe
 ReactionRolePanelRepository      ← リアクションロールパネル（IReactionRolePanelRepository）
 ```
 
-> `schema.prisma` には現在 `@relation` が1つも無く、**外部キー制約は存在しません**。`guildId` を持つモデルは13個あり、ギルド単位の後始末は `deleteAllSettings()` の手動列挙で担保しています（列挙漏れが過去にバグを生んでいるため、Prisma の型からレジストリを導出する構造化が TODO に起票済み）。
+> **親テーブル `Guild` と外部キー制約**（2026-09-24 導入）。`guildId` を持つ13モデルはすべて `Guild` へ `@relation(onDelete: Cascade)` を張っています。狙いは2つで、①Bot が把握しているギルド（参加中か猶予中）を `guilds` の1テーブルで列挙でき、ギルド単位の状態（導入日時・削除予約）を置ける場所を作ること ②ギルド単位の後始末を「親行を1つ消す」に集約することです。
+>
+> **`guild_settings` 行の欠落は親テーブルでは解消しません。** この行は `/guild-settings set-locale` か `set-error-channel` を実行したときだけ作られ、実測でデータを持つギルドの67%に行がありませんでした。親テーブル導入後も同じなので、`guild_settings` 行の有無を「ギルドの有無」の代わりに使わないでください（使うべきは `guilds` 行）。**「設定の有無」はどちらの行でも分かりません。** `guilds` 行は参加中の全ギルドに設定の有無と関係なく作るためで、設定の有無は各機能テーブルを見て判断します。
+>
+> FK があるため、**親行が無いギルドではどの機能の設定も保存できません**（FK 違反になる）。親行は `GuildRegistryRepository` の2経路で担保します。`handleGuildCreate`（参加時）と `handleClientReady` の起動時スイープ（Bot 停止中に追加されたギルドは `guildCreate` が飛ばないため）。
+>
+> `deleteAllSettings()` の手動列挙は `/guild-settings reset-all` の経路として残っていますが、退出時の後始末は親行の削除へ寄せる予定です（遅延削除の実装で置き換える）。
 
 **ランタイムデータリポジトリ（`src/features/<feature>/repositories/`）**:
 

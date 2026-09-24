@@ -2,7 +2,7 @@
 
 > Implementation Guidelines - 実装方針とコーディング規約
 
-最終更新: 2026年9月23日
+最終更新: 2026年9月24日
 
 ---
 
@@ -65,7 +65,7 @@ src/features/<feature>/handlers/**
 
 **機能追加時の必須手順:**
 
-1. `prisma/schema.prisma` に `GuildXxxSettings` モデルを追加し、マイグレーションを作成する
+1. `prisma/schema.prisma` に `GuildXxxSettings` モデルを追加し、マイグレーションを作成する。**ギルド単位のテーブルには `guild Guild @relation(fields: [guildId], references: [guildId], onDelete: Cascade)` を必ず張る**（張り忘れると退出時の削除から漏れる）。列名はスネークケース（`@map`）で揃える
 2. `src/shared/database/types/entities.ts` に `XxxSettings` インターフェースを、`repositories.ts` に `IXxxSettingsRepository` を追記する
 3. `src/features/xxx/xxxSettingsRepository.ts` でスタンドアロンリポジトリを実装し、シングルトンゲッター `getXxxSettingsRepository(prisma?)` を追加する
 4. `src/features/xxx/xxxSettingsDefaults.ts` にデフォルト設定と正規化関数を定義する

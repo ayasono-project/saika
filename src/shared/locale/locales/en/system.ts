@@ -34,6 +34,8 @@ export const system = {
   // guildCreate (bot joined a guild)
   "guild_create.joined":
     "guild join detected GuildId: {{guildId}} GuildName: {{guildName}}",
+  "guild_create.registry_failed":
+    "failed to create guild parent record, will be backfilled on next startup GuildId: {{guildId}}",
 
   // guildDelete (cleanup on bot removal)
   "guild_delete.start":

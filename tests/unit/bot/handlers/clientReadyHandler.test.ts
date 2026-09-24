@@ -13,6 +13,7 @@ const cleanupVacOnStartupMock = vi.fn();
 const initGuildInviteCacheMock = vi.fn();
 const restoreAutoDeleteTimersMock = vi.fn();
 const getBotTicketRepositoryMock = vi.fn();
+const ensureGuildsMock = vi.fn();
 const addJobMock = vi.fn();
 const runUnverifiedKickDailyCheckMock = vi.fn();
 
@@ -79,6 +80,9 @@ vi.mock("@/features/ticket/services/ticketAutoDeleteService", () => ({
 vi.mock("@/bot/services/botCompositionRoot", () => ({
   getBotTicketRepository: (...args: unknown[]) =>
     getBotTicketRepositoryMock(...args),
+  getBotGuildRegistryRepository: () => ({
+    ensureGuilds: (...args: unknown[]) => ensureGuildsMock(...args),
+  }),
 }));
 
 vi.mock("@/shared/scheduler/jobScheduler", () => ({
@@ -103,6 +107,7 @@ describe("bot/handlers/clientReadyHandler", () => {
     initGuildInviteCacheMock.mockResolvedValue(undefined);
     restoreAutoDeleteTimersMock.mockResolvedValue(undefined);
     getBotTicketRepositoryMock.mockReturnValue({});
+    ensureGuildsMock.mockResolvedValue(undefined);
   });
 
   it("起動ログ・プレゼンス設定・各スタートアップタスクが正しく実行されることを確認", async () => {
@@ -116,6 +121,7 @@ describe("bot/handlers/clientReadyHandler", () => {
         cache: {
           size: 3,
           map: (fn: (g: unknown) => unknown) => fakeGuilds.map(fn),
+          keys: () => fakeGuilds.map((g) => g.id),
         },
       },
       users: { cache: { size: 10 } },
@@ -153,6 +159,8 @@ describe("bot/handlers/clientReadyHandler", () => {
       activities: [{ name: "presence:3", type: ActivityType.Playing }],
       status: PresenceUpdateStatus.Online,
     });
+    // FK 先の親行スイープは招待キャッシュ・各種復元より前に走る
+    expect(ensureGuildsMock).toHaveBeenCalledWith(["g1", "g2", "g3"]);
     expect(initGuildInviteCacheMock).toHaveBeenCalledTimes(3);
     expect(restoreBumpRemindersOnStartupMock).toHaveBeenCalledWith(client);
     expect(cleanupVacOnStartupMock).toHaveBeenCalledWith(client);
@@ -166,7 +174,7 @@ describe("bot/handlers/clientReadyHandler", () => {
     );
   });
 
-  it("先行スタートア���プタスクが失敗した場合にエラーがログされ例外は伝播しないことを確認", async () => {
+  it("先行スタートアップタスクが失敗した場合にエラーがログされ例外は伝播しないことを確認", async () => {
     restoreBumpRemindersOnStartupMock.mockRejectedValueOnce(
       new Error("restore failed"),
     );
@@ -177,6 +185,7 @@ describe("bot/handlers/clientReadyHandler", () => {
         cache: {
           size: 1,
           map: (fn: (g: unknown) => unknown) => [{ id: "g1" }].map(fn),
+          keys: () => ["g1"],
         },
       },
       users: { cache: { size: 1 } },

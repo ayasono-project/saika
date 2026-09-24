@@ -24,6 +24,19 @@ import type { GuildReactionRolePanel } from "./reactionRoleTypes";
 import type { StickyEmbedData, StickyMessage } from "./stickyMessageTypes";
 import type { GuildTicketSettings, Ticket } from "./ticketTypes";
 
+/**
+ * ギルド親レコード（guilds テーブル）の登録
+ *
+ * 全機能テーブルが guilds へ FK を張っているため、親行が無いギルドでは
+ * どの機能の設定も保存できない。参加時と起動時スイープの2経路から呼ぶ。
+ */
+export interface IGuildRegistryRepository {
+  /** 単一ギルドの親行を作る（既にあれば何もしない） */
+  ensureGuild(guildId: string): Promise<void>;
+  /** 複数ギルドの親行をまとめて作る（既にあるものは読み飛ばす） */
+  ensureGuilds(guildIds: string[]): Promise<void>;
+}
+
 /** ギルド設定のコアCRUD・locale操作 */
 export interface IGuildCoreRepository {
   getSettings(guildId: string): Promise<GuildSettings | null>;

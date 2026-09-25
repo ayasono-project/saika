@@ -19,6 +19,7 @@ export const system = {
   "log_prefix.interaction_create": "interactionCreate",
   "log_prefix.guild_create": "guildCreate",
   "log_prefix.guild_delete": "guildDelete",
+  "log_prefix.guild_deletion": "データ削除",
   "log_prefix.ready": "ready",
   "log_prefix.ticket": "チケット",
   "log_prefix.reaction_role": "リアクションロール",
@@ -34,13 +35,31 @@ export const system = {
   // guildCreate（Bot参加時）
   "guild_create.joined":
     "ギルドへの参加を検知しました GuildId: {{guildId}} GuildName: {{guildName}}",
+  "guild_create.dm_sent":
+    "オーナーへ導入 DM を送信しました GuildId: {{guildId}}",
+  "guild_create.dm_failed":
+    "オーナーへの導入 DM の送信に失敗しました（DM 拒否など）GuildId: {{guildId}}",
+  "guild_create.registry_failed":
+    "ギルドの親レコード作成に失敗しました 次回の照合（起動時・毎日4時）で補完します GuildId: {{guildId}}",
 
   // guildDelete（Bot退出時クリーンアップ）
   "guild_delete.start":
     "ギルド退出を検知 ジョブを停止します（設定データは保持） GuildId: {{guildId}} GuildName: {{guildName}}",
   "guild_delete.complete":
-    "ジョブ停止が完了しました 設定データは保持しています GuildId: {{guildId}}",
-  "guild_delete.failed": "ジョブ停止に失敗しました GuildId: {{guildId}}",
+    "ジョブ停止が完了しました データは猶予後に削除予定です GuildId: {{guildId}} DeleteAt: {{deleteAt}}",
+  "guild_delete.failed":
+    "ジョブ停止またはデータ削除の予約に失敗しました GuildId: {{guildId}}",
+
+  // ギルド登録の照合と猶予切れギルドのデータ削除スイープ
+  "guild_deletion.purged":
+    "猶予切れギルドのデータを削除しました 件数: {{count}}",
+  "guild_deletion.no_target": "照合の結果、変更はありません",
+  "guild_deletion.schedule_cancelled":
+    "参加中ギルドの削除予約を取り消しました 件数: {{count}}",
+  "guild_deletion.schedule_added":
+    "参加していないのに削除予約の無いギルドへ予約を入れました 件数: {{count}}",
+  "guild_deletion.sweep_failed":
+    "ギルド登録の照合または猶予切れギルドの削除に失敗しました",
 
   // Bot起動・シャットダウン
   "bot.starting": "Discord Botを起動しています...",

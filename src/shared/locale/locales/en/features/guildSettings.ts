@@ -73,6 +73,23 @@ export const guildSettings = {
   "embed.field.value.import_state_summary":
     "Ticket configs: {{ticketSettings}} / Open tickets: {{openTickets}} / Sticky messages: {{stickyMessages}} / Reaction role panels: {{reactionRolePanels}} / VAC created VCs: {{vacCreatedChannels}}",
 
+  // ── embed: join_intro (DM on install) ─────────
+  "embed.title.join_intro": "Thanks for adding Saika",
+  "embed.description.join_intro":
+    "Saika is a Discord server management bot.\nStart with `/help` to see what it can do. Settings are managed through each feature's `*-settings` command or the web dashboard.",
+  "embed.field.name.data_retention": "Data retention",
+  "embed.field.value.data_retention":
+    "If you remove Saika from your server, its settings are kept for **{{days}} days**. Add it back within that window and your settings will still be there. After {{days}} days the data is deleted automatically.\nTo delete it right away, run `/guild-settings reset-all` **before removing Saika** (immediate and irreversible). Once Saika is removed the command can no longer be run, so the data stays until it is deleted automatically after {{days}} days.",
+  "embed.field.name.manual": "Manual",
+  "embed.field.name.dashboard": "Web dashboard",
+  "embed.field.name.privacy_policy": "Privacy policy",
+  "embed.field.name.support_server": "Support server",
+
+  // ── embed: join_return (DM on re-install) ─────
+  "embed.title.join_return": "Your previous data was carried over",
+  "embed.description.join_return":
+    "Welcome back. This server's data was scheduled for automatic deletion on **{{deleteAt}}**, but because Saika was added back, the deletion was cancelled and your previous data was carried over.",
+
   // ── UI labels ─────────────────────────────────
   "ui.button.reset_all_confirm": "Reset",
   "ui.button.reset_all_cancel": "Cancel",

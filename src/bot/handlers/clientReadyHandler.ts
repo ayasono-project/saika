@@ -17,6 +17,10 @@ import { logger } from "../../shared/utils/logger";
 import type { BotClient } from "../client";
 import { getBotTicketRepository } from "../services/botCompositionRoot";
 import { applyBotPresence } from "../services/botPresence";
+import {
+  registerGuildDeletionJob,
+  runGuildDeletionSweep,
+} from "../services/guildDeletionSweep";
 
 /**
  * clientReady 発火時の初期化後処理をまとめて実行する関数
@@ -52,6 +56,21 @@ export async function handleClientReady(client: BotClient): Promise<void> {
     // clientReady は once なので本リスナー登録も一度だけ行われる。
     client.on(Events.ShardReady, () => applyBotPresence(client));
     client.on(Events.ShardResume, () => applyBotPresence(client));
+
+    // ギルド登録を参加状況と照合する（親行の補完・削除予約の取り消しと追加・猶予切れの
+    // 削除）。Bot の停止中に起きた参加・退出は guildCreate / guildDelete が飛ばないため
+    // ここで拾う。以降の復元処理が guild 単位のデータを書くので、それらより前に行う。
+    // 以後は日次ジョブで同じ照合を繰り返す
+    await runGuildDeletionSweep(client);
+    registerGuildDeletionJob(client);
+    // 再 IDENTIFY の後（ShardReady）にも照合する。切断中に起きた導入・退出では
+    // guildCreate / guildDelete が飛ばず（導入は guildAvailable になる）、日次ジョブを
+    // 待つと新しいギルドが最長24時間設定を保存できないため。RESUME ではイベントが
+    // 再送されるので不要。照合は冪等なので日次ジョブと重なっても安全で、例外も
+    // 内部で握るため待たずに投げる
+    client.on(Events.ShardReady, () => {
+      void runGuildDeletionSweep(client);
+    });
 
     // 全サーバーの招待リンクをキャッシュ（メンバーログの招待追跡に使用）
     await Promise.all(

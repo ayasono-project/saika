@@ -2,11 +2,11 @@
 
 > Architecture Guide - コード設計・モジュール構成・設計パターンの解説
 
-最終更新: 2026年9月23日
+最終更新: 2026年9月25日
 
 ---
 
-> DB は **PostgreSQL（`@prisma/adapter-pg` 経由）**（テーブル名は `guild_*_settings`、JSON 配列は jsonb）。ディレクトリ構成は `src/{bot,api,features,shared}/`。Fastify API 層（`src/api/`）は実装・本番稼働済み。プロジェクト全体方針は [infra/docs/PROJECT_ARCHITECTURE.md](../../../infra/docs/PROJECT_ARCHITECTURE.md) を参照。
+> DB は **PostgreSQL（`@prisma/adapter-pg` 経由）**（テーブル名は `guild_*_settings`、列名はスネークケース、JSON 配列は jsonb。全テーブルが親テーブル `guilds` へ FK を張る）。ディレクトリ構成は `src/{bot,api,features,shared}/`。Fastify API 層（`src/api/`）は実装・本番稼働済み。プロジェクト全体方針は [infra/docs/PROJECT_ARCHITECTURE.md](../../../infra/docs/PROJECT_ARCHITECTURE.md) を参照。
 
 ---
 
@@ -91,7 +91,7 @@ src/
 │   ├── auth/                  #   JWT 検証（authenticate）・guildId 認可（guildAccess）。発行/refresh は持たない
 │   ├── routes/                #   ルート定義（guilds / settings / sticky / reactionRoles / tickets / bot）
 │   ├── features/<f>Resource.ts #  domain↔contract マッパー + create*Resource（純粋関数）
-│   └── lib/                   #   httpError / discordMappers / time（date-fns ja）/ request
+│   └── lib/                   #   httpError / discordMappers / time（date-fns ja）/ request / botGuild
 │
 └── shared/                    # Bot・features・Web で再利用する横断コード（逆依存しない）
     ├── config/                # 環境変数定義（Zod バリデーション）
@@ -159,8 +159,8 @@ Bot の招待時は **Administrator は要求せず、最小権限セット**を
 | guildMemberUpdate | 未承認自動キックの対象ロール解除の検知                       |
 | channelDelete     | 削除チャンネル関連設定のクリーンアップ                       |
 | roleDelete        | 削除ロールの Bump リマインダー設定除去                       |
-| guildCreate       | 参加ログ・稼働サーバー数のプレゼンス更新                     |
-| guildDelete       | Bot 退出時のジョブ停止（`stopGuildJobsUsecase` 経由・**設定データは保持する**） |
+| guildCreate       | 参加ログ・**親レコード（`guilds`）の作成と削除予約の取り消し**・稼働サーバー数のプレゼンス更新・**オーナーへの導入／再導入 DM**（日英併記・送信失敗は握りつぶす） |
+| guildDelete       | Bot 退出時のジョブ停止（`stopGuildJobsUsecase` 経由）＋**猶予後のデータ削除の予約** |
 
 ### BotClient クラス
 
@@ -229,7 +229,7 @@ interface Command {
 
 - **JWT_SECRET を web BFF と共有**（HMAC-SHA256）。web BFF がログイン時に発行する Cookie のセッション JWT を saika が検証する。
 - `auth/authenticate.ts`: Cookie の JWT を検証して `request.authUser`（`SessionClaims`）を確立。失効時は **401**（refresh はしない＝BFF 側の責務）。
-- `auth/guildAccess.ts`: 対象 `guildId` が `claims.guilds`（ユーザーが管理可能なギルド ID 配列）に含まれるかを判定し、無ければ **403**。
+- `auth/guildAccess.ts`: 対象 `guildId` が `claims.guilds`（ユーザーが管理可能なギルド ID 配列）に含まれるかを判定し、無ければ **403**。続けて Bot がそのギルドに参加しているか（ゲートウェイのキャッシュ）を判定し、居なければ **404**（`lib/botGuild.ts` の `requireBotGuild`）。`claims.guilds` には Bot 未参加のギルドも入るため、これが無いと親行の無いギルドへの書き込みが FK 違反の 500 になり、退出後の猶予中のギルドには効かない設定を書けてしまう。判定は権限が先（逆にすると管理権限の無いギルドの参加有無が 403/404 の違いで漏れる）。
 - 一覧（Bot 未参加ギルドの名前/アイコン）は Discord を呼べないため **web BFF へ移管**。saika は per-guild ルート + `GET /api/guilds/joined`（参加ギルド ID の照会）のみ。
 
 ### レイヤ構成
@@ -239,7 +239,7 @@ interface Command {
 | `routes/*.ts` | HTTP 境界（薄い）。認可デコレータを適用し、Resource とサービスを呼ぶ |
 | `features/<f>Resource.ts` | domain ↔ API contract の純粋マッパー + `create*Resource`。アダプタは Composition Root の getter を各メソッド内で遅延取得 |
 | `src/features/<f>` | Bot 層と共有する設定サービス・リポジトリ（Discord 非依存） |
-| `lib/` | `httpError`（`ApiHttpError` + `toErrorResponse`）/ `discordMappers` / `time`（date-fns ja）/ `request` |
+| `lib/` | `httpError`（`ApiHttpError` + `toErrorResponse`）/ `discordMappers` / `time`（date-fns ja）/ `request` / `botGuild`（`requireBotGuild`: Bot 未参加なら 404） |
 
 サーバー構築は `server.ts` の `buildApiServer`（テストは `app.inject()` で直接叩ける）。プラグインの登録順は cookie → cors → rate-limit → `apiRoutes`(`/api`) で、リクエストのフックもこの順に走る。認証（`authenticate` / `requireGuildAccess`）はミドルウェアではなく `decorate` で生やし、各ルートが `preHandler` として使う。
 
@@ -277,10 +277,11 @@ const prisma = getPrismaClient(); // null の場合あり
 
 ### スキーマ構成
 
-機能ごとに独立したテーブルを持ちます。`GuildSettings` テーブルは共通設定（locale 等）のみを保持し、機能設定は専用テーブルに分離されています。
+機能ごとに独立したテーブルを持ちます。`GuildSettings` テーブルは共通設定（locale 等）のみを保持し、機能設定は専用テーブルに分離されています。`Guild` が全テーブルの親で、機能テーブルは例外なくここへ FK を張ります。
 
 | テーブル                  | 用途                                       |
 | ------------------------- | ------------------------------------------ |
+| `Guild`                     | ギルドの親レコード（導入日時・削除予定日時）。全機能テーブルの FK 先 |
 | `GuildSettings`             | ギルド共通設定（locale 等）                |
 | `GuildAfkSettings`          | AFK 機能設定                               |
 | `GuildBumpReminderSettings` | Bump リマインダー設定                      |
@@ -297,6 +298,44 @@ const prisma = getPrismaClient(); // null の場合あり
 
 JSON 配列・オブジェクトフィールド（`mentionUserIds`, `triggerChannelIds`, `buttons`, `staffRoleIds`, `embedData` 等）は PostgreSQL の `jsonb` 型でネイティブに保存し、Prisma が配列・オブジェクトのまま読み書きします（`JSON.parse`/`stringify` による変換は不要）。
 
+### 退出時データのライフサイクル
+
+Bot をサーバーから外しても、データはその場では消えません。**猶予30日**を置いてから削除します。「Bot の再招待は破壊的操作ではない」という利用者の期待に実装を合わせるためです（2026-09-23 決定・猶予日数は `GUILD_DELETION_GRACE_DAYS`）。
+
+| タイミング | 処理 |
+| --- | --- |
+| `guildDelete` | ジョブを即停止し、`guilds.scheduled_deletion_at` に30日後を書く。**データは消さない** |
+| `guildCreate` | 親行を作り、削除予約を取り消す。猶予内の再導入なら設定はそのまま復活する |
+| 起動時（`clientReady`） | 照合を1回実行し、日次ジョブを登録する |
+| 再 IDENTIFY の後（`ShardReady`） | 照合を実行する（切断中に起きた導入・退出を日次ジョブまで待たない） |
+| 日次ジョブ（毎日 4 時 JST） | 照合を実行する（`GUILD_DELETION_JOB_ID`） |
+
+**照合**（`reconcileGuildsUsecase`）は、DB の `guilds` と Bot の参加状況（**REST の `GET /users/@me/guilds` で取得**）を突き合わせて予約を正しい状態へ揃えます。
+
+1. 参加中のギルドの親行を補完する
+2. 参加中のギルドの削除予約を取り消す
+3. 参加していないのに予約の無いギルドへ30日後の削除を予約する（既存の予約は延ばさない）
+4. 猶予切れのギルドを削除する
+
+> **ジョブの停止だけは遅らせない。** 参加していないギルドのタイマーが生きていると、投稿・削除を試み続けてエラーログを吐くため。遅らせるのはデータの削除だけです。
+>
+> **予約をイベントだけで管理しない。** `guildCreate` / `guildDelete` は Bot の停止中・切断中に起きた参加・退出では飛ばないため、イベントだけに頼ると「参加中のギルドのデータを消す」か「退出したギルドのデータが永久に残る」のどちらかになります。イベントは即時反映の近道で、正しさは照合で担保します。
+>
+> **照合では「予約の取り消し」を「削除」より必ず先に行う。** 順序を逆にすると、停止中に外されて入れ直されたギルドのデータを期限切れとして消してしまいます。
+>
+> **参加状況はゲートウェイのキャッシュではなく REST で取る。** discord.js は再 IDENTIFY 後の READY で消えたギルドをキャッシュから取り除かないため、キャッシュを使うと切断中に外されたギルドが参加中に見え続け、再起動するまで削除予約が入りません。
+>
+> **参加ギルドが0件のときは予約を入れない。** 0件は設定ミス（ギルドに参加していない別アプリのトークンで本番 DB に繋いだ等）の可能性が高く、全ギルドを一斉に予約してしまうのを避けるためです（API の失敗は例外になり、照合そのものが中止されます）。
+>
+> **削除の直前にもう一度ジョブを止める。** 猶予中に Bot を再起動すると `restoreBumpRemindersOnStartup` が pending レコードからタイマーを組み直すため、「タイマー解除 → DB 削除」の順序を保つ必要があります。
+>
+> **既知の制限。**
+>
+> - Bot の停止中・切断中に導入・再導入されたギルドのオーナーには導入時／再導入時 DM が届きません（照合は親行と予約を黙って直すだけ。照合から DM を送ると、初回リリースで設定の無い既存ギルドにも親行が作られ、一斉送信になるため送らない）。
+> - 猶予内に再導入しても、退出時に止めたタイマーは戻りません（→ TODO「タイマー / スケジューラ実装の整理」）
+
+即時削除が要るときは `/guild-settings reset-all`（`purgeGuildDataUsecase`）を使います。この経路は猶予を挟みません。
+
 ### Repository パターン
 
 データベースへのアクセスはすべて Repository クラスを経由します。
@@ -308,6 +347,7 @@ JSON 配列・オブジェクトフィールド（`mentionUserIds`, `triggerChan
 
 ```
 GuildCoreRepository              ← ギルド設定コアCRUD（IGuildCoreRepository）
+GuildRegistryRepository          ← ギルド親レコードの登録（IGuildRegistryRepository）
 GuildSettingsAggregateRepository   ← 全設定一括操作（IGuildSettingsAggregateRepository）
 AfkSettingsRepository              ← AFK設定（IAfkSettingsRepository）
 BumpReminderSettingsRepository     ← Bumpリマインダー設定（IBumpReminderSettingsRepository）
@@ -320,7 +360,13 @@ TicketSettingsRepository           ← チケット機能設定（IGuildTicketSe
 ReactionRolePanelRepository      ← リアクションロールパネル（IReactionRolePanelRepository）
 ```
 
-> `schema.prisma` には現在 `@relation` が1つも無く、**外部キー制約は存在しません**。`guildId` を持つモデルは13個あり、ギルド単位の後始末は `deleteAllSettings()` の手動列挙で担保しています（列挙漏れが過去にバグを生んでいるため、Prisma の型からレジストリを導出する構造化が TODO に起票済み）。
+> **親テーブル `Guild` と外部キー制約**（2026-09-24 導入）。`guildId` を持つ13モデルはすべて `Guild` へ `@relation(onDelete: Cascade)` を張っています。狙いは2つで、①Bot が把握しているギルド（参加中か猶予中）を `guilds` の1テーブルで列挙でき、ギルド単位の状態（導入日時・削除予約）を置ける場所を作ること ②ギルド単位の後始末を「親行を1つ消す」に集約することです。
+>
+> **`guild_settings` 行の欠落は親テーブルでは解消しません。** この行は `/guild-settings set-locale` か `set-error-channel` を実行したときだけ作られ、実測でデータを持つギルドの67%に行がありませんでした。親テーブル導入後も同じなので、`guild_settings` 行の有無を「ギルドの有無」の代わりに使わないでください（使うべきは `guilds` 行）。**「設定の有無」はどちらの行でも分かりません。** `guilds` 行は参加中の全ギルドに設定の有無と関係なく作るためで、設定の有無は各機能テーブルを見て判断します。
+>
+> FK があるため、**親行が無いギルドではどの機能の設定も保存できません**（FK 違反になる）。親行は `GuildRegistryRepository` の2経路で担保します。`handleGuildCreate`（参加時）と、起動時・日次の照合（Bot 停止中に追加されたギルドは `guildCreate` が飛ばないため。→ [退出時データのライフサイクル](#退出時データのライフサイクル)）。
+>
+> `/guild-settings reset-all` の `deleteAllSettings()` も、テーブルを個別に列挙する実装をやめて**親行を消して同じ `joinedAt`・削除予約で作り直す**形にしています（Bot はまだ参加しているため、登録そのものは残す必要がある）。新しいギルド単位テーブルは FK を張るだけで自動的に削除対象になります。
 
 **ランタイムデータリポジトリ（`src/features/<feature>/repositories/`）**:
 
@@ -359,6 +405,13 @@ const service = getBotBumpReminderSettingsService();
 | 1回限りジョブ  | `addOneTimeJob()` | setTimeout + `.unref()` | Bump リマインダー等 |
 
 `setTimeout` に `.unref()` を呼び出しているため、**タイマーが残っていても Node.js プロセスは正常終了**できます。
+
+`clientReady` で登録される繰り返しジョブは以下の2本です。
+
+| ジョブ ID | 頻度 | 用途 |
+| --- | --- | --- |
+| `unverified-kick:daily-check` | 毎時 0 分 | 未承認ユーザー自動キック（per-guild の timezone / runHour で絞り込み） |
+| `guild-settings:deletion-sweep` | 毎日 4 時（Asia/Tokyo） | ギルド登録の照合と猶予切れギルドのデータ削除（→ [退出時データのライフサイクル](#退出時データのライフサイクル)） |
 
 `BumpReminderManager` は `JobScheduler` をラップし、リマインダーの DB 永続化と再起動時の復元を担います。
 

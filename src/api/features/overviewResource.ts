@@ -6,14 +6,12 @@ import type {
   GuildOverview,
 } from "@ayasono/shared/api";
 import type { Guild as DiscordGuild } from "discord.js";
-import type { BotClient } from "../../bot/client";
 import {
   getBotReactionRolePanelSettingsService,
   getBotStickyMessageSettingsService,
   getBotTicketSettingsService,
 } from "../../bot/services/botCompositionRoot";
-import { tDefault } from "../../shared/locale/localeManager";
-import { ApiHttpError } from "../lib/httpError";
+import { requireBotGuild } from "../lib/botGuild";
 import type { ApiServerDeps } from "../types";
 import { createAfkResource } from "./afkResource";
 import { createBumpResource } from "./bumpResource";
@@ -182,10 +180,7 @@ export async function buildOverview(
   deps: ApiServerDeps,
   guildId: string,
 ): Promise<GuildOverview> {
-  const guild = (deps.client as BotClient).guilds.cache.get(guildId);
-  if (!guild) {
-    throw ApiHttpError.notFound(tDefault("system:web.bot_not_in_guild"));
-  }
+  const guild = requireBotGuild(deps.client, guildId);
   return {
     guild: toGuildSummary(guild),
     features: toFeatureStatuses(await collectInputs(deps, guildId)),

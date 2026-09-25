@@ -1,35 +1,16 @@
 // ギルド/Discord リソースエンドポイント（/api/guilds 配下）
 
 import type { Channel as ContractChannel } from "@ayasono/shared/api";
-import type { Guild as DiscordGuild } from "discord.js";
 import type { FastifyPluginAsync } from "fastify";
-import type { BotClient } from "../../bot/client";
-import { tDefault } from "../../shared/locale/localeManager";
 import { buildOverview } from "../features/overviewResource";
+import { requireBotGuild } from "../lib/botGuild";
 import { mapChannel, mapMember, mapRole } from "../lib/discordMappers";
-import { ApiHttpError } from "../lib/httpError";
 import { getGuildId } from "../lib/request";
 import type { ApiServerDeps } from "../types";
 
 /** guildRoutes プラグインのオプション */
 export interface GuildRoutesOptions {
   deps: ApiServerDeps;
-}
-
-/**
- * 検証済み guildId に対応する Bot 参加済みギルドを取得する。
- * requireGuildAccess はユーザーの権限を検証するが Bot 参加までは保証しないため、
- * Bot がギルドにいなければ 404 を返す。
- */
-function requireBotGuild(
-  client: BotClient,
-  guildId: string | undefined,
-): DiscordGuild {
-  const guild = guildId ? client.guilds.cache.get(guildId) : undefined;
-  if (!guild) {
-    throw ApiHttpError.notFound(tDefault("system:web.bot_not_in_guild"));
-  }
-  return guild;
 }
 
 /**

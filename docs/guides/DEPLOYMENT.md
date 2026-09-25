@@ -2,7 +2,7 @@
 
 > Coolify による saika の自動デプロイフロー
 
-最終更新: 2026年9月20日
+最終更新: 2026年9月25日
 
 ---
 
@@ -107,6 +107,8 @@ Coolify の管理画面 **Environment Variables** で設定する。サーバー
 | `JWT_SECRET` | API 有効時は Yes | ダッシュボード認証トークンの署名鍵 |
 | `DASHBOARD_URL` | No | `/help` に表示するダッシュボード URL |
 | `OFFICIAL_URL` | No | `/about` に表示する公式サイト URL |
+| `PRIVACY_POLICY_URL` | No | 導入時 DM に表示するプライバシーポリシー URL |
+| `SUPPORT_SERVER_URL` | No | 導入時 DM に表示するサポートサーバー招待 URL |
 | `BUMP_REMINDER_TEST_MODE` | No | Bump リマインダーの待機を 120分 → 1分に短縮（**本番では使用しない**） |
 
 ---

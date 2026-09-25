@@ -662,38 +662,37 @@ describe("shared/database/repositories/guildSettingsAggregateRepository", () => 
   });
 
   // ── deleteAllSettings ──────────────────────────────────
+  // 親行を消して作り直すことで、FK のカスケードに全機能テーブルの削除を任せる。
+  // テーブルを個別に列挙する実装では追加のたびに漏れが起きていた（2026-09-20 に
+  // 4テーブルの漏れを実際に踏んだ）ため、列挙そのものを無くしている。
   describe("deleteAllSettings", () => {
-    // schema.prisma で guildId を持つ全モデル。
-    // ここから漏れると reset-all / Bot 退出後にゴミが残り、
-    // 再有効化時に古い状態を引き継いで誤動作する（1-1 / 1-2 の原因）。
-    const GUILD_SCOPED_MODELS = [
-      "guildSettings",
-      "bumpReminder",
-      "guildAfkSettings",
-      "guildBumpReminderSettings",
-      "guildVacSettings",
-      "guildMemberLogSettings",
-      "guildVcAutoRecruitSettings",
-      "guildUnverifiedKickSettings",
-      "guildUnverifiedKickWarn",
-      "stickyMessage",
-      "guildTicketSettings",
-      "ticket",
-      "guildReactionRolePanel",
-    ] as const;
-
-    it("guildId を持つ全モデルを削除対象に含めること", async () => {
-      const deleteMocks: Record<string, Mock> = {};
-      const deletePrisma: Record<string, unknown> = {
-        $transaction: vi.fn(async () => Promise.resolve()),
+    /**
+     * 親行のトランザクション操作を記録する prisma スタブを作る
+     * @param existing findUnique が返す既存の親行（null で未登録を表す）
+     * @returns スタブ本体と、各操作のモック
+     */
+    function createDeletePrisma(
+      existing: { joinedAt: Date; scheduledDeletionAt: Date | null } | null,
+    ) {
+      const findUnique = vi.fn(async () => existing);
+      const deleteFn = vi.fn();
+      const create = vi.fn();
+      const tx = { guild: { findUnique, delete: deleteFn, create } };
+      const deletePrisma = {
+        $transaction: vi.fn(
+          async (fn: (t: typeof tx) => Promise<void>) => await fn(tx),
+        ),
       };
-      for (const model of GUILD_SCOPED_MODELS) {
-        const deleteMany = vi.fn();
-        deleteMocks[model] = deleteMany;
-        deletePrisma[model] = { deleteMany };
-      }
+      return { deletePrisma, findUnique, deleteFn, create };
+    }
 
-      const deleteRepo = new GuildSettingsAggregateRepository(
+    /**
+     * deleteAllSettings 検証用のリポジトリを組み立てる
+     * @param deletePrisma createDeletePrisma が返した prisma スタブ
+     * @returns 組み立てたリポジトリ
+     */
+    function createDeleteRepo(deletePrisma: unknown) {
+      return new GuildSettingsAggregateRepository(
         coreRepo as never,
         afkRepo as never,
         bumpReminderRepo as never,
@@ -707,15 +706,69 @@ describe("shared/database/repositories/guildSettingsAggregateRepository", () => 
         ticketRepo as never,
         deletePrisma as never,
       );
+    }
 
-      await deleteRepo.deleteAllSettings("g1");
+    it("親行を削除してカスケードで全機能テーブルを落とすこと", async () => {
+      const { deletePrisma, deleteFn } = createDeletePrisma({
+        joinedAt: new Date("2026-01-01T00:00:00.000Z"),
+        scheduledDeletionAt: null,
+      });
 
-      for (const model of GUILD_SCOPED_MODELS) {
-        expect(
-          deleteMocks[model],
-          `${model} が削除対象に含まれていない`,
-        ).toHaveBeenCalledWith({ where: { guildId: "g1" } });
-      }
+      await createDeleteRepo(deletePrisma).deleteAllSettings("g1");
+
+      expect(deleteFn).toHaveBeenCalledWith({ where: { guildId: "g1" } });
+    });
+
+    it("Bot はまだ参加しているため、親行を同じ joinedAt で作り直すこと", async () => {
+      const joinedAt = new Date("2026-01-01T00:00:00.000Z");
+      const { deletePrisma, create } = createDeletePrisma({
+        joinedAt,
+        scheduledDeletionAt: null,
+      });
+
+      await createDeleteRepo(deletePrisma).deleteAllSettings("g1");
+
+      expect(create).toHaveBeenCalledWith({
+        data: { guildId: "g1", joinedAt, scheduledDeletionAt: null },
+      });
+    });
+
+    it("退出済みで削除予約が入っていれば、作り直した親行にも予約を引き継ぐこと", async () => {
+      const joinedAt = new Date("2026-01-01T00:00:00.000Z");
+      const scheduledDeletionAt = new Date("2026-02-01T00:00:00.000Z");
+      const { deletePrisma, create } = createDeletePrisma({
+        joinedAt,
+        scheduledDeletionAt,
+      });
+
+      await createDeleteRepo(deletePrisma).deleteAllSettings("g1");
+
+      expect(create).toHaveBeenCalledWith({
+        data: { guildId: "g1", joinedAt, scheduledDeletionAt },
+      });
+    });
+
+    it("削除と再作成が同一トランザクション内で行われること（登録が失われないための保証）", async () => {
+      const { deletePrisma, deleteFn, create } = createDeletePrisma({
+        joinedAt: new Date("2026-01-01T00:00:00.000Z"),
+        scheduledDeletionAt: null,
+      });
+
+      await createDeleteRepo(deletePrisma).deleteAllSettings("g1");
+
+      expect(deletePrisma.$transaction).toHaveBeenCalledTimes(1);
+      expect(deleteFn.mock.invocationCallOrder[0]).toBeLessThan(
+        create.mock.invocationCallOrder[0],
+      );
+    });
+
+    it("親行が無い場合は何も削除しないこと（FK により子行も存在しえない）", async () => {
+      const { deletePrisma, deleteFn, create } = createDeletePrisma(null);
+
+      await createDeleteRepo(deletePrisma).deleteAllSettings("g1");
+
+      expect(deleteFn).not.toHaveBeenCalled();
+      expect(create).not.toHaveBeenCalled();
     });
   });
 });

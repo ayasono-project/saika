@@ -14,8 +14,7 @@ import type {
   VcAutoRecruitRef,
   VcAutoRecruitSettings,
 } from "../../shared/database/types";
-import { tDefault } from "../../shared/locale/localeManager";
-import { ApiHttpError } from "../lib/httpError";
+import { requireBotGuild } from "../lib/botGuild";
 import { relativeLabel } from "../lib/time";
 import type { SettingsResource } from "../routes/settingsResource";
 
@@ -115,10 +114,7 @@ export async function listActiveInvites(
   client: BotClient,
   guildId: string,
 ): Promise<ActiveInvite[]> {
-  const guild = client.guilds.cache.get(guildId);
-  if (!guild) {
-    throw ApiHttpError.notFound(tDefault("system:web.bot_not_in_guild"));
-  }
+  const guild = requireBotGuild(client, guildId);
   const settings =
     await getBotVcAutoRecruitSettingsService().getVcAutoRecruitSettingsOrDefault(
       guildId,

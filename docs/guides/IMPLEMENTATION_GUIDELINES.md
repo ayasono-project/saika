@@ -2,7 +2,7 @@
 
 > Implementation Guidelines - 実装方針とコーディング規約
 
-最終更新: 2026年9月24日
+最終更新: 2026年9月26日
 
 ---
 
@@ -65,7 +65,7 @@ src/features/<feature>/handlers/**
 
 **機能追加時の必須手順:**
 
-1. `prisma/schema.prisma` に `GuildXxxSettings` モデルを追加し、マイグレーションを作成する。**ギルド単位のテーブルには `guild Guild @relation(fields: [guildId], references: [guildId], onDelete: Cascade)` を必ず張る**（張り忘れると退出時の削除から漏れる）。列名はスネークケース（`@map`）で揃える
+1. `prisma/schema.prisma` に `GuildXxxSettings` モデルを追加し、マイグレーションを作成する。**ギルド単位のテーブルには `guild Guild @relation(fields: [guildId], references: [guildId], onDelete: Cascade)` を必ず張る**（張り忘れると退出時の削除から漏れる）。列名はスネークケース（`@map`）で揃える。**列のリネームやデータ移行を含む、複数の文からなるマイグレーションは全体を `BEGIN;` / `COMMIT;` で囲む**（`prisma migrate deploy` は1文ずつ確定させるため、囲まないと途中で失敗したとき前半だけが適用された状態が残る。Prisma 7.4.0 以降の挙動で、2026-09-25 に実測）。1文だけなら不要。囲んだ場合は失敗の本当の原因が Prisma の出力に出ないので、復旧は DEV_TIPS.md の「Prisma マイグレーション失敗（P3009）でコンテナが再起動ループする」に従う
 2. `src/shared/database/types/entities.ts` に `XxxSettings` インターフェースを、`repositories.ts` に `IXxxSettingsRepository` を追記する
 3. `src/features/xxx/xxxSettingsRepository.ts` でスタンドアロンリポジトリを実装し、シングルトンゲッター `getXxxSettingsRepository(prisma?)` を追加する
 4. `src/features/xxx/xxxSettingsDefaults.ts` にデフォルト設定と正規化関数を定義する

@@ -2,7 +2,7 @@
 
 > 開発中に遭遇しやすいトラブルと対処法
 
-最終更新: 2026年5月29日
+最終更新: 2026年9月26日
 
 ---
 
@@ -57,7 +57,7 @@ DB は Coolify のマネージド PostgreSQL に分離されており、Bot コ�
 
 ### Prisma マイグレーション失敗（P3009）でコンテナが再起動ループする
 
-`_prisma_migrations` テーブルに失敗記録が残っていると、起動時の `prisma migrate deploy` が毎回エラーになりコンテナがクラッシュループする。
+起動時の `prisma migrate deploy`（`docker-entrypoint.sh`）が失敗するとコンテナが終了し、再起動のたびに次のエラーで落ち続ける。`_prisma_migrations` に失敗の記録が残っていると、Prisma は以後のマイグレーションを一切適用しないため。
 
 ```
 Error: P3009
@@ -65,18 +65,27 @@ migrate found failed migrations in the target database, new migrations will not 
 The `<マイグレーション名>` migration started at ... failed
 ```
 
-**復旧手順:**
+**Bot のコンテナは落ち続けていて中に入れないので、復旧は DB 側で行う。** Coolify の DB リソース（saika-db）の **Runtime Logs** と **Terminal** を使う。
 
-```bash
-# 失敗したマイグレーションを resolve（実際に適用済みなら --applied、
-# 途中で失敗してロールバックしたいなら --rolled-back）
-docker exec <コンテナ名> pnpm prisma migrate resolve --applied <失敗したマイグレーション名>
-# または
-docker exec <コンテナ名> pnpm prisma migrate resolve --rolled-back <失敗したマイグレーション名>
+1. **Bot を止める**（Coolify で Stop）。再起動ループのまま進めると、途中で同じマイグレーションが再実行されて失敗記録が増える
+2. **原因を見る**。DB の Runtime Logs で、失敗した時刻の `ERROR:` 行を探す。`BEGIN;` で囲んだマイグレーションは、Prisma の出力が `current transaction is aborted` という二次的なエラーになり、本当の原因はここにしか出ない
+3. **途中まで適用されていないか確かめる**。
+   - `BEGIN;` / `COMMIT;` で囲んだマイグレーションは、失敗した時点で全部巻き戻っている。確認は要らない
+   - 囲んでいないマイグレーションは、失敗した文より前の文が適用済みのまま残っている。その分を手で戻してから次へ進む
+4. **原因を取り除く**（データを直す、またはマイグレーションを直したコードを main に入れる）
+5. **失敗の記録を「巻き戻し済み」にする**。Terminal でスーパーユーザーとして接続し、次を実行する（`prisma migrate resolve --rolled-back <名前>` と同じ処理）
 
-# Coolify 管理画面から Restart、または:
-docker restart <コンテナ名>
-```
+   ```sql
+   -- psql -U postgres -d saika
+   SELECT migration_name, started_at FROM _prisma_migrations
+    WHERE finished_at IS NULL AND rolled_back_at IS NULL;
 
-- マイグレーション名はエラーログから確認できる
-- 適用状況は `docker exec <コンテナ名> pnpm prisma migrate status` で確認できる
+   UPDATE _prisma_migrations SET rolled_back_at = now()
+    WHERE migration_name = '<マイグレーション名>'
+      AND finished_at IS NULL AND rolled_back_at IS NULL;
+   ```
+
+6. **Bot を Deploy する**。起動時の `migrate deploy` が同じマイグレーションを最初から適用し直す
+
+- **失敗したマイグレーションを「適用済み」にしてはいけない**（`migrate resolve --applied` 相当）。実際には適用されていないので、アプリが古いスキーマのまま動く
+- 手順2〜6は 2026-09-26 に使い捨て DB で確認した（途中の文を意図的に失敗させ、SQL で巻き戻し済みにして再適用できること、`migrate status` が最新になること）

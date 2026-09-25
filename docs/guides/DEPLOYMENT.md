@@ -2,7 +2,7 @@
 
 > Coolify による saika の自動デプロイフロー
 
-最終更新: 2026年9月25日
+最終更新: 2026年9月26日
 
 ---
 
@@ -163,6 +163,8 @@ docker logs saika-bot --tail 50
 ```bash
 docker exec <コンテナ名> pnpm prisma migrate status
 ```
+
+**`P3009` で再起動ループしている場合**はコンテナに入れないので、上のコマンドは使えない。[DEV_TIPS.md](DEV_TIPS.md) の「Prisma マイグレーション失敗（P3009）でコンテナが再起動ループする」の手順で、DB 側から復旧する。
 
 ### Coolify が GitHub リポジトリにアクセスできない
 

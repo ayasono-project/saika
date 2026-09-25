@@ -31,9 +31,9 @@
 | 区分 | 残件 |
 | --- | ---: |
 | いま着手できる | 19 |
-| 完了待ち | 7 |
+| 完了待ち | 6 |
 | 未決（判断が要る） | 2 |
-| **合計** | **28** |
+| **合計** | **27** |
 
 > **着手順は「いま着手できる」の並び順そのもの**（1件＝1 PR）。番号付きの「次にやること」は 2026-09-20 に廃止。1件動くたびに本体・サマリー・リストの3箇所を直すことになり、番号も挿入のたびにずれるため。
 >
@@ -264,82 +264,29 @@ HISTORY.md「saika のメジャー更新は『利用者の操作が変わるか�
 
 > **取り下げたもの（2026-09-18）**: 非アクティブキックとの対称化（片側が消える）／`notifyChannelId` / `logChannelId` の分離（未承認側は分離済み）／`disabledReason` 列の追加（既存の無効化通知と `view` の enabled 表示で足りる）／`set-notify-channel` リネーム（非アクティブ側の話だった）。旧設計は Notion「Saika バグ修正〜キック機能整理〜マニュアル修正 実行計画（2026-07-29 アーカイブ）」。
 
-### 退出時データの遅延削除 ＋ スキーマ整備 【実装・大】
+### export / import の削除 【実装】
 
-**依存なし。設計は 2026-09-23 に全部確定した**（根拠と実測値は → HISTORY.md「退出時データの遅延削除を採用する」）。**これを上位に置いたのは、v3.1.3 で即削除を止めた結果、退出したギルドのデータが無期限に残り続ける状態になっているため。** 当初の理由（即削除 × export 故障によるデータ消失）は v3.1.3 で解消済みで、緊急性は下がっている。
+**依存なし。** 待っていた「退出時データの遅延削除」は 2026-09-25 に完了した（v3.2.0）。
 
-`guildDelete` 時に即削除せず**30日後**に削除する。「Bot の再招待は破壊的操作ではない」というユーザーの期待に実装を合わせる。合わせて、削除漏れが構造的に起きないスキーマへ直す。
+[決定事項](#exportimport-は廃止する2026-08-19-決定)に基づき削除する。**Bot コマンド専用で Web API からは使われていない**ため（2026-08-19 確認）、ダッシュボードには波及しない。
 
-**本番実測（2026-09-23）**: データを持つギルド6件 ／ うち `guild_settings` 行が無いのは**4件**（export はこの4件で失敗する）／ 孤児4件 ／ 全テーブル1〜7行（`bump_reminders` のみ570行）。
+**削除対象**
 
-**この順に上から実装する（1つ = 1 PR）**
+- [ ] コマンド: `/guild-settings export` / `import`（`guildSettingsCommand.export.ts` / `.import.ts`）とサブコマンド定義・確認ダイアログの customId
+- [ ] サービス層: `exportSettings` / `validateImportData` / `planImport` / `importSettings`
+- [ ] リポジトリ層: `getFullSettings` / `importFullSettings` / `planImportMerge`（`repositories.ts:50-53` のインターフェース含む）
+- [ ] 型: `GuildSettingsExportData` / `GuildSettingsExportSettings` / `FullGuildState` / `EXPORT_SCHEMA_VERSION`（`guildSettingsDefaults.ts` / `guildSettingsExportTypes.ts`）
+- [ ] `serializers/guildStateSerializer.ts`（`guildSettingsAggregateRepository` からのみ参照。export 専用）
+- [ ] locale キー ja/en（`import_guild_mismatch` / `import_unsupported_version` 等）
+- [ ] 対応するテスト
 
-**スキーマ整備**（挙動は変わらない）— **2026-09-24 実装完了・develop マージ待ち**
+**残すもの**: `serializers/guildSettingsSerializer.ts` は `guildSettingsCoreUsecases` から使われており export とは無関係。
 
-- [x] `guilds` テーブルを新設（`guild_id` PK ／ `scheduled_deletion_at` ／ 導入日時 `joined_at`）
-- [x] 既存13テーブルに `guild Guild @relation(...)` を1行ずつ追加し、FK を張る（`onDelete: Cascade`）
-- [x] **列名のスネークケース統一（11列）**。`guild_settings`（`guildId` / `createdAt` / `updatedAt`）と `bump_reminders`（`guildId` / `channelId` / `messageId` / `panelMessageId` / `serviceName` / `scheduledAt` / `createdAt` / `updatedAt`）に `@map` を足す。**Prisma のフィールド名は変えないのでアプリコードは1行も変わらない**
-- [x] マイグレーション: `guilds` 作成 → 既存ギルドをバックフィル → 列名リネーム11本 → FK 追加。**`guild_settings.id` は Prisma 側で cuid を生成する設計で DB デフォルトが無い**が、この migration は親行だけ作るので影響しない
-- [x] **インデックス・制約名のリネーム4本**（着手時に追加）。Prisma の制約名はフィールド名ではなく**DB 列名**から生成されるため、列をリネームしただけでは `migrate diff` が名前違いの差分を検出し続ける。`guild_settings_guildId_key` / `bump_reminders_guildId_idx` / `bump_reminders_status_scheduledAt_idx` ＋ 2026-09-20 のテーブル改称で取り残されていた `guild_vc_invite_settings_pkey`
-- [x] **`guildCreate` で親行を作る。** `handleGuildCreate` を async 化し `GuildRegistryRepository.ensureGuild` を呼ぶ。失敗は error ログのみで継続（throw するとプレゼンス更新まで止まる。取りこぼしは照合（起動時・日次）が拾う）
-- [x] **起動時に親行が無いギルドを補完する**（`handleClientReady` で `ensureGuilds`。Bot が落ちている間に追加されたケース）
-- [x] テスト（親行 upsert / 一括登録の重複スキップ・空配列ガード / guildCreate の失敗時継続 / 起動時スイープ）
+**マニュアル**: 「設定をエクスポートする」「設定をインポートする」の削除と「⚠️ Bot をサーバーから除外する場合」の**遅延削除の説明への書き換え**は「マニュアル全面修正」でまとめて行う（ドキュメント修正で直した export 記述はここで消える）。
 
-> **これは挙動を変えないので単独で本番に出せる。** FK 導入の見落としで設定の書き込みが落ちるのが最悪シナリオなので、削除ロジックの変更と同時に出さず、切り分けられる形にする。
+> **既知の未修正バグ（削除により解消）**: `getFullSettings` は `GuildSettings` 行が無いと即 `null` を返すため（`guildSettingsAggregateRepository.ts:84-85`）、`/guild-settings set-locale` も `set-error-channel` も未実行のギルドでは、他9機能が設定済みでも export が「設定がありません」で失敗する。**削除するため修正しない方針**。なお「除外前に export 失敗 → 設定が無いと誤解 → そのまま Bot を外す」の導線は残るが、**データ消失はしない**（v3.1.3 で `guildDelete` の即削除を撤去済み）。残る実害は export が失敗して設定が無いと誤解するところまで。
 >
-> **マイグレーションの検証（2026-09-24）**: 本番の形（`guild_settings` 行が無いギルド・孤児2件）を再現した使い捨て DB へ旧マイグレーションを適用 → seed → 新マイグレーションを適用し、バックフィル・カスケード削除・未登録ギルドの FK 違反を実際に確認した。`migrate diff` の差分ゼロ・開発 DB へ適用して `pnpm start` のフル起動も確認済み。
->
-> **原子性の検証（2026-09-25）**: マイグレーションを `BEGIN;` / `COMMIT;` で囲んだ（`migrate deploy` は1文ずつ自動コミットで流すため、囲まないと途中失敗で先行の文だけが残る）。使い捨て DB で途中（手順4のインデックス改名）を意図的に失敗させ、`guilds` も列名リネームも残らず完全に戻ること、原因を除いて `prisma migrate resolve --rolled-back 20260924000000_add_guild_parent_table` → 再デプロイで正常に適用できることを確認した。**失敗時の本当の原因は Prisma の出力に出ない**（「current transaction is aborted」に隠れる）ので、PostgreSQL のサーバーログで見る
-
-**遅延削除の本体** — **2026-09-24 実装完了・develop マージ待ち**
-
-- [x] `guildDelete` に「`scheduled_deletion_at` に30日後を書く」処理を足す（即削除は v3.1.3 で撤去済みで、現在は何も書いていない）
-- [x] ~~**ジョブは即停止する。**~~ → **v3.1.3 で実装済み**（`stopGuildJobsUsecase`）。猶予中 Bot はそのギルドに居ないので、ジョブが生きているとエラーログを吐き続ける。データの削除だけを遅らせ、実行中ジョブの停止は遅らせない、という形になっている
-- [x] `guildCreate` で予約をクリアする（再導入で復活）。クリアしないと、生きている設定が期限後に消える
-- [x] 猶予切れを拾う日次ジョブ（毎日 4 時 JST）＋ 起動時スイープ（Bot 停止中に期限が来たケース）。削除は**親行を1つ消すだけ**
-- [x] **起動時は参加中ギルドの予約取り消しをスイープより先に行う**（着手時に追加）。Bot 停止中に外されて入れ直された場合は `guildCreate` が飛ばず予約だけが残るため、順序を逆にすると参加中のギルドのデータを消す
-- [x] **削除の直前にもう一度ジョブを止める**（着手時に追加）。猶予中に再起動すると `restoreBumpRemindersOnStartup` が pending レコードからタイマーを組み直すため、`purgeGuildDataUsecase` と同じ「タイマー解除 → DB 削除」の順序が要る
-- [x] `deleteAllSettings` を親行の削除＋再作成に置き換える（Bot はまだ参加しているので登録は残す・`joinedAt` は保持）。`purgeGuildDataUsecase` は reset-all 経路で**残る**（即時削除の経路は消えない）
-- [x] **照合を起動時・再 IDENTIFY の後（`ShardReady`）・日次ジョブで実行する**（2026-09-25 のレビューで追加）。当初は予約を `guildCreate` / `guildDelete` のイベントだけで管理しており、Bot の停止中に外されたギルドは予約されず**永久に残っていた**（本番の孤児4件もこれ）。`reconcileGuildsUsecase` が DB の `guilds` と参加中ギルドの一覧を突き合わせ、①親行の補完 ②参加中の予約取り消し ③不参加で予約なしのギルドへ30日後を予約 ④猶予切れの削除、の順に揃える。**参加ギルドが0件のときは ③ を行わない**（設定ミスで全ギルドを予約しない。API の失敗は例外になり照合ごと中止される）。既存の孤児4件はリリース時の照合で予約され、30日後に消える。`ShardReady` でも走らせるのは、切断中に導入されたギルドでは `guildCreate` が飛ばず（`guildAvailable` になる）、日次ジョブまで最長24時間設定を保存できなくなるため。**参加中の一覧はゲートウェイのキャッシュではなく REST（`GET /users/@me/guilds`・200件ずつページング）で取る** — discord.js は再 IDENTIFY 後の READY で消えたギルドをキャッシュから取り除かないため、キャッシュだと切断中に外されたギルドが参加中に見え続け、再起動まで予約されない
-- [x] **reset-all の親行作り直しで削除予約を引き継ぐ**（同上）。落とすと次の照合で改めて30日後に予約され、元の期限より削除が遅れる
-- [x] **API の `requireGuildAccess` で Bot 未参加のギルドを 404 にする**（同上）。`claims.guilds` には Bot 未参加のギルドも入るため、親行の無いギルドへの書き込みが FK 違反の 500 になっていた。同じ判定が4箇所に散っていたので `requireBotGuild`（`src/api/lib/botGuild.ts`）へ共通化した
-- [x] テスト（予約の書き込み・取り消し・期限列挙・削除時の期限再評価・スイープの配線・reset-all のカスケード）
-- [x] テスト（照合の順序・予約の起点・0件のガード・件数集計・REST のページング・予約の引き継ぎ・API の 404 と 403 の優先順）
-
-> **実機検証（2026-09-24）**: 使い捨て DB で「期限切れ1件・未来日1件・予約なし1件」を作り、スイープが期限切れだけをカスケード削除すること／再導入で予約が取り消されること／列挙後に再導入されたギルドは削除側の再評価で消えないこと／reset-all 後も親行と `joinedAt` が残ることを確認した。開発 DB で `pnpm start` のフル起動と日次ジョブ登録も確認済み。
->
-> **照合の実機検証（2026-09-25）**: 本番の形を再現した使い捨て DB（不参加で予約なし2件・不参加で期限切れ1件・参加中なのに予約が残った1件）で `pnpm start` し、1件取り消し・2件予約（30日後）・1件カスケード削除になること、再起動しても予定日時が延びず「変更なし」になること、エラー・警告ゼロを確認した
->
-> **既知の制限: 再導入してもタイマーは元に戻らない。** 退出時にジョブを止めるが、猶予内に再導入されても止めたタイマーは組み直さない。チケットの自動削除タイマーは次回の再起動で復元される（DB は触っていないため）。Bump リマインダーは退出時に DB の status も `cancelled` にしているので**再起動しても戻らず**、次に誰かが Bump したときに改めて予約される（失うのは進行中の1回分だけ）。「タイマー / スケジューラ実装の整理」で `guildCreate` からの復元を足すときに一緒に直す
-
-**導入時／再導入時 DM ＋ プライバシーポリシー** — **2026-09-24 実装完了・develop マージ待ち**
-
-- [x] env に `PRIVACY_POLICY_URL` / `SUPPORT_SERVER_URL` を追加（既存3 URL と同じく optional）。**公開ページが未作成のため、プライバシーポリシーはユーザーマニュアルと同じく GitHub のファイル URL を指す**
-- [x] **導入時 DM** — お礼／`/help`・マニュアル・ダッシュボードの導線／**30日保持の告知**／プライバシーポリシー／サポートサーバー。役割は告知した事実を作ることなので**凝りすぎないこと**
-- [x] **再導入時 DM** — 「設定は残っています」＋**実際の削除予定日時**。**価値の重心はここ**。`cancelScheduledDeletion` が取り消した予定日時を返すようにして、DM の出し分けと日時表示に使っている。日時は Discord のタイムスタンプ記法（`<t:秒:D>`）で出し、受信側のタイムゾーンで表示させる
-- [x] **日本語と英語を1通に併記する**（2026-09-25 のレビューで `guild.preferredLocale` による出し分けから変更）。Bot は相手のクライアント言語を interaction 無しでは知れず、`preferredLocale` は非 Community サーバーでは常に `en-US`（＝未設定の意味）なので、出し分けても日本のサーバーに英語が届く。タイトル・フィールド名は「日本語 / 英語」、本文は段落を分けて日本語 → 英語。出し分け用に切り出した `getLocaleTranslator` は撤去した
-- [x] **保持期間の告知に「外す前に reset-all」を明記する**（同上）。外した後はコマンドもダッシュボードも使えず、30日待つしかないため
-- [x] **再導入 DM を断定しない文言にする**（同上）。「設定はすべて残っています」は、退出時に止めたタイマーが戻らない（→ 遅延削除の既知の制限）ため言い過ぎ。「削除を取り消し、以前のデータを引き継ぎました」に留めた
-- [x] **`docker-compose.coolify.yml` に `PRIVACY_POLICY_URL` / `SUPPORT_SERVER_URL` を足す**（同上）。compose に無いと Coolify に値を入れても Bot に届かない。あわせて、`${VAR:-}` が未設定の変数を空文字で渡すと `.url()` の検証で起動が落ちるため、任意の URL 5項目は空文字を未設定として扱うようにした
-- [x] 送信先は **DM のみ・チャンネルには送らない**（`systemChannel` が null のサーバーで当てずっぽうのチャンネルに長文が出るため）。宛先解決はその場で行い **userId を永続化しない**
-- [x] DM 送信失敗（オーナーが DM を閉じている = 50007）は**ログのみで握りつぶす**。導入処理自体は成功扱い
-- [x] プライバシーポリシーに保持期間30日を明記（第4項・第6項を書き換え）。2026-09-25 のレビューで「即時削除は外す前に」と「バックアップ（R2・30日保管）に削除後も最大30日残る」を追記した
-- [x] ユーザーマニュアルの保持期間の記述2箇所（「⚠️ Bot をサーバーから除外する場合」とチケットのヒント）を30日保持に直す（同上）。「マニュアル全面修正」を待つと、リリースから修正まで「削除されず保持されます」という誤りが残るため、事実の部分だけ先に直した
-- [x] ja/en ロケール・テスト
-
-> **再起動で全オーナーへ DM が飛ぶことはない**（着手時に discord.js 14.27.0 のソースで確認）。`GUILD_CREATE` ハンドラは `client.ws.status === Status.Ready` のときだけ `guildCreate` を emit するため、起動直後のギルド同期では発火しない。既に参加しているギルドの復帰は `guildAvailable` 側になる。
->
-> **実機検証（2026-09-24）**: ja / en 両ロケールで両方の DM を実際にレンダリングし、キーの解決漏れ（キー文字列がそのまま出る事故）が無いことと文面を確認した。`pnpm start` のフル起動でエラーゼロ・再起動で DM が飛ばないことも確認済み。
->
-> **日英併記の実機検証（2026-09-25）**: 実際のロケールで両方の DM をレンダリングし、キーの解決漏れが無いこと・Discord の上限内（最長フィールド 612/1024・合計 1258/6000）であることを確認した
->
-> **既知の制限: Bot の停止中・切断中に導入・再導入されたギルドには DM が届かない。** そのギルドは READY に unavailable で載り、続く GUILD_CREATE が `guildAvailable` になって `guildCreate` が飛ばない。親行と予約は照合が直すが、照合からは DM を送らない（初回リリースで設定の無い既存ギルドにも照合が親行を作るため、送ると全オーナーへの一斉送信になる）。停止の窓は再デプロイや自動再起動の数分なので許容した
-
-> **DM の宛先は `guild.ownerId` で確定。** `INVITE_PERMISSIONS`（`src/api/routes/bot.ts:29`）に `ViewAuditLog` が**無い**ことを 2026-08-19 に確認済みで、監査ログの BOT_ADD から導入者は特定できない。最小権限方針を維持する以上オーナー宛が整合する。
->
-> **退出時 DM は送らない**（→ HISTORY.md「取り下げ済み」）。`guildDelete` 時点で共通サーバーが無く 50007 になるため、告知は導入時に前倒しする。
-
-この3つが終わってから「export / import の削除」へ進む。
+> **2026-09-23 実測: データを持つ6ギルドのうち4ギルドが該当（67%）。** 想定より実害が大きかったため、遅延削除＋スキーマ整備を「いま着手できる」の上位へ引き上げた。**親テーブルを入れても `guild_settings` 行は作られないので、この穴は export 削除まで残る**（2026-09-25 訂正。当初「構造的に消える」と書いたのは誤りで、欠落が無くなるのは `guilds` の親行だけ）。暫定修正はせず、export 削除で消す方針は変えない。
 
 ### タイマー / スケジューラ実装の整理 【実装・小〜中・リファクタ】
 
@@ -362,7 +309,7 @@ HISTORY.md「saika のメジャー更新は『利用者の操作が変わるか�
 - [x] ~~**vc-recruit の手書き無効化2箇所を `disableComponentsAfterTimeout` に寄せる。**~~ → **VC募集機能の削除で消滅**（2026-09-20 削除完了）。共通関数の引数型を `ButtonInteraction` / `StringSelectMenuInteraction` へ広げる話も、手書き箇所が無くなったため不要
 - [ ] **`jobScheduler.stopAll()` を graceful shutdown に接続する。** 定義とテストだけで本番から呼ばれていない（`main.ts` の shutdown は `apiServer.close()` → `client.shutdown()` → `prisma.$disconnect()` のみ）。全ジョブが `unref()` 済みなのでプロセス終了は妨げないが、**シャットダウン中にジョブが発火しうる**
 - [ ] **スティッキー再送のデバウンスを `jobScheduler.addOneTimeJob` へ寄せる。** 同 ID を `replaceExistingJob` で置き換えるのでデバウンスそのものになる。**warn 抑止オプション（`{ quiet: true }`）は 2026-09-20 に実装済み**なので、そのまま寄せられる
-- [ ] **猶予内の再導入でチケット自動削除タイマーを組み直す。** 退出時に止めたタイマーは、再導入しても次回の再起動まで戻らない（→「退出時データの遅延削除」の既知の制限）。`guildCreate` から `restoreAutoDeleteTimers` 相当をギルド単位で呼ぶ。Bump リマインダー側は退出時に DB の status まで `cancelled` にしているので復元対象が無く、次の Bump で再予約されるのに任せる
+- [ ] **猶予内の再導入でチケット自動削除タイマーを組み直す。** 退出時に止めたタイマーは、再導入しても次回の再起動まで戻らない（→ HISTORY.md「退出したサーバーのデータを30日後に削除するようにした」）。`guildCreate` から `restoreAutoDeleteTimers` 相当をギルド単位で呼ぶ。Bump リマインダー側は退出時に DB の status まで `cancelled` にしているので復元対象が無く、次の Bump で再予約されるのに任せる
 
 **判断が要るもの**
 
@@ -491,30 +438,6 @@ VAC が建てた VC は ID が毎回新しく allowlist に入らないので、
 - [ ] **prisma 8**。`8.0.0-rc.15` が RC で、本番稼働中の Bot に RC は入れない。GA は2026年10月予定。`prisma` / `@prisma/client` / `@prisma/adapter-pg` を必ず3点同時に、**単独 PR・単独リリース**で（理由は 7.10 のときと同じ → HISTORY.md）
 
 > **作業手順は HISTORY.md「パッケージ更新」の「作業上の知見」を着手前に読むこと。** 特に `pnpm update --latest` のパッケージ名明示列挙（裸で叩くと prisma の RC と github: 依存の `@ayasono/shared` を巻き込む）と、更新後の `pnpm db:generate`（peer ハッシュが変わると生成物が旧パスに取り残される）。
-
-### export / import の削除 【実装】
-
-**退出時データの遅延削除の完了待ち**（「いま着手できる」の先頭）。順序を逆にしないこと。
-
-[決定事項](#exportimport-は廃止する2026-08-19-決定)に基づき削除する。**Bot コマンド専用で Web API からは使われていない**ため（2026-08-19 確認）、ダッシュボードには波及しない。
-
-**削除対象**
-
-- [ ] コマンド: `/guild-settings export` / `import`（`guildSettingsCommand.export.ts` / `.import.ts`）とサブコマンド定義・確認ダイアログの customId
-- [ ] サービス層: `exportSettings` / `validateImportData` / `planImport` / `importSettings`
-- [ ] リポジトリ層: `getFullSettings` / `importFullSettings` / `planImportMerge`（`repositories.ts:50-53` のインターフェース含む）
-- [ ] 型: `GuildSettingsExportData` / `GuildSettingsExportSettings` / `FullGuildState` / `EXPORT_SCHEMA_VERSION`（`guildSettingsDefaults.ts` / `guildSettingsExportTypes.ts`）
-- [ ] `serializers/guildStateSerializer.ts`（`guildSettingsAggregateRepository` からのみ参照。export 専用）
-- [ ] locale キー ja/en（`import_guild_mismatch` / `import_unsupported_version` 等）
-- [ ] 対応するテスト
-
-**残すもの**: `serializers/guildSettingsSerializer.ts` は `guildSettingsCoreUsecases` から使われており export とは無関係。
-
-**マニュアル**: 「設定をエクスポートする」「設定をインポートする」の削除と「⚠️ Bot をサーバーから除外する場合」の**遅延削除の説明への書き換え**は「マニュアル全面修正」でまとめて行う（ドキュメント修正で直した export 記述はここで消える）。
-
-> **既知の未修正バグ（削除により解消）**: `getFullSettings` は `GuildSettings` 行が無いと即 `null` を返すため（`guildSettingsAggregateRepository.ts:84-85`）、`/guild-settings set-locale` も `set-error-channel` も未実行のギルドでは、他9機能が設定済みでも export が「設定がありません」で失敗する。**削除するため修正しない方針**。なお「除外前に export 失敗 → 設定が無いと誤解 → そのまま Bot を外す」の導線は残るが、**データ消失はしない**（v3.1.3 で `guildDelete` の即削除を撤去済み）。残る実害は export が失敗して設定が無いと誤解するところまで。
->
-> **2026-09-23 実測: データを持つ6ギルドのうち4ギルドが該当（67%）。** 想定より実害が大きかったため、遅延削除＋スキーマ整備を「いま着手できる」の上位へ引き上げた。**親テーブルを入れても `guild_settings` 行は作られないので、この穴は export 削除まで残る**（2026-09-25 訂正。当初「構造的に消える」と書いたのは誤りで、欠落が無くなるのは `guilds` の親行だけ）。暫定修正はせず、export 削除で消す方針は変えない。
 
 ### キック機能の DM 通知トグル化 【実装】
 

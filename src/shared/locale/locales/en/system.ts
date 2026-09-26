@@ -113,6 +113,10 @@ export const system = {
   "scheduler.job_removed": "Job removed JobId: {{jobId}}",
   "scheduler.job_stopped": "Job stopped JobId: {{jobId}}",
   "scheduler.job_scheduled": "Job scheduled JobId: {{jobId}}",
+  "scheduler.job_rearmed":
+    "Job timer re-armed (delay exceeds the setTimeout limit) JobId: {{jobId}} RemainingMs: {{remainingMs}}",
+  "scheduler.invalid_delay":
+    "Job not scheduled because the delay is invalid JobId: {{jobId}} DelayMs: {{delayMs}}",
 
   // Shutdown
   "shutdown.signal_received":

@@ -1,6 +1,7 @@
 // スティッキーメッセージコマンド定義
 
 import {
+  ChannelType,
   type ChatInputCommandInteraction,
   InteractionContextType,
   PermissionFlagsBits,
@@ -91,6 +92,7 @@ export const stickyMessageCommand: Command = {
                 .setName(STICKY_MESSAGE_COMMAND.OPTION.CHANNEL)
                 .setDescription(setChannelDesc.base)
                 .setDescriptionLocalizations(setChannelDesc.localizations)
+                .addChannelTypes(ChannelType.GuildText)
                 .setRequired(false),
             )
             .addStringOption((opt) =>
@@ -127,6 +129,7 @@ export const stickyMessageCommand: Command = {
                 .setName(STICKY_MESSAGE_COMMAND.OPTION.CHANNEL)
                 .setDescription(updateChannelDesc.base)
                 .setDescriptionLocalizations(updateChannelDesc.localizations)
+                .addChannelTypes(ChannelType.GuildText)
                 .setRequired(false),
             )
             .addStringOption((opt) =>

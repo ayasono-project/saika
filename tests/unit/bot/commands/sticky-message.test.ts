@@ -37,7 +37,9 @@ vi.mock(
   },
 );
 
+import { ChannelType } from "discord.js";
 import { stickyMessageCommand } from "@/bot/commands/sticky-message";
+import { STICKY_MESSAGE_COMMAND } from "@/features/sticky-message/commands/stickyMessageCommand.constants";
 
 // stickyMessageCommand ラッパーのエラーハンドリング委譲を検証
 describe("bot/commands/sticky-message", () => {
@@ -65,4 +67,22 @@ describe("bot/commands/sticky-message", () => {
 
     expect(handleCommandErrorMock).toHaveBeenCalledWith(interaction, error);
   });
+
+  it.each([
+    STICKY_MESSAGE_COMMAND.SUBCOMMAND.SET,
+    STICKY_MESSAGE_COMMAND.SUBCOMMAND.UPDATE,
+  ])(
+    "%s の channel オプションは選択時点で通常のテキストチャンネルだけに絞られていること",
+    (subcommandName) => {
+      const json = stickyMessageCommand.data.toJSON();
+      const subcommand = json.options?.find((o) => o.name === subcommandName) as
+        | { options?: { name: string; channel_types?: ChannelType[] }[] }
+        | undefined;
+      const channelOption = subcommand?.options?.find(
+        (o) => o.name === STICKY_MESSAGE_COMMAND.OPTION.CHANNEL,
+      );
+
+      expect(channelOption?.channel_types).toEqual([ChannelType.GuildText]);
+    },
+  );
 });

@@ -115,7 +115,7 @@ async function executeAutoDelete(
 }
 
 /**
- * Bot起動時にクローズ済みチケットの自動削除タイマーを復元する
+ * Bot起動時に全ギルドのクローズ済みチケットの自動削除タイマーを復元する
  * @param client Discord クライアント
  * @param ticketRepository チケットリポジトリ
  */
@@ -123,43 +123,13 @@ export async function restoreAutoDeleteTimers(
   client: Client,
   ticketRepository: ITicketRepository,
 ): Promise<void> {
-  // 全ギルドのクローズ済みチケットを取得
-  // client.guilds.cache から全ギルドIDを取得してクローズ済みチケットを探す
-  const guildIds = Array.from(client.guilds.cache.keys());
   let restoredCount = 0;
-
-  for (const guildId of guildIds) {
-    const closedTickets = await ticketRepository
-      .findAllClosedByGuild(guildId)
-      .catch(() => []);
-
-    for (const ticket of closedTickets) {
-      const settingsService = getBotTicketSettingsService();
-      const config = await settingsService
-        .findByGuildAndCategory(ticket.guildId, ticket.categoryId)
-        .catch(() => null);
-      if (!config) continue;
-
-      const autoDeleteMs = config.autoDeleteDays * 24 * 60 * 60 * 1000;
-      const remainingMs = autoDeleteMs - ticket.elapsedDeleteMs;
-
-      // closedAt からの経過時間も考慮
-      let adjustedRemainingMs = remainingMs;
-      if (ticket.closedAt) {
-        const elapsedSinceClose = Date.now() - ticket.closedAt.getTime();
-        adjustedRemainingMs = remainingMs - elapsedSinceClose;
-      }
-
-      // 残り時間が0以下の場合は即時削除される（addOneTimeJob内でMath.max(0, delayMs)）
-      scheduleTicketAutoDelete(
-        ticket.id,
-        ticket.channelId,
-        ticket.guildId,
-        adjustedRemainingMs,
-        client,
-      );
-      restoredCount++;
-    }
+  for (const guildId of client.guilds.cache.keys()) {
+    restoredCount += await restoreAutoDeleteTimersForGuild(
+      guildId,
+      client,
+      ticketRepository,
+    );
   }
 
   if (restoredCount > 0) {
@@ -171,4 +141,52 @@ export async function restoreAutoDeleteTimers(
       ),
     );
   }
+}
+
+/**
+ * 1ギルド分のクローズ済みチケットの自動削除タイマーを組み直す
+ * 起動時の復元と、猶予内の再導入（退出時に止めたタイマーの再開）で使う
+ * @param guildId 対象ギルドID
+ * @param client Discord クライアント
+ * @param ticketRepository チケットリポジトリ
+ * @returns 組み直したタイマーの件数
+ */
+export async function restoreAutoDeleteTimersForGuild(
+  guildId: string,
+  client: Client,
+  ticketRepository: ITicketRepository,
+): Promise<number> {
+  const closedTickets = await ticketRepository
+    .findAllClosedByGuild(guildId)
+    .catch(() => []);
+
+  let restoredCount = 0;
+  for (const ticket of closedTickets) {
+    const settingsService = getBotTicketSettingsService();
+    const config = await settingsService
+      .findByGuildAndCategory(ticket.guildId, ticket.categoryId)
+      .catch(() => null);
+    if (!config) continue;
+
+    const autoDeleteMs = config.autoDeleteDays * 24 * 60 * 60 * 1000;
+    const remainingMs = autoDeleteMs - ticket.elapsedDeleteMs;
+
+    // closedAt からの経過時間も考慮
+    let adjustedRemainingMs = remainingMs;
+    if (ticket.closedAt) {
+      const elapsedSinceClose = Date.now() - ticket.closedAt.getTime();
+      adjustedRemainingMs = remainingMs - elapsedSinceClose;
+    }
+
+    // 残り時間が0以下の場合は即時削除される（addOneTimeJob内でMath.max(0, delayMs)）
+    scheduleTicketAutoDelete(
+      ticket.id,
+      ticket.channelId,
+      ticket.guildId,
+      adjustedRemainingMs,
+      client,
+    );
+    restoredCount++;
+  }
+  return restoredCount;
 }

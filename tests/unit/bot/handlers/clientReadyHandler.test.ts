@@ -11,7 +11,7 @@ const loggerInfoMock = vi.fn();
 const restoreBumpRemindersOnStartupMock = vi.fn();
 const cleanupVacOnStartupMock = vi.fn();
 const initGuildInviteCacheMock = vi.fn();
-const restoreAutoDeleteTimersMock = vi.fn();
+const syncTicketsOnStartupMock = vi.fn();
 const getBotTicketRepositoryMock = vi.fn();
 const runGuildDeletionSweepMock = vi.fn();
 const registerGuildDeletionJobMock = vi.fn();
@@ -73,9 +73,9 @@ vi.mock("@/features/member-log/handlers/inviteTracker", () => ({
     initGuildInviteCacheMock(...args),
 }));
 
-vi.mock("@/features/ticket/services/ticketAutoDeleteService", () => ({
-  restoreAutoDeleteTimers: (...args: unknown[]) =>
-    restoreAutoDeleteTimersMock(...args),
+vi.mock("@/features/ticket/services/ticketChannelSync", () => ({
+  syncTicketsOnStartup: (...args: unknown[]) =>
+    syncTicketsOnStartupMock(...args),
 }));
 
 vi.mock("@/bot/services/botCompositionRoot", () => ({
@@ -110,7 +110,7 @@ describe("bot/handlers/clientReadyHandler", () => {
     restoreBumpRemindersOnStartupMock.mockResolvedValue(undefined);
     cleanupVacOnStartupMock.mockResolvedValue(undefined);
     initGuildInviteCacheMock.mockResolvedValue(undefined);
-    restoreAutoDeleteTimersMock.mockResolvedValue(undefined);
+    syncTicketsOnStartupMock.mockResolvedValue(undefined);
     getBotTicketRepositoryMock.mockReturnValue({});
     runGuildDeletionSweepMock.mockResolvedValue(undefined);
   });
@@ -170,6 +170,10 @@ describe("bot/handlers/clientReadyHandler", () => {
     expect(initGuildInviteCacheMock).toHaveBeenCalledTimes(3);
     expect(restoreBumpRemindersOnStartupMock).toHaveBeenCalledWith(client);
     expect(cleanupVacOnStartupMock).toHaveBeenCalledWith(client);
+    expect(syncTicketsOnStartupMock).toHaveBeenCalledWith(
+      client,
+      expect.anything(),
+    );
     // 未承認ユーザー自動キックの毎時スイープジョブが登録される
     expect(addJobMock).toHaveBeenCalledWith(
       expect.objectContaining({

@@ -159,6 +159,8 @@ export const ticket = {
     "チケット一覧取得に失敗 GuildId: {{guildId}} CategoryId: {{categoryId}}",
   "log.database_ticket_find_closed_failed":
     "クローズ済みチケット取得に失敗 GuildId: {{guildId}}",
+  "log.database_ticket_find_all_by_guild_failed":
+    "ギルドのチケット取得に失敗 GuildId: {{guildId}}",
   "log.database_ticket_create_failed":
     "チケット作成に失敗 GuildId: {{guildId}} CategoryId: {{categoryId}}",
   "log.database_ticket_update_failed": "チケット更新に失敗 Id: {{id}}",
@@ -178,6 +180,16 @@ export const ticket = {
     "パネル設置チャンネル削除を検知 GuildId: {{guildId}} CategoryId: {{categoryId}}",
   "log.panel_cleanup_failed":
     "パネル削除時のクリーンアップに失敗 GuildId: {{guildId}}",
+  "log.ticket_channel_deleted":
+    "チケットのチャンネル削除を検知し記録を削除 GuildId: {{guildId}} ChannelId: {{channelId}}",
+  "log.ticket_channel_cleanup_failed":
+    "チケットのチャンネル削除後の片付けに失敗 GuildId: {{guildId}} ChannelId: {{channelId}}",
+  "log.missing_channel_tickets_removed":
+    "チャンネルが無くなったチケットの記録を削除 GuildId: {{guildId}} 件数: {{count}}",
+  "log.ticket_channel_sync_failed":
+    "チケットとチャンネルの突き合わせに失敗（何も削除しない） GuildId: {{guildId}}",
+  "log.auto_delete_restore_guild":
+    "再導入時 自動削除タイマー復元 GuildId: {{guildId}} 件数: {{count}}",
 } as const;
 
 export type TicketTranslations = typeof ticket;

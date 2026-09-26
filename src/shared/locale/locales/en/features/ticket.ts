@@ -158,6 +158,8 @@ export const ticket = {
     "failed to find tickets GuildId: {{guildId}} CategoryId: {{categoryId}}",
   "log.database_ticket_find_closed_failed":
     "failed to find closed tickets GuildId: {{guildId}}",
+  "log.database_ticket_find_all_by_guild_failed":
+    "failed to find tickets for guild GuildId: {{guildId}}",
   "log.database_ticket_create_failed":
     "failed to create ticket GuildId: {{guildId}} CategoryId: {{categoryId}}",
   "log.database_ticket_update_failed": "failed to update ticket Id: {{id}}",
@@ -177,6 +179,16 @@ export const ticket = {
   "log.panel_channel_deleted":
     "panel channel deletion detected GuildId: {{guildId}} CategoryId: {{categoryId}}",
   "log.panel_cleanup_failed": "panel cleanup failed GuildId: {{guildId}}",
+  "log.ticket_channel_deleted":
+    "ticket channel deletion detected, record removed GuildId: {{guildId}} ChannelId: {{channelId}}",
+  "log.ticket_channel_cleanup_failed":
+    "ticket cleanup after channel deletion failed GuildId: {{guildId}} ChannelId: {{channelId}}",
+  "log.missing_channel_tickets_removed":
+    "removed tickets whose channel no longer exists GuildId: {{guildId}} Count: {{count}}",
+  "log.ticket_channel_sync_failed":
+    "ticket/channel sync failed (nothing removed) GuildId: {{guildId}}",
+  "log.auto_delete_restore_guild":
+    "auto-delete timers restored on rejoin GuildId: {{guildId}} Count: {{count}}",
 } as const;
 
 export type TicketTranslations = typeof ticket;

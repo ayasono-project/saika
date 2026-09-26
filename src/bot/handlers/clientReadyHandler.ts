@@ -3,7 +3,7 @@
 import { Events } from "discord.js";
 import { restoreBumpRemindersOnStartup } from "../../features/bump-reminder/handlers/bumpReminderStartup";
 import { initGuildInviteCache } from "../../features/member-log/handlers/inviteTracker";
-import { restoreAutoDeleteTimers } from "../../features/ticket/services/ticketAutoDeleteService";
+import { syncTicketsOnStartup } from "../../features/ticket/services/ticketChannelSync";
 import {
   resolveUnverifiedKickSchedule,
   runUnverifiedKickDailyCheck,
@@ -83,8 +83,8 @@ export async function handleClientReady(client: BotClient): Promise<void> {
     await cleanupVacOnStartup(client);
     // 空・不在 VC の募集投稿を募集終了へ差し替えて追跡を整理
     await cleanupVcAutoRecruitOnStartup(client);
-    // クローズ済みチケットの自動削除タイマーを復元
-    await restoreAutoDeleteTimers(client, getBotTicketRepository());
+    // 停止中に消されたチャンネルのチケットを片付けてから、クローズ済みチケットの自動削除タイマーを復元
+    await syncTicketsOnStartup(client, getBotTicketRepository());
 
     // 未承認ユーザー自動キックのスイープを登録（毎時・per-guild timezone/runHour で絞り込み）
     // UNVERIFIED_KICK_CRON が設定されていれば検証用にスケジュールを上書きする

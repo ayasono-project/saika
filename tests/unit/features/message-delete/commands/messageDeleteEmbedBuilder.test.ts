@@ -22,13 +22,21 @@ vi.mock("@/shared/locale/localeManager", () => ({
   tDefault: vi.fn((key: string, params?: Record<string, unknown>) =>
     params ? `${key}:${JSON.stringify(params)}` : key,
   ),
-  tInteraction: (...args: unknown[]) => args[1],
+  // 「ほか M チャンネル」の件数を検証できるよう、呼び出しを記録する（返すのはキーのみ）
+  tInteraction: vi.fn((...args: unknown[]) => args[1]),
 }));
 
-import type {
-  MessageDeleteFilter,
-  ScannedMessage,
+import {
+  type MessageDeleteFilter,
+  MSG_DEL_CHANNEL_LIST_MAX_LINES,
+  MSG_DEL_EMBED_FIELD_VALUE_MAX_LENGTH,
+  MSG_DEL_REPLY_CONTENT_MAX_LENGTH,
+  type ScannedMessage,
 } from "@/features/message-delete/constants/messageDeleteConstants";
+import { tInteraction } from "@/shared/locale/localeManager";
+
+/** 「ほか M チャンネル」の行のキー（tInteraction のモックはキーをそのまま返す） */
+const CHANNEL_LIST_MORE_KEY = "messageDelete:user-response.channel_list_more";
 
 function makeMsg(
   id: string,
@@ -268,6 +276,139 @@ describe("bot/features/message-delete/commands/messageDeleteEmbedBuilder", () =>
       const { buildCompletionEmbed } = await loadModule();
       const embed = buildCompletionEmbed("ja", 0, {});
       expect(embed).toBeDefined();
+    });
+
+    it("内訳のチャンネルが多くフィールドの上限（1024文字）を超える場合でも例外にせず、収まる分と「ほか M チャンネル」に畳む", async () => {
+      const { buildCompletionEmbed } = await loadModule();
+      vi.mocked(tInteraction).mockClear();
+      // 1行 55 文字 × 45 チャンネル ≒ 2500 文字（まとめずに並べると Embed の検証で例外になる量）
+      const breakdown = Object.fromEntries(
+        Array.from({ length: 45 }, (_, i) => [
+          `ch-${i}`,
+          { name: `channel-${i}`, count: 1 },
+        ]),
+      );
+
+      const embed = buildCompletionEmbed("ja", 45, breakdown);
+
+      const value = embed.data.fields?.[1]?.value ?? "";
+      expect(value.length).toBeLessThanOrEqual(
+        MSG_DEL_EMBED_FIELD_VALUE_MAX_LENGTH,
+      );
+      const lines = value.split("\n");
+      expect(lines[lines.length - 1]).toBe(CHANNEL_LIST_MORE_KEY);
+      expect(tInteraction).toHaveBeenCalledWith("ja", CHANNEL_LIST_MORE_KEY, {
+        count: 45 - (lines.length - 1),
+      });
+    });
+  });
+
+  // ─────────────────────────────────────────────────────────────
+  // joinChannelLines
+  // ─────────────────────────────────────────────────────────────
+
+  // 表示件数・文字数の上限内での結合と「ほか M チャンネル」への畳み込みを検証
+  describe("joinChannelLines", () => {
+    // 「ほか M チャンネル」の件数を呼び出しから検証するため、記録をリセットする
+    beforeEach(() => {
+      vi.mocked(tInteraction).mockClear();
+    });
+
+    it("上限に収まる場合はそのまま改行で結合する", async () => {
+      const { joinChannelLines } = await loadModule();
+      expect(joinChannelLines("ja", ["a", "b", "c"], 100)).toBe("a\nb\nc");
+      expect(tInteraction).not.toHaveBeenCalled();
+    });
+
+    it("行数が上限を超える場合は先頭の上限件数だけ並べ、残りを「ほか M チャンネル」にまとめる", async () => {
+      const { joinChannelLines } = await loadModule();
+      const lines = Array.from(
+        { length: MSG_DEL_CHANNEL_LIST_MAX_LINES + 5 },
+        (_, i) => `line-${i}`,
+      );
+
+      const result = joinChannelLines("ja", lines, 10_000).split("\n");
+
+      expect(result).toHaveLength(MSG_DEL_CHANNEL_LIST_MAX_LINES + 1);
+      expect(result.slice(0, MSG_DEL_CHANNEL_LIST_MAX_LINES)).toEqual(
+        lines.slice(0, MSG_DEL_CHANNEL_LIST_MAX_LINES),
+      );
+      expect(result[MSG_DEL_CHANNEL_LIST_MAX_LINES]).toBe(
+        CHANNEL_LIST_MORE_KEY,
+      );
+      expect(tInteraction).toHaveBeenLastCalledWith(
+        "ja",
+        CHANNEL_LIST_MORE_KEY,
+        { count: 5 },
+      );
+    });
+
+    it("文字数が上限を超える場合は、まとめの行を含めて上限に収まるところまで並べる", async () => {
+      const { joinChannelLines } = await loadModule();
+      // 30文字の行を5行（全部で154文字）。上限130文字では、2行 + まとめの行（45文字）の 107 文字までしか並べられない
+      const lines = ["a", "b", "c", "d", "e"].map((c) => c.repeat(30));
+
+      const result = joinChannelLines("ja", lines, 130);
+
+      expect(result.length).toBeLessThanOrEqual(130);
+      expect(result.split("\n")).toEqual([
+        lines[0],
+        lines[1],
+        CHANNEL_LIST_MORE_KEY,
+      ]);
+      expect(tInteraction).toHaveBeenLastCalledWith(
+        "ja",
+        CHANNEL_LIST_MORE_KEY,
+        { count: 3 },
+      );
+    });
+  });
+
+  // ─────────────────────────────────────────────────────────────
+  // buildDeleteProgressContent
+  // ─────────────────────────────────────────────────────────────
+
+  // 削除の進捗表示（content）が文字数の上限に収まることを検証
+  describe("buildDeleteProgressContent", () => {
+    it("チャンネルが少ない場合は、全体の件数の下にチャンネル別の行をすべて並べる", async () => {
+      const { buildDeleteProgressContent } = await loadModule();
+      const content = buildDeleteProgressContent("ja", {
+        totalDeleted: 1,
+        total: 3,
+        channelStatuses: [
+          { channelId: "ch-1", name: "a", deleted: 1, total: 2 },
+          { channelId: "ch-2", name: "b", deleted: 0, total: 1 },
+        ],
+      });
+      expect(content.split("\n")).toEqual([
+        "messageDelete:user-response.delete_progress",
+        "messageDelete:user-response.delete_progress_channel",
+        "messageDelete:user-response.delete_progress_channel",
+      ]);
+    });
+
+    it("チャンネルが多い場合でも content の上限（2000文字）に収め、残りを「ほか M チャンネル」にまとめる", async () => {
+      const { buildDeleteProgressContent } = await loadModule();
+      // 1行 51 文字 × 70 チャンネル ≒ 3600 文字（まとめずに並べると API が 50035 で拒否する量）
+      const channelStatuses = Array.from({ length: 70 }, (_, i) => ({
+        channelId: `ch-${i}`,
+        name: `channel-${i}`,
+        deleted: 0,
+        total: 1,
+      }));
+
+      const content = buildDeleteProgressContent("ja", {
+        totalDeleted: 0,
+        total: 70,
+        channelStatuses,
+      });
+
+      expect(content.length).toBeLessThanOrEqual(
+        MSG_DEL_REPLY_CONTENT_MAX_LENGTH,
+      );
+      const lines = content.split("\n");
+      expect(lines[0]).toBe("messageDelete:user-response.delete_progress");
+      expect(lines[lines.length - 1]).toBe(CHANNEL_LIST_MORE_KEY);
     });
   });
 

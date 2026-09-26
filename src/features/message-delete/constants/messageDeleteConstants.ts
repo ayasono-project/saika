@@ -1,8 +1,12 @@
 // message-delete 機能の定数・型定義
 
-import type {
-  GuildTextBasedChannel,
-  MessageComponentInteraction,
+import {
+  Constants,
+  type GuildTextBasedChannel,
+  type MessageComponentInteraction,
+  type MessageType,
+  PermissionFlagsBits,
+  RESTJSONErrorCodes,
 } from "discord.js";
 
 /** UI コンポーネントの customId 定数 */
@@ -104,6 +108,48 @@ export const MSG_DEL_BULK_MAX_AGE_MS: number = 14 * 24 * 60 * 60 * 1000;
 
 /** 削除結果メッセージの本文最大文字数 */
 export const MSG_DEL_CONTENT_MAX_LENGTH = 200;
+
+/** 応答メッセージの content の最大文字数（Discord の上限） */
+export const MSG_DEL_REPLY_CONTENT_MAX_LENGTH = 2000;
+
+/** Embed フィールドの値の最大文字数（Discord の上限） */
+export const MSG_DEL_EMBED_FIELD_VALUE_MAX_LENGTH = 1024;
+
+/**
+ * 削除の進捗表示・完了表示に1行ずつ並べるチャンネルの上限。
+ * 超えた分は「ほか M チャンネル」の1行にまとめる（一目で読める量に抑え、文字数の上限にも余裕を残す）
+ */
+export const MSG_DEL_CHANNEL_LIST_MAX_LINES = 20;
+
+/**
+ * 削除対象のチャンネルで、実行者と Bot の双方に必要な権限。
+ * 実行者はこのチャンネルを見られてメッセージを管理できる場合だけ対象にでき、Bot はこれが無いと収集・削除できない
+ */
+export const MSG_DEL_CHANNEL_REQUIRED_PERMISSIONS: readonly bigint[] = [
+  PermissionFlagsBits.ViewChannel,
+  PermissionFlagsBits.ReadMessageHistory,
+  PermissionFlagsBits.ManageMessages,
+];
+
+/**
+ * Discord 側で削除できないメッセージ種別（スレッドの開始メッセージ・名前変更・メンバーの追加／除外など）。
+ * スキャンで収集すると削除時に 50021 で失敗するため、収集の段階で除く
+ */
+export const MSG_DEL_UNDELETABLE_MESSAGE_TYPES: ReadonlySet<MessageType> =
+  new Set<MessageType>(Constants.UndeletableMessageTypes);
+
+/**
+ * チャンネル自体が使えなくなったことを示す Discord API のエラーコード
+ * （チャンネルの削除・閲覧権限の喪失・権限不足）。
+ * 削除中にこれらを受けたら、そのチャンネルの残りは同じ理由で失敗するため打ち切って次のチャンネルへ進む
+ */
+export const MSG_DEL_CHANNEL_UNAVAILABLE_ERROR_CODES: ReadonlySet<
+  number | string
+> = new Set<number | string>([
+  RESTJSONErrorCodes.UnknownChannel,
+  RESTJSONErrorCodes.MissingAccess,
+  RESTJSONErrorCodes.MissingPermissions,
+]);
 
 /** count オプション未指定時のデフォルト収集件数 */
 export const MSG_DEL_DEFAULT_COUNT = 1000;

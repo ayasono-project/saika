@@ -103,4 +103,21 @@ describe("shared/database/repositories/serializers/guildSettingsSerializer", () 
       errorChannelId: "ch-1",
     });
   });
+
+  // null は「設定を消す」。update に null を含めないと Prisma が列を書き換えない
+  it("toGuildSettingsUpdateData が errorChannelId: null を渡した場合に null を含めること", () => {
+    expect(
+      toGuildSettingsUpdateData({ locale: "ja", errorChannelId: null }),
+    ).toEqual({ locale: "ja", errorChannelId: null });
+  });
+
+  // undefined は「変更しない」。update に含めると既存の設定を消してしまう
+  it("toGuildSettingsUpdateData が errorChannelId: undefined を渡した場合にキーを含めないこと", () => {
+    const data = toGuildSettingsUpdateData({
+      locale: "en",
+      errorChannelId: undefined,
+    });
+    expect(data).toEqual({ locale: "en" });
+    expect(data).not.toHaveProperty("errorChannelId");
+  });
 });

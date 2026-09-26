@@ -121,7 +121,9 @@ export function buildGuildJoinIntroDm(
  * 猶予期間内の再導入でオーナーへ送る DM の Embed を組み立てる
  *
  * 「削除予約を取り消した」ことと「いつ消えるはずだったか」を伝えるのが本体。
- * 設定が「すべて」戻ったとは書かない（退出時に止めたタイマー等は戻らないため）。
+ * 設定が「すべて」戻ったとは書かない。チケットの自動削除タイマーは再導入時に
+ * 組み直す（`syncGuildTickets`）が、Bump リマインダーの予約は退出時に DB でも
+ * 取り消しているため戻らない（`stopGuildJobsUsecase`）。
  * @param t 言語ごとの翻訳関数（日本語 → 英語の順に併記する）
  * @param cancelledDeletionAt 取り消した削除予定時刻
  * @returns 送信用の Embed

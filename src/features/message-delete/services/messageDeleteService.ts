@@ -1,12 +1,12 @@
 // メッセージ削除コアロジック
 
-import type {
-  Collection,
-  GuildTextBasedChannel,
-  Message,
-  PartialMessage,
+import {
+  type Collection,
+  DiscordAPIError,
+  type GuildTextBasedChannel,
+  type Message,
+  type PartialMessage,
 } from "discord.js";
-import { PermissionFlagsBits } from "discord.js";
 import {
   logPrefixed,
   tInteraction,
@@ -18,11 +18,14 @@ import {
   MSG_DEL_BULK_BATCH_SIZE,
   MSG_DEL_BULK_MAX_AGE_MS,
   MSG_DEL_BULK_WAIT_MS,
+  MSG_DEL_CHANNEL_REQUIRED_PERMISSIONS,
+  MSG_DEL_CHANNEL_UNAVAILABLE_ERROR_CODES,
   MSG_DEL_CONTENT_MAX_LENGTH,
   MSG_DEL_FETCH_BATCH_SIZE,
   MSG_DEL_INDIVIDUAL_WAIT_MS,
   MSG_DEL_PROGRESS_THROTTLE_MS,
   MSG_DEL_REFILL_WAIT_MS,
+  MSG_DEL_UNDELETABLE_MESSAGE_TYPES,
   type ScannedMessageWithChannel,
 } from "../constants/messageDeleteConstants";
 
@@ -176,6 +179,19 @@ function buildDisplayContent(locale: string, msg: Message): string {
 }
 
 /**
+ * Discord API のエラーが、チャンネル自体が使えなくなったこと（削除・閲覧権限の喪失・権限不足）を示すかを判定する。
+ * スキャンと削除の双方で、そのチャンネルだけを打ち切るかどうかの判断に使う
+ * @param error 捕捉したエラー
+ * @returns そのチャンネルの残りのスキャン・削除を打ち切るべきエラーなら true
+ */
+function isChannelUnavailableError(error: unknown): boolean {
+  return (
+    error instanceof DiscordAPIError &&
+    MSG_DEL_CHANNEL_UNAVAILABLE_ERROR_CODES.has(error.code)
+  );
+}
+
+/**
  * 指定チャンネルリストから条件に一致するメッセージをスキャンして収集する（削除は行わない）
  * @param channels スキャン対象のテキストチャンネル一覧
  * @param options スキャンオプション（件数上限・フィルタ・進捗コールバックなど）
@@ -228,13 +244,7 @@ export async function scanMessages(
     const me = channel.guild.members.me;
     if (
       me &&
-      !channel
-        .permissionsFor(me)
-        ?.has([
-          PermissionFlagsBits.ViewChannel,
-          PermissionFlagsBits.ReadMessageHistory,
-          PermissionFlagsBits.ManageMessages,
-        ])
+      !channel.permissionsFor(me)?.has(MSG_DEL_CHANNEL_REQUIRED_PERMISSIONS)
     ) {
       logger.debug(
         logPrefixed(
@@ -288,8 +298,41 @@ export async function scanMessages(
     cursor.buffer = msgs;
   };
 
+  /**
+   * チャンネルから1バッチ取得してカーソルに反映する。
+   * チャンネル自体が使えなくなった（途中で削除された・閲覧権限を失った等）ときは、そのチャンネルだけ打ち切り、他のチャンネルのスキャンは続ける
+   * @param cursor 取得対象のカーソル
+   * @param before このメッセージIDより前を取得する（未指定で最新から）
+   * @returns 処理完了を示す Promise（チャンネルが使えない以外の失敗（5xx・ネットワーク障害等）では reject する）
+   */
+  const fetchIntoCursor = async (
+    cursor: ChannelCursor,
+    before: string | undefined,
+  ): Promise<void> => {
+    try {
+      const batch: Collection<string, Message> =
+        await cursor.channel.messages.fetch({
+          limit: MSG_DEL_FETCH_BATCH_SIZE,
+          before,
+        });
+      applyBatch(cursor, batch);
+    } catch (error) {
+      // 一時的な障害まで打ち切りにすると「メッセージが見つからなかった」と誤って伝えるため、スキャンの失敗として投げ直す
+      if (!isChannelUnavailableError(error)) throw error;
+      logger.warn(
+        logPrefixed(
+          "system:log_prefix.msg_del",
+          "messageDelete:log.svc_channel_fetch_failed",
+          { channelId: cursor.channel.id, error: String(error) },
+        ),
+      );
+      cursor.buffer = [];
+      cursor.exhausted = true;
+    }
+  };
+
   // ━━ 初期フェッチ: 全チャンネルを並列取得 ━━
-  const cursors: ChannelCursor[] = await Promise.all(
+  const initialFetch = Promise.all(
     accessibleChannels.map(async (channel) => {
       logger.debug(
         logPrefixed(
@@ -306,14 +349,21 @@ export async function scanMessages(
         lastId: undefined,
         exhausted: false,
       };
-      const batch: Collection<string, Message> = await channel.messages.fetch({
-        limit: MSG_DEL_FETCH_BATCH_SIZE,
-        before: beforeSnowflake,
-      });
-      applyBatch(cursor, batch);
+      await fetchIntoCursor(cursor, beforeSnowflake);
       return cursor;
     }),
   );
+  // 初期フェッチはチャンネル数に比例して長引くため、中断（「収集分を確認」・タイムアウト）されたら待たずに抜ける
+  const cursors = await waitUnlessAborted(initialFetch, signal);
+  if (!cursors) {
+    logger.debug(
+      logPrefixed(
+        "system:log_prefix.msg_del",
+        "messageDelete:log.svc_initial_fetch_aborted",
+      ),
+    );
+    return scanned;
+  }
 
   await report({ totalScanned, collected: scanned.length, limit: count });
 
@@ -324,6 +374,8 @@ export async function scanMessages(
 
     // バッファが空かつ未消耗のチャンネルをリフィル（直列・レートリミット配慮）
     for (const cursor of cursors) {
+      // リフィルが続くあいだも中断を待たせない
+      if (signal?.aborted) break;
       if (cursor.buffer.length === 0 && !cursor.exhausted) {
         logger.debug(
           logPrefixed(
@@ -335,16 +387,13 @@ export async function scanMessages(
             },
           ),
         );
-        const batch: Collection<string, Message> =
-          await cursor.channel.messages.fetch({
-            limit: MSG_DEL_FETCH_BATCH_SIZE,
-            before: cursor.lastId,
-          });
-        applyBatch(cursor, batch);
+        await fetchIntoCursor(cursor, cursor.lastId);
         await sleep(MSG_DEL_REFILL_WAIT_MS);
         await report({ totalScanned, collected: scanned.length, limit: count });
       }
     }
+    // リフィルを途中で打ち切った場合、補充していないチャンネルがあり新しい順を保てないので選ばずに抜ける
+    if (signal?.aborted) break;
 
     // 全チャンネルのバッファ先頭で最新メッセージを持つカーソルを選択
     let bestCursor: ChannelCursor | null = null;
@@ -364,6 +413,9 @@ export async function scanMessages(
 
     const msg = bestCursor.buffer.shift();
     if (!msg) break;
+
+    // 削除できないシステムメッセージ（スレッドの開始メッセージ・名前変更など）は、プレビューにも出さないよう収集しない
+    if (MSG_DEL_UNDELETABLE_MESSAGE_TYPES.has(msg.type)) continue;
 
     // フィルタ適用
     if (
@@ -408,27 +460,31 @@ export async function scanMessages(
   return scanned;
 }
 
+/** bulkDelete を持つチャンネル（hasBulkDelete で絞り込む） */
+type BulkDeletable = {
+  bulkDelete: (
+    messages: readonly string[],
+    filterOld?: boolean,
+  ) => Promise<Collection<string, Message | PartialMessage>>;
+};
+
 /**
  * bulkDelete をサポートするチャンネルかどうかを判定する型ガード
  * VoiceChannel など bulkDelete を持たないチャンネルを安全に除外する
  * @param channel チェック対象のオブジェクト
  * @returns bulkDelete メソッドを持つ場合は true
  */
-function hasBulkDelete(channel: object): channel is {
-  bulkDelete: (
-    messages: readonly string[],
-    filterOld?: boolean,
-  ) => Promise<Collection<string, Message | PartialMessage>>;
-} {
+function hasBulkDelete(channel: object): channel is BulkDeletable {
   return "bulkDelete" in channel;
 }
 
 /**
- * スキャン済みメッセージ（除外済み除く）を実際に削除する
+ * スキャン済みメッセージ（除外済み除く）を実際に削除する。
+ * 1チャンネル（1チャンク）の失敗で全体を止めず、失敗した分は warn を出して飛ばし、残りのチャンネルの削除を続ける
  * @param messages 削除対象のスキャン済みメッセージ配列
  * @param onProgress 削除進捗コールバック
  * @param signal キャンセルシグナル（abort() 呼び出しで削除を中断）
- * @returns 削除結果（合計件数・チャンネル別内訳）を示す Promise
+ * @returns 削除結果（実際に削除できた合計件数・チャンネル別内訳）を示す Promise
  */
 export async function deleteScannedMessages(
   messages: ScannedMessageWithChannel[],
@@ -457,6 +513,111 @@ export async function deleteScannedMessages(
   );
   const channelStatuses = [...channelStatusMap.values()];
 
+  /**
+   * 現在の削除件数で進捗を通知する（スロットリング付き）
+   * @returns 処理完了を示す Promise
+   */
+  const reportProgress = (): Promise<void> =>
+    report({ totalDeleted, total: messages.length, channelStatuses });
+
+  /**
+   * メッセージを1件ずつ削除する。
+   * 削除できなかったメッセージは warn を出して飛ばし、チャンネル自体が使えなくなったらそこで打ち切る
+   * @param channel 削除対象のチャンネル
+   * @param targets 削除するメッセージ
+   * @param status 進捗表示用のチャンネル別状態（削除できた件数を加算する）
+   * @returns チャンネルが使えなくなって打ち切った場合は true
+   */
+  const deleteOneByOne = async (
+    channel: GuildTextBasedChannel,
+    targets: ScannedMessageWithChannel[],
+    status: ChannelDeleteStatus,
+  ): Promise<boolean> => {
+    for (let idx = 0; idx < targets.length; idx++) {
+      if (signal?.aborted) break;
+      const target = targets[idx];
+      try {
+        await channel.messages.delete(target.messageId);
+        totalDeleted++;
+        status.deleted++;
+      } catch (err) {
+        logger.warn(
+          logPrefixed(
+            "system:log_prefix.msg_del",
+            "messageDelete:log.svc_message_delete_failed",
+            {
+              messageId: target.messageId,
+              error: String(err),
+            },
+          ),
+        );
+        if (isChannelUnavailableError(err)) return true;
+      }
+      await reportProgress();
+      if (idx < targets.length - 1) {
+        await sleep(MSG_DEL_INDIVIDUAL_WAIT_MS);
+      }
+    }
+    return false;
+  };
+
+  /**
+   * 14日以内のメッセージを bulkDelete でまとめて削除する。
+   * チャンクの一括削除が失敗したら、そのチャンクだけ1件ずつの削除に切り替え、削除できないものだけを飛ばす。
+   * チャンネル自体が使えなくなったらそこで打ち切る
+   * @param channel 削除対象のチャンネル（bulkDelete を持つもの）
+   * @param targets 削除するメッセージ（14日以内のもの）
+   * @param status 進捗表示用のチャンネル別状態（削除できた件数を加算する）
+   * @returns チャンネルが使えなくなって打ち切った場合は true
+   */
+  const deleteInBulk = async (
+    channel: GuildTextBasedChannel & BulkDeletable,
+    targets: ScannedMessageWithChannel[],
+    status: ChannelDeleteStatus,
+  ): Promise<boolean> => {
+    for (let i = 0; i < targets.length; i += MSG_DEL_BULK_BATCH_SIZE) {
+      if (signal?.aborted) break;
+      const chunk = targets.slice(i, i + MSG_DEL_BULK_BATCH_SIZE);
+      logger.debug(
+        logPrefixed(
+          "system:log_prefix.msg_del",
+          "messageDelete:log.svc_bulk_delete_chunk",
+          {
+            size: chunk.length,
+          },
+        ),
+      );
+      try {
+        const deleted = await channel.bulkDelete(
+          chunk.map((m) => m.messageId),
+          true,
+        );
+        totalDeleted += deleted.size;
+        status.deleted += deleted.size;
+      } catch (err) {
+        logger.warn(
+          logPrefixed(
+            "system:log_prefix.msg_del",
+            "messageDelete:log.svc_bulk_delete_failed",
+            {
+              channelId: channel.id,
+              size: chunk.length,
+              error: String(err),
+            },
+          ),
+        );
+        if (isChannelUnavailableError(err)) return true;
+        // 削除できないメッセージが混じっていてもほかは消せるよう、このチャンクだけ1件ずつ削除し直す
+        if (await deleteOneByOne(channel, chunk, status)) return true;
+      }
+      await reportProgress();
+      if (i + MSG_DEL_BULK_BATCH_SIZE < targets.length) {
+        await sleep(MSG_DEL_BULK_WAIT_MS);
+      }
+    }
+    return false;
+  };
+
   for (const channelMessages of byChannel.values()) {
     // キャンセルシグナル確認（削除タイムアウト時に中断）
     if (signal?.aborted) break;
@@ -475,65 +636,30 @@ export async function deleteScannedMessages(
       (m) => m.createdAt.getTime() <= twoWeeksAgo,
     );
 
-    await report({ totalDeleted, total: messages.length, channelStatuses });
+    await reportProgress();
 
     // チャンネル開始時点の削除合計を記録（チャンネル別集計用）
     const channelStartDeleted = totalDeleted;
 
-    // bulkDelete（14日以内・bulkDelete サポートチャンネルのみ）
-    if (hasBulkDelete(rawChannel) && newMsgs.length > 0) {
-      for (let i = 0; i < newMsgs.length; i += MSG_DEL_BULK_BATCH_SIZE) {
-        if (signal?.aborted) break;
-        const chunk = newMsgs.slice(i, i + MSG_DEL_BULK_BATCH_SIZE);
-        logger.debug(
-          logPrefixed(
-            "system:log_prefix.msg_del",
-            "messageDelete:log.svc_bulk_delete_chunk",
-            {
-              size: chunk.length,
-            },
-          ),
-        );
-        const deleted = await rawChannel.bulkDelete(
-          chunk.map((m) => m.messageId),
-          true,
-        );
-        totalDeleted += deleted.size;
-        channelStatus.deleted += deleted.size;
-        await report({ totalDeleted, total: messages.length, channelStatuses });
-        if (i + MSG_DEL_BULK_BATCH_SIZE < newMsgs.length) {
-          await sleep(MSG_DEL_BULK_WAIT_MS);
-        }
-      }
-    }
-
-    // 個別削除（14日超 + bulkDelete 非サポートチャンネルの新メッセージも対象）
-    const individualMsgs = hasBulkDelete(rawChannel)
-      ? oldMsgs
-      : channelMessages;
-    for (let idx = 0; idx < individualMsgs.length; idx++) {
-      if (signal?.aborted) break;
-      const scanned = individualMsgs[idx];
-      try {
-        await rawChannel.messages.delete(scanned.messageId);
-        totalDeleted++;
-        channelStatus.deleted++;
-      } catch (err) {
-        logger.warn(
-          logPrefixed(
-            "system:log_prefix.msg_del",
-            "messageDelete:log.svc_message_delete_failed",
-            {
-              messageId: scanned.messageId,
-              error: String(err),
-            },
-          ),
-        );
-      }
-      await report({ totalDeleted, total: messages.length, channelStatuses });
-      if (idx < individualMsgs.length - 1) {
-        await sleep(MSG_DEL_INDIVIDUAL_WAIT_MS);
-      }
+    // 14日以内は bulkDelete、14日超と bulkDelete を持たないチャンネルは1件ずつ削除する。
+    // チャンネルが使えなくなったら、そのチャンネルの残りは飛ばして次のチャンネルへ進む
+    const channelUnavailable = hasBulkDelete(rawChannel)
+      ? (newMsgs.length > 0 &&
+          (await deleteInBulk(rawChannel, newMsgs, channelStatus))) ||
+        (await deleteOneByOne(rawChannel, oldMsgs, channelStatus))
+      : await deleteOneByOne(rawChannel, channelMessages, channelStatus);
+    if (channelUnavailable) {
+      logger.warn(
+        logPrefixed(
+          "system:log_prefix.msg_del",
+          "messageDelete:log.svc_channel_delete_aborted",
+          {
+            channelId,
+            deleted: channelStatus.deleted,
+            total: channelStatus.total,
+          },
+        ),
+      );
     }
 
     channelBreakdown[channelId] = {
@@ -586,4 +712,33 @@ export function parseDateStr(
  */
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/**
+ * Promise の完了を待つが、signal が中断されたらその時点で待つのをやめる。
+ * 中断より先に promise が reject した場合はそのエラーを投げる。
+ * 待つのをやめた promise は裏で走り続けるため、その後に reject しても未処理の rejection にならないよう握りつぶす
+ * @param promise 待つ対象の Promise
+ * @param signal 中断シグナル（未指定なら常に最後まで待つ）
+ * @returns promise の結果（中断された場合は null）
+ */
+async function waitUnlessAborted<T>(
+  promise: Promise<T>,
+  signal: AbortSignal | undefined,
+): Promise<T | null> {
+  if (!signal) return promise;
+  // 中断で待つのをやめた後の reject を握りつぶす（待っているあいだの reject は下の race が元の promise から受け取って投げる）
+  promise.catch(() => {});
+  if (signal.aborted) return null;
+
+  let onAbort: (() => void) | undefined;
+  const aborted = new Promise<null>((resolve) => {
+    onAbort = () => resolve(null);
+    signal.addEventListener("abort", onAbort, { once: true });
+  });
+  try {
+    return await Promise.race([promise, aborted]);
+  } finally {
+    if (onAbort) signal.removeEventListener("abort", onAbort);
+  }
 }

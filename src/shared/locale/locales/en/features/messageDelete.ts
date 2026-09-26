@@ -128,6 +128,11 @@ export const messageDelete = {
     "Skipped channels due to insufficient bot permissions: {{channels}}\nPlease contact a server administrator to check the bot's permission settings.",
   "user-response.channel_all_no_access":
     "Cannot access specified channels.\nThe bot requires ReadMessageHistory and ManageMessages permissions.\nPlease contact a server administrator to check the bot's permission settings.",
+  "user-response.channel_partial_skip_member":
+    "Skipped channels because you lack the required permissions: {{channels}}\nRequired: Manage Messages, Read Message History, View Channel (in private threads, you must also be a member of the thread or have Manage Threads)",
+  "user-response.channel_all_no_access_member":
+    "You lack the required permissions in the specified channels.\nRequired: Manage Messages, Read Message History, View Channel (in private threads, you must also be a member of the thread or have Manage Threads)",
+  "user-response.channel_list_more": "and {{count}} more channel(s)",
   "user-response.scan_progress":
     "Scanning... {{totalScanned}} fetched\nSearching for targets... {{collected}} / {{limit}}",
   "user-response.delete_progress": "Deleting... {{totalDeleted}} / {{total}}",
@@ -161,6 +166,22 @@ export const messageDelete = {
   "log.svc_bulk_delete_chunk": "bulkDelete chunk size={{size}}",
   "log.svc_message_delete_failed":
     "failed to delete messageId={{messageId}}: {{error}}",
+  "log.svc_channel_fetch_failed":
+    "channel {{channelId}} became unavailable; stopped scanning this channel: {{error}}",
+  "log.svc_initial_fetch_aborted":
+    "scan aborted during the initial fetch; ending scan",
+  "log.svc_bulk_delete_failed":
+    "bulkDelete failed ch={{channelId}} size={{size}}: {{error}}",
+  "log.svc_channel_delete_aborted":
+    "channel {{channelId}} became unavailable; skipped the rest of this channel deleted={{deleted}}/{{total}}",
+  "log.progress_display_failed":
+    "failed to update the deletion progress: {{error}}",
+  "log.result_display_failed":
+    "failed to show the result after deletion: {{error}}",
+  "log.executor_fetch_failed":
+    "could not fetch member data for executor {{userId}}; no channel will be targeted: {{error}}",
+  "log.executor_no_access_excluded":
+    "excluded channels the executor has no permission for count={{count}}",
   "log.member_fetch_failed":
     "failed to fetch member list, falling back to cache: {{error}}",
   "log.scan_error": "scan error: {{error}}",

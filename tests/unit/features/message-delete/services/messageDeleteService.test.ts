@@ -1,6 +1,12 @@
 // messageDeleteService の単体テスト（parseDateStr・scanMessages・deleteScannedMessages）
 
-import { Collection } from "discord.js";
+import {
+  Collection,
+  DiscordAPIError,
+  HTTPError,
+  MessageType,
+  RESTJSONErrorCodes,
+} from "discord.js";
 import type { Mock } from "vitest";
 
 vi.mock("@/shared/locale/localeManager", () => ({
@@ -37,11 +43,64 @@ vi.mock("@/shared/utils/logger", () => ({
   },
 }));
 
+import { logger } from "@/shared/utils/logger";
+
 /** Build a Discord.js-like Collection from an array of messages */
 function makeCollection<T extends { id: string }>(msgs: T[]) {
   const col = new Collection<string, T>();
   for (const m of msgs) col.set(m.id, m);
   return col;
+}
+
+/**
+ * 指定コードの Discord API エラーを生成する
+ * @param code RESTJSONErrorCodes のエラーコード
+ * @returns DiscordAPIError
+ */
+function makeApiError(code: RESTJSONErrorCodes) {
+  return new DiscordAPIError(
+    { code, message: String(code) },
+    code,
+    403,
+    "DELETE",
+    "/channels/ch/messages/msg",
+    {},
+  );
+}
+
+/**
+ * REST の再試行を使い切った 5xx（Discord 側の一時的な障害）のエラーを生成する
+ * @returns HTTPError
+ */
+function makeServerError() {
+  return new HTTPError(
+    503,
+    "Service Unavailable",
+    "GET",
+    "/channels/ch/messages",
+    {},
+  );
+}
+
+/**
+ * 未処理の rejection を記録する。マイクロタスクと次のイベントループ周回を待ってから記録を返す
+ * @param run 監視中に行う処理
+ * @returns 監視中に発生した未処理の rejection の理由一覧
+ */
+async function collectUnhandledRejections(run: () => void): Promise<unknown[]> {
+  const reasons: unknown[] = [];
+  const onUnhandled = (reason: unknown) => {
+    reasons.push(reason);
+  };
+  process.on("unhandledRejection", onUnhandled);
+  try {
+    run();
+    await new Promise((resolve) => setImmediate(resolve));
+    await new Promise((resolve) => setImmediate(resolve));
+  } finally {
+    process.off("unhandledRejection", onUnhandled);
+  }
+  return reasons;
 }
 
 // messageDeleteService の parseDateStr・scanMessages・deleteScannedMessages を検証
@@ -160,10 +219,12 @@ describe("bot/features/message-delete/services/messageDeleteService", () => {
         attachments?: number;
         embeds?: { title?: string }[];
         bot?: boolean;
+        type?: MessageType;
       } = {},
     ) {
       return {
         id,
+        type: opts.type ?? MessageType.Default,
         author: { id: authorId, displayName: authorId, bot: opts.bot ?? false },
         webhookId: null,
         content,
@@ -560,6 +621,222 @@ describe("bot/features/message-delete/services/messageDeleteService", () => {
       expect(result[0].content.length).toBeLessThanOrEqual(201); // 200 chars + "…"
       expect(result[0].content.endsWith("…")).toBe(true);
     });
+
+    it("削除できないシステムメッセージ（スレッドの開始メッセージ・名前変更・メンバー追加／除外）は収集しない", async () => {
+      const { scanMessages } = await loadModule();
+
+      const now = Date.now();
+      const channel = makeChannel("th-1");
+      (channel.messages.fetch as Mock)
+        .mockResolvedValueOnce(
+          makeCollection([
+            makeMessage("reply", "user-1", "hi", now - 1000),
+            makeMessage("renamed", "user-1", "new name", now - 2000, {
+              type: MessageType.ChannelNameChange,
+            }),
+            makeMessage("added", "user-1", "", now - 3000, {
+              type: MessageType.RecipientAdd,
+            }),
+            makeMessage("removed", "user-1", "", now - 4000, {
+              type: MessageType.RecipientRemove,
+            }),
+            makeMessage("starter", "user-1", "", now - 5000, {
+              type: MessageType.ThreadStarterMessage,
+            }),
+            // 削除できるシステムメッセージ（ピン留め通知）は従来どおり収集する
+            makeMessage("pinned", "user-1", "", now - 6000, {
+              type: MessageType.ChannelPinnedMessage,
+            }),
+          ]),
+        )
+        .mockResolvedValue(makeCollection([]));
+
+      const result = await scanMessages([channel as never], {
+        count: 10,
+        targetUserIds: [],
+        afterTs: 0,
+        beforeTs: Infinity,
+        locale: "ja",
+      });
+
+      expect(result.map((m) => m.messageId)).toEqual(["reply", "pinned"]);
+    });
+
+    it("初回フェッチで1チャンネルが失敗しても（途中で削除された等）、そのチャンネルだけ打ち切って warn を出し、ほかのチャンネルのスキャンを続ける", async () => {
+      const { scanMessages } = await loadModule();
+
+      const now = Date.now();
+      const gone = makeChannel("ch-gone");
+      (gone.messages.fetch as Mock).mockRejectedValue(
+        makeApiError(RESTJSONErrorCodes.UnknownChannel),
+      );
+      const alive = makeChannel("ch-alive");
+      (alive.messages.fetch as Mock)
+        .mockResolvedValueOnce(
+          makeCollection([makeMessage("m1", "user-1", "hello", now - 1000)]),
+        )
+        .mockResolvedValue(makeCollection([]));
+
+      const result = await scanMessages([gone as never, alive as never], {
+        count: 10,
+        targetUserIds: [],
+        afterTs: 0,
+        beforeTs: Infinity,
+        locale: "ja",
+      });
+
+      expect(result.map((m) => m.messageId)).toEqual(["m1"]);
+      // 打ち切ったチャンネルは取り直さない
+      expect(gone.messages.fetch).toHaveBeenCalledTimes(1);
+      expect(logger.warn).toHaveBeenCalledWith(
+        expect.stringContaining(
+          'messageDelete:log.svc_channel_fetch_failed:{"channelId":"ch-gone"',
+        ),
+      );
+    });
+
+    it("初回フェッチ中に中断されたら、フェッチの完了を待たずにそれまでの収集分（空）を返す", async () => {
+      const { scanMessages } = await loadModule();
+
+      const controller = new AbortController();
+      const channel = makeChannel("ch-slow");
+      // 応答が返らないフェッチ（大量のチャンネルで初回フェッチが長引いている状態）
+      (channel.messages.fetch as Mock).mockReturnValue(new Promise(() => {}));
+
+      const scanning = scanMessages([channel as never], {
+        count: 10,
+        targetUserIds: [],
+        afterTs: 0,
+        beforeTs: Infinity,
+        signal: controller.signal,
+        locale: "ja",
+      });
+      controller.abort();
+
+      await expect(scanning).resolves.toEqual([]);
+    });
+
+    it("初回フェッチで閲覧権限を失っていた（50001）チャンネルも、そのチャンネルだけ打ち切ってほかのチャンネルのスキャンを続ける", async () => {
+      const { scanMessages } = await loadModule();
+
+      const now = Date.now();
+      const hidden = makeChannel("ch-hidden");
+      (hidden.messages.fetch as Mock).mockRejectedValue(
+        makeApiError(RESTJSONErrorCodes.MissingAccess),
+      );
+      const alive = makeChannel("ch-alive");
+      (alive.messages.fetch as Mock)
+        .mockResolvedValueOnce(
+          makeCollection([makeMessage("m1", "user-1", "hello", now - 1000)]),
+        )
+        .mockResolvedValue(makeCollection([]));
+
+      const result = await scanMessages([hidden as never, alive as never], {
+        count: 10,
+        targetUserIds: [],
+        afterTs: 0,
+        beforeTs: Infinity,
+        locale: "ja",
+      });
+
+      expect(result.map((m) => m.messageId)).toEqual(["m1"]);
+    });
+
+    it.each([
+      ["5xx（REST の再試行を使い切った一時的な障害）", makeServerError()],
+      ["ネットワーク障害", new TypeError("fetch failed")],
+      [
+        "チャンネルが使えない以外の Discord API エラー",
+        makeApiError(RESTJSONErrorCodes.UnknownMessage),
+      ],
+    ])(
+      "初回フェッチが %s で失敗したら、チャンネルを打ち切らずにスキャン全体を失敗させる（「見つからなかった」と誤って伝えない）",
+      async (_label, error) => {
+        const { scanMessages } = await loadModule();
+
+        const now = Date.now();
+        const failing = makeChannel("ch-failing");
+        (failing.messages.fetch as Mock).mockRejectedValue(error);
+        const alive = makeChannel("ch-alive");
+        (alive.messages.fetch as Mock)
+          .mockResolvedValueOnce(
+            makeCollection([makeMessage("m1", "user-1", "hello", now - 1000)]),
+          )
+          .mockResolvedValue(makeCollection([]));
+
+        await expect(
+          scanMessages([failing as never, alive as never], {
+            count: 10,
+            targetUserIds: [],
+            afterTs: 0,
+            beforeTs: Infinity,
+            locale: "ja",
+          }),
+        ).rejects.toBe(error);
+        expect(logger.warn).not.toHaveBeenCalledWith(
+          expect.stringContaining("messageDelete:log.svc_channel_fetch_failed"),
+        );
+      },
+    );
+
+    it("初回フェッチを待つあいだに中断が決まり、その後に初回フェッチが失敗しても、未処理の rejection にならない", async () => {
+      const { scanMessages } = await loadModule();
+
+      const controller = new AbortController();
+      let rejectFetch: (reason: unknown) => void = () => {};
+      const channel = makeChannel("ch-slow");
+      (channel.messages.fetch as Mock).mockReturnValue(
+        new Promise((_, reject) => {
+          rejectFetch = reject;
+        }),
+      );
+
+      const scanning = scanMessages([channel as never], {
+        count: 10,
+        targetUserIds: [],
+        afterTs: 0,
+        beforeTs: Infinity,
+        signal: controller.signal,
+        locale: "ja",
+      });
+      controller.abort();
+      await expect(scanning).resolves.toEqual([]);
+
+      const unhandled = await collectUnhandledRejections(() =>
+        rejectFetch(makeServerError()),
+      );
+      expect(unhandled).toEqual([]);
+    });
+
+    it("中断済みの signal で呼ばれた後に初回フェッチが失敗しても、未処理の rejection にならない", async () => {
+      const { scanMessages } = await loadModule();
+
+      const controller = new AbortController();
+      controller.abort();
+      let rejectFetch: (reason: unknown) => void = () => {};
+      const channel = makeChannel("ch-1");
+      (channel.messages.fetch as Mock).mockReturnValue(
+        new Promise((_, reject) => {
+          rejectFetch = reject;
+        }),
+      );
+
+      await expect(
+        scanMessages([channel as never], {
+          count: 10,
+          targetUserIds: [],
+          afterTs: 0,
+          beforeTs: Infinity,
+          signal: controller.signal,
+          locale: "ja",
+        }),
+      ).resolves.toEqual([]);
+
+      const unhandled = await collectUnhandledRejections(() =>
+        rejectFetch(makeServerError()),
+      );
+      expect(unhandled).toEqual([]);
+    });
   });
 
   // ─────────────────────────────────────────────────────────────
@@ -716,6 +993,90 @@ describe("bot/features/message-delete/services/messageDeleteService", () => {
 
       expect(result.totalDeleted).toBe(2);
       expect(result.channelBreakdown["ch-1"].count).toBe(2);
+    });
+
+    it("1件だけのチャンクの bulkDelete（単体の DELETE）が失敗しても例外にせず、warn を出して1件ずつの削除でやり直す", async () => {
+      const { deleteScannedMessages } = await loadModule();
+
+      const msg = makeScannedMessage("msg-1", "ch-1", 1000);
+      (msg._channel.bulkDelete as Mock).mockRejectedValue(
+        makeApiError(RESTJSONErrorCodes.CannotExecuteActionOnSystemMessage),
+      );
+
+      const result = await deleteScannedMessages([msg as never]);
+
+      expect(logger.warn).toHaveBeenCalledWith(
+        expect.stringContaining("messageDelete:log.svc_bulk_delete_failed"),
+      );
+      expect(
+        (msg._channel.messages as { delete: Mock }).delete,
+      ).toHaveBeenCalledWith("msg-1");
+      expect(result.totalDeleted).toBe(1);
+    });
+
+    it("bulkDelete の失敗後に1件ずつ削除し直す途中でチャンネルが消えた場合は、チャンクの残りを試さずに打ち切る", async () => {
+      const { deleteScannedMessages } = await loadModule();
+
+      const channel = {
+        id: "ch-1",
+        messages: {
+          delete: vi
+            .fn()
+            .mockRejectedValue(
+              makeApiError(RESTJSONErrorCodes.UnknownChannel),
+            ) as Mock,
+        },
+        bulkDelete: vi
+          .fn()
+          .mockRejectedValue(new Error("Internal Server Error")) as Mock,
+      };
+      const makeMsg = (id: string) => ({
+        messageId: id,
+        guildId: "guild-1",
+        authorId: "user-1",
+        authorDisplayName: "User",
+        channelId: "ch-1",
+        channelName: "channel-ch-1",
+        createdAt: new Date(Date.now() - 1000),
+        content: "hello",
+        _channel: channel,
+      });
+
+      const result = await deleteScannedMessages([
+        makeMsg("msg-1") as never,
+        makeMsg("msg-2") as never,
+      ]);
+
+      expect(channel.messages.delete).toHaveBeenCalledTimes(1);
+      expect(result.totalDeleted).toBe(0);
+      expect(logger.warn).toHaveBeenCalledWith(
+        expect.stringContaining("messageDelete:log.svc_channel_delete_aborted"),
+      );
+    });
+
+    it("bulkDelete がチャンネル消失（10003）で失敗した場合は、1件ずつの削除に切り替えずにそのチャンネルを打ち切る", async () => {
+      const { deleteScannedMessages } = await loadModule();
+
+      const msg = makeScannedMessage("msg-1", "ch-1", 1000);
+      (msg._channel.bulkDelete as Mock).mockRejectedValue(
+        makeApiError(RESTJSONErrorCodes.UnknownChannel),
+      );
+
+      const result = await deleteScannedMessages([msg as never]);
+
+      expect(
+        (msg._channel.messages as { delete: Mock }).delete,
+      ).not.toHaveBeenCalled();
+      expect(result.totalDeleted).toBe(0);
+      expect(result.channelBreakdown["ch-1"]).toEqual({
+        name: "channel-ch-1",
+        count: 0,
+      });
+      expect(logger.warn).toHaveBeenCalledWith(
+        expect.stringContaining(
+          'messageDelete:log.svc_channel_delete_aborted:{"channelId":"ch-1","deleted":0,"total":1}',
+        ),
+      );
     });
   });
 });

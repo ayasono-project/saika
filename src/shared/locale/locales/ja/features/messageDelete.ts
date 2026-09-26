@@ -129,6 +129,11 @@ export const messageDelete = {
     "以下のチャンネルはBotの権限不足のためスキップしました: {{channels}}\nサーバー管理者にBotの権限設定の確認をお願いします。",
   "user-response.channel_all_no_access":
     "指定したチャンネルにアクセスできません。\nBotにReadMessageHistoryおよびManageMessages権限が必要です。\nサーバー管理者にBotの権限設定の確認をお願いします。",
+  "user-response.channel_partial_skip_member":
+    "以下のチャンネルは、あなたの権限が足りないためスキップしました: {{channels}}\n必要な権限: メッセージ管理・メッセージ履歴の閲覧・チャンネルの閲覧（非公開スレッドでは、さらにスレッドへの参加かスレッド管理の権限）",
+  "user-response.channel_all_no_access_member":
+    "指定したチャンネルで、あなたの権限が足りません。\n必要な権限: メッセージ管理・メッセージ履歴の閲覧・チャンネルの閲覧（非公開スレッドでは、さらにスレッドへの参加かスレッド管理の権限）",
+  "user-response.channel_list_more": "ほか {{count}} チャンネル",
   "user-response.scan_progress":
     "スキャン中... {{totalScanned}}件\n対象メッセージを検索中... {{collected}} / {{limit}}件",
   "user-response.delete_progress": "削除中... {{totalDeleted}} / {{total}}件",
@@ -164,6 +169,20 @@ export const messageDelete = {
   "log.svc_bulk_delete_chunk": "bulkDelete チャンク size={{size}}",
   "log.svc_message_delete_failed":
     "メッセージ削除失敗 messageId={{messageId}}: {{error}}",
+  "log.svc_channel_fetch_failed":
+    "チャンネル {{channelId}} が使えなくなったため、このチャンネルのスキャンを打ち切り: {{error}}",
+  "log.svc_initial_fetch_aborted":
+    "初期フェッチ中に中断されたためスキャンを終了",
+  "log.svc_bulk_delete_failed":
+    "bulkDelete 失敗 ch={{channelId}} size={{size}}: {{error}}",
+  "log.svc_channel_delete_aborted":
+    "チャンネル {{channelId}} が使えなくなったため、このチャンネルの残りの削除を打ち切り deleted={{deleted}}/{{total}}",
+  "log.progress_display_failed": "削除の進捗表示の更新に失敗: {{error}}",
+  "log.result_display_failed": "削除後の結果表示に失敗: {{error}}",
+  "log.executor_fetch_failed":
+    "実行者 {{userId}} のメンバー情報を取得できないため、どのチャンネルも対象にしない: {{error}}",
+  "log.executor_no_access_excluded":
+    "実行者が権限を持たないチャンネルを除外 count={{count}}",
   "log.member_fetch_failed":
     "メンバー一覧の取得に失敗、キャッシュにフォールバック: {{error}}",
   "log.scan_error": "スキャンエラー: {{error}}",

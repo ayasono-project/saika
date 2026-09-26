@@ -161,6 +161,16 @@ VAC を残す判断（→「VAC（トリガー VC 方式）は残し、募集は
 
 > 詳細な作業経過は git log を参照。
 
+### `/bump-reminder-settings disable` が予約を取り消していなかった（2026-09-26 develop merge）
+
+2026-08-20 の棚卸しで発見。disable が `cancelReminder(guildId)` を呼んでいたが、予約は常に `"guildId:serviceName"` の複合キーで登録されるため完全一致で1件も当たらず、タイマーも DB の `pending` も残っていた。`f79d703` で reset 系3経路は `cancelAllForGuild` に差し替えていたのに、disable だけ取り残されていた。`cancelAllForGuild(guildId)` に差し替えた。
+
+**実害が出るのは「disable → 予定時刻より前に enable し直す」ときだけ**だった。送信直前に `sendBumpReminder` が設定を読み直して `enabled=false` なら止めるので、無効化したまま誤送信されることは無い。
+
+**回帰テストは Map を覗かない形にした**（`tests/integration/features/bump-reminder/commands/bumpReminderSettingsCommand.disable.integration.test.ts`）。本物の `BumpReminderManager` と状態を持つ偽リポジトリで、「対象ギルドの予約が全サービスとも `cancelled` になる」「予定時刻を過ぎても発火しない」「別ギルドの予約は残る」を見る。修正前のコードでは2件とも落ちることを確認した。
+
+> ⚠️ **ポーリング化しても自動的には消えない種類のバグ。** ポーリング後は「`status=pending` かつ `scheduledAt <= now`」で拾うので、disable が `pending` 行を `cancelled` にしなければ同じ症状が再現する。ポーリング化で `cancelAllForGuild` を置き換えるときは、DB 側の取り消しの受け皿（`bumpReminderRepository.cancelByGuild()` が候補）を残し、上の回帰テストが通ることを確かめる。
+
 ### export / import を削除した（2026-09-26 develop merge）
 
 `/guild-settings export` / `import` と、ダッシュボード「サーバー設定」ページのエクスポート／インポートのカードを削除した。根拠は決定事項「export / import は廃止する」で、待っていた遅延削除が v3.2.0 で入ったため着手した。

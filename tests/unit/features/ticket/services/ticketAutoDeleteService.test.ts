@@ -395,6 +395,51 @@ describe("bot/features/ticket/services/ticketAutoDeleteService", () => {
     });
   });
 
+  // 再導入時に1ギルド分だけ組み直す経路を検証
+  describe("restoreAutoDeleteTimersForGuild", () => {
+    it("指定したギルドのクローズ済みチケットだけタイマーを組み直し、件数を返す", async () => {
+      const { restoreAutoDeleteTimersForGuild } = await import(
+        "@/features/ticket/services/ticketAutoDeleteService"
+      );
+      const closedTicket = {
+        id: "ticket-1",
+        channelId: "channel-1",
+        guildId: "guild-1",
+        categoryId: "category-1",
+        status: "closed",
+        elapsedDeleteMs: 0,
+        closedAt: new Date(Date.now() - 10000),
+      };
+      const mockTicketRepository = {
+        findAllClosedByGuild: vi.fn().mockResolvedValue([closedTicket]),
+      };
+      vi.mocked(getBotTicketSettingsService).mockReturnValue({
+        findByGuildAndCategory: vi
+          .fn()
+          .mockResolvedValue({ autoDeleteDays: 7, staffRoleIds: [] }),
+      } as never);
+
+      const count = await restoreAutoDeleteTimersForGuild(
+        "guild-1",
+        {} as never,
+        mockTicketRepository as never,
+      );
+
+      expect(count).toBe(1);
+      expect(mockTicketRepository.findAllClosedByGuild).toHaveBeenCalledTimes(
+        1,
+      );
+      expect(mockTicketRepository.findAllClosedByGuild).toHaveBeenCalledWith(
+        "guild-1",
+      );
+      expect(jobScheduler.addOneTimeJob).toHaveBeenCalledWith(
+        "ticket-auto-delete-ticket-1",
+        expect.any(Number),
+        expect.any(Function),
+      );
+    });
+  });
+
   describe("executeAutoDelete (via scheduleTicketAutoDelete callback)", () => {
     it("正常系: DBからチケットを削除しチャンネルを削除する", async () => {
       const { scheduleTicketAutoDelete } = await import(

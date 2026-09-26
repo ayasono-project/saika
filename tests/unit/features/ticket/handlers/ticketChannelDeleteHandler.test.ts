@@ -1,7 +1,11 @@
-// パネル設置チャンネル削除検知ハンドラのテスト
+// チケットのチャンネル削除検知ハンドラのテスト（チケットチャンネル・パネル設置チャンネル）
 
 const mockConfigService = {
   findAllByGuild: vi.fn(),
+  delete: vi.fn(),
+};
+const mockTicketRepository = {
+  findByChannelId: vi.fn(),
   delete: vi.fn(),
 };
 
@@ -24,16 +28,24 @@ vi.mock("@/shared/utils/logger", () => ({
 }));
 vi.mock("@/bot/services/botCompositionRoot", () => ({
   getBotTicketSettingsService: () => mockConfigService,
+  getBotTicketRepository: () => mockTicketRepository,
+}));
+vi.mock("@/features/ticket/services/ticketAutoDeleteService", () => ({
+  cancelTicketAutoDelete: vi.fn(),
 }));
 
 import { handleTicketChannelDelete } from "@/features/ticket/handlers/ticketChannelDeleteHandler";
+import { cancelTicketAutoDelete } from "@/features/ticket/services/ticketAutoDeleteService";
 import { logger } from "@/shared/utils/logger";
 
-// パネル設置チャンネル削除時の設定クリーンアップ動作を検証する
+// チケットチャンネル・パネル設置チャンネル削除時の後始末を検証する
 describe("bot/features/ticket/handlers/ticketChannelDeleteHandler", () => {
-  // 各テストでモックをリセットしてテスト間の干渉を防ぐ
+  // 各テストでモックをリセットし、既定ではチケットチャンネルではない状態にする
   beforeEach(() => {
     vi.clearAllMocks();
+    mockTicketRepository.findByChannelId.mockResolvedValue(null);
+    mockTicketRepository.delete.mockResolvedValue(undefined);
+    mockConfigService.findAllByGuild.mockResolvedValue([]);
   });
 
   it("guildId がないチャンネルの場合は何もしない", async () => {
@@ -113,5 +125,53 @@ describe("bot/features/ticket/handlers/ticketChannelDeleteHandler", () => {
     await handleTicketChannelDelete(channel as never);
 
     expect(mockConfigService.delete).not.toHaveBeenCalled();
+  });
+
+  // ── チケットチャンネルの削除 ──
+
+  it("チケットのチャンネルが消されたら、そのチケットの記録と自動削除タイマーを消す", async () => {
+    mockTicketRepository.findByChannelId.mockResolvedValue({
+      id: "ticket-1",
+      guildId: "guild-1",
+      channelId: "ticket-ch-1",
+    });
+
+    const channel = { id: "ticket-ch-1", guildId: "guild-1" };
+    await handleTicketChannelDelete(channel as never);
+
+    expect(mockTicketRepository.findByChannelId).toHaveBeenCalledWith(
+      "ticket-ch-1",
+    );
+    expect(cancelTicketAutoDelete).toHaveBeenCalledWith("ticket-1", "guild-1");
+    expect(mockTicketRepository.delete).toHaveBeenCalledWith("ticket-1");
+    expect(logger.info).toHaveBeenCalledWith(
+      expect.stringContaining("ticket:log.ticket_channel_deleted"),
+    );
+  });
+
+  it("チケットのチャンネルでなければ、チケットの記録には触れない", async () => {
+    const channel = { id: "other-ch", guildId: "guild-1" };
+    await handleTicketChannelDelete(channel as never);
+
+    expect(mockTicketRepository.delete).not.toHaveBeenCalled();
+    expect(cancelTicketAutoDelete).not.toHaveBeenCalled();
+  });
+
+  it("チケットの記録の削除に失敗してもエラーログだけ出し、パネルの後始末は続ける", async () => {
+    mockTicketRepository.findByChannelId.mockResolvedValue({
+      id: "ticket-1",
+      guildId: "guild-1",
+      channelId: "ticket-ch-1",
+    });
+    mockTicketRepository.delete.mockRejectedValue(new Error("db error"));
+
+    const channel = { id: "ticket-ch-1", guildId: "guild-1" };
+    await handleTicketChannelDelete(channel as never);
+
+    expect(logger.error).toHaveBeenCalledWith(
+      expect.stringContaining("ticket:log.ticket_channel_cleanup_failed"),
+      expect.any(Error),
+    );
+    expect(mockConfigService.findAllByGuild).toHaveBeenCalledWith("guild-1");
   });
 });

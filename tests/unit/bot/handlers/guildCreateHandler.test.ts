@@ -4,6 +4,8 @@ const mockApplyBotPresence = vi.fn();
 const ensureGuildMock = vi.fn();
 const cancelScheduledDeletionMock = vi.fn();
 const sendGuildJoinDmUsecaseMock = vi.fn();
+const syncGuildTicketsMock = vi.fn();
+const ticketRepository = { id: "ticket-repo" };
 
 vi.mock("@/shared/locale/localeManager", () => ({
   logPrefixed: (
@@ -28,6 +30,10 @@ vi.mock("@/bot/services/botCompositionRoot", () => ({
     cancelScheduledDeletion: (...args: unknown[]) =>
       cancelScheduledDeletionMock(...args),
   }),
+  getBotTicketRepository: () => ticketRepository,
+}));
+vi.mock("@/features/ticket/services/ticketChannelSync", () => ({
+  syncGuildTickets: (...args: unknown[]) => syncGuildTicketsMock(...args),
 }));
 vi.mock("@/features/guild-settings/usecases/sendGuildJoinDmUsecase", () => ({
   sendGuildJoinDmUsecase: (...args: unknown[]) =>
@@ -46,6 +52,7 @@ describe("bot/handlers/guildCreateHandler", () => {
     ensureGuildMock.mockResolvedValue(undefined);
     cancelScheduledDeletionMock.mockResolvedValue(null);
     sendGuildJoinDmUsecaseMock.mockResolvedValue(undefined);
+    syncGuildTicketsMock.mockResolvedValue(undefined);
   });
 
   it("参加したギルドの情報をログ出力すること", async () => {
@@ -122,6 +129,30 @@ describe("bot/handlers/guildCreateHandler", () => {
       '[system:log_prefix.guild_create] system:guild_create.registry_failed:{"guildId":"guild-1"}',
       error,
     );
+    expect(mockApplyBotPresence).toHaveBeenCalledWith(client);
+  });
+
+  it("チケットの状態を Discord に合わせること（再導入時のタイマー組み直しと、消されたチャンネルの片付け）", async () => {
+    const guild = { id: "guild-1", name: "Test Guild", client: {} };
+
+    await handleGuildCreate(guild as never);
+
+    expect(syncGuildTicketsMock).toHaveBeenCalledWith(guild, ticketRepository);
+  });
+
+  it("チケットの同期が失敗してもエラーログのみで、DM とプレゼンス更新は済んでいること", async () => {
+    const error = new Error("sync failed");
+    syncGuildTicketsMock.mockRejectedValueOnce(error);
+    const client = {};
+    const guild = { id: "guild-1", name: "Test Guild", client };
+
+    await expect(handleGuildCreate(guild as never)).resolves.toBeUndefined();
+
+    expect(logger.error).toHaveBeenCalledWith(
+      '[system:log_prefix.ticket] ticket:log.ticket_channel_sync_failed:{"guildId":"guild-1"}',
+      error,
+    );
+    expect(sendGuildJoinDmUsecaseMock).toHaveBeenCalled();
     expect(mockApplyBotPresence).toHaveBeenCalledWith(client);
   });
 });

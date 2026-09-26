@@ -252,6 +252,7 @@ export interface ITicketRepository {
   findAllByCategory(guildId: string, categoryId: string): Promise<Ticket[]>;
   findOpenByCategory(guildId: string, categoryId: string): Promise<Ticket[]>;
   findAllClosedByGuild(guildId: string): Promise<Ticket[]>;
+  findAllByGuild(guildId: string): Promise<Ticket[]>;
   create(data: Omit<Ticket, "id" | "createdAt" | "updatedAt">): Promise<Ticket>;
   update(id: string, data: Partial<Ticket>): Promise<Ticket>;
   delete(id: string): Promise<void>;

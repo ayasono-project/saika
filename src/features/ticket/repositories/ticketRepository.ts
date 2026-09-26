@@ -133,6 +133,20 @@ export class TicketRepository implements ITicketRepository {
   }
 
   /**
+   * ギルド内のチケットをステータスを問わず全取得する（チャンネルとの突き合わせ用）
+   * @param guildId ギルドID
+   * @returns チケット一覧
+   */
+  async findAllByGuild(guildId: string): Promise<Ticket[]> {
+    return executeWithDatabaseError(
+      () => this.prisma.ticket.findMany({ where: { guildId } }),
+      tDefault("ticket:log.database_ticket_find_all_by_guild_failed", {
+        guildId,
+      }),
+    );
+  }
+
+  /**
    * チケットを新規作成する
    * @param data チケットの作成データ（id, createdAt, updatedAt は自動生成）
    * @returns 作成されたチケット

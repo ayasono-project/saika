@@ -25,7 +25,7 @@ export const channelDeleteEvent: BotEvent<typeof Events.ChannelDelete> = {
     await handleVcAutoRecruitChannelDelete(channel);
     // スティッキーメッセージのDBレコード・タイマーを破棄
     await handleStickyMessageChannelDelete(channel);
-    // チケットパネル設置チャンネルの削除検知・設定クリーンアップ
+    // チケットチャンネル削除→記録とタイマーを破棄 / パネル設置チャンネル削除→設定クリーンアップ
     await handleTicketChannelDelete(channel);
     // リアクションロールパネル設置チャンネルの削除検知・設定クリーンアップ
     await handleReactionRoleChannelDelete(channel);

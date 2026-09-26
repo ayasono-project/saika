@@ -172,6 +172,9 @@ function createInMemoryTicketRepository(): ITicketRepository {
       }
       return results;
     }),
+    findAllByGuild: vi.fn(async (guildId) =>
+      [...tickets.values()].filter((ticket) => ticket.guildId === guildId),
+    ),
     create: vi.fn(async (data) => {
       idCounter++;
       const ticket: Ticket = {

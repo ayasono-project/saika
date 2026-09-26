@@ -2,9 +2,13 @@
 
 import type { Guild } from "discord.js";
 import { sendGuildJoinDmUsecase } from "../../features/guild-settings/usecases/sendGuildJoinDmUsecase";
+import { syncGuildTickets } from "../../features/ticket/services/ticketChannelSync";
 import { logPrefixed } from "../../shared/locale/localeManager";
 import { logger } from "../../shared/utils/logger";
-import { getBotGuildRegistryRepository } from "../services/botCompositionRoot";
+import {
+  getBotGuildRegistryRepository,
+  getBotTicketRepository,
+} from "../services/botCompositionRoot";
 import { applyBotPresence } from "../services/botPresence";
 
 /**
@@ -57,4 +61,19 @@ export async function handleGuildCreate(guild: Guild): Promise<void> {
 
   // オーナーへの DM。送信失敗はユースケース側で握りつぶすため導入処理は止まらない
   await sendGuildJoinDmUsecase(guild, cancelledDeletionAt);
+
+  // 猶予内の再導入なら、退出時に止めたチケットの自動削除タイマーを組み直し、
+  // 外されていた間に消されたチャンネルのチケットを片付ける（新規導入ならチケットが無いので何もしない）
+  try {
+    await syncGuildTickets(guild, getBotTicketRepository());
+  } catch (error) {
+    logger.error(
+      logPrefixed(
+        "system:log_prefix.ticket",
+        "ticket:log.ticket_channel_sync_failed",
+        { guildId: guild.id },
+      ),
+      error,
+    );
+  }
 }

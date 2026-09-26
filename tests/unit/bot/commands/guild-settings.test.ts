@@ -32,9 +32,6 @@ const updateErrorChannelMock = vi.fn();
 const getConfigMock = vi.fn();
 const resetGuildSettingsMock = vi.fn();
 const deleteAllConfigMock = vi.fn();
-const exportConfigMock = vi.fn();
-const validateImportDataMock = vi.fn();
-const importConfigMock = vi.fn();
 
 vi.mock("@/bot/services/botCompositionRoot", () => ({
   getBotGuildSettingsService: () => ({
@@ -43,9 +40,6 @@ vi.mock("@/bot/services/botCompositionRoot", () => ({
     getSettings: getConfigMock,
     resetGuildSettings: resetGuildSettingsMock,
     deleteAllSettings: deleteAllConfigMock,
-    exportSettings: exportConfigMock,
-    validateImportData: validateImportDataMock,
-    importSettings: importConfigMock,
   }),
   getBotBumpReminderSettingsService: () => ({
     getBumpReminderSettings: vi.fn().mockResolvedValue(null),
@@ -82,10 +76,6 @@ vi.mock("@/bot/utils/messageResponse", () => ({
     kind: "warning",
     description: d,
   }),
-  createErrorEmbed: (d: string, _o?: unknown) => ({
-    kind: "error",
-    description: d,
-  }),
 }));
 
 vi.mock("@/bot/errors/interactionErrorHandler", () => ({
@@ -118,10 +108,8 @@ type TestInteraction = {
     getSubcommand: Mock<() => string>;
     getString: Mock;
     getChannel: Mock;
-    getAttachment: Mock;
   };
   reply: Mock;
-  guild: null;
 };
 
 function createInteraction(
@@ -135,10 +123,8 @@ function createInteraction(
       getSubcommand: vi.fn(() => "set-locale"),
       getString: vi.fn(() => "ja"),
       getChannel: vi.fn(() => ({ id: "ch-1", type: 0 })),
-      getAttachment: vi.fn(),
     },
     reply: vi.fn().mockResolvedValue(undefined),
-    guild: null,
     ...overrides,
   };
 }
@@ -160,9 +146,9 @@ describe("bot/commands/guild-settings", () => {
     );
   });
 
-  it("7つのサブコマンドが定義されていること", () => {
+  it("5つのサブコマンドが定義されていること", () => {
     const subcommands = guildSettingsCommand.data.options;
-    expect(subcommands).toHaveLength(7);
+    expect(subcommands).toHaveLength(5);
   });
 
   it("guildId が null の場合はエラーハンドリングに委譲されること", async () => {
@@ -189,7 +175,6 @@ describe("bot/commands/guild-settings", () => {
         getSubcommand: vi.fn(() => "set-locale"),
         getString: vi.fn(() => "en"),
         getChannel: vi.fn(),
-        getAttachment: vi.fn(),
       },
     });
     await guildSettingsCommand.execute(
@@ -207,7 +192,6 @@ describe("bot/commands/guild-settings", () => {
         getSubcommand: vi.fn(() => "invalid"),
         getString: vi.fn(),
         getChannel: vi.fn(),
-        getAttachment: vi.fn(),
       },
     });
     await guildSettingsCommand.execute(

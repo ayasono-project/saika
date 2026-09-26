@@ -13,9 +13,6 @@ export const guildSettings = {
   "guild-settings.view.description": "View current guild settings",
   "guild-settings.reset.description": "Reset guild settings",
   "guild-settings.reset-all.description": "Reset all feature settings",
-  "guild-settings.export.description": "Export guild settings",
-  "guild-settings.import.description": "Import guild settings from JSON file",
-  "guild-settings.import.file.description": "Exported JSON file",
 
   // ── Choice names ──────────────────────────────
   "choice.locale.ja": "Japanese",
@@ -31,18 +28,6 @@ export const guildSettings = {
   "user-response.reset_cancelled": "Reset has been cancelled.",
   "user-response.reset_all_success": "All feature settings have been reset.",
   "user-response.reset_all_cancelled": "Reset has been cancelled.",
-  "user-response.export_success": "Guild settings have been exported.",
-  "user-response.export_empty": "No settings to export.",
-  "user-response.import_success": "Guild settings have been imported.",
-  "user-response.import_cancelled": "Import has been cancelled.",
-  "user-response.import_invalid_json":
-    "Invalid file format. Please attach an exported JSON file.",
-  "user-response.import_unsupported_version":
-    "This file version is not supported.",
-  "user-response.import_guild_mismatch":
-    "This file belongs to a different server. Please use a file exported from the same server.",
-  "user-response.import_missing_channels":
-    "Some channels or roles were not found. Please review the settings.",
 
   // ── embed: view ───────────────────────────────
   "embed.title.view": "Guild Settings",
@@ -64,15 +49,6 @@ export const guildSettings = {
   "embed.field.value.reset_all_target":
     "Language / Error Channel / AFK / Auto VC (VAC) / VC Auto Recruit / Sticky Message / Member Log / Bump Reminder (incl. scheduled) / Tickets (settings and records) / Reaction Roles / Unverified Kick (incl. warnings)",
 
-  // ── embed: import_confirm ─────────────────────
-  "embed.title.import_confirm": "Import Guild Settings",
-  "embed.description.import_confirm":
-    "Settings will be overwritten and stateful data will be merged (existing rows kept). This action cannot be undone.",
-  "embed.field.name.import_config": "Settings",
-  "embed.field.name.import_state": "Stateful (new inserts)",
-  "embed.field.value.import_state_summary":
-    "Ticket configs: {{ticketSettings}} / Open tickets: {{openTickets}} / Sticky messages: {{stickyMessages}} / Reaction role panels: {{reactionRolePanels}} / VAC created VCs: {{vacCreatedChannels}}",
-
   // ── embed: join_intro (DM on install) ─────────
   "embed.title.join_intro": "Thanks for adding Saika",
   "embed.description.join_intro":
@@ -93,8 +69,6 @@ export const guildSettings = {
   // ── UI labels ─────────────────────────────────
   "ui.button.reset_all_confirm": "Reset",
   "ui.button.reset_all_cancel": "Cancel",
-  "ui.button.import_confirm": "Import",
-  "ui.button.import_cancel": "Cancel",
 
   // ── Error channel notifications ─────────────────
   "error-notification.title": "Error Notification",
@@ -109,8 +83,6 @@ export const guildSettings = {
     "Error channel set GuildId: {{guildId}} ChannelId: {{channelId}}",
   "log.reset": "Guild settings reset GuildId: {{guildId}}",
   "log.reset_all": "All settings reset GuildId: {{guildId}}",
-  "log.exported": "Guild settings exported GuildId: {{guildId}}",
-  "log.imported": "Guild settings imported GuildId: {{guildId}}",
 } as const;
 
 export type GuildSettingsTranslations = typeof guildSettings;

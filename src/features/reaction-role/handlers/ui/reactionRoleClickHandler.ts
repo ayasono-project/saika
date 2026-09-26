@@ -45,7 +45,7 @@ export const reactionRoleClickHandler: ButtonHandler = {
 
     // パネルは「ボタンが乗っているメッセージ（messageId）」で特定する。
     // customId に埋めた panelId(cuid) は DB 移行等で id が再生成されると陳腐化するが、
-    // messageId は不変かつ import でも保持されるため、こちらを正とする。
+    // messageId は不変のため、こちらを正とする。
     const settingsService = getBotReactionRolePanelSettingsService();
     const panel = await settingsService.findByMessageId(interaction.message.id);
     if (!panel) {

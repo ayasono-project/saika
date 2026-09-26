@@ -2,7 +2,7 @@
 
 > Architecture Guide - コード設計・モジュール構成・設計パターンの解説
 
-最終更新: 2026年9月25日
+最終更新: 2026年9月26日
 
 ---
 
@@ -348,7 +348,7 @@ Bot をサーバーから外しても、データはその場では消えませ�
 ```
 GuildCoreRepository              ← ギルド設定コアCRUD（IGuildCoreRepository）
 GuildRegistryRepository          ← ギルド親レコードの登録（IGuildRegistryRepository）
-GuildSettingsAggregateRepository   ← 全設定一括操作（IGuildSettingsAggregateRepository）
+GuildSettingsAggregateRepository   ← 全設定の一括削除（IGuildSettingsAggregateRepository）
 AfkSettingsRepository              ← AFK設定（IAfkSettingsRepository）
 BumpReminderSettingsRepository     ← Bumpリマインダー設定（IBumpReminderSettingsRepository）
 MemberLogSettingsRepository        ← メンバーログ設定（IMemberLogSettingsRepository）

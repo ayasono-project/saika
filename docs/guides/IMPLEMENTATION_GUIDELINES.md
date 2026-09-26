@@ -186,7 +186,6 @@ src/features/<feature-name>/
 "guild-settings:reset-confirm"              // リセットの確認ボタン
 "guild-settings:reset-cancel"               // リセットのキャンセルボタン
 "guild-settings:reset-all-confirm"          // 全設定リセットの確認ボタン
-"guild-settings:import-confirm"             // インポートの確認ボタン
 "message-delete:deletion-confirm"         // 削除の最終確認ボタン
 "message-delete:preview-confirm"          // プレビューの確認ボタン
 
@@ -214,7 +213,6 @@ src/features/<feature-name>/
 
 // ❌ 修飾子から始めている
 "guild-settings:confirm-reset"
-"guild-settings:cancel-import"
 
 // ❌ subject が形容詞・前置詞のみ
 "message-delete:final-confirm"            // → deletion-confirm

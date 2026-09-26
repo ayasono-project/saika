@@ -50,9 +50,19 @@ export const ticket = {
   "user-response.no_configs": "チケット設定がありません。",
   "user-response.not_ticket_channel":
     "このコマンドはチケットチャンネル内でのみ実行できます。",
-  "user-response.not_authorized": "この操作を実行する権限がありません。",
+  "user-response.not_authorized_close_open":
+    "チケットをクローズ・再オープンできるのは、チケットを作ったメンバー、スタッフロール（{{staffRoles}}）を持つメンバー、管理者権限を持つメンバーだけです。",
+  "user-response.not_authorized_delete":
+    "チケットを削除できるのは、スタッフロール（{{staffRoles}}）を持つメンバーと、管理者権限を持つメンバーだけです。",
+  // 上の2つの {{staffRoles}} に入れる、スタッフロールの区切りと、スタッフロールが無いときの表示
+  "user-response.staff_roles_separator": "、",
+  "user-response.staff_roles_not_set": "未設定",
   "user-response.ticket_config_missing":
-    "このチケットのカテゴリのパネルが削除されているため、操作できません。同じカテゴリにパネルを設置し直すと再び操作できますが、クローズしてから自動削除の日数を過ぎているチケットは、設置し直した時点で削除されます。不要なチケットは、チャンネルを直接削除してください。",
+    "このチケットのカテゴリのパネルが削除されているため、操作できません。同じカテゴリを指定してパネルを設置し直すと再び操作できますが、クローズしてから自動削除の日数を過ぎているチケットは、設置し直した時点で削除されます。不要なチケットは、チャンネルを直接削除してください。",
+  "user-response.bot_channel_access_missing":
+    "Bot がこのチャンネルで必要な権限を持っていないため、チケットを操作できません（何も変更していません）。Bot をサーバーから外して入れ直すと、それより前に作ったチケットのチャンネルでは Bot の権限が外れるため、こうなります。サーバーの管理者が、このチャンネルの「チャンネルの編集」→「権限」で Bot を追加し、「チャンネルを見る」「メッセージを送信」「埋め込みリンク」「メッセージ履歴を読む」を許可すると、操作できるようになります。",
+  "user-response.bot_manage_channels_missing":
+    "Bot に「チャンネルの管理」の権限が無いため、このチケットを削除できません（何も変更していません）。Bot のロールに「チャンネルの管理」を付けるか、このチャンネルの権限設定で Bot の「チャンネルの管理」を拒否していないか確認してください。",
   "user-response.ticket_already_closed":
     "このチケットは既にクローズされています。",
   "user-response.ticket_already_open":
@@ -103,6 +113,11 @@ export const ticket = {
   "embed.field.value.auto_delete_days": "{{days}}日",
   "embed.field.value.max_tickets_count": "{{count}}件",
   "embed.field.value.open_ticket_count": "{{count}}件",
+  "embed.field.value.error_notification_feature": "チケット",
+  "embed.field.value.channel_access_missing_action":
+    "Bot が入れないチケットのチャンネルを検出",
+  "embed.field.value.channel_access_missing_notice":
+    "Bot をサーバーから外すと、Discord はチケットのチャンネルに付けていた Bot の権限を消します。そのため、入れ直す前に作った次のチケットのチャンネル（{{count}}件）では、Bot がクローズ・再オープン・削除・自動削除を行えません。\n{{channels}}\n各チャンネルの「チャンネルの編集」→「権限」で Bot を追加し、「チャンネルを見る」「メッセージを送信」「埋め込みリンク」「メッセージ履歴を読む」を許可してください（カテゴリの権限を変えても、チケットのチャンネルには反映されません）。不要なチケットは、チャンネルを直接削除すれば記録も片付きます。ログなど、Bot 用に権限を付けていた他の非公開チャンネルも、同じく付け直しが必要です。",
 
   // ── UIラベル
   "ui.button.create_ticket": "チケットを作成",
@@ -210,6 +225,18 @@ export const ticket = {
     "再導入・再接続時 自動削除タイマー復元 GuildId: {{guildId}} 件数: {{count}}",
   "log.guild_resync_failed":
     "再接続後のチケットとチャンネルの突き合わせに失敗 GuildId: {{guildId}}",
+  "log.ticket_channel_access_missing":
+    "Bot がチケットのチャンネルを扱えない（削除では「チャンネルの管理」が無い場合も含む）ため操作を止めた GuildId: {{guildId}} ChannelId: {{channelId}}",
+  "log.auto_delete_held_channel_inaccessible":
+    "自動削除を保留し、後で再試行する（Bot がチャンネルを扱えない・「チャンネルの管理」が無い、またはギルドを取得できない） GuildId: {{guildId}} ChannelId: {{channelId}} TicketId: {{ticketId}} RetryInMs: {{retryInMs}}",
+  "log.auto_delete_still_held":
+    "自動削除の再試行でも保留し、再び後で再試行する GuildId: {{guildId}} ChannelId: {{channelId}} TicketId: {{ticketId}} RetryInMs: {{retryInMs}}",
+  "log.ticket_channel_delete_failed":
+    "チケットのチャンネルの削除に失敗（記録は削除済みで、チャンネルが残っている） GuildId: {{guildId}} ChannelId: {{channelId}}",
+  "log.inaccessible_ticket_channels_found":
+    "Bot が扱えないチケットのチャンネルがある GuildId: {{guildId}} 件数: {{count}} ChannelIds: {{channelIds}}",
+  "log.teardown_channel_inaccessible":
+    "撤去で Bot が扱えない（または「チャンネルの管理」が無い）チケットのチャンネルを削除できなかった（チャンネルが残る） GuildId: {{guildId}} ChannelId: {{channelId}}",
 } as const;
 
 export type TicketTranslations = typeof ticket;

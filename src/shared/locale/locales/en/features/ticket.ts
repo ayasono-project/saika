@@ -51,10 +51,19 @@ export const ticket = {
   "user-response.no_configs": "No ticket configurations found.",
   "user-response.not_ticket_channel":
     "This command can only be used in a ticket channel.",
-  "user-response.not_authorized":
-    "You do not have permission to perform this action.",
+  "user-response.not_authorized_close_open":
+    "Tickets can only be closed or reopened by the member who created the ticket, members with a staff role ({{staffRoles}}), or members with the Administrator permission.",
+  "user-response.not_authorized_delete":
+    "Tickets can only be deleted by members with a staff role ({{staffRoles}}) or members with the Administrator permission.",
+  // Separator between staff roles and the text shown when there are none, used for {{staffRoles}} in the two keys above
+  "user-response.staff_roles_separator": ", ",
+  "user-response.staff_roles_not_set": "none set",
   "user-response.ticket_config_missing":
     "The panel for this ticket's category has been deleted, so this ticket can no longer be managed. Setting up a panel for the same category again makes it manageable again, but closed tickets that have passed the auto-delete period since they were closed are deleted as soon as the panel is set up again. If you no longer need this ticket, delete the channel directly.",
+  "user-response.bot_channel_access_missing":
+    "The bot doesn't have the permissions it needs in this channel, so this ticket can't be managed (nothing was changed). This happens to tickets created before the bot was removed from the server and added back, because the bot's permissions on those channels are removed. A server administrator can fix this by adding the bot under Edit Channel → Permissions for this channel and allowing View Channel, Send Messages, Embed Links, and Read Message History.",
+  "user-response.bot_manage_channels_missing":
+    "The bot doesn't have the Manage Channels permission, so this ticket can't be deleted (nothing was changed). Give the bot's role Manage Channels, or check that this channel's permission settings don't deny Manage Channels to the bot.",
   "user-response.ticket_already_closed": "This ticket is already closed.",
   "user-response.ticket_already_open": "This ticket is already open.",
   "user-response.max_tickets_reached":
@@ -102,6 +111,11 @@ export const ticket = {
   "embed.field.value.auto_delete_days": "{{days}} days",
   "embed.field.value.max_tickets_count": "{{count}}",
   "embed.field.value.open_ticket_count": "{{count}}",
+  "embed.field.value.error_notification_feature": "Ticket",
+  "embed.field.value.channel_access_missing_action":
+    "Found ticket channels the bot cannot access",
+  "embed.field.value.channel_access_missing_notice":
+    "When the bot is removed from the server, Discord removes the bot's permissions on ticket channels. Because of this, the bot can't close, reopen, delete, or auto-delete the following {{count}} ticket channel(s) created before it was added back.\n{{channels}}\nIn each channel, open Edit Channel → Permissions, add the bot, and allow View Channel, Send Messages, Embed Links, and Read Message History (changing the category's permissions does not apply to ticket channels). If you no longer need a ticket, deleting its channel directly also cleans up its record. Other private channels where you had given the bot permissions, such as log channels, need them added back in the same way.",
 
   // ── UI labels
   "ui.button.create_ticket": "Create Ticket",
@@ -209,6 +223,18 @@ export const ticket = {
     "auto-delete timers restored on rejoin/reconnect GuildId: {{guildId}} Count: {{count}}",
   "log.guild_resync_failed":
     "ticket/channel sync after reconnect failed GuildId: {{guildId}}",
+  "log.ticket_channel_access_missing":
+    "stopped a ticket operation because the bot cannot handle the ticket channel (for deletion, including a missing Manage Channels) GuildId: {{guildId}} ChannelId: {{channelId}}",
+  "log.auto_delete_held_channel_inaccessible":
+    "auto-delete held and will be retried later (the bot cannot handle the channel, lacks Manage Channels, or the guild could not be fetched) GuildId: {{guildId}} ChannelId: {{channelId}} TicketId: {{ticketId}} RetryInMs: {{retryInMs}}",
+  "log.auto_delete_still_held":
+    "auto-delete still held on retry; will be retried again later GuildId: {{guildId}} ChannelId: {{channelId}} TicketId: {{ticketId}} RetryInMs: {{retryInMs}}",
+  "log.ticket_channel_delete_failed":
+    "failed to delete the ticket channel (the record is already deleted; the channel remains) GuildId: {{guildId}} ChannelId: {{channelId}}",
+  "log.inaccessible_ticket_channels_found":
+    "found ticket channels the bot cannot handle GuildId: {{guildId}} Count: {{count}} ChannelIds: {{channelIds}}",
+  "log.teardown_channel_inaccessible":
+    "could not delete a ticket channel the bot cannot handle (or lacks Manage Channels for) during removal (the channel remains) GuildId: {{guildId}} ChannelId: {{channelId}}",
 } as const;
 
 export type TicketTranslations = typeof ticket;

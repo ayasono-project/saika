@@ -66,6 +66,14 @@ export const guildSettings = {
   "embed.description.join_return":
     "Welcome back. This server's data was scheduled for automatic deletion on **{{deleteAt}}**, but because Saika was added back, the deletion was cancelled and your previous data was carried over.",
 
+  // ── embed: inaccessible_ticket_channels (field added to the install / re-install DM) ──
+  // Only added when the notice couldn't be delivered to the error notification channel (not set or not postable)
+  // (kicking the bot also removes its role, so it may not be able to see that channel)
+  "embed.field.name.inaccessible_ticket_channels":
+    "Ticket channels the bot can't access",
+  "embed.field.value.inaccessible_ticket_channels":
+    "Because Discord removed the bot's permissions when it was removed from the server, the bot can no longer access **{{count}}** ticket channel(s) created before it was added back (sent by DM because the error notification channel is not set or could not be posted to). In each channel, open Edit Channel → Permissions, add the bot, and allow View Channel, Send Messages, Embed Links, and Read Message History (changing the category's permissions does not apply). Other private channels where you had given the bot permissions, such as the error notification channel or log channels, need them added back in the same way.",
+
   // ── UI labels ─────────────────────────────────
   "ui.button.reset_all_confirm": "Reset",
   "ui.button.reset_all_cancel": "Cancel",

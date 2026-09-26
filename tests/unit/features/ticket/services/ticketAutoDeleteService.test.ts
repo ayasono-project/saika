@@ -44,11 +44,60 @@ vi.mock("@/shared/utils/logger", () => ({
 }));
 
 import {
+  DiscordAPIError,
+  PermissionsBitField,
+  type PermissionsString,
+  RESTJSONErrorCodes,
+} from "discord.js";
+import {
   getBotTicketRepository,
   getBotTicketSettingsService,
 } from "@/bot/services/botCompositionRoot";
 import { jobScheduler } from "@/shared/scheduler/jobScheduler";
 import { logger } from "@/shared/utils/logger";
+
+/** Bot がチケットのチャンネルを扱うのに要る権限（createTicketChannel が Bot 自身の上書きで許可するもの） */
+const BOT_CHANNEL_PERMISSIONS: PermissionsString[] = [
+  "ViewChannel",
+  "SendMessages",
+  "ReadMessageHistory",
+  "EmbedLinks",
+];
+
+/** Bot がチケットのチャンネルを消すのに要る権限（扱う権限と、ロールで持つ「チャンネルの管理」） */
+const BOT_DELETE_PERMISSIONS: PermissionsString[] = [
+  ...BOT_CHANNEL_PERMISSIONS,
+  "ManageChannels",
+];
+
+/** 保留したときに予約し直すまでの時間（1時間） */
+const HOLD_RETRY_MS = 60 * 60 * 1000;
+
+/**
+ * Bot の権限を指定したチケットのチャンネルのモックを作る
+ * @param permissions チャンネルでの Bot の権限（既定は消せる権限すべて）
+ * @returns チャンネルのモック
+ */
+function makeTicketChannel(
+  permissions: PermissionsString[] = BOT_DELETE_PERMISSIONS,
+) {
+  return {
+    delete: vi.fn().mockResolvedValue(undefined),
+    permissionsFor: vi.fn(() => new PermissionsBitField(permissions)),
+  };
+}
+
+/**
+ * channels.fetch の結果を指定したギルドのモックを作る（Bot 自身のメンバーはキャッシュにある）
+ * @param fetchChannel channels.fetch のモック
+ * @returns ギルドのモック
+ */
+function makeGuild(fetchChannel: ReturnType<typeof vi.fn>) {
+  return {
+    channels: { fetch: fetchChannel },
+    members: { me: { id: "bot-user-1" }, fetchMe: vi.fn() },
+  };
+}
 
 describe("bot/features/ticket/services/ticketAutoDeleteService", () => {
   beforeEach(() => {
@@ -860,16 +909,24 @@ describe("bot/features/ticket/services/ticketAutoDeleteService", () => {
       } as never);
     }
 
-    // 既定では設定があり、ギルドは見つからない状態にする
+    // 既定では設定があり、同じチケットの予約は残っていない（発火時にスケジューラーから消える）状態にする
     beforeEach(() => {
       useSettings({ autoDeleteDays: 7 });
+      vi.mocked(jobScheduler.hasJob).mockReturnValue(false);
     });
 
+    /**
+     * 自動削除のジョブとして n 回目に張られたコールバックを取り出す（0 が最初の予約、1 以降が保留後の再試行）
+     * @param index 何回目に張られたジョブか
+     * @returns 発火時に実行されるコールバック
+     */
+    function getArmedCallback(index: number): () => Promise<void> | void {
+      return vi.mocked(jobScheduler.addOneTimeJob).mock.calls[index][2];
+    }
+
     it("正常系: クローズ済みなら DB からチケットを削除しチャンネルを削除する", async () => {
-      const mockChannel = { delete: vi.fn().mockResolvedValue(undefined) };
-      const mockGuild = {
-        channels: { fetch: vi.fn().mockResolvedValue(mockChannel) },
-      };
+      const mockChannel = makeTicketChannel();
+      const mockGuild = makeGuild(vi.fn().mockResolvedValue(mockChannel));
       const repository = useTicketRepository(CLOSED_TICKET);
       const callback = await scheduleAndGetCallback({
         guilds: { fetch: vi.fn().mockResolvedValue(mockGuild) },
@@ -935,10 +992,58 @@ describe("bot/features/ticket/services/ticketAutoDeleteService", () => {
       );
     });
 
-    it("ギルドが見つからない場合でもDB削除は成功する", async () => {
+    it("ギルドを取得できない場合は、チャンネルを消せるか確かめられないので記録を消さずに保留し warn を出す", async () => {
       const repository = useTicketRepository(CLOSED_TICKET);
       const callback = await scheduleAndGetCallback({
         guilds: { fetch: vi.fn().mockResolvedValue(null) },
+      });
+
+      await callback();
+
+      expect(repository.deleteIfClosed).not.toHaveBeenCalled();
+      expect(logger.warn).toHaveBeenCalledWith(
+        expect.stringContaining(
+          "ticket:log.auto_delete_held_channel_inaccessible",
+        ),
+      );
+      expect(logger.info).not.toHaveBeenCalledWith(
+        expect.stringContaining("ticket:log.ticket_auto_deleted"),
+      );
+    });
+
+    it("チャンネルが見つからない場合でもDB削除は成功する", async () => {
+      const repository = useTicketRepository(CLOSED_TICKET);
+      const callback = await scheduleAndGetCallback({
+        guilds: {
+          fetch: vi
+            .fn()
+            .mockResolvedValue(makeGuild(vi.fn().mockResolvedValue(null))),
+        },
+      });
+
+      await callback();
+
+      expect(repository.deleteIfClosed).toHaveBeenCalledWith("ticket-1");
+    });
+
+    it("Discord がチャンネルは無い（Unknown Channel）と返したら、記録だけを消す", async () => {
+      const repository = useTicketRepository(CLOSED_TICKET);
+      const unknownChannel = new DiscordAPIError(
+        { code: RESTJSONErrorCodes.UnknownChannel, message: "Unknown Channel" },
+        RESTJSONErrorCodes.UnknownChannel,
+        404,
+        "GET",
+        "/channels/channel-1",
+        {},
+      );
+      const callback = await scheduleAndGetCallback({
+        guilds: {
+          fetch: vi
+            .fn()
+            .mockResolvedValue(
+              makeGuild(vi.fn().mockRejectedValue(unknownChannel)),
+            ),
+        },
       });
 
       await callback();
@@ -949,26 +1054,84 @@ describe("bot/features/ticket/services/ticketAutoDeleteService", () => {
       );
     });
 
-    it("チャンネルが見つからない場合でもDB削除は成功する", async () => {
+    it("Bot がチャンネルを見られない（Bot を外して入れ直す前に作ったチケット）ときは、記録もチャンネルも消さずに保留し warn を出す（チャンネルだけが残らないように）", async () => {
+      const mockChannel = makeTicketChannel([
+        "SendMessages",
+        "ReadMessageHistory",
+        "EmbedLinks",
+      ]);
       const repository = useTicketRepository(CLOSED_TICKET);
       const callback = await scheduleAndGetCallback({
         guilds: {
-          fetch: vi.fn().mockResolvedValue({
-            channels: { fetch: vi.fn().mockResolvedValue(null) },
-          }),
+          fetch: vi
+            .fn()
+            .mockResolvedValue(
+              makeGuild(vi.fn().mockResolvedValue(mockChannel)),
+            ),
+        },
+      });
+
+      await callback();
+
+      expect(repository.deleteIfClosed).not.toHaveBeenCalled();
+      expect(mockChannel.delete).not.toHaveBeenCalled();
+      expect(logger.warn).toHaveBeenCalledWith(
+        expect.stringContaining(
+          `ticket:log.auto_delete_held_channel_inaccessible:{"guildId":"guild-1","channelId":"channel-1","ticketId":"ticket-1","retryInMs":"${HOLD_RETRY_MS}"}`,
+        ),
+      );
+    });
+
+    it("Bot に「チャンネルの管理」が無い（4つの権限はある）ときも、記録もチャンネルも消さずに保留する（チャンネルの削除だけが失敗して、記録の無いチャンネルが残らないように）", async () => {
+      const mockChannel = makeTicketChannel(BOT_CHANNEL_PERMISSIONS);
+      const repository = useTicketRepository(CLOSED_TICKET);
+      const callback = await scheduleAndGetCallback({
+        guilds: {
+          fetch: vi
+            .fn()
+            .mockResolvedValue(
+              makeGuild(vi.fn().mockResolvedValue(mockChannel)),
+            ),
+        },
+      });
+
+      await callback();
+
+      expect(repository.deleteIfClosed).not.toHaveBeenCalled();
+      expect(mockChannel.delete).not.toHaveBeenCalled();
+      expect(logger.warn).toHaveBeenCalledWith(
+        expect.stringContaining(
+          "ticket:log.auto_delete_held_channel_inaccessible",
+        ),
+      );
+    });
+
+    it("チャンネルの削除に失敗したら warn を出す（記録は削除済み）", async () => {
+      const mockChannel = makeTicketChannel();
+      mockChannel.delete.mockRejectedValue(new Error("delete failed"));
+      const repository = useTicketRepository(CLOSED_TICKET);
+      const callback = await scheduleAndGetCallback({
+        guilds: {
+          fetch: vi
+            .fn()
+            .mockResolvedValue(
+              makeGuild(vi.fn().mockResolvedValue(mockChannel)),
+            ),
         },
       });
 
       await callback();
 
       expect(repository.deleteIfClosed).toHaveBeenCalledWith("ticket-1");
+      expect(logger.warn).toHaveBeenCalledWith(
+        expect.stringContaining("ticket:log.ticket_channel_delete_failed"),
+        expect.any(Error),
+      );
     });
 
     it("読み直した後に再オープンされていた（クローズ済みのときだけ消す削除で消えなかった）ときは、チャンネルを消さない", async () => {
-      const mockChannel = { delete: vi.fn().mockResolvedValue(undefined) };
-      const mockGuild = {
-        channels: { fetch: vi.fn().mockResolvedValue(mockChannel) },
-      };
+      const mockChannel = makeTicketChannel();
+      const mockGuild = makeGuild(vi.fn().mockResolvedValue(mockChannel));
       const repository = useTicketRepository(CLOSED_TICKET);
       repository.deleteIfClosed.mockResolvedValue(false);
       const callback = await scheduleAndGetCallback({
@@ -983,7 +1146,7 @@ describe("bot/features/ticket/services/ticketAutoDeleteService", () => {
       );
     });
 
-    it("ギルドfetchが例外をスローした場合でもDB削除は成功する", async () => {
+    it("ギルドfetchが例外をスローした場合は、記録を消さずに保留する", async () => {
       const repository = useTicketRepository(CLOSED_TICKET);
       const callback = await scheduleAndGetCallback({
         guilds: { fetch: vi.fn().mockRejectedValue(new Error("guild error")) },
@@ -991,14 +1154,23 @@ describe("bot/features/ticket/services/ticketAutoDeleteService", () => {
 
       await callback();
 
-      expect(repository.deleteIfClosed).toHaveBeenCalledWith("ticket-1");
+      expect(repository.deleteIfClosed).not.toHaveBeenCalled();
+      expect(logger.warn).toHaveBeenCalledWith(
+        expect.stringContaining(
+          "ticket:log.auto_delete_held_channel_inaccessible",
+        ),
+      );
     });
 
     it("DB削除が失敗した場合は、成功とは別の失敗用のキーでエラーログを出す", async () => {
       const repository = useTicketRepository(CLOSED_TICKET);
       repository.deleteIfClosed.mockRejectedValue(new Error("db delete error"));
       const callback = await scheduleAndGetCallback({
-        guilds: { fetch: vi.fn().mockResolvedValue(null) },
+        guilds: {
+          fetch: vi
+            .fn()
+            .mockResolvedValue(makeGuild(vi.fn().mockResolvedValue(null))),
+        },
       });
 
       await callback();
@@ -1014,6 +1186,151 @@ describe("bot/features/ticket/services/ticketAutoDeleteService", () => {
       expect(logger.info).not.toHaveBeenCalledWith(
         expect.stringContaining("ticket:log.ticket_auto_deleted"),
       );
+    });
+
+    // 保留した自動削除を、権限を付け直した後に再開できるよう予約し直すことを検証
+    describe("保留後の再試行", () => {
+      /**
+       * Bot が「チャンネルを見る」を持たない（Bot を外して入れ直す前に作った）チケットのチャンネルと、それを返すクライアントを作る
+       * @returns チャンネルとクライアントのモック
+       */
+      function useInaccessibleChannel() {
+        const mockChannel = makeTicketChannel([
+          "SendMessages",
+          "ReadMessageHistory",
+          "EmbedLinks",
+          "ManageChannels",
+        ]);
+        const client = {
+          guilds: {
+            fetch: vi
+              .fn()
+              .mockResolvedValue(
+                makeGuild(vi.fn().mockResolvedValue(mockChannel)),
+              ),
+          },
+        };
+        return { mockChannel, client };
+      }
+
+      it("保留したら、同じジョブIDで1時間後に予約し直す（単発のジョブは発火時に消えるため）", async () => {
+        const { client } = useInaccessibleChannel();
+        useTicketRepository(CLOSED_TICKET);
+        const callback = await scheduleAndGetCallback(client);
+
+        await callback();
+
+        expect(jobScheduler.addOneTimeJob).toHaveBeenCalledTimes(2);
+        expect(jobScheduler.addOneTimeJob).toHaveBeenLastCalledWith(
+          "ticket-auto-delete-ticket-1",
+          HOLD_RETRY_MS,
+          expect.any(Function),
+          { scheduledLogLevel: "debug" },
+        );
+      });
+
+      it("ギルドを取得できずに保留したときも、1時間後に予約し直す", async () => {
+        useTicketRepository(CLOSED_TICKET);
+        const callback = await scheduleAndGetCallback({
+          guilds: { fetch: vi.fn().mockResolvedValue(null) },
+        });
+
+        await callback();
+
+        expect(jobScheduler.addOneTimeJob).toHaveBeenLastCalledWith(
+          "ticket-auto-delete-ticket-1",
+          HOLD_RETRY_MS,
+          expect.any(Function),
+          { scheduledLogLevel: "debug" },
+        );
+      });
+
+      it("再試行でもまた保留になったら、warn を繰り返さず debug にし、また1時間後に予約し直す", async () => {
+        const { client } = useInaccessibleChannel();
+        useTicketRepository(CLOSED_TICKET);
+        const callback = await scheduleAndGetCallback(client);
+        await callback();
+        vi.mocked(logger.warn).mockClear();
+
+        await getArmedCallback(1)();
+        await getArmedCallback(2)();
+
+        expect(logger.warn).not.toHaveBeenCalled();
+        expect(logger.debug).toHaveBeenCalledTimes(2);
+        expect(logger.debug).toHaveBeenCalledWith(
+          expect.stringContaining(
+            `ticket:log.auto_delete_still_held:{"guildId":"guild-1","channelId":"channel-1","ticketId":"ticket-1","retryInMs":"${HOLD_RETRY_MS}"}`,
+          ),
+        );
+        expect(jobScheduler.addOneTimeJob).toHaveBeenCalledTimes(4);
+        expect(jobScheduler.addOneTimeJob).toHaveBeenLastCalledWith(
+          "ticket-auto-delete-ticket-1",
+          HOLD_RETRY_MS,
+          expect.any(Function),
+          { scheduledLogLevel: "debug" },
+        );
+      });
+
+      it("管理者が権限を付け直した後の再試行で、記録とチャンネルを削除する", async () => {
+        const { mockChannel, client } = useInaccessibleChannel();
+        const repository = useTicketRepository(CLOSED_TICKET);
+        const callback = await scheduleAndGetCallback(client);
+        await callback();
+        expect(repository.deleteIfClosed).not.toHaveBeenCalled();
+
+        // 管理者がチャンネルの権限で Bot を付け直す
+        mockChannel.permissionsFor.mockReturnValue(
+          new PermissionsBitField(BOT_DELETE_PERMISSIONS),
+        );
+        await getArmedCallback(1)();
+
+        expect(repository.deleteIfClosed).toHaveBeenCalledWith("ticket-1");
+        expect(mockChannel.delete).toHaveBeenCalled();
+        expect(logger.info).toHaveBeenCalledWith(
+          expect.stringContaining("ticket:log.ticket_auto_deleted"),
+        );
+        // 削除できたら予約し直さない
+        expect(jobScheduler.addOneTimeJob).toHaveBeenCalledTimes(2);
+      });
+
+      it("確かめている間に別の経路（パネルの再設置など）が同じチケットを予約し直していれば、そちらを残して張り直さない", async () => {
+        const { client } = useInaccessibleChannel();
+        useTicketRepository(CLOSED_TICKET);
+        const callback = await scheduleAndGetCallback(client);
+        vi.mocked(jobScheduler.hasJob).mockReturnValue(true);
+
+        await callback();
+
+        expect(jobScheduler.addOneTimeJob).toHaveBeenCalledTimes(1);
+      });
+
+      it("カテゴリの設定が無い（パネルが削除された）ときの保留は、予約し直さない（パネルの再設置で予約し直すため）", async () => {
+        useTicketRepository(CLOSED_TICKET);
+        useSettings(null);
+        const callback = await scheduleAndGetCallback({
+          guilds: { fetch: vi.fn() },
+        });
+
+        await callback();
+
+        expect(jobScheduler.addOneTimeJob).toHaveBeenCalledTimes(1);
+      });
+
+      it("再試行の前に再オープンされていたら、何もせず予約もし直さない", async () => {
+        const { client } = useInaccessibleChannel();
+        const repository = useTicketRepository(CLOSED_TICKET);
+        const callback = await scheduleAndGetCallback(client);
+        await callback();
+
+        repository.findById.mockResolvedValue({
+          ...CLOSED_TICKET,
+          status: "open",
+        });
+        await getArmedCallback(1)();
+
+        expect(repository.deleteIfClosed).not.toHaveBeenCalled();
+        expect(jobScheduler.addOneTimeJob).toHaveBeenCalledTimes(2);
+      });
     });
   });
 });

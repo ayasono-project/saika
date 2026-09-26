@@ -15,8 +15,9 @@ import { applyBotPresence } from "../services/botPresence";
  * Bot がギルドへ参加した際の共通処理を行う
  *
  * 親レコードの作成と削除予約の取り消しを行う。後者があるため、猶予期間内の
- * 再導入では設定がそのまま復活する。そのうえで、オーナーへ DM を送る
- * （新規導入なら案内と保持期間の告知、再導入なら設定が残っている旨）。
+ * 再導入では設定がそのまま復活する。チケットを Discord の状態に合わせてから、オーナーへ DM を送る
+ * （新規導入なら案内と保持期間の告知、再導入なら設定が残っている旨。Bot が扱えないチケットのチャンネルを
+ * エラー通知チャンネルで知らせられなかったときは、その件数と付け直す手順も載せる）。
  * @param guild 参加したギルド
  * @returns 実行完了を示す Promise
  */
@@ -59,14 +60,22 @@ export async function handleGuildCreate(guild: Guild): Promise<void> {
   // 稼働サーバー数の表示を更新する
   applyBotPresence(guild.client);
 
-  // オーナーへの DM。送信失敗はユースケース側で握りつぶすため導入処理は止まらない
-  await sendGuildJoinDmUsecase(guild, cancelledDeletionAt);
-
   // 猶予内の再導入なら、退出時に止めたチケットの自動削除タイマーを組み直し、
-  // 外されていた間に消されたチャンネルのチケットを片付ける（新規導入ならチケットが無いので何もしない）
+  // 外されていた間に消されたチャンネルのチケットを片付ける（新規導入ならチケットが無いので何もしない）。
+  // 外したときに Discord がチケットのチャンネルから Bot の上書きを消すため、Bot が入れなくなった
+  // チャンネルがあれば、エラー通知チャンネルで管理者に付け直しを頼む（再導入のときだけ・1回）。
+  // キックで Bot のロールも消え、管理者専用のエラー通知チャンネルには届かないことがあるので、
+  // 届かなかった（未設定を含む）件数を DM に載せられるよう、DM より先に行う
+  let unnotifiedInaccessibleTicketCount = 0;
   try {
-    await syncGuildTickets(guild, getBotTicketRepository());
+    const { inaccessibleCount, notified } = await syncGuildTickets(
+      guild,
+      getBotTicketRepository(),
+      { notifyInaccessibleChannels: true },
+    );
+    if (!notified) unnotifiedInaccessibleTicketCount = inaccessibleCount;
   } catch (error) {
+    // 同期に失敗しても DM は送る（件数は分からないので載せない）
     logger.error(
       logPrefixed(
         "system:log_prefix.ticket",
@@ -76,4 +85,11 @@ export async function handleGuildCreate(guild: Guild): Promise<void> {
       error,
     );
   }
+
+  // オーナーへの DM。送信失敗はユースケース側で握りつぶすため導入処理は止まらない
+  await sendGuildJoinDmUsecase(
+    guild,
+    cancelledDeletionAt,
+    unnotifiedInaccessibleTicketCount,
+  );
 }

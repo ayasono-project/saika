@@ -70,8 +70,6 @@ vi.mock("@/features/ticket/services/ticketService", () => ({
   closeTicket: vi.fn(),
   reopenTicket: vi.fn(),
   deleteTicket: vi.fn(),
-  hasTicketPermission: vi.fn(),
-  hasStaffRole: vi.fn(),
 }));
 
 import { DiscordAPIError, MessageFlags, RESTJSONErrorCodes } from "discord.js";

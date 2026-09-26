@@ -56,8 +56,6 @@ vi.mock("@/features/ticket/services/ticketService", () => ({
   closeTicket: vi.fn(),
   reopenTicket: vi.fn(),
   deleteTicket: vi.fn(),
-  hasTicketPermission: vi.fn(),
-  hasStaffRole: vi.fn(),
 }));
 
 // 現在 commands/ に登録済みのコマンド名（新規追加時はここへの手動追加不要）

@@ -1,6 +1,7 @@
 // 削除対象チャンネルリストの構築
 
 import {
+  type AnyThreadChannel,
   type ChatInputCommandInteraction,
   type Guild,
   type GuildTextBasedChannel,
@@ -41,7 +42,7 @@ function hasBotAccess(
 
 /**
  * 削除対象のチャンネルリストを構築する
- * channelIds 指定時は指定チャンネル（スレッドを含む）のみ、未指定（空配列）時は Bot がアクセス可能な全チャンネル（スレッドを含まない）を返す
+ * channelIds 指定時は指定チャンネル（スレッドを含む）のみ、未指定（空配列）時は Bot がアクセス可能な全チャンネルと進行中のスレッドを返す
  * @param interaction 条件設定フェーズから渡された interaction
  * @param channelIds 条件設定フェーズで選択されたチャンネルID一覧（空配列で全チャンネル）
  * @returns 対象チャンネル配列（エラー時は null）
@@ -134,7 +135,7 @@ export async function buildTargetChannels(
     return targetChannels;
   }
 
-  // チャンネル未指定: サーバー内の全テキストチャンネルを対象
+  // チャンネル未指定: サーバー内の全テキストチャンネル + 進行中のスレッドを対象
   logger.debug(
     logPrefixed(
       "system:log_prefix.msg_del",
@@ -151,16 +152,36 @@ export async function buildTargetChannels(
       },
     ),
   );
+  const activeThreads = await fetchActiveThreads(guild);
 
-  if (!me) {
-    return [...allChannels.values()].filter(
-      (ch) => ch !== null && ch.isTextBased(),
-    ) as GuildTextBasedChannel[];
-  }
-  return [...allChannels.values()].filter(
+  return [...allChannels.values(), ...activeThreads].filter(
     (ch) =>
       ch !== null &&
       ch.isTextBased() &&
       hasBotAccess(ch as GuildTextBasedChannel, me),
   ) as GuildTextBasedChannel[];
+}
+
+/**
+ * ギルドの進行中（クローズしていない）スレッドを取得する
+ * 一括取得（GET /guilds/{id}/channels）はスレッドを返さないため別に取る。
+ * クローズ済みはチャンネル選択にも出ないので、範囲をそろえて含めない。
+ * 取得に失敗した場合はスレッド抜きで続行できるよう空配列を返す
+ * @param guild 対象ギルド
+ * @returns 進行中のスレッド一覧
+ */
+async function fetchActiveThreads(guild: Guild): Promise<AnyThreadChannel[]> {
+  try {
+    const { threads } = await guild.channels.fetchActiveThreads();
+    return [...threads.values()];
+  } catch (error) {
+    logger.warn(
+      logPrefixed(
+        "system:log_prefix.msg_del",
+        "messageDelete:log.active_threads_fetch_failed",
+        { error: String(error) },
+      ),
+    );
+    return [];
+  }
 }

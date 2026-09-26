@@ -150,6 +150,8 @@ export const messageDelete = {
   // ── Logs ─────────────────────────────────────
   "log.cmd_all_channels_start": "fetching all channels",
   "log.cmd_channel_count": "channel count={{count}}",
+  "log.active_threads_fetch_failed":
+    "failed to fetch active threads; continuing without threads error={{error}}",
   "log.svc_scan_start":
     "scan start channels={{channelCount}} count={{count}} targetUserIds={{targetUserIds}}",
   "log.svc_initial_fetch": "initial fetch ch={{channelId}}",

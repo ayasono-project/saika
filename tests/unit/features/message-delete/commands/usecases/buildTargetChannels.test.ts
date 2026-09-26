@@ -48,8 +48,11 @@ vi.mock("@/shared/locale/localeManager", () => ({
 vi.mock("@/shared/utils/logger", () => ({
   logger: {
     debug: vi.fn(),
+    warn: vi.fn(),
   },
 }));
+
+import { logger } from "@/shared/utils/logger";
 
 /** guild.channels.fetch が返す Map 風オブジェクトを生成する */
 function makeChannelCollection(channels: (object | null)[]) {
@@ -70,18 +73,21 @@ function makeChannelCollection(channels: (object | null)[]) {
  * テスト用の interaction を生成する
  * guild.channels.fetch() は引数なしで channels の一覧を、ID 付きでは threads から1件を返す
  * （実 API と同じく、一覧取得はスレッドを含まず、個別取得は見つからなければ失敗する）
+ * guild.channels.fetchActiveThreads() は threads を進行中のスレッドとして返す
  */
 function makeInteraction(opts: {
   guildId?: string | null;
   meNull?: boolean;
   channels?: (object | null)[];
   threads?: { id: string }[];
+  activeThreadsError?: boolean;
 }) {
   const {
     guildId = "guild-1",
     meNull = false,
     channels = [],
     threads = [],
+    activeThreadsError = false,
   } = opts;
 
   const me = meNull
@@ -102,6 +108,10 @@ function makeInteraction(opts: {
             const thread = threadMap.get(id);
             if (!thread) throw new Error("Unknown Channel");
             return thread;
+          }) as Mock,
+          fetchActiveThreads: vi.fn(async () => {
+            if (activeThreadsError) throw new Error("Missing Access");
+            return { threads: threadMap, members: new Map() };
           }) as Mock,
         },
       }
@@ -381,5 +391,63 @@ describe("bot/features/message-delete/commands/usecases/buildTargetChannels", ()
     });
     const result = await buildTargetChannels(interaction as never, []);
     expect(result).toHaveLength(1);
+  });
+
+  it("channelIds が空の場合は進行中のスレッドも候補に含める", async () => {
+    const { buildTargetChannels } = await loadModule();
+    const textCh = {
+      id: "ch-1",
+      isTextBased: () => true,
+      permissionsFor: vi.fn(() => ({ has: vi.fn(() => true) })),
+    };
+    const thread = {
+      id: "th-1",
+      isTextBased: () => true,
+      permissionsFor: vi.fn(() => ({ has: vi.fn(() => true) })),
+    };
+    const interaction = makeInteraction({
+      channels: [textCh],
+      threads: [thread],
+    });
+    const result = await buildTargetChannels(interaction as never, []);
+    expect(result).toEqual([textCh, thread]);
+  });
+
+  it("channelIds が空の場合、Bot が権限を持たない進行中のスレッドは候補から除く", async () => {
+    const { buildTargetChannels } = await loadModule();
+    const textCh = {
+      id: "ch-1",
+      isTextBased: () => true,
+      permissionsFor: vi.fn(() => ({ has: vi.fn(() => true) })),
+    };
+    const deniedThread = {
+      id: "th-1",
+      isTextBased: () => true,
+      permissionsFor: vi.fn(() => ({ has: vi.fn(() => false) })),
+    };
+    const interaction = makeInteraction({
+      channels: [textCh],
+      threads: [deniedThread],
+    });
+    const result = await buildTargetChannels(interaction as never, []);
+    expect(result).toEqual([textCh]);
+  });
+
+  it("channelIds が空で進行中のスレッドの取得に失敗した場合は、スレッド抜きで続行し warn を出す", async () => {
+    const { buildTargetChannels } = await loadModule();
+    const textCh = {
+      id: "ch-1",
+      isTextBased: () => true,
+      permissionsFor: vi.fn(() => ({ has: vi.fn(() => true) })),
+    };
+    const interaction = makeInteraction({
+      channels: [textCh],
+      activeThreadsError: true,
+    });
+    const result = await buildTargetChannels(interaction as never, []);
+    expect(result).toEqual([textCh]);
+    expect(logger.warn).toHaveBeenCalledWith(
+      expect.stringContaining("messageDelete:log.active_threads_fetch_failed"),
+    );
   });
 });

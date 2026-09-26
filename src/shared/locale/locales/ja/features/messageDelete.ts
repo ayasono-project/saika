@@ -152,6 +152,8 @@ export const messageDelete = {
   // ── ログ ─────────────────────────────────────
   "log.cmd_all_channels_start": "全チャンネル取得開始",
   "log.cmd_channel_count": "取得チャンネル数={{count}}",
+  "log.active_threads_fetch_failed":
+    "進行中スレッドの取得に失敗したためスレッドを除いて続行 error={{error}}",
   "log.svc_scan_start":
     "スキャン開始 channels={{channelCount}} count={{count}} targetUserIds={{targetUserIds}}",
   "log.svc_initial_fetch": "初期フェッチ ch={{channelId}}",

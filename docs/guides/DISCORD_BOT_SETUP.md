@@ -2,7 +2,7 @@
 
 > Discord Developer Portal でアプリを作成し、サーバーへ招待するまでの手順
 
-最終更新: 2026年9月23日
+最終更新: 2026年9月26日
 
 ---
 
@@ -82,7 +82,7 @@
 | 接続 | Connect | vac / afk（移動先VCへの接続。Move Members だけでは移動不可） |
 | メンバーをキック | Kick Members | unverified-kick |
 | サーバー管理 | Manage Server | member-log（招待元トラッキング） |
-| スレッドを管理 | Manage Threads | message-delete（削除対象にスレッドを選べるようにするため。**現時点ではスレッドの解決自体が未実装で動作しない** — 次リリースで修正予定） |
+| スレッドを管理 | Manage Threads | message-delete（削除対象にスレッドを選べるようにするため） |
 | スレッドでメッセージを送る | Send Messages in Threads | bump-reminder（スレッド内で Bump された場合の予約パネル・リマインド送信。Bot はスレッドを作らないので `Create Public Threads` は**不要**） |
 
 > **最小権限の方針**: 彩加は Administrator を要求しない。上記は各機能が実際に呼び出す Discord API に必要な個別権限のみ。チャンネル単位の上書き（overwrite）で Bot の権限を制限すると一部機能が動かなくなる点に注意。

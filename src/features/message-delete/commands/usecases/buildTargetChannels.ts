@@ -41,7 +41,7 @@ function hasBotAccess(
 
 /**
  * 削除対象のチャンネルリストを構築する
- * channelIds 指定時は指定チャンネルのみ、未指定（空配列）時は Bot がアクセス可能な全チャンネルを返す
+ * channelIds 指定時は指定チャンネル（スレッドを含む）のみ、未指定（空配列）時は Bot がアクセス可能な全チャンネル（スレッドを含まない）を返す
  * @param interaction 条件設定フェーズから渡された interaction
  * @param channelIds 条件設定フェーズで選択されたチャンネルID一覧（空配列で全チャンネル）
  * @returns 対象チャンネル配列（エラー時は null）
@@ -61,8 +61,15 @@ export async function buildTargetChannels(
     const skippedChannelIds: string[] = [];
 
     for (const id of channelIds) {
-      const ch = allChannels.get(id);
-      if (!ch || !ch.isTextBased()) continue;
+      // 一括取得（GET /guilds/{id}/channels）はスレッドを返さないため、無かった ID だけ個別に取り直す
+      const ch =
+        allChannels.get(id) ??
+        (await guild.channels.fetch(id).catch(() => null));
+      if (!ch || !ch.isTextBased()) {
+        // 解決できない ID（削除済み・参照不可）も黙って落とさず、スキップとして通知する
+        skippedChannelIds.push(id);
+        continue;
+      }
 
       const textCh = ch as GuildTextBasedChannel;
       if (hasBotAccess(textCh, me)) {

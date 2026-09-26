@@ -30,10 +30,10 @@
 
 | 区分 | 残件 |
 | --- | ---: |
-| いま着手できる | 18 |
+| いま着手できる | 19 |
 | 完了待ち | 6 |
 | 未決（判断が要る） | 2 |
-| **合計** | **26** |
+| **合計** | **27** |
 
 > **着手順は「いま着手できる」の並び順そのもの**（1件＝1 PR）。番号付きの「次にやること」は 2026-09-20 に廃止。1件動くたびに本体・サマリー・リストの3箇所を直すことになり、番号も挿入のたびにずれるため。
 >
@@ -108,6 +108,21 @@
 | `vc-auto-recruit/handlers/ui` | 9.37 | |
 
 > **次の2タスクがこの2機能を直撃し、どちらもチェックリストに「テスト」が入っている。** afk と同じ形で結合テストを書けば作業の副産物として埋まるので、**このタスクを単独で先に潰す必要はない**。
+
+### 以前からある残骸の掃除 【保守・小】
+
+**依存なし。** 2026-09-26、export/import 削除の残骸探しで見つかった、**今回の削除とは関係なく以前からあったもの**。どれも今は動作に影響しないが、先頭の1件は将来の掃除で事故を起こしうる。
+
+- [ ] **AFK のリポジトリの初期化を、副作用頼みから外す。** `botCompositionRoot.ts` の `getAfkSettingsRepository(prisma);`（戻り値を使わない呼び出し）でしか初期化されておらず、未使用に見えて消すと AFK と Web API の afkResource が実行時に `not initialized` で落ちる。**composition root はテストもカバレッジ計測もしていないので、typecheck でも test でも検出できない。** 他の機能と同じ `setBot*` の登録方式に揃えるか、回帰テストを置く（→ HISTORY.md「export / import を削除した」）
+- [ ] **どこからも呼ばれていないコードを消す**（対応するテストも一緒に）
+  - `IBaseGuildRepository`（`src/shared/database/types/repositories.ts`）— init（f9f4db6）から一度も参照されていない
+  - `IGuildCoreRepository` の `saveSettings` / `deleteSettings` / `exists` とその実装（`guildCoreRepository.ts`）— 呼んでいるのはテストだけ
+  - `invalidateGuildLocaleCache()`（`src/shared/locale/helpers.ts`）— 同上
+- [ ] **`tests/unit/bot/commands/guild-settings.test.ts` の古いモックを消す。** `view` が全機能の設定をページ形式で出していた頃の名残で、今の `/guild-settings` はどれも使っていない: `@/features/afk/afkSettingsService` / `@/bot/shared/disableComponentsAfterTimeout` / `@/bot/shared/pagination` / `@/features/guild-settings/guildCoreRepository`、および `botCompositionRoot` モック内の `getBotBumpReminderSettingsService` / `getBotVacSettingsService` / `getBotStickyMessageSettingsService` / `getBotMemberLogSettingsService`
+- [ ] **`tests/unit/bot/errors/interactionErrorHandler.test.ts` の死んだ分岐を消す。** `tGuild` モックが、8af44dc で撤去済みのキー `common:validation.error_title` を条件にしている
+- [ ] **`IMPLEMENTATION_GUIDELINES.md` の customId の命名例を、実在するものへ差し替える。** 良い例の `guild-settings:page-first` / `page-prev` / `page-next` / `page-last` / `page-jump` / `page-select` は src に存在しない（ページングの実体は `src/bot/shared/pagination.ts` の `page-*` と `message-delete:page-*`）
+- [ ] **`src/shared/config/env.ts` の `DATABASE_URL` の既定値 `file:./storage/db.sqlite` を外す。** SQLite 時代の名残で、Postgres の今は意味がない。必須にするか判断する。`tests/setup.ts` の SQLite 形式の値も合わせて直す
+- [ ] **`scripts/list-guilds.mjs` 冒頭のコメントを直す。**「guildCreate を記録していないため」は、v3.2.0 の `guilds` テーブル（`joinedAt`）で事実でなくなった
 
 ### biome の `recommended` 非推奨対応 【保守・小】
 
@@ -368,7 +383,7 @@ HISTORY.md「saika のメジャー更新は『利用者の操作が変わるか�
 - [ ] Web API の `POST /:guildId/reset-all`（3経路目）をどう扱うか決める。ダッシュボードからの削除に同じ強度の確認を付けるか
 - [ ] ja/en ロケール・テスト
 
-> **未確認**: `POST /:guildId/reset-all` にフロント側の確認ダイアログがあるか（web リポジトリ側）。
+> **2026-09-26 確認**: ダッシュボードの「全設定をリセット」は、web の `ResetButton`（`src/client/components/page.tsx`）が出す確認ダイアログを経てから実行される。ただし一般的な確認だけで、サーバー名の入力のような強い確認は無い。
 
 ### VAC 作成 VC の募集ボタン（vc-auto-recruit の拡張） 【機能追加・小】
 
@@ -483,6 +498,9 @@ Bot 名義で任意のメッセージ（プレーンテキスト / embed）を�
 
 - [ ] 未承認キックのログチャンネル必須化を実施した場合はその差分（`enable` にログチャンネル必須・有効中の `clear-log-channel` 拒否・未設定時の自動無効化と通知先）。メンバーログの Bot 除外とキック時の退出ログ抑止も反映。**実装後のコードを実際に読んで確認してから書くこと**
 - [ ] 「VAC 作成 VC の募集ボタン」を実装したら VC自動募集のセクションに追記する
+- [ ] **`/guild-settings view` の説明を実装に合わせる**（2026-09-26 発見・以前からの誤り）。「ギルド設定と各機能の設定をページ形式で一覧表示」とあるが、実際は言語とエラー通知チャンネルの Embed 1枚だけ（遅くとも 2026-05-29 から）。2026-09-26 に直した同じ節の冒頭文と食い違っている
+- [ ] **「⚠️ Bot をサーバーから除外する場合」に、猶予内に再招待してもクローズ済みチケットの自動削除が次の再起動まで止まったままになる点を足す**（2026-09-26 発見）。ARCHITECTURE.md と HISTORY.md には既知の制限として書いてあり、マニュアルだけ抜けている。「タイマー / スケジューラ実装の整理」で再導入時の組み直しを入れたら、この記述は不要になるので、書く前にどちらが先か確認すること
+- [ ] **導入時・再導入時のオーナー DM（v3.2.0）の説明を足す**（2026-09-26 発見）。内容は `sendGuildJoinDmUsecase.ts` / `guildJoinDmBuilder.ts` と照合すること。**「初めて導入したとき」とは書かない**: 導入時の DM は、削除予約を取り消さなかった導入すべて（30日を過ぎてから入れ直した場合も含む）で届く
 - [ ] 冒頭の「最終更新」日付を更新
 
 > **`/help` のコマンド一覧はコード側**なので各実装タスクで自動的に正しくなる。
@@ -538,7 +556,7 @@ Bot 名義で任意のメッセージ（プレーンテキスト / embed）を�
 
 タスクに紐づかないが、コードや実機を見れば分かるもの。
 
-- `POST /:guildId/reset-all` にフロント側の確認ダイアログがあるか（web リポジトリ側）
+- ~~`POST /:guildId/reset-all` にフロント側の確認ダイアログがあるか（web リポジトリ側）~~ → **2026-09-26 に確認: ある**（`ResetButton` の確認ダイアログ）。「`resetAll` の確認強化」に反映し、未確認事項から外した
 - 変更履歴のフック対象となる各リポジトリの upsert 実装（member-log 以外は未確認）
 - 遅延削除を入れたとき、Bot が居ないギルドの設定がダッシュボードでどう見えるか
 - ~~`vitest.config.ts` の `coverage.exclude` が旧パスを参照しており実質無効~~ → **2026-09-23 に死んだ除外6件を特定し「カバレッジ設定の実態合わせ」として起票済み**。未確認事項から外した

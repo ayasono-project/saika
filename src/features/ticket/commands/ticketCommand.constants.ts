@@ -94,5 +94,14 @@ export const TICKET_MESSAGE_FETCH_LIMIT = 20;
 /** デフォルト自動削除日数 */
 export const TICKET_DEFAULT_AUTO_DELETE_DAYS = 7;
 
+/** 1日のミリ秒数（自動削除日数から待ち時間を求めるのに使う） */
+export const TICKET_MS_PER_DAY: number = 24 * 60 * 60 * 1000;
+
+/**
+ * Ticket.elapsedDeleteMs に保存できる上限（列が int4 のため 2^31-1）
+ * 約24.8日を超えてクローズしていたチケットを再オープンすると経過時間がこれを超えるので、保存時にここで切り詰める
+ */
+export const TICKET_ELAPSED_DELETE_MS_MAX = 2_147_483_647;
+
 /** デフォルト同時チケット上限 */
 export const TICKET_DEFAULT_MAX_TICKETS_PER_USER = 1;

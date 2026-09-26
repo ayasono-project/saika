@@ -119,6 +119,37 @@ describe("bot/features/ticket/commands/usecases/ticketOpen", () => {
     expect(reopenTicketMock).not.toHaveBeenCalled();
   });
 
+  it("設定が無い（パネルが削除された）場合は、権限の有無ではなく操作できない旨を返信し、再オープンしない", async () => {
+    const { handleTicketOpen } = await import(
+      "@/features/ticket/commands/usecases/ticketOpen"
+    );
+
+    findByChannelIdMock.mockResolvedValue({
+      id: "ticket-1",
+      guildId: "guild-1",
+      categoryId: "category-1",
+      channelId: "channel-1",
+      status: "closed",
+    });
+    findByGuildAndCategoryMock.mockResolvedValue(null);
+    hasTicketPermissionMock.mockReturnValue(true);
+    const interaction = createInteractionMock();
+
+    await handleTicketOpen(interaction as never);
+
+    expect(interaction.reply).toHaveBeenCalledWith({
+      embeds: [
+        {
+          type: "error",
+          description: "ticket:user-response.ticket_config_missing",
+        },
+      ],
+      flags: MessageFlags.Ephemeral,
+    });
+    expect(hasTicketPermissionMock).not.toHaveBeenCalled();
+    expect(reopenTicketMock).not.toHaveBeenCalled();
+  });
+
   it("権限がない場合はエラー応答", async () => {
     const { handleTicketOpen } = await import(
       "@/features/ticket/commands/usecases/ticketOpen"

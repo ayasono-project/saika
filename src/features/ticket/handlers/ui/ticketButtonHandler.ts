@@ -25,6 +25,7 @@ import {
   TICKET_CUSTOM_ID,
   TICKET_STATUS,
 } from "../../commands/ticketCommand.constants";
+import { findTicketConfigOrReply } from "../../services/ticketGuards";
 import {
   closeTicket,
   deleteTicket,
@@ -135,11 +136,14 @@ async function handleClose(interaction: ButtonInteraction): Promise<void> {
   }
 
   // スタッフロールと操作権限を確認
-  const config = await settingsService.findByGuildAndCategory(
-    ticket.guildId,
-    ticket.categoryId,
+  // カテゴリの設定が無い（パネルが削除された）チケットは操作できない旨を返信する
+  const config = await findTicketConfigOrReply(
+    interaction,
+    ticket,
+    settingsService,
   );
-  const staffRoleIds: string[] = config ? config.staffRoleIds : [];
+  if (!config) return;
+  const staffRoleIds: string[] = config.staffRoleIds;
   const memberRoleIds = getMemberRoleIds(interaction);
 
   if (
@@ -229,11 +233,14 @@ async function handleOpen(interaction: ButtonInteraction): Promise<void> {
   }
 
   // スタッフロールと操作権限を確認
-  const config = await settingsService.findByGuildAndCategory(
-    ticket.guildId,
-    ticket.categoryId,
+  // カテゴリの設定が無い（パネルが削除された）チケットは操作できない旨を返信する
+  const config = await findTicketConfigOrReply(
+    interaction,
+    ticket,
+    settingsService,
   );
-  const staffRoleIds: string[] = config ? config.staffRoleIds : [];
+  if (!config) return;
+  const staffRoleIds: string[] = config.staffRoleIds;
   const memberRoleIds = getMemberRoleIds(interaction);
 
   if (
@@ -307,11 +314,14 @@ async function handleDelete(interaction: ButtonInteraction): Promise<void> {
   }
 
   // スタッフロール権限を確認（削除はスタッフのみ可能）
-  const config = await settingsService.findByGuildAndCategory(
-    ticket.guildId,
-    ticket.categoryId,
+  // カテゴリの設定が無い（パネルが削除された）チケットは操作できない旨を返信する
+  const config = await findTicketConfigOrReply(
+    interaction,
+    ticket,
+    settingsService,
   );
-  const staffRoleIds: string[] = config ? config.staffRoleIds : [];
+  if (!config) return;
+  const staffRoleIds: string[] = config.staffRoleIds;
   const memberRoleIds = getMemberRoleIds(interaction);
 
   if (!hasStaffRole(memberRoleIds, staffRoleIds)) {
@@ -390,11 +400,14 @@ async function handleDeleteConfirm(
   }
 
   // スタッフロール権限を確認（削除はスタッフのみ可能）
-  const config = await settingsService.findByGuildAndCategory(
-    ticket.guildId,
-    ticket.categoryId,
+  // カテゴリの設定が無い（パネルが削除された）チケットは操作できない旨を返信する
+  const config = await findTicketConfigOrReply(
+    interaction,
+    ticket,
+    settingsService,
   );
-  const staffRoleIds: string[] = config ? config.staffRoleIds : [];
+  if (!config) return;
+  const staffRoleIds: string[] = config.staffRoleIds;
   const memberRoleIds = getMemberRoleIds(interaction);
 
   if (!hasStaffRole(memberRoleIds, staffRoleIds)) {

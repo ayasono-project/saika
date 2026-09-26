@@ -4,7 +4,24 @@ import type { PrismaClient } from "@prisma/client";
 import type { ITicketRepository, Ticket } from "../../../shared/database/types";
 import { tDefault } from "../../../shared/locale/localeManager";
 import { executeWithDatabaseError } from "../../../shared/utils/errorHandling";
-import { TICKET_STATUS } from "../commands/ticketCommand.constants";
+import {
+  TICKET_ELAPSED_DELETE_MS_MAX,
+  TICKET_STATUS,
+} from "../commands/ticketCommand.constants";
+
+/**
+ * 自動削除までの経過時間を、列（int4）に収まる範囲へ切り詰める
+ * 約24.8日を超えてクローズしていたチケットを再オープンすると上限を超え、そのままでは更新が失敗するため。
+ * 切り詰めた分だけ次のクローズ後の自動削除は遅くなるが、消えるべきでない時期に消えることはない
+ * @param elapsedDeleteMs 経過時間（ミリ秒）
+ * @returns 0 以上 TICKET_ELAPSED_DELETE_MS_MAX 以下の整数
+ */
+function toStorableElapsedDeleteMs(elapsedDeleteMs: number): number {
+  return Math.min(
+    TICKET_ELAPSED_DELETE_MS_MAX,
+    Math.max(0, Math.floor(elapsedDeleteMs)),
+  );
+}
 
 export class TicketRepository implements ITicketRepository {
   private prisma: PrismaClient;
@@ -148,14 +165,19 @@ export class TicketRepository implements ITicketRepository {
 
   /**
    * チケットを新規作成する
+   * elapsedDeleteMs は列（int4）に収まるよう切り詰めて保存する
    * @param data チケットの作成データ（id, createdAt, updatedAt は自動生成）
    * @returns 作成されたチケット
    */
   async create(
     data: Omit<Ticket, "id" | "createdAt" | "updatedAt">,
   ): Promise<Ticket> {
+    const storable = {
+      ...data,
+      elapsedDeleteMs: toStorableElapsedDeleteMs(data.elapsedDeleteMs),
+    };
     return executeWithDatabaseError(
-      () => this.prisma.ticket.create({ data }),
+      () => this.prisma.ticket.create({ data: storable }),
       tDefault("ticket:log.database_ticket_create_failed", {
         guildId: data.guildId,
         categoryId: data.categoryId,
@@ -165,13 +187,21 @@ export class TicketRepository implements ITicketRepository {
 
   /**
    * チケットを更新する
+   * elapsedDeleteMs を含む場合は、列（int4）に収まるよう切り詰めて保存する
    * @param id チケットID
    * @param data 更新データ
    * @returns 更新後のチケット
    */
   async update(id: string, data: Partial<Ticket>): Promise<Ticket> {
+    const storable =
+      data.elapsedDeleteMs === undefined
+        ? data
+        : {
+            ...data,
+            elapsedDeleteMs: toStorableElapsedDeleteMs(data.elapsedDeleteMs),
+          };
     return executeWithDatabaseError(
-      () => this.prisma.ticket.update({ where: { id }, data }),
+      () => this.prisma.ticket.update({ where: { id }, data: storable }),
       tDefault("ticket:log.database_ticket_update_failed", { id }),
     );
   }
@@ -183,6 +213,24 @@ export class TicketRepository implements ITicketRepository {
   async delete(id: string): Promise<void> {
     await executeWithDatabaseError(
       () => this.prisma.ticket.delete({ where: { id } }),
+      tDefault("ticket:log.database_ticket_delete_failed", { id }),
+    );
+  }
+
+  /**
+   * クローズ済みのときだけチケットを削除する（自動削除用）
+   * 状態の確認と削除を1回のクエリで行い、読んでから消すまでの間に再オープンされても消さない
+   * @param id チケットID
+   * @returns 削除した場合は true（再オープン済み・存在しない場合は false）
+   */
+  async deleteIfClosed(id: string): Promise<boolean> {
+    return executeWithDatabaseError(
+      async () => {
+        const result = await this.prisma.ticket.deleteMany({
+          where: { id, status: TICKET_STATUS.CLOSED },
+        });
+        return result.count > 0;
+      },
       tDefault("ticket:log.database_ticket_delete_failed", { id }),
     );
   }

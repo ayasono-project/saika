@@ -13,6 +13,7 @@ import {
 } from "../../../../bot/services/botCompositionRoot";
 import { createErrorEmbed } from "../../../../bot/utils/messageResponse";
 import { tInteraction } from "../../../../shared/locale/localeManager";
+import { findTicketConfigOrReply } from "../../services/ticketGuards";
 import { hasStaffRole } from "../../services/ticketService";
 import { TICKET_CUSTOM_ID } from "../ticketCommand.constants";
 
@@ -44,11 +45,14 @@ export async function handleTicketDelete(
   }
 
   // 設定を取得してスタッフロールを解析
-  const config = await settingsService.findByGuildAndCategory(
-    ticket.guildId,
-    ticket.categoryId,
+  // カテゴリの設定が無い（パネルが削除された）チケットは操作できない旨を返信する
+  const config = await findTicketConfigOrReply(
+    interaction,
+    ticket,
+    settingsService,
   );
-  const staffRoleIds: string[] = config ? config.staffRoleIds : [];
+  if (!config) return;
+  const staffRoleIds: string[] = config.staffRoleIds;
 
   // 権限チェック（スタッフロールのみ）
   const memberRoleIds = Array.from(

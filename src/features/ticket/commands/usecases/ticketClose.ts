@@ -14,6 +14,7 @@ import {
   tInteraction,
 } from "../../../../shared/locale/localeManager";
 import { logger } from "../../../../shared/utils/logger";
+import { findTicketConfigOrReply } from "../../services/ticketGuards";
 import { closeTicket, hasTicketPermission } from "../../services/ticketService";
 import { TICKET_STATUS } from "../ticketCommand.constants";
 
@@ -64,11 +65,14 @@ export async function handleTicketClose(
   }
 
   // 設定を取得してスタッフロールを解析
-  const config = await settingsService.findByGuildAndCategory(
-    ticket.guildId,
-    ticket.categoryId,
+  // カテゴリの設定が無い（パネルが削除された）チケットは操作できない旨を返信する
+  const config = await findTicketConfigOrReply(
+    interaction,
+    ticket,
+    settingsService,
   );
-  const staffRoleIds: string[] = config ? config.staffRoleIds : [];
+  if (!config) return;
+  const staffRoleIds: string[] = config.staffRoleIds;
 
   // 権限チェック（作成者またはスタッフロール）
   const memberRoleIds = Array.from(

@@ -3,7 +3,10 @@
 import { Events } from "discord.js";
 import { restoreBumpRemindersOnStartup } from "../../features/bump-reminder/handlers/bumpReminderStartup";
 import { initGuildInviteCache } from "../../features/member-log/handlers/inviteTracker";
-import { syncTicketsOnStartup } from "../../features/ticket/services/ticketChannelSync";
+import {
+  syncGuildTicketsOnAvailable,
+  syncTicketsOnStartup,
+} from "../../features/ticket/services/ticketChannelSync";
 import {
   resolveUnverifiedKickSchedule,
   runUnverifiedKickDailyCheck,
@@ -24,6 +27,8 @@ import {
 
 /**
  * clientReady 発火時の初期化後処理をまとめて実行する関数
+ * @param client Bot クライアント
+ * @returns 実行完了を示す Promise
  */
 export async function handleClientReady(client: BotClient): Promise<void> {
   try {
@@ -85,6 +90,13 @@ export async function handleClientReady(client: BotClient): Promise<void> {
     await cleanupVcAutoRecruitOnStartup(client);
     // 停止中に消されたチャンネルのチケットを片付けてから、クローズ済みチケットの自動削除タイマーを復元
     await syncTicketsOnStartup(client, getBotTicketRepository());
+    // 再 IDENTIFY で戻ったとき（guildAvailable）にも、そのギルドのチケットを合わせる。切断中に
+    // 消されたチャンネルの channelDelete は再送されないため。起動時の各ギルドの guildAvailable は
+    // clientReady より前に出て、上の syncTicketsOnStartup が済ませているので、二重にならないよう
+    // ここで登録する。失敗は内部でログに残すだけなので待たずに投げる
+    client.on(Events.GuildAvailable, (guild) => {
+      void syncGuildTicketsOnAvailable(guild, getBotTicketRepository());
+    });
 
     // 未承認ユーザー自動キックのスイープを登録（毎時・per-guild timezone/runHour で絞り込み）
     // UNVERIFIED_KICK_CRON が設定されていれば検証用にスケジュールを上書きする

@@ -196,6 +196,11 @@ function createInMemoryTicketRepository(): ITicketRepository {
     delete: vi.fn(async (id) => {
       tickets.delete(id);
     }),
+    deleteIfClosed: vi.fn(async (id) => {
+      if (tickets.get(id)?.status !== "closed") return false;
+      tickets.delete(id);
+      return true;
+    }),
     deleteByCategory: vi.fn(async (guildId, categoryId) => {
       let count = 0;
       for (const [key, ticket] of tickets.entries()) {

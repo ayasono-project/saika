@@ -7,7 +7,6 @@ import {
   buildKickNotification,
   buildPreviewEmbedPages,
   buildWarnNotification,
-  formatUnverifiedKickMessage,
 } from "@/features/unverified-kick/services/unverifiedKickNotifier";
 import type { GuildTFunction } from "@/shared/locale/helpers";
 
@@ -42,20 +41,6 @@ describe("unverified-kick/notifier", () => {
   // t の呼び出し履歴（引数検証用）をテスト間で共有させない
   beforeEach(() => {
     vi.mocked(t).mockClear();
-  });
-
-  describe("formatUnverifiedKickMessage", () => {
-    it("単一波括弧プレースホルダーを置換する", () => {
-      expect(
-        formatUnverifiedKickMessage("{serverName} あと {remainingDays} 日", {
-          serverName: "彩園",
-          remainingDays: 2,
-        }),
-      ).toBe("彩園 あと 2 日");
-    });
-    it("未知のプレースホルダーはそのまま残す", () => {
-      expect(formatUnverifiedKickMessage("{unknown}", {})).toBe("{unknown}");
-    });
   });
 
   describe("buildDmMessage", () => {

@@ -161,6 +161,14 @@ VAC を残す判断（→「VAC（トリガー VC 方式）は残し、募集は
 
 > 詳細な作業経過は git log を参照。
 
+### カスタム文面の `$&` 等が展開されていた（2026-09-26 develop merge）
+
+2026-09-23 に依存更新の調査で発見。メンバーログ（`formatCustomMessage`）と VC自動募集（`formatInviteMessage`）が、プレースホルダーを `String.replace` の**文字列置換形式**で埋めていたため、表示名・VC 名・サーバー名に `$&` / `` $` `` / `$'` / `$$` が入ると特殊置換として展開されていた。例: 表示名 `a$&b` で `{userName} が {serverName} に参加` → `a{userName}b が … に参加…` のように壊れる。表示名は本人、サーバー名は管理者が自由に付けられるので、公開 Bot では外から到達する。
+
+**同じ処理が3箇所にあった。** 未承認キックの `formatUnverifiedKickMessage` は関数形式で正しく書かれていたので、これを `src/shared/utils/formatPlaceholders.ts` へ移して3機能で共用にした。移すときに、判定が `key in vars` だったため `{constructor}` 等でプロトタイプ上の関数が文字列化されて出る穴も見つかり、`Object.hasOwn` にして塞いだ。値の側の `$` をエスケープする案は採らなかった（書き方を関数形式にそろえるほうが、同じ漏れが二度と起きない）。IMPLEMENTATION_GUIDELINES に「利用者が書く文面の置換は `formatPlaceholders()` を使う」と書いた。
+
+> i18next 26.4.2 も同種の不具合（補間値の `$&` 展開）を直しているが、こちらはリポジトリ自前の `String.replace` なので i18next の更新では直らなかった。
+
 ### `/bump-reminder-settings disable` が予約を取り消していなかった（2026-09-26 develop merge）
 
 2026-08-20 の棚卸しで発見。disable が `cancelReminder(guildId)` を呼んでいたが、予約は常に `"guildId:serviceName"` の複合キーで登録されるため完全一致で1件も当たらず、タイマーも DB の `pending` も残っていた。`f79d703` で reset 系3経路は `cancelAllForGuild` に差し替えていたのに、disable だけ取り残されていた。`cancelAllForGuild(guildId)` に差し替えた。

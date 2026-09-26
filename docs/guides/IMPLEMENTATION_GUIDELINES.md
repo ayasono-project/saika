@@ -45,7 +45,8 @@
 - Bot/Web 両方で再利用する横断実装のみ配置し、`bot` / `features` / `web` へ逆依存しない
 - **`database/types/`**: エンティティ・リポジトリインターフェースの唯一の定義場所
 - **`scheduler/`**: JobScheduler（saika 固有だが横断利用のため shared に維持）
-- **`config/` / `constants/` / `errors/` / `locale/` / `utils/`**: 環境変数・定数・エラー・i18n・ユーティリティ（`serviceFactory.ts`・`errorHandling.ts`・`ttlMap.ts` 等）
+- **`config/` / `constants/` / `errors/` / `locale/` / `utils/`**: 環境変数・定数・エラー・i18n・ユーティリティ（`serviceFactory.ts`・`errorHandling.ts`・`ttlMap.ts`・`formatPlaceholders.ts` 等）
+  - 利用者が書く文面の `{name}` プレースホルダーは **`formatPlaceholders()` で置換する**。`String.prototype.replace` に置換値を文字列で渡すと、表示名などに含まれる `$&` / `$'` 等が特殊置換として展開されて文面が壊れる
 
 #### settingsService 経由の DB アクセス
 

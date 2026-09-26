@@ -83,6 +83,17 @@ describe("bot/features/member-log/handlers/memberLogUtils", () => {
       );
       expect(result).toBe("固定メッセージ");
     });
+
+    it("ユーザー名・サーバー名に $& 等の特殊置換シーケンスが含まれても展開せずそのまま出すことを確認", () => {
+      const result = formatCustomMessage(
+        "{userName} が {serverName} に参加",
+        "<@444>",
+        "a$&b",
+        3,
+        "c$'d$$",
+      );
+      expect(result).toBe("a$&b が c$'d$$ に参加");
+    });
   });
 
   // formatAccountAge：年・月・日の組み合わせで正しいフォーマット結果を返すことを検証

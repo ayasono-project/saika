@@ -1,6 +1,7 @@
 // メンバーログハンドラー共通のフォーマットユーティリティ
 
 import type { GuildTFunction } from "../../../shared/locale/helpers";
+import { formatPlaceholders } from "../../../shared/utils/formatPlaceholders";
 
 /**
  * カスタムメッセージのプレースホルダーを置換する
@@ -18,12 +19,12 @@ export function formatCustomMessage(
   memberCount: number,
   serverName: string,
 ): string {
-  // {userMention}, {userName}, {memberCount}, {serverName} プレースホルダーを実値へ置換
-  return template
-    .replace(/\{userMention\}/g, user)
-    .replace(/\{userName\}/g, username)
-    .replace(/\{memberCount\}/g, String(memberCount))
-    .replace(/\{serverName\}/g, serverName);
+  return formatPlaceholders(template, {
+    userMention: user,
+    userName: username,
+    memberCount,
+    serverName,
+  });
 }
 
 /**

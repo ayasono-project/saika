@@ -3,7 +3,7 @@
 > 決定の記録。**何を決めたか・何をやらないと決めたか・何を終えたか**を残す。
 > これからやることは [TODO.md](TODO.md) にある。
 
-最終更新: 2026年9月25日
+最終更新: 2026年9月26日
 
 **ここに書くもの**: 再検討が起きたときに判断を復元できない情報（実測値・却下理由・決定の経緯）。
 **ここに書かないもの**: git log やコードを読めば分かること。
@@ -88,7 +88,7 @@ VAC を残す判断（→「VAC（トリガー VC 方式）は残し、募集は
 
 ### export / import は廃止する（2026-08-19 決定）
 
-**遅延削除を採用し、その後 export / import を削除する。**
+**遅延削除を採用し、その後 export / import を削除する。** → 2026-09-26 に削除した（→「完了済み」）。
 
 判断の根拠:
 
@@ -160,6 +160,18 @@ VAC を残す判断（→「VAC（トリガー VC 方式）は残し、募集は
 ## 完了済み
 
 > 詳細な作業経過は git log を参照。
+
+### export / import を削除した（2026-09-26 develop merge）
+
+`/guild-settings export` / `import` と、ダッシュボード「サーバー設定」ページのエクスポート／インポートのカードを削除した。根拠は決定事項「export / import は廃止する」で、待っていた遅延削除が v3.2.0 で入ったため着手した。
+
+- **TODO の「Web API から使われていないのでダッシュボードには波及しない」は誤りだった。** web の `GeneralPage.tsx` に、saika の API を通らない独自のエクスポート（`/config` の2項目だけを JSON にして「全設定を JSON で入出力します」と表示）と、押しても「今後対応予定」と出るだけのインポートボタンがあった。API 側を grep しても見つからない。**機能を消すときは web の画面の文言も検索する**
+- 推移的に参照ゼロになったものも消した: `ITicketRepository.findAllOpenByGuild`（export 専用）、`GuildSettingsAggregateRepository` のコンストラクタ依存（12引数 → `prisma` だけ。残るのは `deleteAllSettings` のみ）、一度も参照されていなかった `DEFAULT_GUILD_LOCALE`（`guildSettingsDefaults.ts` ごと）
+- ⚠️ **AFK のリポジトリは composition root の `getAfkSettingsRepository(prisma)` の副作用でしか初期化されない。** これまでは aggregate のコンストラクタに渡すついでに初期化されていた。戻り値を使わない呼び出しとして残したが、消すと AFK と Web API の afkResource が実行時に `not initialized` で落ち、**typecheck でも test でも検出できない**（composition root はテストもカバレッジ計測もしていない）
+- export が失敗するバグ（データを持つ6ギルド中4ギルドで「設定がありません」）は削除で解消した
+- infra の `DEPLOYMENT.md` §4-5（SQLite→PostgreSQL 切替ランブック）は export/import を使う手順なので、再実行できない記録である旨の注記を入れた。**注記が過去形なので、infra の push はこの削除の本番リリース後にする**
+
+**網羅の根拠**（5観点・13エージェントで残骸を探し、2周回した）: ロケールは ja 1106キーを全件 src の参照と突合（未参照は動的に組み立てるキー2件だけ・ja/en の差分ゼロ）／テストの import・`vi.mock` の指定1940件を実在確認（存在しないパスは0）／機能固有の識別子と日本語の文言（エクスポート・インポート・入出力・バックアップ・復元等）で saika・web・infra・shared を全文検索。テストは 286ファイル・2293件 → 283ファイル・2239件。
 
 ### 退出したサーバーのデータを30日後に削除するようにした（2026-09-25 完了・本番デプロイ済み）
 

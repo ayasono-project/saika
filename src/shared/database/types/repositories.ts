@@ -16,10 +16,6 @@ import type {
   VacSettings,
   VcAutoRecruitSettings,
 } from "./entities";
-import type {
-  FullGuildState,
-  ImportMergePlan,
-} from "./guildSettingsExportTypes";
 import type { GuildReactionRolePanel } from "./reactionRoleTypes";
 import type { StickyEmbedData, StickyMessage } from "./stickyMessageTypes";
 import type { GuildTicketSettings, Ticket } from "./ticketTypes";
@@ -85,15 +81,8 @@ export interface IGuildCoreRepository {
   resetGuildSettings(guildId: string): Promise<void>;
 }
 
-/** 全機能設定の一括取得・インポート・削除（エクスポート/reset-all 用） */
+/** 全機能設定の一括削除（reset-all 用） */
 export interface IGuildSettingsAggregateRepository {
-  getFullSettings(guildId: string): Promise<FullGuildSettings | null>;
-  importFullSettings(guildId: string, data: FullGuildSettings): Promise<void>;
-  /** import 実行前にマージ計画（新規 insert 予定件数）を算出する */
-  planImportMerge(
-    guildId: string,
-    data: FullGuildSettings,
-  ): Promise<ImportMergePlan>;
   deleteAllSettings(guildId: string): Promise<void>;
 }
 
@@ -101,20 +90,6 @@ export interface IGuildSettingsAggregateRepository {
 export interface IBaseGuildRepository
   extends IGuildCoreRepository,
     IGuildSettingsAggregateRepository {}
-
-/** エクスポート/インポート用の全設定統合型 */
-export interface FullGuildSettings {
-  locale: string;
-  errorChannelId?: string;
-  afk?: AfkSettings;
-  bumpReminder?: BumpReminderSettings;
-  vac?: Pick<VacSettings, "enabled" | "triggerChannelIds">;
-  memberLog?: MemberLogSettings;
-  vcAutoRecruit?: VcAutoRecruitSettings;
-  unverifiedKick?: UnverifiedKickSettings;
-  /** stateful データ（チケット設定 / open チケット / スティッキー / リアクションロールパネル / VAC 作成済み VC） */
-  state?: FullGuildState;
-}
 
 export interface IAfkSettingsRepository {
   getAfkSettings(guildId: string): Promise<AfkSettings | null>;
@@ -276,7 +251,6 @@ export interface ITicketRepository {
   ): Promise<Ticket[]>;
   findAllByCategory(guildId: string, categoryId: string): Promise<Ticket[]>;
   findOpenByCategory(guildId: string, categoryId: string): Promise<Ticket[]>;
-  findAllOpenByGuild(guildId: string): Promise<Ticket[]>;
   findAllClosedByGuild(guildId: string): Promise<Ticket[]>;
   create(data: Omit<Ticket, "id" | "createdAt" | "updatedAt">): Promise<Ticket>;
   update(id: string, data: Partial<Ticket>): Promise<Ticket>;

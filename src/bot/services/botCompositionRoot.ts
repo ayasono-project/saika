@@ -237,7 +237,8 @@ export function initializeBotCompositionRoot(
   // スタンドアロンリポジトリ群
   const guildCoreRepo = getGuildCoreRepository(prisma);
   const guildRegistryRepo = getGuildRegistryRepository(prisma);
-  const afkRepo = getAfkSettingsRepository(prisma);
+  // AFK は getAfkSettingsService() が引数なしでリポジトリを取るため、ここで PrismaClient を渡して初期化しておく
+  getAfkSettingsRepository(prisma);
   const bumpReminderSettingsRepo = getBumpReminderSettingsRepository(prisma);
   const vacRepo = getVacSettingsRepository(prisma);
   const vcAutoRecruitRepo = getVcAutoRecruitSettingsRepository(prisma);
@@ -249,21 +250,8 @@ export function initializeBotCompositionRoot(
   const ticketSettingsRepository = getTicketSettingsRepository(prisma);
   const ticketRepository = getTicketRepository(prisma);
 
-  // 一括操作リポジトリ（各スタンドアロンリポジトリを集約）
-  const aggregateRepo = new GuildSettingsAggregateRepository(
-    guildCoreRepo,
-    afkRepo,
-    bumpReminderSettingsRepo,
-    vacRepo,
-    memberLogRepo,
-    vcAutoRecruitRepo,
-    unverifiedKickRepo,
-    stickyMessageRepository,
-    reactionRolePanelRepository,
-    ticketSettingsRepository,
-    ticketRepository,
-    prisma,
-  );
+  // 一括操作リポジトリ（reset-all 用）
+  const aggregateRepo = new GuildSettingsAggregateRepository(prisma);
 
   // LocaleManager にコアリポジトリを設定
   localeManager.setRepository(guildCoreRepo);

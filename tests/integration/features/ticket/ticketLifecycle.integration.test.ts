@@ -163,15 +163,6 @@ function createInMemoryTicketRepository(): ITicketRepository {
       }
       return results;
     }),
-    findAllOpenByGuild: vi.fn(async (guildId) => {
-      const results: Ticket[] = [];
-      for (const ticket of tickets.values()) {
-        if (ticket.guildId === guildId && ticket.status === "open") {
-          results.push(ticket);
-        }
-      }
-      return results;
-    }),
     findAllClosedByGuild: vi.fn(async (guildId) => {
       const results: Ticket[] = [];
       for (const ticket of tickets.values()) {

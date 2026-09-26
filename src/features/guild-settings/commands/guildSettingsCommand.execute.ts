@@ -4,8 +4,6 @@ import { ValidationError } from "@ayasono/shared/core";
 import { type ChatInputCommandInteraction } from "discord.js";
 import { COMMON_I18N_KEYS } from "../../../bot/shared/i18nKeys";
 import { ensureManageGuildPermission } from "../../../bot/shared/permissionGuards";
-import { handleExport } from "./guildSettingsCommand.export";
-import { handleImport } from "./guildSettingsCommand.import";
 import { handleReset } from "./guildSettingsCommand.reset";
 import { handleResetAll } from "./guildSettingsCommand.resetAll";
 import { handleSetErrorChannel } from "./guildSettingsCommand.setErrorChannel";
@@ -18,8 +16,6 @@ const SUBCOMMAND = {
   VIEW: "view",
   RESET: "reset",
   RESET_ALL: "reset-all",
-  EXPORT: "export",
-  IMPORT: "import",
 } as const;
 
 /**
@@ -54,12 +50,6 @@ export async function executeGuildSettingsCommand(
       break;
     case SUBCOMMAND.RESET_ALL:
       await handleResetAll(interaction, guildId);
-      break;
-    case SUBCOMMAND.EXPORT:
-      await handleExport(interaction, guildId);
-      break;
-    case SUBCOMMAND.IMPORT:
-      await handleImport(interaction, guildId);
       break;
     default:
       throw ValidationError.fromKey(COMMON_I18N_KEYS.INVALID_SUBCOMMAND);

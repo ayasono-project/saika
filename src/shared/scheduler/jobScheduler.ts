@@ -141,13 +141,14 @@ export class JobScheduler {
    * @param id ジョブID
    * @param delayMs 実行までの遅延時間（ミリ秒）。0以下は即時実行。NaN・±Infinity は登録を拒否し、既存の同IDジョブもそのまま残す
    * @param task 実行するタスク
-   * @param options quiet を立てると同ID置換時の warn を抑止する（デバウンス用途）
+   * @param options quiet を立てると同ID置換時の warn を抑止する（デバウンス用途）。
+   * scheduledLogLevel に "debug" を渡すと予約完了のログを debug で出す（同じジョブを定期的に張り直す再試行用途）
    */
   public addOneTimeJob(
     id: string,
     delayMs: number,
     task: () => Promise<void> | void,
-    options?: { quiet?: boolean },
+    options?: { quiet?: boolean; scheduledLogLevel?: "info" | "debug" },
   ): void {
     // 有限でない遅延は発火時刻が決まらない。setTimeout に渡すと Node は 1ms で発火させ、
     // チケットの自動削除のようにデータを消すジョブが即座に走るため、登録自体を拒否する
@@ -171,13 +172,16 @@ export class JobScheduler {
     // setTimeout ベースの one-time 実行を登録（上限超えは区切って張り直す）
     this.armOneTimeTimer(id, safeDelay, task);
 
-    logger.info(
-      logPrefixed(
-        "system:log_prefix.scheduler",
-        "system:scheduler.job_scheduled",
-        { jobId: id },
-      ),
+    const scheduledMessage = logPrefixed(
+      "system:log_prefix.scheduler",
+      "system:scheduler.job_scheduled",
+      { jobId: id },
     );
+    if (options?.scheduledLogLevel === "debug") {
+      logger.debug(scheduledMessage);
+    } else {
+      logger.info(scheduledMessage);
+    }
   }
 
   /**

@@ -1,5 +1,8 @@
 // チケットチャンネル機能のコマンド定数
 
+// discord.js は型だけを使う（API から動的 import される定数ファイルなので、実行時の依存を持たせない）
+import type { PermissionsString } from "discord.js";
+
 export const TICKET_COMMAND = {
   NAME: "ticket",
   SUBCOMMAND: {
@@ -105,3 +108,34 @@ export const TICKET_ELAPSED_DELETE_MS_MAX = 2_147_483_647;
 
 /** デフォルト同時チケット上限 */
 export const TICKET_DEFAULT_MAX_TICKETS_PER_USER = 1;
+
+/**
+ * Bot がチケットのチャンネルを扱う（通知を送る・履歴から前回の通知を探す）のに要る、チャンネルでの権限
+ * createTicketChannel が Bot 自身へのメンバーの上書きで許可するものと同じ。@everyone の「チャンネルを見る」を
+ * 拒否しているため、この上書きが無いと Administrator の無い Bot はチャンネルを見られない。
+ * Bot をサーバーから外すと Discord がこの上書きを消すので、入れ直した後は、それより前に作った
+ * チケットのチャンネルでこれらが欠ける（管理者が付け直すまで操作できない）
+ */
+export const TICKET_CHANNEL_BOT_PERMISSIONS: readonly PermissionsString[] = [
+  "ViewChannel",
+  "SendMessages",
+  "ReadMessageHistory",
+  "EmbedLinks",
+];
+
+/**
+ * Bot がチケットのチャンネルを削除するのに要る、チャンネルでの権限
+ * 扱うための権限（TICKET_CHANNEL_BOT_PERMISSIONS）に「チャンネルの管理」を足したもの。「チャンネルの管理」は
+ * Bot のロールで持つ（createTicketChannel は上書きで付けない）ため、ロールから外されたり、チャンネルの権限で
+ * 拒否されたりすると欠ける。確かめずに記録を消すと、チャンネルの削除だけが失敗して記録の無いチャンネルが残る
+ */
+export const TICKET_CHANNEL_BOT_DELETE_PERMISSIONS: readonly PermissionsString[] =
+  [...TICKET_CHANNEL_BOT_PERMISSIONS, "ManageChannels"];
+
+/**
+ * 自動削除を保留したとき（Bot がチャンネルを扱えない・削除の権限が無い・ギルドを取得できない）に、
+ * 同じジョブIDで予約し直すまでの時間（1時間）
+ * 単発のジョブは発火時にスケジューラーから消えるため、予約し直さないと、管理者が権限を付け直しても
+ * 次の再起動・再接続・再導入まで削除されない
+ */
+export const TICKET_AUTO_DELETE_HOLD_RETRY_MS: number = 60 * 60 * 1000;

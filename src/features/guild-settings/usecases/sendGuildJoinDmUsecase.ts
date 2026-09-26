@@ -10,6 +10,7 @@ import {
 import { logger } from "../../../shared/utils/logger";
 import { GUILD_DELETION_GRACE_DAYS } from "../constants/guildSettings.constants";
 import {
+  addInaccessibleTicketChannelsField,
   buildGuildJoinIntroDm,
   buildGuildJoinReturnDm,
   type GuildJoinDmTranslators,
@@ -42,13 +43,18 @@ const LOG_PREFIX = "system:log_prefix.guild_create";
  * になり `guildCreate` が飛ばない。親行と予約は照合が直すが、照合からは DM を送らない。
  * 送ると、初回リリースで設定の無い既存ギルドにも照合が親行を作るため、全オーナーへの
  * 一斉送信になる。
+ *
+ * Bot が扱えないチケットのチャンネルがあり、エラー通知チャンネルでは知らせられなかったときは、
+ * その件数と付け直す手順の欄を足す（`addInaccessibleTicketChannelsField`）。
  * @param guild 参加したギルド
  * @param cancelledDeletionAt 取り消した削除予定時刻（null なら新規導入として扱う）
+ * @param inaccessibleTicketCount エラー通知チャンネルで知らせられなかった、Bot が扱えないチケットのチャンネルの件数（0 なら欄を出さない）
  * @returns 実行完了を示す Promise
  */
 export async function sendGuildJoinDmUsecase(
   guild: Guild,
   cancelledDeletionAt: Date | null,
+  inaccessibleTicketCount = 0,
 ): Promise<void> {
   try {
     // i18next 側の型より実運用側（全NSキー許容）が広いため型を合わせる
@@ -64,6 +70,9 @@ export async function sendGuildJoinDmUsecase(
           privacyPolicyUrl: env.PRIVACY_POLICY_URL,
           supportServerUrl: env.SUPPORT_SERVER_URL,
         });
+    if (inaccessibleTicketCount > 0) {
+      addInaccessibleTicketChannelsField(embed, t, inaccessibleTicketCount);
+    }
 
     const owner = await guild.fetchOwner();
     await owner.send({ embeds: [embed] });

@@ -65,6 +65,13 @@ export const guildSettings = {
   "embed.description.join_return":
     "おかえりなさい。このサーバーのデータは **{{deleteAt}}** に自動削除される予定でしたが、再導入を検知したため削除を取り消し、以前のデータを引き継ぎました。",
 
+  // ── embed: inaccessible_ticket_channels（導入・再導入 DM に足す欄） ──
+  // エラー通知チャンネルへ届けられなかったときだけ載せる（キックで Bot のロールも消え、入れないことがあるため）
+  "embed.field.name.inaccessible_ticket_channels":
+    "Bot が扱えないチケットのチャンネル",
+  "embed.field.value.inaccessible_ticket_channels":
+    "Bot を外したときに Discord が Bot の権限を消したため、入れ直す前に作ったチケットのチャンネル **{{count}}件** を Bot が扱えなくなっています（エラー通知チャンネルが未設定か、そこへ送れなかったため、DM でお知らせします）。各チャンネルの「チャンネルの編集」→「権限」で Bot を追加し、「チャンネルを見る」「メッセージを送信」「埋め込みリンク」「メッセージ履歴を読む」を許可してください（カテゴリの権限を変えても反映されません）。エラー通知チャンネルやログなど、Bot 用に権限を付けていた非公開チャンネルも、同じく付け直しが必要です。",
+
   // ── UIラベル ──────────────────────────────────
   "ui.button.reset_all_confirm": "リセットする",
   "ui.button.reset_all_cancel": "キャンセル",

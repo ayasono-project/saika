@@ -352,6 +352,21 @@ describe("shared/scheduler/jobScheduler", () => {
     expect(scheduler.hasJob("once-a")).toBe(false);
   });
 
+  // 定期的に張り直す再試行（チケットの自動削除の保留）で、予約のたびに info が並ばないことを検証
+  it("scheduledLogLevel に debug を渡すと、予約完了のログを info ではなく debug で出す", () => {
+    scheduler.addOneTimeJob("retry-job", 1000, vi.fn(), {
+      scheduledLogLevel: "debug",
+    });
+
+    expect(logger.info).not.toHaveBeenCalledWith(
+      expect.stringContaining("system:scheduler.job_scheduled"),
+    );
+    expect(logger.debug).toHaveBeenCalledWith(
+      expect.stringContaining("system:scheduler.job_scheduled"),
+    );
+    scheduler.removeJob("retry-job");
+  });
+
   // setTimeout の上限（2^31-1 ms・約24.8日）を超える遅延を、区切って張り直して正しく待つことを検証する。
   // fake timers も Node と同じく上限超えを 1ms に切り詰めるため、上限をそのまま渡すと即時に発火して落ちる
   describe("addOneTimeJob（setTimeout の上限を超える遅延）", () => {

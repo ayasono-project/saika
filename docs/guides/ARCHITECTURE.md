@@ -159,7 +159,7 @@ Bot の招待時は **Administrator は要求せず、最小権限セット**を
 | guildMemberUpdate | 未承認自動キックの対象ロール解除の検知                       |
 | channelDelete     | 削除チャンネル関連設定のクリーンアップ（チケットチャンネルならチケットの記録と自動削除タイマーも消す） |
 | roleDelete        | 削除ロールの Bump リマインダー設定除去                       |
-| guildCreate       | 参加ログ・**親レコード（`guilds`）の作成と削除予約の取り消し**・稼働サーバー数のプレゼンス更新・**オーナーへの導入／再導入 DM**（日英併記・送信失敗は握りつぶす）・**チケットの同期**（止めていた自動削除タイマーの組み直しと、不在中に消されたチャンネルのチケットの片付け） |
+| guildCreate       | 参加ログ・**親レコード（`guilds`）の作成と削除予約の取り消し**・稼働サーバー数のプレゼンス更新・**チケットの同期**（止めていた自動削除タイマーの組み直しと、不在中に消されたチャンネルのチケットの片付け。Bot が扱えないチケットのチャンネルがあれば、エラー通知チャンネルに1回知らせる）・**オーナーへの導入／再導入 DM**（日英併記・送信失敗は握りつぶす。チケットの同期の後に送り、扱えないチケットをエラー通知チャンネルへ知らせられなかったときは、その件数と付け直す手順を再導入 DM に載せる。→ [Bot がチケットのチャンネルを扱えないとき](#bot-がチケットのチャンネルを扱えないとき入れ直した後の古いチケット)） |
 | guildDelete       | Bot 退出時のジョブ停止（`stopGuildJobsUsecase` 経由。Bump リマインダーの予約は DB でも `cancelled` にする）＋**猶予後のデータ削除の予約** |
 | guildAvailable    | 再接続（再 IDENTIFY）でギルドが戻ったときの**チケットの同期**（`syncGuildTicketsOnAvailable`）。`src/bot/events/` ではなく、`clientReady` の処理の中で起動時のチケット同期（`syncTicketsOnStartup`）の後に登録する（起動時の各ギルドの `guildAvailable` は `clientReady` より前に出て、起動時の同期が済ませるため） |
 
@@ -453,10 +453,29 @@ Bot 起動
 
 チケットの自動削除は `jobScheduler.addOneTimeJob` の one-time ジョブで、残り時間は `computeAutoDeleteRemainingMs`（自動削除日数 − クローズしていた時間の累計 `elapsedDeleteMs` − 今回クローズしてからの経過）で求めます。
 
-- **発火時に記録と設定を読み直す。** 記録が無いかクローズ済みでなければ何もしない（予約の後に削除・再オープンされた場合）。カテゴリの設定が無ければ削除せず保留する
+- **発火時に記録と設定を読み直す。** 記録が無いかクローズ済みでなければ何もしない（予約の後に削除・再オープンされた場合）。カテゴリの設定が無ければ削除せず保留する（再試行はせず、パネルの再設置で再開する。次の箇条）。Bot がチャンネルを削除できない（`TICKET_CHANNEL_BOT_DELETE_PERMISSIONS` で判定する。下の「Bot がチケットのチャンネルを扱えないとき」）か、ギルドを取得できなければ、記録を消さずに保留し、1時間後（`TICKET_AUTO_DELETE_HOLD_RETRY_MS`）に再試行する（扱えるようになるまで1時間ごと）。ログは最初の保留だけ warn、再試行での保留は debug
 - **設定（パネル）が無いカテゴリのチケットは凍結する。** パネル設置チャンネル・パネルメッセージの削除や Web API の `DELETE /tickets/:id` では設定だけを消し、チケットのチャンネルと記録は残す。設定が無いとスタッフロールも自動削除日数も分からないので、Bot からのクローズ・再オープン・削除は `ticketGuards.findTicketConfigOrReply` で理由を返して止め、自動削除も保留する。パネル削除と同時にチケットを消す案は、パネル設置チャンネルを誤って消しただけで会話履歴が全部消えるため採らない。出口は2つで、同じカテゴリにパネルを作り直す（`/ticket-settings setup` の完了時と Web API の `POST /tickets` で `resumeAutoDeleteForCategory` が予約し直す。期限を過ぎていればすぐ削除）か、チャンネルを直接消す（`channelDelete` で記録も片付く）
 - **組み直しは `restoreAutoDeleteTimersForGuild` に集約する。** 起動時・猶予内の再導入・再接続（`guildAvailable`）・パネルの再設置から呼ぶ。起動時・再導入・再接続では、既に予約があるチケットは組み直さない（再接続のたびに同じ予約を張り直して scheduler の warn が大量に出るのを防ぐ）。パネルの再設置（`resumeAutoDeleteForCategory`）だけは `replaceExisting` で既存の予約も置き換え、作り直した設定の日数と closedAt から計算し直す（置き換えの warn は quiet で抑える）。残っている予約は作り直す前の日数で計算されており、そのままにすると途中の再起動の有無で消える時期が変わるため
 - **経過時間の累計は保存時に int4 の上限（2^31-1 ms）で切り詰める**（`TicketRepository.create` / `update`。約24.8日を超えてクローズしていたチケットの再オープンで更新が失敗しないように）。切り詰めた分だけ次のクローズ後の自動削除は遅くなるが、早まることはない
+
+### Bot がチケットのチャンネルを扱えないとき（入れ直した後の古いチケット）
+
+`createTicketChannel` は、@everyone の「チャンネルを見る」を拒否し、Bot 自身へのメンバーの上書きで `TICKET_CHANNEL_BOT_PERMISSIONS`（ViewChannel / SendMessages / ReadMessageHistory / EmbedLinks）を許可する。**Bot をキックすると Discord はこの上書きを消す**ので、30日以内に入れ直すと（データは残る）、Administrator の無い Bot は、それ以前に作ったチケットのチャンネルを見られない（2026-09-26 実機で確認: キック前に作ったチャンネルの上書きに Bot の ID が無い）。見えないチャンネルの上書きは Bot 自身では直せない（ViewChannel が無いと他の権限もすべて無い扱い）ので、管理者が付け直すしかない。カテゴリの上書きは同期していないチャンネルには効かないため、付け直しはチャンネルごとになる。同じ理由で、エラー通知チャンネルやログなど、管理者が Bot 用に権限を付けていた非公開チャンネルもキックで上書きが消え、付け直しが要る。
+
+判定に使う権限は2組ある。クローズ・再オープンは `TICKET_CHANNEL_BOT_PERMISSIONS` の4つ、削除（削除ボタン・`/ticket delete`・自動削除・撤去）はそれに ManageChannels を加えた `TICKET_CHANNEL_BOT_DELETE_PERMISSIONS`（以下「削除用の組」）。ManageChannels は昇格ビットなのでチャンネルの上書きには含めず、ギルド全体の権限（ロール）で持つ（→ [Bot パーミッション](#bot-パーミッション)）。招待リンクの権限に含まれるので入れ直せば戻るが、招待時に外されたり、Bot のロールから外されたり、チャンネルの上書きで拒否されたりすると欠ける。
+
+以前は、この状態で再オープンすると「タイマーを取り消す → 上書きの変更に黙って失敗 → 記録をオープンにする → 通知の送信が 50001 Missing Access で失敗」となり、**記録はオープン・タイマーは取り消し済み・チャンネルはクローズのまま**の食い違いが残った。これを次の4点で防ぐ。
+
+- **判定は `ticketChannelAccess` に集約する。** `getTicketChannelAccess` が `guild.channels.fetch(id)` と `permissionsFor(me)` で `handleable` / `missing` / `inaccessible` を返す。求める権限は引数で渡し（省略時は `TICKET_CHANNEL_BOT_PERMISSIONS`、削除の経路は削除用の組）、`inaccessible` には理由を付ける。扱う4つのどれかが欠ける（または確かめられない）なら `channel_permissions`、4つはあって ManageChannels だけが欠けるなら `manage_channels`（4つが欠けていれば、ManageChannels を足しても扱えないので先にそちらを案内する）。取得の失敗は、Discord が Unknown Channel（10003）を返したときだけ `missing` とし、それ以外（Missing Access・一時的な失敗）は `inaccessible` にする（無いと誤判定して記録を消さないため）。Bot 自身のメンバーが取れないときも `inaccessible`
+- **操作の前に確かめる。** クローズ・再オープン・削除のコマンド（`/ticket close|open|delete`）とボタン（close / open / delete / delete-confirm）は、操作者の権限を確かめた（`ticketGuards.canOperateTicketOrReply`。作成者はクローズ・再オープンだけ、スタッフロールか管理者権限を持つメンバーは削除も）後に `ticketGuards.findHandleableTicketChannelOrReply` を呼び、扱えなければ「Bot権限不足」で理由と対処（付け直す4つの権限）を本人にだけ返して、何も変えない。削除（delete / delete-confirm と `/ticket delete`）は削除用の組で確かめ、理由が `manage_channels` のときは、付け直しではなく「Bot のロールに『チャンネルの管理』を付けるか、このチャンネルの権限設定で拒否していないか確認する」よう案内する（キックとは関係なく起きるため。案内のキーは `toBotChannelAccessMessageKey` が理由から選ぶ）。`closeTicket` / `reopenTicket` / `deleteTicket` 自身も、状態を変える前に同じ確認をして `ValidationError` で止める（呼び出し元の確認をすり抜けても食い違いを残さないため）。`deleteTicket` はチャンネルが無いと確定したとき（`missing`）だけ、記録とタイマーの片付けに進む
+- **クローズ・再オープンは、チャンネルの操作を先に行う。** 「通知を送る → 記録を更新する（失敗したら送った通知を消す。`sendNotificationThenUpdate`）→ タイマーを予約／取り消す → 作成者・スタッフの送信の上書きを変える → 前回の通知を消す」の順。失敗しやすいのはチャンネルの操作なので、そこで失敗すれば何も変わっていない。タイマーは記録を変えた後に触る（再オープンで先に取り消すと、記録の更新に失敗したときにクローズのまま自動削除されなくなる）
+- **自動削除と撤去は、扱えないチャンネルを残して記録だけ消すことをしない。** どちらも削除用の組で判定する（ManageChannels だけが欠ける場合も同じ扱い）。`executeAutoDelete` は `inaccessible`（とギルドを取得できないとき）には記録を消さずに保留し、同じジョブ ID で1時間後（`TICKET_AUTO_DELETE_HOLD_RETRY_MS`）に予約し直す（扱えるようになるまで1時間ごと）。単発のジョブは発火時にスケジューラーから消えるので、予約し直さないと、管理者が付け直しても次の再起動・再接続・再導入まで消えないため。管理者が付け直すと、期限を過ぎていたクローズ済みチケットは1時間以内に消える（再試行の時刻は付け直した時刻と関係ないため、残したければチャンネルごとに付け直してすぐ再オープンする）。再起動や退出で再試行の予約が消えても、起動時・再導入の組み直し（`restoreAutoDeleteTimersForGuild`）が予約し直す（期限を過ぎていればすぐ発火し、扱えなければまた保留する）。保留のログは、最初だけ warn（`ticket:log.auto_delete_held_channel_inaccessible`）で、再試行での保留と、再試行の予約（スケジューラーの `job_scheduled`、`scheduledLogLevel: "debug"`）は debug にする（扱えないまま1時間ごとにログが並ばないように）。カテゴリの設定が無いときの保留は、今までどおり再試行しない（パネルの再設置で `resumeAutoDeleteForCategory` が再開する）。撤去（`cleanupTicketSettings`）は、扱えないチャンネルのチケットを飛ばして warn を残す（撤去全体は止めない。記録は `deleteByCategory` で消え、チャンネルは管理者が消す）
+
+**入れ直したときに管理者へ知らせる。** `syncGuildTickets` の突き合わせ（`reconcileTicketChannels`）は、`guild.channels.fetch()`（閲覧権限に関係なく全チャンネルと上書きを返す）と `permissionsFor` で、存在するが Bot が扱えないチケットを集めて warn を出す。`guildCreate`（再導入）のときだけ `notifyInaccessibleChannels` を立て、エラー通知チャンネルへ `notifyWarnChannel` で1回まとめて知らせる（対象のチャンネルは先頭の `TICKET_LIST_MAX_DISPLAY` 件と残りの件数、付け直す手順。文面はサーバーの言語）。
+
+- **同期はオーナー宛 DM より前に行う。** エラー通知チャンネルへ送れたかどうかで DM の中身を決めるため。未設定か、Bot がそこへ送れなかったときは、扱えないチケットの件数と付け直す手順を再導入 DM（日英併記）に載せる。管理者専用のエラー通知チャンネルは、キックで Bot への上書きも消えているため送れないことが多く、チャンネルへの通知だけでは管理者に届かないため。どちらの文面にも、エラー通知チャンネルやログなど Bot 用に権限を付けていた非公開チャンネルも付け直しが要ることを書く
+- **`notifyWarnChannel` / `notifyErrorChannel` の送信失敗は warn で残す。** 送れない状態（上書きが消えたエラー通知チャンネル等）にログで気づけるようにするため
+- **起動時・再接続（`guildAvailable`）では通知も DM も出さず、ログだけにする**（毎回出ると騒がしいため）。このため、Bot の停止中に再導入された場合（起動時の同期で拾う）と、切断中に再導入されて `guildCreate` ではなく `guildAvailable` で戻った場合は管理者に知らせない（ログと、クローズ・再オープン・削除を押したときの返信で分かる）
 
 ### ギルド単位の後始末
 

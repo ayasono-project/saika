@@ -4,6 +4,8 @@
  * の一連のフローを統合テストで検証する
  */
 
+import { ValidationError } from "@ayasono/shared/core";
+import { PermissionsBitField, type PermissionsString } from "discord.js";
 import type { Ticket } from "@/shared/database/types";
 
 vi.mock("@/shared/locale/localeManager", () => ({
@@ -224,10 +226,39 @@ function createInMemoryTicketRepository(): ITicketRepository {
   };
 }
 
+/** createTicketChannel が Bot 自身の上書きで許可する権限（チャンネルを扱うのに要る権限） */
+const BOT_CHANNEL_PERMISSIONS: PermissionsString[] = [
+  "ViewChannel",
+  "SendMessages",
+  "ReadMessageHistory",
+  "EmbedLinks",
+];
+
+/**
+ * Bot の通常の権限（上書きで許可する4つと、ロールで持つ「チャンネルの管理」）
+ * チケットの削除には「チャンネルの管理」も要る
+ */
+const BOT_PERMISSIONS_WITH_MANAGE_CHANNELS: PermissionsString[] = [
+  ...BOT_CHANNEL_PERMISSIONS,
+  "ManageChannels",
+];
+
+/**
+ * Bot を外して入れ直した後の、それより前に作ったチケットのチャンネルでの Bot の権限
+ * （Discord が Bot 自身への上書きを消し、@everyone の拒否で「チャンネルを見る」が無い）
+ */
+const PERMISSIONS_AFTER_REINVITE: PermissionsString[] = [
+  "SendMessages",
+  "ReadMessageHistory",
+  "EmbedLinks",
+];
+
 function createMockGuild() {
   const mockChannel = {
     id: "ticket-channel-1",
-    send: vi.fn().mockResolvedValue(undefined),
+    send: vi.fn().mockResolvedValue({
+      delete: vi.fn().mockResolvedValue(undefined),
+    }),
     permissionOverwrites: {
       edit: vi.fn().mockResolvedValue(undefined),
     },
@@ -235,11 +266,15 @@ function createMockGuild() {
       fetch: vi.fn().mockResolvedValue(new Map()),
     },
     delete: vi.fn().mockResolvedValue(undefined),
+    permissionsFor: vi.fn(
+      () => new PermissionsBitField(BOT_PERMISSIONS_WITH_MANAGE_CHANNELS),
+    ),
   };
   return {
     id: "guild-1",
     roles: { everyone: { id: "guild-1" } },
     client: { user: { id: "bot-user-1" } },
+    members: { me: { id: "bot-user-1" }, fetchMe: vi.fn() },
     channels: {
       create: vi.fn().mockResolvedValue(mockChannel),
       fetch: vi.fn().mockResolvedValue(mockChannel),
@@ -424,5 +459,80 @@ describe("ticket lifecycle integration", () => {
     // チャンネルが削除されたことを確認
     expect(guild.channels.fetch).toHaveBeenCalledWith(ticket.channelId);
     expect(guild._mockChannel.delete).toHaveBeenCalled();
+  });
+
+  it("Bot を外して入れ直す前に作ったチケット（Bot の上書きが消えた）は、再オープン・削除を止めて記録もタイマーも変えず、管理者が権限を付け直すと再オープンできる", async () => {
+    await settingsService.create({
+      guildId: "guild-1",
+      categoryId: "cat-1",
+      enabled: true,
+      staffRoleIds: ["role-staff-1"],
+      panelChannelId: "panel-channel-1",
+      panelMessageId: "panel-message-1",
+      panelTitle: "Support",
+      panelDescription: "Click to create a ticket",
+      panelColor: "#00A8F3",
+      autoDeleteDays: 7,
+      maxTicketsPerUser: 3,
+      ticketCounter: 0,
+    });
+    const { ticket } = await createTicketChannel(
+      guild as never,
+      "cat-1",
+      "user-1",
+      "テストチケット",
+      "テストの詳細説明",
+      settingsService as never,
+      ticketRepository as never,
+    );
+    await closeTicket(
+      ticket,
+      guild as never,
+      settingsService as never,
+      ticketRepository as never,
+    );
+    const closedTicket = (await ticketRepository.findById(ticket.id)) as Ticket;
+
+    // Bot をキックして入れ直すと、Discord がチャンネルの Bot 自身への上書きを消す
+    vi.clearAllMocks();
+    guild._mockChannel.permissionsFor.mockReturnValue(
+      new PermissionsBitField(PERMISSIONS_AFTER_REINVITE),
+    );
+
+    await expect(
+      reopenTicket(
+        closedTicket,
+        guild as never,
+        settingsService as never,
+        ticketRepository as never,
+      ),
+    ).rejects.toBeInstanceOf(ValidationError);
+    await expect(
+      deleteTicket(closedTicket, guild as never, ticketRepository as never),
+    ).rejects.toBeInstanceOf(ValidationError);
+
+    // 記録はクローズのまま、タイマーも取り消さず、チャンネルにも触れない
+    expect(await ticketRepository.findById(ticket.id)).toEqual(closedTicket);
+    expect(cancelTicketAutoDeleteMock).not.toHaveBeenCalled();
+    expect(guild._mockChannel.send).not.toHaveBeenCalled();
+    expect(guild._mockChannel.permissionOverwrites.edit).not.toHaveBeenCalled();
+    expect(guild._mockChannel.delete).not.toHaveBeenCalled();
+
+    // 管理者がチャンネルの権限で Bot に4つの権限を付け直すと、再オープンできる
+    guild._mockChannel.permissionsFor.mockReturnValue(
+      new PermissionsBitField(BOT_CHANNEL_PERMISSIONS),
+    );
+    await reopenTicket(
+      closedTicket,
+      guild as never,
+      settingsService as never,
+      ticketRepository as never,
+    );
+
+    expect((await ticketRepository.findById(ticket.id))?.status).toBe("open");
+    expect(cancelTicketAutoDeleteMock).toHaveBeenCalledWith(
+      ticket.id,
+      ticket.guildId,
+    );
   });
 });

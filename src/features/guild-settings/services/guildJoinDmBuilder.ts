@@ -15,6 +15,10 @@ const JOIN_DM_I18N_KEYS = {
   SUPPORT_NAME: "guildSettings:embed.field.name.support_server",
   RETURN_TITLE: "guildSettings:embed.title.join_return",
   RETURN_DESCRIPTION: "guildSettings:embed.description.join_return",
+  INACCESSIBLE_TICKETS_NAME:
+    "guildSettings:embed.field.name.inaccessible_ticket_channels",
+  INACCESSIBLE_TICKETS_VALUE:
+    "guildSettings:embed.field.value.inaccessible_ticket_channels",
 } as const;
 
 /**
@@ -140,4 +144,36 @@ export function buildGuildJoinReturnDm(
         deleteAt: toDiscordDate(cancelledDeletionAt),
       }),
     );
+}
+
+/**
+ * Bot が扱えないチケットのチャンネルの件数と、付け直す手順の欄を DM の Embed に足す
+ *
+ * Bot を外すと、Discord はチケットのチャンネルに付けていた Bot の権限を消す。再導入時はまず
+ * エラー通知チャンネルで知らせる（`syncGuildTickets`）が、キックで Bot のロールも消えるため、
+ * 管理者専用のエラー通知チャンネルには Bot も入れず届かないことがある。そのとき（未設定を含む）だけ、
+ * 代わりにオーナー宛の DM でこの欄を出す。導入 DM・再導入 DM のどちらにも足せる
+ * @param embed 欄を足す DM の Embed
+ * @param t 言語ごとの翻訳関数（日本語 → 英語の順に併記する）
+ * @param count Bot が扱えないチケットのチャンネルの件数（1以上）
+ * @returns 欄を足した Embed（引数と同じもの）
+ */
+export function addInaccessibleTicketChannelsField(
+  embed: EmbedBuilder,
+  t: GuildJoinDmTranslators,
+  count: number,
+): EmbedBuilder {
+  return embed.addFields({
+    name: bilingual(
+      t,
+      JOIN_DM_I18N_KEYS.INACCESSIBLE_TICKETS_NAME,
+      LABEL_SEPARATOR,
+    ),
+    value: bilingual(
+      t,
+      JOIN_DM_I18N_KEYS.INACCESSIBLE_TICKETS_VALUE,
+      TEXT_SEPARATOR,
+      { count },
+    ),
+  });
 }

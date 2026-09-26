@@ -1,9 +1,10 @@
-import { MessageFlags } from "discord.js";
+import { MessageFlags, PermissionsBitField } from "discord.js";
+import { createErrorEmbed } from "@/bot/utils/messageResponse";
+import { TICKET_CHANNEL_BOT_PERMISSIONS } from "@/features/ticket/commands/ticketCommand.constants";
 
 const findByChannelIdMock = vi.fn();
 const findByGuildAndCategoryMock = vi.fn();
 const reopenTicketMock = vi.fn();
-const hasTicketPermissionMock = vi.fn();
 
 vi.mock("@/bot/services/botCompositionRoot", () => ({
   getBotTicketSettingsService: vi.fn(() => ({
@@ -16,8 +17,21 @@ vi.mock("@/bot/services/botCompositionRoot", () => ({
 
 vi.mock("@/features/ticket/services/ticketService", () => ({
   reopenTicket: (...args: unknown[]) => reopenTicketMock(...args),
-  hasTicketPermission: (...args: unknown[]) => hasTicketPermissionMock(...args),
 }));
+
+const getTicketChannelAccessMock = vi.fn();
+
+// Bot がチャンネルを扱えるかの確認（既定は扱える）。案内のキーの選び方は本物を使う
+vi.mock(
+  "@/features/ticket/services/ticketChannelAccess",
+  async (importOriginal) => ({
+    ...(await importOriginal<
+      typeof import("@/features/ticket/services/ticketChannelAccess")
+    >()),
+    getTicketChannelAccess: (...args: unknown[]) =>
+      getTicketChannelAccessMock(...args),
+  }),
+);
 
 vi.mock("@/shared/locale/localeManager", () => ({
   logPrefixed: (
@@ -39,7 +53,11 @@ vi.mock("@/shared/locale/localeManager", () => ({
     return `[${commandName}] ${m}`;
   },
   tDefault: vi.fn((key: string) => key),
-  tInteraction: (_locale: string, key: string) => key,
+  tInteraction: (
+    _locale: string,
+    key: string,
+    params?: Record<string, unknown>,
+  ) => (params ? `${key}:${JSON.stringify(params)}` : key),
 }));
 
 vi.mock("@/shared/utils/logger", () => ({
@@ -62,14 +80,18 @@ vi.mock("@/bot/utils/messageResponse", () => ({
   })),
 }));
 
+/** スタッフロールを持たないメンバー（権限の確認で、作成者か管理者権限が無ければ止まる） */
+const NON_STAFF_MEMBER = { roles: { cache: new Map([["role-other", {}]]) } };
+
 function createInteractionMock(overrides = {}) {
   return {
     channelId: "channel-1",
     locale: "ja",
     guild: { id: "guild-1" },
     user: { id: "user-1" },
+    // 既定の操作者はスタッフロールを持つ（権限の確認を通る）
     member: {
-      roles: { cache: new Map([["role-1", {}]]) },
+      roles: { cache: new Map([["staff-role-1", {}]]) },
     },
     reply: vi.fn().mockResolvedValue(undefined),
     ...overrides,
@@ -79,6 +101,10 @@ function createInteractionMock(overrides = {}) {
 describe("bot/features/ticket/commands/usecases/ticketOpen", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    getTicketChannelAccessMock.mockResolvedValue({
+      status: "handleable",
+      channel: {},
+    });
   });
 
   it("チケットが見つからない場合はエラー応答", async () => {
@@ -132,7 +158,6 @@ describe("bot/features/ticket/commands/usecases/ticketOpen", () => {
       status: "closed",
     });
     findByGuildAndCategoryMock.mockResolvedValue(null);
-    hasTicketPermissionMock.mockReturnValue(true);
     const interaction = createInteractionMock();
 
     await handleTicketOpen(interaction as never);
@@ -146,11 +171,10 @@ describe("bot/features/ticket/commands/usecases/ticketOpen", () => {
       ],
       flags: MessageFlags.Ephemeral,
     });
-    expect(hasTicketPermissionMock).not.toHaveBeenCalled();
     expect(reopenTicketMock).not.toHaveBeenCalled();
   });
 
-  it("権限がない場合はエラー応答", async () => {
+  it("作成者でもスタッフでも管理者でもない場合は、誰が再オープンできるか（スタッフロールのメンション入り）を 権限不足 で返信し、Bot の権限も確かめず再オープンしない", async () => {
     const { handleTicketOpen } = await import(
       "@/features/ticket/commands/usecases/ticketOpen"
     );
@@ -160,20 +184,99 @@ describe("bot/features/ticket/commands/usecases/ticketOpen", () => {
       guildId: "guild-1",
       categoryId: "category-1",
       channelId: "channel-1",
+      userId: "other-user",
       status: "closed",
     });
     findByGuildAndCategoryMock.mockResolvedValue({
       staffRoleIds: ["staff-role-1"],
     });
-    hasTicketPermissionMock.mockReturnValue(false);
-    const interaction = createInteractionMock();
+    const interaction = createInteractionMock({
+      member: NON_STAFF_MEMBER,
+      memberPermissions: new PermissionsBitField(["ManageMessages"]),
+    });
 
     await handleTicketOpen(interaction as never);
 
-    expect(interaction.reply).toHaveBeenCalledWith(
-      expect.objectContaining({ flags: MessageFlags.Ephemeral }),
+    expect(interaction.reply).toHaveBeenCalledTimes(1);
+    expect(interaction.reply).toHaveBeenCalledWith({
+      embeds: [
+        {
+          type: "error",
+          description:
+            'ticket:user-response.not_authorized_close_open:{"staffRoles":"<@&staff-role-1>"}',
+        },
+      ],
+      flags: MessageFlags.Ephemeral,
+    });
+    expect(createErrorEmbed).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.objectContaining({ title: "common:title_permission_denied" }),
     );
+    expect(getTicketChannelAccessMock).not.toHaveBeenCalled();
     expect(reopenTicketMock).not.toHaveBeenCalled();
+  });
+
+  it("管理者権限（Administrator）があれば、スタッフロールが無く作成者でなくても再オープンできる", async () => {
+    const { handleTicketOpen } = await import(
+      "@/features/ticket/commands/usecases/ticketOpen"
+    );
+
+    const ticket = {
+      id: "ticket-1",
+      guildId: "guild-1",
+      categoryId: "category-1",
+      channelId: "channel-1",
+      userId: "other-user",
+      status: "closed",
+    };
+    findByChannelIdMock.mockResolvedValue(ticket);
+    findByGuildAndCategoryMock.mockResolvedValue({
+      staffRoleIds: ["staff-role-1"],
+    });
+    reopenTicketMock.mockResolvedValue(undefined);
+    const interaction = createInteractionMock({
+      member: NON_STAFF_MEMBER,
+      memberPermissions: new PermissionsBitField(["Administrator"]),
+    });
+
+    await handleTicketOpen(interaction as never);
+
+    expect(reopenTicketMock).toHaveBeenCalledWith(
+      ticket,
+      interaction.guild,
+      expect.anything(),
+      expect.anything(),
+    );
+    expect(interaction.reply).toHaveBeenCalledWith({
+      embeds: [
+        { type: "success", description: "ticket:user-response.ticket_opened" },
+      ],
+      flags: MessageFlags.Ephemeral,
+    });
+  });
+
+  it("作成者なら、スタッフロールも管理者権限も無くても再オープンできる", async () => {
+    const { handleTicketOpen } = await import(
+      "@/features/ticket/commands/usecases/ticketOpen"
+    );
+
+    findByChannelIdMock.mockResolvedValue({
+      id: "ticket-1",
+      guildId: "guild-1",
+      categoryId: "category-1",
+      channelId: "channel-1",
+      userId: "user-1",
+      status: "closed",
+    });
+    findByGuildAndCategoryMock.mockResolvedValue({
+      staffRoleIds: ["staff-role-1"],
+    });
+    reopenTicketMock.mockResolvedValue(undefined);
+    const interaction = createInteractionMock({ member: NON_STAFF_MEMBER });
+
+    await handleTicketOpen(interaction as never);
+
+    expect(reopenTicketMock).toHaveBeenCalled();
   });
 
   it("正常に再オープンできた場合は reopenTicket が呼ばれ成功応答", async () => {
@@ -192,7 +295,6 @@ describe("bot/features/ticket/commands/usecases/ticketOpen", () => {
     findByGuildAndCategoryMock.mockResolvedValue({
       staffRoleIds: ["staff-role-1"],
     });
-    hasTicketPermissionMock.mockReturnValue(true);
     reopenTicketMock.mockResolvedValue(undefined);
     const interaction = createInteractionMock();
 
@@ -207,5 +309,47 @@ describe("bot/features/ticket/commands/usecases/ticketOpen", () => {
     expect(interaction.reply).toHaveBeenCalledWith(
       expect.objectContaining({ flags: MessageFlags.Ephemeral }),
     );
+  });
+
+  it("Bot がチャンネルを扱えない（Bot を外して入れ直す前に作ったチケット）ときは、reopenTicket を呼ばずに理由と対処を返信する", async () => {
+    const { handleTicketOpen } = await import(
+      "@/features/ticket/commands/usecases/ticketOpen"
+    );
+
+    const ticket = {
+      id: "ticket-1",
+      guildId: "guild-1",
+      categoryId: "category-1",
+      channelId: "channel-1",
+      status: "closed",
+    };
+    findByChannelIdMock.mockResolvedValue(ticket);
+    findByGuildAndCategoryMock.mockResolvedValue({
+      staffRoleIds: ["staff-role-1"],
+    });
+    getTicketChannelAccessMock.mockResolvedValue({
+      status: "inaccessible",
+      reason: "channel_permissions",
+    });
+    const interaction = createInteractionMock();
+
+    await handleTicketOpen(interaction as never);
+
+    // 再オープンはチャンネルを消さないので、「チャンネルの管理」は求めず4つの権限で確かめる
+    expect(getTicketChannelAccessMock).toHaveBeenCalledWith(
+      interaction.guild,
+      "channel-1",
+      TICKET_CHANNEL_BOT_PERMISSIONS,
+    );
+    expect(reopenTicketMock).not.toHaveBeenCalled();
+    expect(interaction.reply).toHaveBeenCalledWith({
+      embeds: [
+        {
+          type: "error",
+          description: "ticket:user-response.bot_channel_access_missing",
+        },
+      ],
+      flags: MessageFlags.Ephemeral,
+    });
   });
 });

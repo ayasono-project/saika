@@ -21,6 +21,8 @@ import type {
 import { logPrefixed, tDefault } from "../../../shared/locale/localeManager";
 import { logger } from "../../../shared/utils/logger";
 import {
+  TICKET_CHANNEL_BOT_DELETE_PERMISSIONS,
+  TICKET_CHANNEL_BOT_PERMISSIONS,
   TICKET_CUSTOM_ID,
   TICKET_MESSAGE_FETCH_LIMIT,
   TICKET_STATUS,
@@ -31,6 +33,11 @@ import {
   scheduleTicketAutoDelete,
 } from "./ticketAutoDeleteService";
 import { computeAutoDeleteRemainingMs } from "./ticketAutoDeleteTime";
+import {
+  getTicketChannelAccess,
+  requireHandleableTicketChannel,
+  toBotChannelAccessMessageKey,
+} from "./ticketChannelAccess";
 
 /**
  * チケットのカテゴリの設定を取得する。無ければ ValidationError を投げる
@@ -52,6 +59,75 @@ async function requireTicketConfig(
     throw ValidationError.fromKey("ticket:user-response.ticket_config_missing");
   }
   return config;
+}
+
+/**
+ * オープン中のチケットに付ける操作ボタン（クローズ・削除）の行を作る
+ * 作成時の初期メッセージと、再オープンの通知で使う
+ * @param ticketId チケットID
+ * @returns ボタンの行
+ */
+function buildOpenTicketButtons(
+  ticketId: string,
+): ActionRowBuilder<ButtonBuilder> {
+  return new ActionRowBuilder<ButtonBuilder>().addComponents(
+    new ButtonBuilder()
+      .setCustomId(`${TICKET_CUSTOM_ID.CLOSE_PREFIX}${ticketId}`)
+      .setEmoji("🔒")
+      .setLabel(tDefault("ticket:ui.button.close"))
+      .setStyle(ButtonStyle.Secondary),
+    new ButtonBuilder()
+      .setCustomId(`${TICKET_CUSTOM_ID.DELETE_PREFIX}${ticketId}`)
+      .setEmoji("🗑️")
+      .setLabel(tDefault("ticket:ui.button.delete"))
+      .setStyle(ButtonStyle.Danger),
+  );
+}
+
+/**
+ * 作成者とスタッフロールの「メッセージを送信」を、チャンネルの上書きで許可または拒否する
+ * 失敗しても続ける（クローズ・再オープンそのものは、記録と通知で成り立つため）
+ * @param channel チケットのチャンネル
+ * @param ticket 対象チケット
+ * @param staffRoleIds スタッフロールIDの配列
+ * @param allowed 許可するなら true、拒否するなら false
+ * @returns 実行完了を示す Promise
+ */
+async function setTicketSendMessages(
+  channel: TextChannel,
+  ticket: Ticket,
+  staffRoleIds: string[],
+  allowed: boolean,
+): Promise<void> {
+  for (const targetId of [ticket.userId, ...staffRoleIds]) {
+    await channel.permissionOverwrites
+      .edit(targetId, { SendMessages: allowed })
+      .catch(() => null);
+  }
+}
+
+/**
+ * 通知を送ってから記録を更新する。更新に失敗したら、送った通知を消してから失敗を返す
+ *
+ * チャンネルの操作（通知）を先に行うのは、そちらの方が失敗しやすいため。記録を先に変えると、
+ * 通知に失敗したときに「記録はクローズなのにチャンネルは開いたまま」のような食い違いが残る
+ * @param channel チケットのチャンネル
+ * @param notification 送る通知
+ * @param update 記録の更新
+ * @returns 実行完了を示す Promise
+ */
+async function sendNotificationThenUpdate(
+  channel: TextChannel,
+  notification: Parameters<TextChannel["send"]>[0],
+  update: () => Promise<unknown>,
+): Promise<void> {
+  const sent = await channel.send(notification);
+  try {
+    await update();
+  } catch (error) {
+    await sent.delete().catch(() => null);
+    throw error;
+  }
 }
 
 /**
@@ -130,12 +206,8 @@ export async function createTicketChannel(
               // ManageChannels / ManageRoles はギルド全体で既に保持しているため
               // overwrite に含めない（Administrator なし Bot が overwrite で昇格ビットを
               // 付与しようとすると 403 Missing Permissions になるため）。
-              allow: [
-                PermissionFlagsBits.ViewChannel,
-                PermissionFlagsBits.SendMessages,
-                PermissionFlagsBits.ReadMessageHistory,
-                PermissionFlagsBits.EmbedLinks,
-              ] as const,
+              // クローズ等の前の確認（ticketChannelAccess）も同じ権限で判定する
+              allow: TICKET_CHANNEL_BOT_PERMISSIONS,
             },
           ]
         : []),
@@ -192,18 +264,7 @@ export async function createTicketChannel(
     )
     .setColor(Number.parseInt(config.panelColor.slice(1), 16));
 
-  const buttons = new ActionRowBuilder<ButtonBuilder>().addComponents(
-    new ButtonBuilder()
-      .setCustomId(`${TICKET_CUSTOM_ID.CLOSE_PREFIX}${ticket.id}`)
-      .setEmoji("🔒")
-      .setLabel(tDefault("ticket:ui.button.close"))
-      .setStyle(ButtonStyle.Secondary),
-    new ButtonBuilder()
-      .setCustomId(`${TICKET_CUSTOM_ID.DELETE_PREFIX}${ticket.id}`)
-      .setEmoji("🗑️")
-      .setLabel(tDefault("ticket:ui.button.delete"))
-      .setStyle(ButtonStyle.Danger),
-  );
+  const buttons = buildOpenTicketButtons(ticket.id);
 
   // 作成者とスタッフロールへのメンションを送信（通知目的）
   const mentions = [
@@ -219,11 +280,15 @@ export async function createTicketChannel(
 
 /**
  * チケットをクローズする
+ *
+ * 状態を変える前に Bot がチャンネルを扱えるか確かめ、扱えなければ何も変えずに止める。
+ * 扱えるときは、クローズ通知を送ってから記録をクローズにし（sendNotificationThenUpdate）、
+ * その後で自動削除を予約し、作成者・スタッフの送信を止め、前回の再オープン通知を消す
  * @param ticket 対象チケット
  * @param guild 対象ギルド
  * @param settingsService チケット設定サービス
  * @param ticketRepository チケットリポジトリ
- * @throws ValidationError カテゴリの設定が無い（パネルが削除された）場合
+ * @throws ValidationError カテゴリの設定が無い（パネルが削除された）場合、または Bot がチャンネルを扱えない場合
  */
 export async function closeTicket(
   ticket: Ticket,
@@ -232,33 +297,10 @@ export async function closeTicket(
   ticketRepository: ITicketRepository,
 ): Promise<void> {
   const config = await requireTicketConfig(ticket, settingsService);
+  const channel = await requireHandleableTicketChannel(guild, ticket);
 
-  const staffRoleIds: string[] = config.staffRoleIds;
-  const channel = (await guild.channels
-    .fetch(ticket.channelId)
-    .catch(() => null)) as TextChannel | null;
-
-  if (channel) {
-    // 作成者の SendMessages を拒否
-    await channel.permissionOverwrites
-      .edit(ticket.userId, { SendMessages: false })
-      .catch(() => null);
-    // スタッフロールの SendMessages を拒否
-    for (const roleId of staffRoleIds) {
-      await channel.permissionOverwrites
-        .edit(roleId, { SendMessages: false })
-        .catch(() => null);
-    }
-  }
-
+  // 自動削除までの時間（今クローズするので、今回のクローズからの経過時間は数えない）
   const now = new Date();
-  // チケットステータスを更新
-  await ticketRepository.update(ticket.id, {
-    status: TICKET_STATUS.CLOSED,
-    closedAt: now,
-  });
-
-  // 自動削除タイマーを開始（今クローズしたので、今回のクローズからの経過時間は数えない）
   const remainingMs = computeAutoDeleteRemainingMs(
     config.autoDeleteDays,
     ticket.elapsedDeleteMs,
@@ -267,6 +309,35 @@ export async function closeTicket(
   );
   const autoDeleteTimestamp = Math.floor((now.getTime() + remainingMs) / 1000);
 
+  const description = `${tDefault("ticket:embed.description.closed")}\n${tDefault("ticket:embed.description.auto_delete", { timestamp: String(autoDeleteTimestamp) })}`;
+  const embed = createInfoEmbed(description, {
+    title: tDefault("ticket:embed.title.closed"),
+  });
+  const buttons = new ActionRowBuilder<ButtonBuilder>().addComponents(
+    new ButtonBuilder()
+      .setCustomId(`${TICKET_CUSTOM_ID.OPEN_PREFIX}${ticket.id}`)
+      .setEmoji("🔓")
+      .setLabel(tDefault("ticket:ui.button.reopen"))
+      .setStyle(ButtonStyle.Secondary),
+    new ButtonBuilder()
+      .setCustomId(`${TICKET_CUSTOM_ID.DELETE_PREFIX}${ticket.id}`)
+      .setEmoji("🗑️")
+      .setLabel(tDefault("ticket:ui.button.delete"))
+      .setStyle(ButtonStyle.Danger),
+  );
+
+  // クローズ通知を送ってから、チケットステータスを更新
+  await sendNotificationThenUpdate(
+    channel,
+    { embeds: [embed], components: [buttons] },
+    () =>
+      ticketRepository.update(ticket.id, {
+        status: TICKET_STATUS.CLOSED,
+        closedAt: now,
+      }),
+  );
+
+  // 記録をクローズにしてから自動削除タイマーを開始（発火時は記録がクローズ済みのときだけ消す）
   scheduleTicketAutoDelete(
     ticket.id,
     ticket.channelId,
@@ -275,43 +346,26 @@ export async function closeTicket(
     guild.client,
   );
 
+  // 作成者とスタッフロールの SendMessages を拒否
+  await setTicketSendMessages(channel, ticket, config.staffRoleIds, false);
+
   // 前回の再オープン通知を削除（ボタンなし embed のみ対象）
-  if (channel) {
-    await deleteReopenNotification(channel, guild);
-  }
-
-  // クローズ通知を送信
-  if (channel) {
-    const description = `${tDefault("ticket:embed.description.closed")}\n${tDefault("ticket:embed.description.auto_delete", { timestamp: String(autoDeleteTimestamp) })}`;
-    const embed = createInfoEmbed(description, {
-      title: tDefault("ticket:embed.title.closed"),
-    });
-
-    const buttons = new ActionRowBuilder<ButtonBuilder>().addComponents(
-      new ButtonBuilder()
-        .setCustomId(`${TICKET_CUSTOM_ID.OPEN_PREFIX}${ticket.id}`)
-        .setEmoji("🔓")
-        .setLabel(tDefault("ticket:ui.button.reopen"))
-        .setStyle(ButtonStyle.Secondary),
-      new ButtonBuilder()
-        .setCustomId(`${TICKET_CUSTOM_ID.DELETE_PREFIX}${ticket.id}`)
-        .setEmoji("🗑️")
-        .setLabel(tDefault("ticket:ui.button.delete"))
-        .setStyle(ButtonStyle.Danger),
-    );
-
-    await channel.send({ embeds: [embed], components: [buttons] });
-  }
+  await deleteReopenNotification(channel, guild);
 }
 
 /**
  * チケットを再オープンする
  * クローズしていた時間は elapsedDeleteMs に足して保存する（保存時に列の上限で切り詰める）
+ *
+ * 状態を変える前に Bot がチャンネルを扱えるか確かめ、扱えなければ何も変えずに止める。
+ * 扱えるときは、再オープン通知を送ってから記録をオープンにし（sendNotificationThenUpdate）、
+ * その後で自動削除タイマーを取り消し、作成者・スタッフの送信を戻し、前回のクローズ通知を消す。
+ * タイマーを記録より先に取り消すと、途中で失敗したときにクローズのまま自動削除されなくなるため
  * @param ticket 対象チケット
  * @param guild 対象ギルド
  * @param settingsService チケット設定サービス
  * @param ticketRepository チケットリポジトリ
- * @throws ValidationError カテゴリの設定が無い（パネルが削除された）場合
+ * @throws ValidationError カテゴリの設定が無い（パネルが削除された）場合、または Bot がチャンネルを扱えない場合
  */
 export async function reopenTicket(
   ticket: Ticket,
@@ -320,125 +374,84 @@ export async function reopenTicket(
   ticketRepository: ITicketRepository,
 ): Promise<void> {
   const config = await requireTicketConfig(ticket, settingsService);
+  const channel = await requireHandleableTicketChannel(guild, ticket);
 
-  const staffRoleIds: string[] = config.staffRoleIds;
-  const channel = (await guild.channels
-    .fetch(ticket.channelId)
-    .catch(() => null)) as TextChannel | null;
-
-  // 自動削除タイマーをキャンセルし、経過時間を保持
-  cancelTicketAutoDelete(ticket.id, ticket.guildId);
-
+  // クローズしていた時間を経過時間に足す
   let newElapsedMs = ticket.elapsedDeleteMs;
   if (ticket.closedAt) {
     newElapsedMs += Date.now() - ticket.closedAt.getTime();
   }
 
-  if (channel) {
-    // 作成者の SendMessages を許可
-    await channel.permissionOverwrites
-      .edit(ticket.userId, { SendMessages: true })
-      .catch(() => null);
-    // スタッフロールの SendMessages を許可
-    for (const roleId of staffRoleIds) {
-      await channel.permissionOverwrites
-        .edit(roleId, { SendMessages: true })
-        .catch(() => null);
-    }
-  }
-
-  // チケットステータスを更新
-  await ticketRepository.update(ticket.id, {
-    status: TICKET_STATUS.OPEN,
-    elapsedDeleteMs: newElapsedMs,
-    closedAt: null,
+  const embed = createInfoEmbed(tDefault("ticket:embed.description.reopened"), {
+    title: tDefault("ticket:embed.title.reopened"),
   });
 
+  // 再オープン通知（クローズ・削除ボタン付き）を送ってから、チケットステータスを更新
+  await sendNotificationThenUpdate(
+    channel,
+    { embeds: [embed], components: [buildOpenTicketButtons(ticket.id)] },
+    () =>
+      ticketRepository.update(ticket.id, {
+        status: TICKET_STATUS.OPEN,
+        elapsedDeleteMs: newElapsedMs,
+        closedAt: null,
+      }),
+  );
+
+  // 記録をオープンにしてから自動削除タイマーをキャンセル
+  cancelTicketAutoDelete(ticket.id, ticket.guildId);
+
+  // 作成者とスタッフロールの SendMessages を許可
+  await setTicketSendMessages(channel, ticket, config.staffRoleIds, true);
+
   // 前回のクローズ通知を削除（再オープンボタンを含むメッセージが対象）
-  if (channel) {
-    await deleteCloseNotification(channel, guild);
-  }
-
-  // 再オープン通知を送信（クローズ・削除ボタン付き）
-  if (channel) {
-    const embed = createInfoEmbed(
-      tDefault("ticket:embed.description.reopened"),
-      { title: tDefault("ticket:embed.title.reopened") },
-    );
-
-    const buttons = new ActionRowBuilder<ButtonBuilder>().addComponents(
-      new ButtonBuilder()
-        .setCustomId(`${TICKET_CUSTOM_ID.CLOSE_PREFIX}${ticket.id}`)
-        .setEmoji("🔒")
-        .setLabel(tDefault("ticket:ui.button.close"))
-        .setStyle(ButtonStyle.Secondary),
-      new ButtonBuilder()
-        .setCustomId(`${TICKET_CUSTOM_ID.DELETE_PREFIX}${ticket.id}`)
-        .setEmoji("🗑️")
-        .setLabel(tDefault("ticket:ui.button.delete"))
-        .setStyle(ButtonStyle.Danger),
-    );
-
-    await channel.send({ embeds: [embed], components: [buttons] });
-  }
+  await deleteCloseNotification(channel, guild);
 }
 
 /**
  * チケットを削除する
+ *
+ * 記録を消す前に Bot がチャンネルを扱えて、消す権限（「チャンネルの管理」）もあるか確かめ、
+ * どちらかが無ければ何も変えずに止める（記録だけが消えてチャンネルが残ると、Bot からは二度と操作できないため）。
+ * チャンネルが既に無いと確定したときは、記録とタイマーだけを片付ける
  * @param ticket 対象チケット
  * @param guild 対象ギルド
  * @param ticketRepository チケットリポジトリ
+ * @throws ValidationError Bot がチャンネルを扱えない、または「チャンネルの管理」が無い場合
  */
 export async function deleteTicket(
   ticket: Ticket,
   guild: Guild,
   ticketRepository: ITicketRepository,
 ): Promise<void> {
+  const access = await getTicketChannelAccess(
+    guild,
+    ticket.channelId,
+    TICKET_CHANNEL_BOT_DELETE_PERMISSIONS,
+  );
+  if (access.status === "inaccessible") {
+    throw ValidationError.fromKey(toBotChannelAccessMessageKey(access));
+  }
+
   // 自動削除タイマーをキャンセル
   cancelTicketAutoDelete(ticket.id, ticket.guildId);
 
-  // DB からチケットを削除
+  // DB からチケットを削除（先に消すので、チャンネル削除の channelDelete では記録が見つからない）
   await ticketRepository.delete(ticket.id);
 
   // チャンネルを削除
-  const channel = await guild.channels
-    .fetch(ticket.channelId)
-    .catch(() => null);
-  if (channel) {
-    await channel.delete().catch(() => null);
+  if (access.status === "handleable") {
+    await access.channel.delete().catch((error: unknown) => {
+      logger.warn(
+        logPrefixed(
+          "system:log_prefix.ticket",
+          "ticket:log.ticket_channel_delete_failed",
+          { guildId: ticket.guildId, channelId: ticket.channelId },
+        ),
+        error,
+      );
+    });
   }
-}
-
-/**
- * ユーザーがチケットの操作権限を持っているか確認する
- * （チケット作成者 or スタッフロール）
- * @param ticket 対象チケット
- * @param userId 操作ユーザーのID
- * @param memberRoleIds ユーザーが持つロールIDの配列
- * @param staffRoleIds スタッフロールIDの配列
- * @returns 操作権限を持っている場合 true
- */
-export function hasTicketPermission(
-  ticket: Ticket,
-  userId: string,
-  memberRoleIds: string[],
-  staffRoleIds: string[],
-): boolean {
-  if (ticket.userId === userId) return true;
-  return memberRoleIds.some((roleId) => staffRoleIds.includes(roleId));
-}
-
-/**
- * ユーザーがスタッフロールを持っているか確認する
- * @param memberRoleIds ユーザーが持つロールIDの配列
- * @param staffRoleIds スタッフロールIDの配列
- * @returns スタッフロールを持っている場合 true
- */
-export function hasStaffRole(
-  memberRoleIds: string[],
-  staffRoleIds: string[],
-): boolean {
-  return memberRoleIds.some((roleId) => staffRoleIds.includes(roleId));
 }
 
 /**

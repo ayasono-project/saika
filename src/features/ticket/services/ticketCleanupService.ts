@@ -6,8 +6,12 @@ import type {
   ITicketRepository,
   Ticket,
 } from "../../../shared/database/types";
+import { logPrefixed } from "../../../shared/locale/localeManager";
+import { logger } from "../../../shared/utils/logger";
+import { TICKET_CHANNEL_BOT_DELETE_PERMISSIONS } from "../commands/ticketCommand.constants";
 import type { TicketSettingsService } from "../ticketSettingsService";
 import { cancelTicketAutoDelete } from "./ticketAutoDeleteService";
+import { getTicketChannelAccess } from "./ticketChannelAccess";
 import { deleteTicket } from "./ticketService";
 
 /**
@@ -22,6 +26,7 @@ import { deleteTicket } from "./ticketService";
  * @param configs クリーンアップ対象のチケット設定一覧
  * @param settingsService チケット設定サービス
  * @param ticketRepository チケットリポジトリ
+ * @returns 実行完了を示す Promise
  */
 export async function cleanupTicketSettings(
   guild: Guild,
@@ -47,6 +52,25 @@ export async function cleanupTicketSettings(
       .findOpenByCategory(guildId, config.categoryId)
       .catch(() => [] as Ticket[]);
     for (const ticket of [...openTickets, ...closedTickets]) {
+      // Bot が扱えないチャンネル（Bot を外して入れ直した後の古いチケット等）や、「チャンネルの管理」が無い
+      // チャンネルは消せない。deleteTicket はどちらでも止まるので、撤去全体を止めないよう飛ばして warn を残す
+      // （記録は後の deleteByCategory で消え、チャンネルは管理者が消す）
+      const access = await getTicketChannelAccess(
+        guild,
+        ticket.channelId,
+        TICKET_CHANNEL_BOT_DELETE_PERMISSIONS,
+      );
+      if (access.status === "inaccessible") {
+        cancelTicketAutoDelete(ticket.id, guildId);
+        logger.warn(
+          logPrefixed(
+            "system:log_prefix.ticket",
+            "ticket:log.teardown_channel_inaccessible",
+            { guildId, channelId: ticket.channelId },
+          ),
+        );
+        continue;
+      }
       await deleteTicket(ticket, guild, ticketRepository);
     }
   }

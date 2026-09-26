@@ -160,7 +160,8 @@ Bot の招待時は **Administrator は要求せず、最小権限セット**を
 | channelDelete     | 削除チャンネル関連設定のクリーンアップ（チケットチャンネルならチケットの記録と自動削除タイマーも消す） |
 | roleDelete        | 削除ロールの Bump リマインダー設定除去                       |
 | guildCreate       | 参加ログ・**親レコード（`guilds`）の作成と削除予約の取り消し**・稼働サーバー数のプレゼンス更新・**オーナーへの導入／再導入 DM**（日英併記・送信失敗は握りつぶす）・**チケットの同期**（止めていた自動削除タイマーの組み直しと、不在中に消されたチャンネルのチケットの片付け） |
-| guildDelete       | Bot 退出時のジョブ停止（`stopGuildJobsUsecase` 経由）＋**猶予後のデータ削除の予約** |
+| guildDelete       | Bot 退出時のジョブ停止（`stopGuildJobsUsecase` 経由。Bump リマインダーの予約は DB でも `cancelled` にする）＋**猶予後のデータ削除の予約** |
+| guildAvailable    | 再接続（再 IDENTIFY）でギルドが戻ったときの**チケットの同期**（`syncGuildTicketsOnAvailable`）。`src/bot/events/` ではなく、`clientReady` の処理の中で起動時のチケット同期（`syncTicketsOnStartup`）の後に登録する（起動時の各ギルドの `guildAvailable` は `clientReady` より前に出て、起動時の同期が済ませるため） |
 
 ### BotClient クラス
 
@@ -304,10 +305,11 @@ Bot をサーバーから外しても、データはその場では消えませ�
 
 | タイミング | 処理 |
 | --- | --- |
-| `guildDelete` | ジョブを即停止し、`guilds.scheduled_deletion_at` に30日後を書く。**データは消さない** |
+| `guildDelete` | ジョブを即停止し、`guilds.scheduled_deletion_at` に30日後を書く。**データは消さない**（Bump リマインダーの予約行だけは `cancelled` にする） |
 | `guildCreate` | 親行を作り、削除予約を取り消す。猶予内の再導入なら設定はそのまま復活し、退出時に止めたチケットの自動削除タイマーも組み直す |
 | 起動時（`clientReady`） | 照合を1回実行し、日次ジョブを登録する |
 | 再 IDENTIFY の後（`ShardReady`） | 照合を実行する（切断中に起きた導入・退出を日次ジョブまで待たない） |
+| 再接続でギルドが戻ったとき（`guildAvailable`） | そのギルドのチケットを同期する（切断中に消されたチャンネルのチケットの片付けと、自動削除タイマーの組み直し）。切断中に再導入されたギルドは `guildCreate` ではなくこちらになるので、タイマーもここで戻る |
 | 日次ジョブ（毎日 4 時 JST） | 照合を実行する（`GUILD_DELETION_JOB_ID`） |
 
 **照合**（`reconcileGuildsUsecase`）は、DB の `guilds` と Bot の参加状況（**REST の `GET /users/@me/guilds` で取得**）を突き合わせて予約を正しい状態へ揃えます。
@@ -332,7 +334,7 @@ Bot をサーバーから外しても、データはその場では消えませ�
 > **既知の制限。**
 >
 > - Bot の停止中・切断中に導入・再導入されたギルドのオーナーには導入時／再導入時 DM が届きません（照合は親行と予約を黙って直すだけ。照合から DM を送ると、初回リリースで設定の無い既存ギルドにも親行が作られ、一斉送信になるため送らない）。
-> - 切断中に再導入されたギルドは `guildCreate` ではなく `guildAvailable` になるため、チケットの自動削除タイマーの組み直しと、不在中に消されたチャンネルのチケットの片付けは次の起動まで行われません（起動時の `syncTicketsOnStartup` が全ギルド分を行う）。Bump リマインダーの予約は退出時に DB でも取り消しているので戻らず、次の Bump で再予約されます
+> - 猶予内に再導入しても、退出時点で予約中だった Bump リマインダーは戻りません。退出時に DB でも取り消しているためで、次の Bump で再予約されます。その予約の「リマインドが通知されます」のパネルは、退出中は Bot が消せないためチャンネルに残ります（次の Bump の前回パネル削除も pending の行しか見ないので、このパネルは消えません）。
 
 即時削除が要るときは `/guild-settings reset-all`（`purgeGuildDataUsecase`）を使います。この経路は猶予を挟みません。
 
@@ -406,6 +408,13 @@ const service = getBotBumpReminderSettingsService();
 
 `setTimeout` に `.unref()` を呼び出しているため、**タイマーが残っていても Node.js プロセスは正常終了**できます。
 
+**約24.8日を超える遅延は区切って待ちます。** `setTimeout` 1回で待てる上限は 2^31-1 ms（約24.8日・`MAX_TIMEOUT_DELAY_MS`、`src/shared/scheduler/jobScheduler.constants.ts`）で、これを超える値を渡すと Node は遅延を 1ms に切り詰めて即座に発火させます（チケットの自動削除日数を25日以上にすると、クローズ直後に会話ごと消えていた）。`addOneTimeJob()` は上限ずつ待ち、発火のたびに残りを同じジョブ ID のまま張り直します（debug ログ `system:scheduler.job_rearmed`）。
+
+- 張り直しでは管理マップの同じ ID のハンドルを差し替えるので、`hasJob` / `removeJob` / `stopAll` / 同 ID の置き換えは待機のどの区間でも効く。張り直した区間のタイマーも `.unref()` する
+- 残りは時計（`Date.now`）ではなく区間の長さを差し引いて求める。`setTimeout` は単調時計で動き、区間ごとに指定より早くは発火しないので、合計の待ち時間は必ず指定の遅延以上になる（システム時刻を進めても早まらない）
+- `NaN`・`±Infinity` の遅延は登録を拒否し、エラーログ（`system:scheduler.invalid_delay`）を出す。同じ ID の既存ジョブにも触れない。0 以下の有限値は従来どおり即時実行する（起動時の復元で期限切れの分をすぐ処理する前提のため）
+- タイマーはメモリ上にしか無いので、再起動したら各機能が DB から予約を組み直す点は変わらない
+
 `clientReady` で登録される繰り返しジョブは以下の2本です。
 
 | ジョブ ID | 頻度 | 用途 |
@@ -424,24 +433,49 @@ Bot 起動
             └─ scheduledAt が未来 → setTimeout で再スケジュール
 ```
 
-リマインダーはメモリ上の `Map` に **`"guildId:serviceName"` の複合キー**で登録されます（同一ギルドで Disboard / Dissoku が独立して共存できるようにするため）。したがってギルド単位でまとめて解除する場合は、完全一致で引く `cancelReminder(guildId)` ではなく **`BumpReminderManager.cancelAllForGuild(guildId)`** を使う必要があります。前者は複合キーにヒットしません。
+リマインダーはメモリ上の `Map` に **`"guildId:serviceName"` の複合キー**で登録されます（同一ギルドで Disboard / Dissoku が独立して共存できるようにするため）。したがってギルド単位でまとめて解除する場合は、完全一致で引く `cancelReminder(guildId)` ではなく **`BumpReminderManager.cancelAllForGuild(guildId)`** を使う必要があります。前者は複合キーにヒットしません。キーを guildId とサービス名に分けるときは `parseBumpReminderKey`（`toBumpReminderKey` の逆変換）を使います。リマインドのタスクが終わって `Map` から外すのは、エントリの `reminderId`（DB の行 ID）が自分のものと一致するときだけです。実行中に同じキーで次の予約が入ることがあり、無条件に外すと次の予約まで取り消せなくなるためです（ジョブ ID はキーから決まり前後で同じなので、区別には使えない）。
+
+ギルド単位の取り消しは、パネルメッセージ（「〜にリマインドが通知されます」）も消すかどうかで2つを使い分けます。
+
+| 経路 | 使うもの | パネル |
+| --- | --- | --- |
+| 無効化（`/bump-reminder-settings disable`・ダッシュボードで無効のまま保存）・リセット・全設定リセット（`purgeGuildDataUsecase`。`/guild-settings reset-all`・Web API `POST /:guildId/reset-all`） | `handlers/usecases/cancelGuildBumpReminders(client, guildId)` | 消す |
+| Bot の退出（`stopGuildJobsUsecase`） | `BumpReminderManager.cancelAllForGuild(guildId)` | 触れない（退出後は Bot がチャンネルにアクセスできず、消せない） |
+
+- `cancelGuildBumpReminders` は、先に `IBumpReminderRepository.findPendingByGuild` でパネルの場所を控え、次にタイマーと DB を取り消し（`cancelAllForGuild`）、最後にパネルを消す。取り消すと pending の行から外れてパネルを引けなくなり、次の Bump の前回パネル削除（pending の行しか見ない）でも消えなくなるため。`BumpReminderManager` は Discord に依存させないので、パネルを消す処理はハンドラー層の usecase に置く
+- リセットはコマンドとダッシュボードの両方が `handlers/usecases/resetBumpReminderSettings` を通す（初期値 `createDefaultBumpReminderSettings`＝有効・全チャンネルで検知・メンションなしを保存してから、予約とパネルを取り消す）。経路によって結果が変わらないようにするため
+- 無効化・リセットは「設定を保存 → 予約を取り消す」の順。逆にすると、その間に検知した Bump がまだ有効の設定を読んで新しい予約を作り、残ってしまう
+- それでも、保存より前に設定を読み終えていた検知（前回パネルの削除・新パネルの送信を待っている間に、保存と取り消しが両方済んだもの）の予約は、取り消しの時点でまだ無いので拾えない。そこで検知側（`handleBumpDetected`）は**予約を登録した後に設定を読み直し**、無効なら今回の予約（`cancelReminder(guildId, serviceName)`）とパネルを取り消す。無効化側は「保存 → 取り消し」、検知側は「登録 → 読み直し」の順なので、登録が取り消しより前なら取り消し側が、後なら読み直しが拾う。リセットは有効に戻すので、リセットと同時に検知した Bump の予約はそのまま残る（リセット後の Bump として扱う）
+- 保険として、発火時に無効だった予約（`sendBumpReminder`）も、送らずに抜ける前にパネルを消す。この予約は発火済み（`sent`）になり、無効化の取り消しや次の Bump の前回パネル削除（どちらも pending の行しか見ない）では拾えなくなるため
+- パネルの削除は `handlers/usecases/deleteBumpPanel.deleteBumpPanelMessage` に共通化している（リマインドの送信後・発火時に無効だったとき・次の Bump の検知時・検知直後に無効化を見つけたとき・予約の取り消し時）
+
+### チケットの自動削除タイマー
+
+チケットの自動削除は `jobScheduler.addOneTimeJob` の one-time ジョブで、残り時間は `computeAutoDeleteRemainingMs`（自動削除日数 − クローズしていた時間の累計 `elapsedDeleteMs` − 今回クローズしてからの経過）で求めます。
+
+- **発火時に記録と設定を読み直す。** 記録が無いかクローズ済みでなければ何もしない（予約の後に削除・再オープンされた場合）。カテゴリの設定が無ければ削除せず保留する
+- **設定（パネル）が無いカテゴリのチケットは凍結する。** パネル設置チャンネル・パネルメッセージの削除や Web API の `DELETE /tickets/:id` では設定だけを消し、チケットのチャンネルと記録は残す。設定が無いとスタッフロールも自動削除日数も分からないので、Bot からのクローズ・再オープン・削除は `ticketGuards.findTicketConfigOrReply` で理由を返して止め、自動削除も保留する。パネル削除と同時にチケットを消す案は、パネル設置チャンネルを誤って消しただけで会話履歴が全部消えるため採らない。出口は2つで、同じカテゴリにパネルを作り直す（`/ticket-settings setup` の完了時と Web API の `POST /tickets` で `resumeAutoDeleteForCategory` が予約し直す。期限を過ぎていればすぐ削除）か、チャンネルを直接消す（`channelDelete` で記録も片付く）
+- **組み直しは `restoreAutoDeleteTimersForGuild` に集約する。** 起動時・猶予内の再導入・再接続（`guildAvailable`）・パネルの再設置から呼ぶ。起動時・再導入・再接続では、既に予約があるチケットは組み直さない（再接続のたびに同じ予約を張り直して scheduler の warn が大量に出るのを防ぐ）。パネルの再設置（`resumeAutoDeleteForCategory`）だけは `replaceExisting` で既存の予約も置き換え、作り直した設定の日数と closedAt から計算し直す（置き換えの warn は quiet で抑える）。残っている予約は作り直す前の日数で計算されており、そのままにすると途中の再起動の有無で消える時期が変わるため
+- **経過時間の累計は保存時に int4 の上限（2^31-1 ms）で切り詰める**（`TicketRepository.create` / `update`。約24.8日を超えてクローズしていたチケットの再オープンで更新が失敗しないように）。切り詰めた分だけ次のクローズ後の自動削除は遅くなるが、早まることはない
 
 ### ギルド単位の後始末
 
 ギルドのデータを消す経路は2つあり（`/guild-settings reset-all` / Web API `POST /:guildId/reset-all`）、いずれも **`purgeGuildDataUsecase`**（`src/features/guild-settings/usecases/purgeGuildDataUsecase.ts`）に集約されています。
 
-`guildDelete`（Bot の退出・キック・BAN）は**データを消しません**。`stopGuildJobsUsecase` を呼んでインメモリのタイマー（チケット自動削除ジョブ・Bump リマインダー）を止めるだけで、DB には一切触れません。Bot を外しただけで不可逆に設定が消えるのは「再招待は破壊的操作ではない」という利用者の期待に反するため、2026-09-23（v3.1.3）に即時削除をやめました。
+`guildDelete`（Bot の退出・キック・BAN）は**データを消しません**。`stopGuildJobsUsecase` を呼んでインメモリのタイマー（チケット自動削除ジョブ・Bump リマインダー）を止め、削除予約（`guilds.scheduled_deletion_at`）を書きます。DB への書き込みはこの予約と、`cancelAllForGuild` が Bump リマインダーの予約行を `cancelled` にすることだけで、設定・チケットなどのデータには触れません（Bump の予約を DB でも取り消すので、猶予内に再導入しても退出前の予約は戻らない）。Bot を外しただけで不可逆に設定が消えるのは「再招待は破壊的操作ではない」という利用者の期待に反するため、2026-09-23（v3.1.3）に即時削除をやめました。
 
 ```
 purgeGuildDataUsecase(deps, guildId)
+  ├─ 0. Bump の予約パネルの片付けと予約の取り消し（cancelGuildBumpReminders：
+  │      pending 行からパネルの場所を控える → cancelAllForGuild → パネル削除）
   ├─ 1. チケット自動削除ジョブの解除（jobScheduler.removeJob）
-  ├─ 2. Bump リマインダーの解除（cancelAllForGuild）
+  ├─ 2. Bump リマインダーの解除（cancelAllForGuild。0 で取り消し済みなので通常は何もしない）
   └─ 3. DB 一括削除（deleteAllSettings）
 ```
 
-> **順序に意味があります。** DB 行を先に消すとインメモリタイマーが生き残って投稿が実行され、その後の `updateStatus` が P2025 で失敗してログが荒れます。**タイマー解除 → DB 削除**の順を必ず守ってください。
+> **順序に意味があります。** DB 行を先に消すとインメモリタイマーが生き残って投稿が実行され、その後の `updateStatus` が P2025 で失敗してログが荒れます。**タイマー解除 → DB 削除**の順を必ず守ってください。Bump の予約パネルの場所も pending 行からしか引けないため、手順0も DB 削除より前に行います（後ろへ動かすと、reset-all の後に「リマインドが通知されます」のパネルがチャンネルに残ります）。
 
-`GuildSettingsService` は cross-feature 依存を持たない設計のため、この usecase は依存を引数で受け取り、呼び出し側が composition root のゲッターから解決します。
+`GuildSettingsService` は cross-feature 依存を持たない設計のため、この usecase は依存を引数で受け取り、呼び出し側が composition root のゲッターから解決します。ただし手順0の `cancelGuildBumpReminders` は無効化・リセットと共用の関数で、中で composition root のゲッター（`getBotBumpReminderManager`・`getBotBumpReminderRepository`）を直接引きます（`deps.bumpReminderManager` は使わない）。呼び出し側は、パネルの削除に使う `client` を `deps` に入れて渡します。
 
 ---
 
@@ -499,8 +533,13 @@ BUMP_REMINDER_TEST_MODE=true
 
 ```typescript
 // src/features/bump-reminder/constants/bumpReminderConstants.ts
+const REMINDER_DELAY_MINUTES = 120;
+const TEST_MODE_REMINDER_DELAY_MINUTES = 1;
+
 export function getReminderDelayMinutes(): number {
-  return env.BUMP_REMINDER_TEST_MODE ? 1 : 120;
+  return env.BUMP_REMINDER_TEST_MODE
+    ? TEST_MODE_REMINDER_DELAY_MINUTES
+    : REMINDER_DELAY_MINUTES;
 }
 ```
 

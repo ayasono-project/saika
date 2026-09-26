@@ -29,6 +29,7 @@ import {
 import {
   removeTicketsWithMissingChannels,
   syncGuildTickets,
+  syncGuildTicketsOnAvailable,
   syncTicketsOnStartup,
 } from "@/features/ticket/services/ticketChannelSync";
 import { logger } from "@/shared/utils/logger";
@@ -186,6 +187,45 @@ describe("features/ticket/services/ticketChannelSync", () => {
       );
       expect(logger.info).toHaveBeenCalledWith(
         expect.stringContaining("ticket:log.auto_delete_restore_guild"),
+      );
+    });
+  });
+
+  // 再接続でギルドが戻ったとき（guildAvailable）の突き合わせを検証
+  describe("syncGuildTicketsOnAvailable", () => {
+    it("切断中に消されたチャンネルのチケットを片付け、そのギルドのタイマーを組み直す", async () => {
+      const guild = makeGuild("guild-1", ["ch-alive"]);
+      const repository = makeRepository([
+        { id: "t-alive", channelId: "ch-alive" },
+        { id: "t-gone", channelId: "ch-gone" },
+      ]);
+
+      await syncGuildTicketsOnAvailable(guild as never, repository as never);
+
+      expect(repository.delete).toHaveBeenCalledTimes(1);
+      expect(repository.delete).toHaveBeenCalledWith("t-gone");
+      expect(restoreAutoDeleteTimersForGuild).toHaveBeenCalledWith(
+        "guild-1",
+        guild.client,
+        repository,
+      );
+    });
+
+    it("途中で例外が出てもログに残すだけで投げない（guildAvailable のリスナーから待たずに呼ぶため）", async () => {
+      const guild = makeGuild("guild-1", []);
+      const repository = makeRepository([]);
+      vi.mocked(restoreAutoDeleteTimersForGuild).mockRejectedValue(
+        new Error("restore failed"),
+      );
+
+      await expect(
+        syncGuildTicketsOnAvailable(guild as never, repository as never),
+      ).resolves.toBeUndefined();
+      expect(logger.error).toHaveBeenCalledWith(
+        expect.stringContaining(
+          'ticket:log.guild_resync_failed:{"guildId":"guild-1"}',
+        ),
+        expect.any(Error),
       );
     });
   });

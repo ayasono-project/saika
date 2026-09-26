@@ -12,6 +12,7 @@ const restoreBumpRemindersOnStartupMock = vi.fn();
 const cleanupVacOnStartupMock = vi.fn();
 const initGuildInviteCacheMock = vi.fn();
 const syncTicketsOnStartupMock = vi.fn();
+const syncGuildTicketsOnAvailableMock = vi.fn();
 const getBotTicketRepositoryMock = vi.fn();
 const runGuildDeletionSweepMock = vi.fn();
 const registerGuildDeletionJobMock = vi.fn();
@@ -76,6 +77,8 @@ vi.mock("@/features/member-log/handlers/inviteTracker", () => ({
 vi.mock("@/features/ticket/services/ticketChannelSync", () => ({
   syncTicketsOnStartup: (...args: unknown[]) =>
     syncTicketsOnStartupMock(...args),
+  syncGuildTicketsOnAvailable: (...args: unknown[]) =>
+    syncGuildTicketsOnAvailableMock(...args),
 }));
 
 vi.mock("@/bot/services/botCompositionRoot", () => ({
@@ -234,6 +237,42 @@ describe("bot/handlers/clientReadyHandler", () => {
 
     expect(runGuildDeletionSweepMock).toHaveBeenCalledTimes(1);
     expect(runGuildDeletionSweepMock).toHaveBeenCalledWith(client);
+  });
+
+  it("再 IDENTIFY で戻ったギルド（guildAvailable）のチケットも合わせ、リスナーは起動時の突き合わせの後に登録されること（起動時の guildAvailable と二重にしない）", async () => {
+    const onMock = vi.fn();
+    const repository = { id: "ticket-repo" };
+    getBotTicketRepositoryMock.mockReturnValue(repository);
+    const client = {
+      user: { tag: "bot#0001", setPresence: vi.fn() },
+      on: onMock,
+      guilds: {
+        cache: {
+          size: 1,
+          map: (fn: (g: unknown) => unknown) => [{ id: "g1" }].map(fn),
+          keys: () => ["g1"],
+        },
+      },
+      users: { cache: { size: 1 } },
+      commands: { size: 1 },
+    };
+
+    await handleClientReady(client as never);
+
+    const callIndex = onMock.mock.calls.findIndex(
+      (c) => c[0] === Events.GuildAvailable,
+    );
+    expect(callIndex).toBeGreaterThanOrEqual(0);
+    expect(syncTicketsOnStartupMock.mock.invocationCallOrder[0]).toBeLessThan(
+      onMock.mock.invocationCallOrder[callIndex],
+    );
+
+    const guild = { id: "g1" };
+    (onMock.mock.calls[callIndex][1] as (g: unknown) => void)(guild);
+    expect(syncGuildTicketsOnAvailableMock).toHaveBeenCalledWith(
+      guild,
+      repository,
+    );
   });
 
   it("先行スタートアップタスクが失敗した場合にエラーがログされ例外は伝播しないことを確認", async () => {

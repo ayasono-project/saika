@@ -44,10 +44,12 @@ vi.mock("@/features/ticket/services/ticketService", () => ({
   hasStaffRole: vi.fn(),
 }));
 
+import { MessageFlags } from "discord.js";
 import {
   getBotTicketRepository,
   getBotTicketSettingsService,
 } from "@/bot/services/botCompositionRoot";
+import { createErrorEmbed } from "@/bot/utils/messageResponse";
 import {
   closeTicket,
   deleteTicket,
@@ -55,6 +57,7 @@ import {
   hasTicketPermission,
   reopenTicket,
 } from "@/features/ticket/services/ticketService";
+import { logger } from "@/shared/utils/logger";
 
 function createMockButtonInteraction(customId: string, overrides = {}) {
   return {
@@ -274,41 +277,6 @@ describe("bot/features/ticket/handlers/ui/ticketButtonHandler", () => {
 
       expect(closeTicket).not.toHaveBeenCalled();
     });
-
-    it("configがnullの場合はstaffRoleIdsが空配列になる", async () => {
-      const mockTicket = {
-        id: "ticket-1",
-        guildId: "guild-1",
-        categoryId: "cat-1",
-        channelId: "channel-1",
-        userId: "user-1",
-        status: "open",
-      };
-      const mockTicketRepo = {
-        findById: vi.fn().mockResolvedValue(mockTicket),
-      };
-      const mockConfigSvc = {
-        findByGuildAndCategory: vi.fn().mockResolvedValue(null),
-      };
-      vi.mocked(getBotTicketRepository).mockReturnValue(
-        mockTicketRepo as never,
-      );
-      vi.mocked(getBotTicketSettingsService).mockReturnValue(
-        mockConfigSvc as never,
-      );
-      vi.mocked(hasTicketPermission).mockReturnValue(true as never);
-      vi.mocked(closeTicket).mockResolvedValue(undefined as never);
-
-      const interaction = createMockButtonInteraction("ticket:close:ticket-1");
-      await ticketButtonHandler.execute(interaction as never);
-
-      expect(hasTicketPermission).toHaveBeenCalledWith(
-        mockTicket,
-        "user-1",
-        expect.any(Array),
-        [],
-      );
-    });
   });
 
   describe("execute (open action)", () => {
@@ -464,41 +432,6 @@ describe("bot/features/ticket/handlers/ui/ticketButtonHandler", () => {
       expect(interaction.deferReply).toHaveBeenCalled();
       expect(interaction.editReply).toHaveBeenCalledWith(
         expect.objectContaining({ embeds: expect.any(Array) }),
-      );
-    });
-
-    it("configがnullの場合はstaffRoleIdsが空配列になる", async () => {
-      const mockTicket = {
-        id: "ticket-1",
-        guildId: "guild-1",
-        categoryId: "cat-1",
-        channelId: "channel-1",
-        userId: "user-1",
-        status: "closed",
-      };
-      const mockTicketRepo = {
-        findById: vi.fn().mockResolvedValue(mockTicket),
-      };
-      const mockConfigSvc = {
-        findByGuildAndCategory: vi.fn().mockResolvedValue(null),
-      };
-      vi.mocked(getBotTicketRepository).mockReturnValue(
-        mockTicketRepo as never,
-      );
-      vi.mocked(getBotTicketSettingsService).mockReturnValue(
-        mockConfigSvc as never,
-      );
-      vi.mocked(hasTicketPermission).mockReturnValue(true as never);
-      vi.mocked(reopenTicket).mockResolvedValue(undefined as never);
-
-      const interaction = createMockButtonInteraction("ticket:open:ticket-1");
-      await ticketButtonHandler.execute(interaction as never);
-
-      expect(hasTicketPermission).toHaveBeenCalledWith(
-        mockTicket,
-        "user-1",
-        expect.any(Array),
-        [],
       );
     });
   });
@@ -853,5 +786,53 @@ describe("bot/features/ticket/handlers/ui/ticketButtonHandler", () => {
         [],
       );
     });
+  });
+
+  // パネル（設定）が削除されたカテゴリのチケットは、成功と偽らず操作できない旨を返すことを検証
+  describe("設定が無い（パネルが削除された）チケット", () => {
+    it.each([
+      { action: "close", status: "open" },
+      { action: "open", status: "closed" },
+      { action: "delete", status: "closed" },
+      { action: "delete-confirm", status: "closed" },
+    ])(
+      "$action: 操作できない旨を本人にだけ返信し、権限確認も操作もしない（成功の応答・ログを出さない）",
+      async ({ action, status }) => {
+        vi.mocked(getBotTicketRepository).mockReturnValue({
+          findById: vi.fn().mockResolvedValue({
+            id: "ticket-1",
+            guildId: "guild-1",
+            categoryId: "cat-1",
+            channelId: "channel-1",
+            userId: "user-1",
+            status,
+          }),
+        } as never);
+        vi.mocked(getBotTicketSettingsService).mockReturnValue({
+          findByGuildAndCategory: vi.fn().mockResolvedValue(null),
+        } as never);
+
+        const interaction = createMockButtonInteraction(
+          `ticket:${action}:ticket-1`,
+        );
+        await ticketButtonHandler.execute(interaction as never);
+
+        expect(createErrorEmbed).toHaveBeenCalledWith(
+          "ticket:user-response.ticket_config_missing",
+          expect.anything(),
+        );
+        expect(interaction.reply).toHaveBeenCalledWith(
+          expect.objectContaining({ flags: MessageFlags.Ephemeral }),
+        );
+        expect(interaction.reply).toHaveBeenCalledTimes(1);
+        expect(interaction.deferReply).not.toHaveBeenCalled();
+        expect(hasTicketPermission).not.toHaveBeenCalled();
+        expect(hasStaffRole).not.toHaveBeenCalled();
+        expect(closeTicket).not.toHaveBeenCalled();
+        expect(reopenTicket).not.toHaveBeenCalled();
+        expect(deleteTicket).not.toHaveBeenCalled();
+        expect(logger.info).not.toHaveBeenCalled();
+      },
+    );
   });
 });

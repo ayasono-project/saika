@@ -13,8 +13,13 @@ import {
   type TextChannel,
 } from "discord.js";
 import { createInfoEmbed } from "../../../bot/utils/messageResponse";
-import type { ITicketRepository, Ticket } from "../../../shared/database/types";
-import { tDefault } from "../../../shared/locale/localeManager";
+import type {
+  GuildTicketSettings,
+  ITicketRepository,
+  Ticket,
+} from "../../../shared/database/types";
+import { logPrefixed, tDefault } from "../../../shared/locale/localeManager";
+import { logger } from "../../../shared/utils/logger";
 import {
   TICKET_CUSTOM_ID,
   TICKET_MESSAGE_FETCH_LIMIT,
@@ -25,6 +30,29 @@ import {
   cancelTicketAutoDelete,
   scheduleTicketAutoDelete,
 } from "./ticketAutoDeleteService";
+import { computeAutoDeleteRemainingMs } from "./ticketAutoDeleteTime";
+
+/**
+ * チケットのカテゴリの設定を取得する。無ければ ValidationError を投げる
+ * 呼び出し側（コマンド・ボタン）は事前に findTicketConfigOrReply で確かめているが、その後に
+ * 設定が消された場合でも、何もせずに成功扱いで戻らないようにする
+ * @param ticket 対象チケット
+ * @param settingsService チケット設定サービス
+ * @returns カテゴリの設定
+ */
+async function requireTicketConfig(
+  ticket: Ticket,
+  settingsService: TicketSettingsService,
+): Promise<GuildTicketSettings> {
+  const config = await settingsService.findByGuildAndCategory(
+    ticket.guildId,
+    ticket.categoryId,
+  );
+  if (!config) {
+    throw ValidationError.fromKey("ticket:user-response.ticket_config_missing");
+  }
+  return config;
+}
 
 /**
  * チケットチャンネルを作成する
@@ -114,18 +142,34 @@ export async function createTicketChannel(
     ],
   });
 
-  // DB にチケットを保存
-  const ticket = await ticketRepository.create({
-    guildId: guild.id,
-    categoryId,
-    channelId: channel.id,
-    userId,
-    ticketNumber,
-    subject,
-    status: TICKET_STATUS.OPEN,
-    elapsedDeleteMs: 0,
-    closedAt: null,
-  });
+  // DB にチケットを保存。失敗したら作ったチャンネルを消してから失敗を返す
+  // （記録の無いチャンネルは、クローズも削除も自動削除もできないまま残るため）
+  let ticket: Ticket;
+  try {
+    ticket = await ticketRepository.create({
+      guildId: guild.id,
+      categoryId,
+      channelId: channel.id,
+      userId,
+      ticketNumber,
+      subject,
+      status: TICKET_STATUS.OPEN,
+      elapsedDeleteMs: 0,
+      closedAt: null,
+    });
+  } catch (error) {
+    await channel.delete().catch((deleteError: unknown) => {
+      logger.warn(
+        logPrefixed(
+          "system:log_prefix.ticket",
+          "ticket:log.unrecorded_channel_delete_failed",
+          { guildId: guild.id, channelId: channel.id },
+        ),
+        deleteError,
+      );
+    });
+    throw error;
+  }
 
   // 初期メッセージを送信
   const createdAtTimestamp = Math.floor(Date.now() / 1000);
@@ -179,6 +223,7 @@ export async function createTicketChannel(
  * @param guild 対象ギルド
  * @param settingsService チケット設定サービス
  * @param ticketRepository チケットリポジトリ
+ * @throws ValidationError カテゴリの設定が無い（パネルが削除された）場合
  */
 export async function closeTicket(
   ticket: Ticket,
@@ -186,11 +231,7 @@ export async function closeTicket(
   settingsService: TicketSettingsService,
   ticketRepository: ITicketRepository,
 ): Promise<void> {
-  const config = await settingsService.findByGuildAndCategory(
-    ticket.guildId,
-    ticket.categoryId,
-  );
-  if (!config) return;
+  const config = await requireTicketConfig(ticket, settingsService);
 
   const staffRoleIds: string[] = config.staffRoleIds;
   const channel = (await guild.channels
@@ -217,10 +258,14 @@ export async function closeTicket(
     closedAt: now,
   });
 
-  // 自動削除タイマーを開始
-  const autoDeleteMs = config.autoDeleteDays * 24 * 60 * 60 * 1000;
-  const remainingMs = autoDeleteMs - ticket.elapsedDeleteMs;
-  const autoDeleteTimestamp = Math.floor((Date.now() + remainingMs) / 1000);
+  // 自動削除タイマーを開始（今クローズしたので、今回のクローズからの経過時間は数えない）
+  const remainingMs = computeAutoDeleteRemainingMs(
+    config.autoDeleteDays,
+    ticket.elapsedDeleteMs,
+    null,
+    now.getTime(),
+  );
+  const autoDeleteTimestamp = Math.floor((now.getTime() + remainingMs) / 1000);
 
   scheduleTicketAutoDelete(
     ticket.id,
@@ -261,10 +306,12 @@ export async function closeTicket(
 
 /**
  * チケットを再オープンする
+ * クローズしていた時間は elapsedDeleteMs に足して保存する（保存時に列の上限で切り詰める）
  * @param ticket 対象チケット
  * @param guild 対象ギルド
  * @param settingsService チケット設定サービス
  * @param ticketRepository チケットリポジトリ
+ * @throws ValidationError カテゴリの設定が無い（パネルが削除された）場合
  */
 export async function reopenTicket(
   ticket: Ticket,
@@ -272,11 +319,7 @@ export async function reopenTicket(
   settingsService: TicketSettingsService,
   ticketRepository: ITicketRepository,
 ): Promise<void> {
-  const config = await settingsService.findByGuildAndCategory(
-    ticket.guildId,
-    ticket.categoryId,
-  );
-  if (!config) return;
+  const config = await requireTicketConfig(ticket, settingsService);
 
   const staffRoleIds: string[] = config.staffRoleIds;
   const channel = (await guild.channels

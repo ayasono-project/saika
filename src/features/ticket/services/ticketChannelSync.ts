@@ -78,7 +78,8 @@ export async function removeTicketsWithMissingChannels(
 /**
  * 1ギルド分のチケットを Discord の状態に合わせる
  * チャンネルが無いものを片付けてから、残ったクローズ済みチケットの自動削除タイマーを組み直す。
- * 猶予内の再導入で、退出時に止めたタイマーと不在中に消されたチャンネルの両方を戻すために使う
+ * 猶予内の再導入で、退出時に止めたタイマーと不在中に消されたチャンネルの両方を戻すために使う。
+ * 再接続後（guildAvailable）にも使う。予約済みのタイマーは組み直さないので、繰り返し呼んでもよい
  * @param guild 対象ギルド
  * @param ticketRepository チケットリポジトリ
  * @returns 実行完了を示す Promise
@@ -100,6 +101,33 @@ export async function syncGuildTickets(
         "ticket:log.auto_delete_restore_guild",
         { guildId: guild.id, count: String(restoredCount) },
       ),
+    );
+  }
+}
+
+/**
+ * 再接続でギルドが戻ったとき（guildAvailable）に、そのギルドのチケットを Discord の状態に合わせる
+ * セッションが無効になり再 IDENTIFY で戻った場合、切断中に消されたチャンネルの channelDelete は
+ * 再送されない。そのまま次の再起動まで待つと、作成者が同時作成の上限に達したまま新しいチケットを
+ * 作れないため。失敗してもログに残すだけにする（次の再接続か再起動で再び合わせる）
+ * @param guild 戻ってきたギルド
+ * @param ticketRepository チケットリポジトリ
+ * @returns 実行完了を示す Promise
+ */
+export async function syncGuildTicketsOnAvailable(
+  guild: Guild,
+  ticketRepository: ITicketRepository,
+): Promise<void> {
+  try {
+    await syncGuildTickets(guild, ticketRepository);
+  } catch (error) {
+    logger.error(
+      logPrefixed(
+        "system:log_prefix.ticket",
+        "ticket:log.guild_resync_failed",
+        { guildId: guild.id },
+      ),
+      error,
     );
   }
 }

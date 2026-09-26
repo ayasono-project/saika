@@ -53,10 +53,14 @@ export const ticket = {
     "This command can only be used in a ticket channel.",
   "user-response.not_authorized":
     "You do not have permission to perform this action.",
+  "user-response.ticket_config_missing":
+    "The panel for this ticket's category has been deleted, so this ticket can no longer be managed. Setting up a panel for the same category again makes it manageable again, but closed tickets that have passed the auto-delete period since they were closed are deleted as soon as the panel is set up again. If you no longer need this ticket, delete the channel directly.",
   "user-response.ticket_already_closed": "This ticket is already closed.",
   "user-response.ticket_already_open": "This ticket is already open.",
   "user-response.max_tickets_reached":
     "You have reached the maximum number of simultaneous tickets ({{max}}).",
+  "user-response.ticket_creation_in_progress":
+    "Your ticket in this category is already being created. Please wait for it to finish.",
   "user-response.cannot_remove_last_role": "Cannot remove all staff roles.",
   "user-response.panel_not_found":
     "Panel message not found. The panel may have been deleted.",
@@ -139,6 +143,18 @@ export const ticket = {
     "ticket deleted GuildId: {{guildId}} ChannelId: {{channelId}} DeletedBy: {{deletedBy}}",
   "log.ticket_auto_deleted":
     "ticket auto-deleted GuildId: {{guildId}} ChannelId: {{channelId}}",
+  "log.ticket_auto_delete_failed":
+    "ticket auto-delete failed GuildId: {{guildId}} ChannelId: {{channelId}}",
+  "log.auto_delete_skipped_not_closed":
+    "auto-delete skipped (ticket reopened or already deleted) GuildId: {{guildId}} TicketId: {{ticketId}}",
+  "log.auto_delete_held_config_missing":
+    "auto-delete held (category settings not found) GuildId: {{guildId}} CategoryId: {{categoryId}} TicketId: {{ticketId}}",
+  "log.auto_delete_resumed":
+    "auto-delete timers resumed after panel setup GuildId: {{guildId}} CategoryId: {{categoryId}} Count: {{count}}",
+  "log.auto_delete_resume_failed":
+    "failed to resume auto-delete timers after panel setup GuildId: {{guildId}} CategoryId: {{categoryId}}",
+  "log.unrecorded_channel_delete_failed":
+    "failed to delete the channel of a ticket whose record could not be created GuildId: {{guildId}} ChannelId: {{channelId}}",
   "log.database_config_save_failed":
     "failed to save ticket config GuildId: {{guildId}} CategoryId: {{categoryId}}",
   "log.database_config_find_failed":
@@ -190,7 +206,9 @@ export const ticket = {
   "log.ticket_channel_sync_failed":
     "ticket/channel sync failed (nothing removed) GuildId: {{guildId}}",
   "log.auto_delete_restore_guild":
-    "auto-delete timers restored on rejoin GuildId: {{guildId}} Count: {{count}}",
+    "auto-delete timers restored on rejoin/reconnect GuildId: {{guildId}} Count: {{count}}",
+  "log.guild_resync_failed":
+    "ticket/channel sync after reconnect failed GuildId: {{guildId}}",
 } as const;
 
 export type TicketTranslations = typeof ticket;

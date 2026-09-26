@@ -119,7 +119,7 @@ describe("bot/features/ticket/commands/usecases/ticketClose", () => {
     expect(closeTicketMock).not.toHaveBeenCalled();
   });
 
-  it("設定が見つからない場合はエラー応答", async () => {
+  it("設定が無い（パネルが削除された）場合は、権限の有無ではなく操作できない旨を返信し、クローズしない", async () => {
     const { handleTicketClose } = await import(
       "@/features/ticket/commands/usecases/ticketClose"
     );
@@ -137,9 +137,16 @@ describe("bot/features/ticket/commands/usecases/ticketClose", () => {
 
     await handleTicketClose(interaction as never);
 
-    expect(interaction.reply).toHaveBeenCalledWith(
-      expect.objectContaining({ flags: MessageFlags.Ephemeral }),
-    );
+    expect(interaction.reply).toHaveBeenCalledWith({
+      embeds: [
+        {
+          type: "error",
+          description: "ticket:user-response.ticket_config_missing",
+        },
+      ],
+      flags: MessageFlags.Ephemeral,
+    });
+    expect(hasTicketPermissionMock).not.toHaveBeenCalled();
     expect(closeTicketMock).not.toHaveBeenCalled();
   });
 

@@ -256,6 +256,7 @@ export interface ITicketRepository {
   create(data: Omit<Ticket, "id" | "createdAt" | "updatedAt">): Promise<Ticket>;
   update(id: string, data: Partial<Ticket>): Promise<Ticket>;
   delete(id: string): Promise<void>;
+  deleteIfClosed(id: string): Promise<boolean>;
   deleteByCategory(guildId: string, categoryId: string): Promise<number>;
   deleteAllByGuild(guildId: string): Promise<number>;
 }

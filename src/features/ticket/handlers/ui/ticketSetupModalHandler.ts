@@ -10,7 +10,10 @@ import {
   type TextChannel,
 } from "discord.js";
 import type { ModalHandler } from "../../../../bot/handlers/interactionCreate/ui/types";
-import { getBotTicketSettingsService } from "../../../../bot/services/botCompositionRoot";
+import {
+  getBotTicketRepository,
+  getBotTicketSettingsService,
+} from "../../../../bot/services/botCompositionRoot";
 import { rejectThreadChannel } from "../../../../bot/shared/channelGuards";
 import {
   createErrorEmbed,
@@ -27,6 +30,7 @@ import {
   TICKET_DEFAULT_MAX_TICKETS_PER_USER,
   TICKET_DEFAULT_PANEL_COLOR,
 } from "../../commands/ticketCommand.constants";
+import { resumeAutoDeleteForCategory } from "../../services/ticketAutoDeleteService";
 import { ticketSetupSessions } from "./ticketSetupState";
 
 /**
@@ -175,6 +179,14 @@ export const ticketSetupModalHandler: ModalHandler = {
 
     // セッションを削除
     ticketSetupSessions.delete(sessionId);
+
+    // パネルが無い間は止めていた、このカテゴリのクローズ済みチケットの自動削除を再開する
+    await resumeAutoDeleteForCategory(
+      guildId,
+      session.categoryId,
+      interaction.client,
+      getBotTicketRepository(),
+    );
 
     logger.info(
       logPrefixed("system:log_prefix.ticket", "ticket:log.setup", {

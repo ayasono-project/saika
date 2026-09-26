@@ -7,7 +7,8 @@ import { logger } from "../../../shared/utils/logger";
 
 /**
  * messageDelete 時にパネルメッセージの削除を検知し、設定をクリーンアップする
- * 既存チケットチャンネル・チケットレコードは維持する
+ * 既存チケットチャンネル・チケットレコードは維持する（そのカテゴリのチケットは、同じカテゴリに
+ * パネルを作り直すまで Bot から操作できず、自動削除も止まる）
  * @param message 削除されたメッセージ
  */
 export async function handleTicketMessageDelete(

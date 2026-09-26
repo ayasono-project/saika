@@ -51,12 +51,16 @@ export const ticket = {
   "user-response.not_ticket_channel":
     "このコマンドはチケットチャンネル内でのみ実行できます。",
   "user-response.not_authorized": "この操作を実行する権限がありません。",
+  "user-response.ticket_config_missing":
+    "このチケットのカテゴリのパネルが削除されているため、操作できません。同じカテゴリにパネルを設置し直すと再び操作できますが、クローズしてから自動削除の日数を過ぎているチケットは、設置し直した時点で削除されます。不要なチケットは、チャンネルを直接削除してください。",
   "user-response.ticket_already_closed":
     "このチケットは既にクローズされています。",
   "user-response.ticket_already_open":
     "このチケットは既にオープンされています。",
   "user-response.max_tickets_reached":
     "チケットの同時作成上限（{{max}}件）に達しています。",
+  "user-response.ticket_creation_in_progress":
+    "このカテゴリのチケットを作成中です。作成が終わるまでお待ちください。",
   "user-response.cannot_remove_last_role":
     "スタッフロールを0件にすることはできません。",
   "user-response.panel_not_found":
@@ -140,6 +144,18 @@ export const ticket = {
     "チケット削除 GuildId: {{guildId}} ChannelId: {{channelId}} DeletedBy: {{deletedBy}}",
   "log.ticket_auto_deleted":
     "チケット自動削除 GuildId: {{guildId}} ChannelId: {{channelId}}",
+  "log.ticket_auto_delete_failed":
+    "チケット自動削除に失敗 GuildId: {{guildId}} ChannelId: {{channelId}}",
+  "log.auto_delete_skipped_not_closed":
+    "自動削除を中止（チケットが再オープン済みか削除済み） GuildId: {{guildId}} TicketId: {{ticketId}}",
+  "log.auto_delete_held_config_missing":
+    "自動削除を保留（カテゴリの設定が無い） GuildId: {{guildId}} CategoryId: {{categoryId}} TicketId: {{ticketId}}",
+  "log.auto_delete_resumed":
+    "パネルの再設置で自動削除タイマーを再開 GuildId: {{guildId}} CategoryId: {{categoryId}} 件数: {{count}}",
+  "log.auto_delete_resume_failed":
+    "パネルの再設置時に自動削除タイマーの再開に失敗 GuildId: {{guildId}} CategoryId: {{categoryId}}",
+  "log.unrecorded_channel_delete_failed":
+    "記録を作れなかったチケットのチャンネルの削除に失敗 GuildId: {{guildId}} ChannelId: {{channelId}}",
   "log.database_config_save_failed":
     "チケット設定保存に失敗 GuildId: {{guildId}} CategoryId: {{categoryId}}",
   "log.database_config_find_failed":
@@ -191,7 +207,9 @@ export const ticket = {
   "log.ticket_channel_sync_failed":
     "チケットとチャンネルの突き合わせに失敗（何も削除しない） GuildId: {{guildId}}",
   "log.auto_delete_restore_guild":
-    "再導入時 自動削除タイマー復元 GuildId: {{guildId}} 件数: {{count}}",
+    "再導入・再接続時 自動削除タイマー復元 GuildId: {{guildId}} 件数: {{count}}",
+  "log.guild_resync_failed":
+    "再接続後のチケットとチャンネルの突き合わせに失敗 GuildId: {{guildId}}",
 } as const;
 
 export type TicketTranslations = typeof ticket;

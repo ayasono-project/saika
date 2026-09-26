@@ -12,7 +12,8 @@ import { cancelTicketAutoDelete } from "../services/ticketAutoDeleteService";
 /**
  * channelDelete 時にチケット関連のチャンネル削除を検知して後始末する
  * - チケットチャンネル: そのチケットの記録と自動削除タイマーを消す
- * - パネル設置チャンネル: 設定を消す（既存のチケットチャンネル・チケットレコードは維持する）
+ * - パネル設置チャンネル: 設定を消す（既存のチケットチャンネル・チケットレコードは維持する。
+ *   そのカテゴリのチケットは、同じカテゴリにパネルを作り直すまで Bot から操作できず、自動削除も止まる）
  * @param channel 削除されたチャンネル
  */
 export async function handleTicketChannelDelete(

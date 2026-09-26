@@ -48,9 +48,14 @@ const mockConfigService = {
   deleteAllByGuild: vi.fn(),
   incrementCounter: vi.fn(),
 };
+const mockTicketRepository = { findAllClosedByGuild: vi.fn() };
 vi.mock("@/bot/services/botCompositionRoot", () => ({
   getBotTicketSettingsService: () => mockConfigService,
-  getBotTicketRepository: () => ({}),
+  getBotTicketRepository: () => mockTicketRepository,
+}));
+
+vi.mock("@/features/ticket/services/ticketAutoDeleteService", () => ({
+  resumeAutoDeleteForCategory: vi.fn(),
 }));
 
 vi.mock("@/features/ticket/handlers/ui/ticketSetupState", () => ({
@@ -63,6 +68,7 @@ vi.mock("@/features/ticket/handlers/ui/ticketSetupState", () => ({
 }));
 
 import { ticketSetupSessions } from "@/features/ticket/handlers/ui/ticketSetupState";
+import { resumeAutoDeleteForCategory } from "@/features/ticket/services/ticketAutoDeleteService";
 
 function createMockModalInteraction(
   customId: string,
@@ -279,6 +285,40 @@ describe("bot/features/ticket/handlers/ui/ticketSetupModalHandler", () => {
       );
       expect(ticketSetupSessions.delete).toHaveBeenCalledWith("session-1");
       // ロール選択メニューのメッセージが削除されること（commandInteraction.deleteReply経由）
+    });
+
+    it("設定の保存後に、このカテゴリのクローズ済みチケットの自動削除を再開する（パネルが無い間は止めているため）", async () => {
+      vi.mocked(ticketSetupSessions.get).mockReturnValue({
+        categoryId: "cat-1",
+        staffRoleIds: ["role-1"],
+        commandInteraction: {
+          deleteReply: vi.fn().mockResolvedValue(undefined),
+        } as never,
+      } as never);
+      mockConfigService.findByGuildAndCategory.mockResolvedValue(null);
+      mockConfigService.create.mockResolvedValue(undefined);
+      const client = { id: "client" };
+
+      const interaction = createMockModalInteraction(
+        "ticket:setup-modal:session-1",
+        {
+          "ticket:setup-title": "Test Title",
+          "ticket:setup-description": "Test Description",
+        },
+        { client },
+      );
+
+      await ticketSetupModalHandler.execute(interaction as never);
+
+      expect(resumeAutoDeleteForCategory).toHaveBeenCalledWith(
+        "guild-1",
+        "cat-1",
+        client,
+        mockTicketRepository,
+      );
+      expect(mockConfigService.create.mock.invocationCallOrder[0]).toBeLessThan(
+        vi.mocked(resumeAutoDeleteForCategory).mock.invocationCallOrder[0],
+      );
     });
 
     it("channel.send で MissingPermissions エラーが発生した場合は上位ハンドラへ伝播する", async () => {

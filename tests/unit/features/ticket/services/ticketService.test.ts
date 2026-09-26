@@ -1,3 +1,4 @@
+import { ValidationError } from "@ayasono/shared/core";
 import {
   closeTicket,
   createTicketChannel,
@@ -7,6 +8,7 @@ import {
   reopenTicket,
 } from "@/features/ticket/services/ticketService";
 import type { Ticket } from "@/shared/database/types";
+import { logger } from "@/shared/utils/logger";
 
 vi.mock("@/shared/locale/localeManager", () => ({
   logPrefixed: (
@@ -251,6 +253,55 @@ describe("bot/features/ticket/services/ticketService", () => {
         ),
       ).rejects.toThrow("ticket:user-response.config_not_found");
     });
+
+    it("記録の作成に失敗したら、作ったチャンネルを消してから元のエラーを投げること（記録の無いチャンネルを残さない）", async () => {
+      const guild = createMockGuild();
+      const settingsService = createMockConfigService();
+      const ticketRepository = createMockTicketRepository();
+      const dbError = new Error("db create failed");
+      ticketRepository.create.mockRejectedValue(dbError);
+
+      await expect(
+        createTicketChannel(
+          guild as never,
+          "cat-1",
+          "user-1",
+          "test subject",
+          "test detail",
+          settingsService as never,
+          ticketRepository as never,
+        ),
+      ).rejects.toBe(dbError);
+
+      expect(guild._mockChannel.delete).toHaveBeenCalledTimes(1);
+      expect(guild._mockChannel.send).not.toHaveBeenCalled();
+    });
+
+    it("作ったチャンネルの削除にも失敗したら warn を出し、元のエラーを投げること", async () => {
+      const guild = createMockGuild();
+      guild._mockChannel.delete.mockRejectedValue(new Error("delete failed"));
+      const settingsService = createMockConfigService();
+      const ticketRepository = createMockTicketRepository();
+      const dbError = new Error("db create failed");
+      ticketRepository.create.mockRejectedValue(dbError);
+
+      await expect(
+        createTicketChannel(
+          guild as never,
+          "cat-1",
+          "user-1",
+          "test subject",
+          "test detail",
+          settingsService as never,
+          ticketRepository as never,
+        ),
+      ).rejects.toBe(dbError);
+
+      expect(logger.warn).toHaveBeenCalledWith(
+        expect.stringContaining("ticket:log.unrecorded_channel_delete_failed"),
+        expect.any(Error),
+      );
+    });
   });
 
   describe("closeTicket", () => {
@@ -302,11 +353,32 @@ describe("bot/features/ticket/services/ticketService", () => {
       );
     });
 
-    it("config が見つからない場合に早期リターンすること", async () => {
+    it("config が無い（パネルが削除された）場合は、何もせず成功扱いで戻らず ValidationError を投げること", async () => {
       const guild = createMockGuild();
       const ticket = createMockTicket();
       const settingsService = createMockConfigService();
       settingsService.findByGuildAndCategory.mockResolvedValue(null);
+      const ticketRepository = createMockTicketRepository();
+
+      const error = await closeTicket(
+        ticket,
+        guild as never,
+        settingsService as never,
+        ticketRepository as never,
+      ).catch((e: unknown) => e);
+
+      expect(error).toBeInstanceOf(ValidationError);
+      expect((error as ValidationError).messageKey).toBe(
+        "ticket:user-response.ticket_config_missing",
+      );
+      expect(ticketRepository.update).not.toHaveBeenCalled();
+      expect(scheduleTicketAutoDeleteMock).not.toHaveBeenCalled();
+    });
+
+    it("自動削除までの時間は、日数からこれまでクローズしていた時間の累計を引いた値で予約すること", async () => {
+      const guild = createMockGuild();
+      const ticket = createMockTicket({ elapsedDeleteMs: 1000 });
+      const settingsService = createMockConfigService();
       const ticketRepository = createMockTicketRepository();
 
       await closeTicket(
@@ -316,7 +388,13 @@ describe("bot/features/ticket/services/ticketService", () => {
         ticketRepository as never,
       );
 
-      expect(ticketRepository.update).not.toHaveBeenCalled();
+      expect(scheduleTicketAutoDeleteMock).toHaveBeenCalledWith(
+        1,
+        "ticket-channel-1",
+        "guild-1",
+        7 * 24 * 60 * 60 * 1000 - 1000,
+        guild.client,
+      );
     });
 
     it("前回の再オープン通知を検知して削除すること", async () => {
@@ -420,21 +498,29 @@ describe("bot/features/ticket/services/ticketService", () => {
       );
     });
 
-    it("config が見つからない場合に早期リターンすること", async () => {
+    it("config が無い（パネルが削除された）場合は、何もせず成功扱いで戻らず ValidationError を投げること", async () => {
       const guild = createMockGuild();
-      const ticket = createMockTicket();
+      const ticket = createMockTicket({
+        status: "closed",
+        closedAt: new Date(),
+      });
       const settingsService = createMockConfigService();
       settingsService.findByGuildAndCategory.mockResolvedValue(null);
       const ticketRepository = createMockTicketRepository();
 
-      await reopenTicket(
+      const error = await reopenTicket(
         ticket,
         guild as never,
         settingsService as never,
         ticketRepository as never,
-      );
+      ).catch((e: unknown) => e);
 
+      expect(error).toBeInstanceOf(ValidationError);
+      expect((error as ValidationError).messageKey).toBe(
+        "ticket:user-response.ticket_config_missing",
+      );
       expect(ticketRepository.update).not.toHaveBeenCalled();
+      expect(cancelTicketAutoDeleteMock).not.toHaveBeenCalled();
     });
   });
 

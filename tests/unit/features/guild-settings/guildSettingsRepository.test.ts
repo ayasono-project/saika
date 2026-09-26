@@ -92,7 +92,8 @@ describe("shared/database/repositories/guildCoreRepository", () => {
     );
   });
 
-  it("resetGuildSettings が locale をデフォルトに、errorChannelId を undefined にリセットすること", async () => {
+  // undefined だと「変更しない」扱いで update から落ち、エラー通知チャンネルが DB に残る
+  it("resetGuildSettings が locale をデフォルトに戻し、errorChannelId を null（設定を消す）で渡すこと", async () => {
     const { module, coreUsecases } = await loadModule();
     const prisma = { guildSettings: {} };
     const repository = new module.GuildCoreRepository(prisma as never);
@@ -102,7 +103,7 @@ describe("shared/database/repositories/guildCoreRepository", () => {
     expect(coreUsecases.updateGuildSettingsUsecase).toHaveBeenCalledWith(
       expect.objectContaining({ prisma }),
       "g1",
-      { locale: "ja", errorChannelId: undefined },
+      { locale: "ja", errorChannelId: null },
     );
   });
 

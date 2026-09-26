@@ -11,14 +11,22 @@ import type { SettingsResource } from "../routes/settingsResource";
 const SUPPORTED_LOCALES: readonly Locale[] = ["ja", "en"];
 const DEFAULT_LOCALE: Locale = "ja";
 
-/** 非対応の locale 文字列はデフォルトへ丸める */
+/**
+ * 非対応の locale 文字列はデフォルトへ丸める
+ * @param locale DB に保存されている locale
+ * @returns 契約で使える locale
+ */
 function normalizeLocale(locale: string): Locale {
   return (SUPPORTED_LOCALES as readonly string[]).includes(locale)
     ? (locale as Locale)
     : DEFAULT_LOCALE;
 }
 
-/** ドメイン → 契約 */
+/**
+ * ドメインのギルド設定を API 契約の形へ変換する
+ * @param domain ギルド設定（未作成時は null）
+ * @returns API 契約のギルド共通設定
+ */
 export function toContractConfig(domain: GuildSettings | null): GuildConfig {
   return {
     locale: domain ? normalizeLocale(domain.locale) : DEFAULT_LOCALE,
@@ -26,7 +34,11 @@ export function toContractConfig(domain: GuildSettings | null): GuildConfig {
   };
 }
 
-/** ギルド共通設定リソースを生成する */
+/**
+ * ギルド共通設定リソースを生成する
+ * @param prisma Prismaクライアント（コアリポジトリの初期化に使う）
+ * @returns GET/PATCH/POST-reset を提供する設定リソース
+ */
 export function createConfigResource(
   prisma: PrismaClient,
 ): SettingsResource<GuildConfig> {
@@ -44,7 +56,8 @@ export function createConfigResource(
         localeManager.invalidateLocaleCache(guildId);
       }
       if (body.errorChannelId !== undefined) {
-        // usecase 側で `?? null` によりクリアされるため null も渡せる
+        // null は「設定を消す」としてシリアライザーがそのまま DB へ渡す
+        //（IGuildCoreRepository の型は Partial<GuildSettings> なので null を通すためにキャストする）
         const updates: Partial<GuildSettings> = {};
         (updates as { errorChannelId: string | null }).errorChannelId =
           body.errorChannelId;

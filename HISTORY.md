@@ -161,6 +161,10 @@ VAC を残す判断（→「VAC（トリガー VC 方式）は残し、募集は
 
 > 詳細な作業経過は git log を参照。
 
+### sticky-message の設定先を選択時点でテキストチャンネルに絞った（2026-09-26 develop merge）
+
+`/sticky-message set` / `update` の `channel` オプションだけ `addChannelTypes` が無く、選択画面でスレッドやカテゴリまで選べていた。実行時に `type !== ChannelType.GuildText` で弾くので実害は無かったが、他の設定コマンドはすべて選択時点で絞っており、ここだけ非対称だった。両オプションに `addChannelTypes(ChannelType.GuildText)` を付け、実行時のガードと同じ範囲（通常のテキストチャンネルのみ。アナウンスチャンネルも不可）にそろえた。USER_MANUAL に、テキストチャンネル限定であることと、`channel` を省略するとスレッド内では失敗することを書いた。
+
 ### message-delete でスレッドを削除対象にできなかった（2026-09-26 develop merge）
 
 init（`f9f4db6`）からの不具合で、一度も動いたことがなかった（→「スレッドでの振る舞いを機能ごとに決めた」で発見）。削除対象のセレクタはスレッドを選べるのに、`buildTargetChannels` が `guild.channels.fetch()`（`GET /guilds/{id}/channels`、**スレッドを返さない**）の結果から引いていたため、スレッドは「見つからない」として黙って捨てられていた。スレッドだけ選ぶと原因と無関係な権限エラーになり、通常チャンネルと混ぜるとスキップ通知すら出なかった。

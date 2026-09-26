@@ -360,6 +360,36 @@ describe("shared/features/bump-reminder/manager", () => {
     expect(manager.hasReminder("g-10", "Disboard")).toBe(true);
   });
 
+  // 以前は複合キーを guildId として渡していたため、ログに「GuildId: g-log:Disboard」と出ていた（回帰テスト）
+  it("cancelAllForGuild の取り消しログは GuildId に正しいギルドIDを、Service にサービス名を出すことを検証", async () => {
+    addOneTimeJobMock.mockImplementation(() => undefined);
+    repositoryMock.create.mockResolvedValueOnce({
+      id: "rem-log",
+      guildId: "g-log",
+      channelId: "ch-1",
+      messageId: null,
+      panelMessageId: null,
+      scheduledAt: new Date("2026-02-20T02:00:00.000Z"),
+      status: "pending",
+    });
+    await manager.setReminder(
+      "g-log",
+      "ch-1",
+      undefined,
+      undefined,
+      120,
+      vi.fn(),
+      "Disboard",
+    );
+    vi.mocked(logger.info).mockClear();
+
+    await manager.cancelAllForGuild("g-log");
+
+    expect(logger.info).toHaveBeenCalledWith(
+      `[system:log_prefix.bump_reminder] bumpReminder:log.scheduler_cancelled:${JSON.stringify({ guildId: "g-log", service: "Disboard" })}`,
+    );
+  });
+
   it("未登録ギルドの cancelAllForGuild は 0 を返すことを検証", async () => {
     await expect(manager.cancelAllForGuild("missing-guild")).resolves.toBe(0);
   });
@@ -483,7 +513,7 @@ describe("shared/features/bump-reminder/manager", () => {
 
     await manager.clearAll();
 
-    expect(cancelSpy).toHaveBeenCalledWith("g-x");
+    expect(cancelSpy).toHaveBeenCalledWith("g-x", undefined);
     expect(logger.error).toHaveBeenCalledWith(
       expect.stringContaining("bumpReminder:log.scheduler_task_failed"),
       expect.any(Error),
@@ -538,11 +568,27 @@ describe("shared/features/bump-reminder/manager", () => {
 
     await manager.clearAll();
 
-    expect(cancelSpy).toHaveBeenCalledWith("g-ok");
+    expect(cancelSpy).toHaveBeenCalledWith("g-ok", undefined);
     expect(logger.error).not.toHaveBeenCalledWith(
       expect.stringContaining("bumpReminder:log.scheduler_task_failed"),
       expect.anything(),
     );
+  });
+
+  it("clearAll は複合キーをギルドIDとサービス名に分けて cancelReminder に渡すことを検証", async () => {
+    (
+      manager as unknown as {
+        reminders: Map<string, { jobId: string; reminderId: string }>;
+      }
+    ).reminders.set("g-y:Dissoku", { jobId: "job-y", reminderId: "r-y" });
+
+    const cancelSpy = vi
+      .spyOn(manager, "cancelReminder")
+      .mockResolvedValueOnce(true);
+
+    await manager.clearAll();
+
+    expect(cancelSpy).toHaveBeenCalledWith("g-y", "Dissoku");
   });
 
   it("初期化前に repository なしで getBumpReminderManager を呼ぶと例外になることを検証", () => {

@@ -3,6 +3,7 @@
 
 import {
   type BumpServiceName,
+  parseBumpReminderKey,
   toBumpReminderKey,
 } from "../constants/bumpReminderConstants";
 import { type IBumpReminderRepository } from "../repositories/types";
@@ -12,6 +13,7 @@ import { clearAllBumpRemindersUsecase } from "./usecases/clearAllBumpRemindersUs
 import { restorePendingBumpRemindersUsecase } from "./usecases/restorePendingBumpRemindersUsecase";
 import { setBumpReminderUsecase } from "./usecases/setBumpReminderUsecase";
 
+/** 復元時に pending レコードを実行タスクへ変換するためのファクトリ型 */
 export type BumpReminderTaskFactory = (
   guildId: string,
   channelId: string,
@@ -19,8 +21,6 @@ export type BumpReminderTaskFactory = (
   panelMessageId?: string,
   serviceName?: BumpServiceName,
 ) => () => Promise<void>;
-
-// 復元時に pending レコードを実行タスクへ変換するためのファクトリ型
 
 /**
  * Bumpリマインダー用のジョブマネージャー
@@ -95,19 +95,22 @@ export class BumpReminderManager {
    * ギルド単位の後始末では必ず本メソッドを使うこと。
    *
    * DB 行のみを更新する `bumpReminderRepository.cancelByGuild()` とは別物。
+   * パネルメッセージには触れない。Bot がギルドにいてパネルも消すべき場面（無効化・リセット・全設定リセット）では
+   * `cancelGuildBumpReminders`（handlers/usecases）を使う。
    * @param guildId 対象ギルドID
    * @returns キャンセルできた件数
    */
   public async cancelAllForGuild(guildId: string): Promise<number> {
     // 複合キー（"guildId:serviceName"）と素の guildId キーの両方を拾う
-    const prefix = `${guildId}:`;
-    const targetKeys = [...this.reminders.keys()].filter(
-      (key) => key === guildId || key.startsWith(prefix),
-    );
+    const targets = [...this.reminders.keys()]
+      .map((key) => parseBumpReminderKey(key))
+      .filter((target) => target.guildId === guildId);
 
-    // キーをそのまま guildId として渡す（toBumpReminderKey の冪等変換で安全）
+    // キーを guildId と serviceName に分解して渡す（キーのまま渡すとログの GuildId に複合キーが出る）
     const results = await Promise.all(
-      targetKeys.map((key) => this.cancelReminder(key)),
+      targets.map((target) =>
+        this.cancelReminder(target.guildId, target.serviceName),
+      ),
     );
     return results.filter(Boolean).length;
   }
@@ -141,15 +144,17 @@ export class BumpReminderManager {
 
   /**
    * すべてのリマインダーをクリア
-   * 个々のキャンセル失敗時はエラーを記録して続行する
+   * 個々のキャンセル失敗時はエラーを記録して続行する
    * @returns 実行完了を示す Promise
    */
   public async clearAll(): Promise<void> {
     await clearAllBumpRemindersUsecase({
       reminders: this.reminders,
-      // Map のキーは複合キー（"guildId:serviceName"）の場合があるため、
-      // キーをそのまま guildId として渡す（toBumpReminderKey の掂等変換で安全）
-      cancelByKey: (reminderKey: string) => this.cancelReminder(reminderKey),
+      // Map のキーは複合キー（"guildId:serviceName"）の場合があるため、分解して渡す
+      cancelByKey: (reminderKey: string) => {
+        const { guildId, serviceName } = parseBumpReminderKey(reminderKey);
+        return this.cancelReminder(guildId, serviceName);
+      },
     });
   }
 }

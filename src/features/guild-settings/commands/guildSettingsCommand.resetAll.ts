@@ -99,6 +99,7 @@ export async function handleResetAll(
       // インメモリタイマーを解除してから全設定削除
       await purgeGuildDataUsecase(
         {
+          client: i.client,
           guildSettingsService: getBotGuildSettingsService(),
           ticketRepository: getBotTicketRepository(),
           bumpReminderManager: getBotBumpReminderManager(),

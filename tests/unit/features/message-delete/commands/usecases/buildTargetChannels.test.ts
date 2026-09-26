@@ -37,7 +37,12 @@ vi.mock("@/shared/locale/localeManager", () => ({
     return `[${commandName}] ${m}`;
   },
   tDefault: vi.fn((key: string) => key),
-  tInteraction: (...args: unknown[]) => args[1],
+  // 通知にどのチャンネルが載ったかを検証できるよう、パラメータも文字列に含める
+  tInteraction: (
+    _locale: string,
+    key: string,
+    params?: Record<string, unknown>,
+  ) => (params ? `${key}:${JSON.stringify(params)}` : key),
 }));
 
 vi.mock("@/shared/utils/logger", () => ({
@@ -61,12 +66,23 @@ function makeChannelCollection(channels: (object | null)[]) {
   };
 }
 
+/**
+ * テスト用の interaction を生成する
+ * guild.channels.fetch() は引数なしで channels の一覧を、ID 付きでは threads から1件を返す
+ * （実 API と同じく、一覧取得はスレッドを含まず、個別取得は見つからなければ失敗する）
+ */
 function makeInteraction(opts: {
   guildId?: string | null;
   meNull?: boolean;
   channels?: (object | null)[];
+  threads?: { id: string }[];
 }) {
-  const { guildId = "guild-1", meNull = false, channels = [] } = opts;
+  const {
+    guildId = "guild-1",
+    meNull = false,
+    channels = [],
+    threads = [],
+  } = opts;
 
   const me = meNull
     ? null
@@ -74,14 +90,19 @@ function makeInteraction(opts: {
         displayName: "Bot",
       };
 
+  const collection = makeChannelCollection(channels);
+  const threadMap = new Map(threads.map((th) => [th.id, th]));
   const guild = guildId
     ? {
         id: guildId,
         members: { me },
         channels: {
-          fetch: vi
-            .fn()
-            .mockResolvedValue(makeChannelCollection(channels)) as Mock,
+          fetch: vi.fn(async (id?: string) => {
+            if (id === undefined) return collection;
+            const thread = threadMap.get(id);
+            if (!thread) throw new Error("Unknown Channel");
+            return thread;
+          }) as Mock,
         },
       }
     : null;
@@ -130,7 +151,7 @@ describe("bot/features/message-delete/commands/usecases/buildTargetChannels", ()
     expect(result?.[0]).toBe(ch1);
   });
 
-  it("テキスト以外のチャンネルIDを指定した場合はスキップする", async () => {
+  it("テキスト以外のチャンネルIDを指定した場合はスキップして通知する", async () => {
     const { buildTargetChannels } = await loadModule();
     const catCh = {
       id: "ch-cat",
@@ -150,6 +171,110 @@ describe("bot/features/message-delete/commands/usecases/buildTargetChannels", ()
     ]);
     expect(result).toHaveLength(1);
     expect(result?.[0]).toBe(textCh);
+    expect(createWarningEmbedMock).toHaveBeenCalledWith(
+      expect.stringContaining("<#ch-cat>"),
+    );
+  });
+
+  // ── スレッド・解決できない ID（一覧取得はスレッドを返さないため個別取得で補う）──
+
+  it("スレッドだけを指定した場合は個別取得で解決して対象にする", async () => {
+    const { buildTargetChannels } = await loadModule();
+    const thread = {
+      id: "th-1",
+      type: ChannelType.PublicThread,
+      isTextBased: () => true,
+      permissionsFor: vi.fn(() => ({ has: vi.fn(() => true) })),
+    };
+    const interaction = makeInteraction({ threads: [thread] });
+    const result = await buildTargetChannels(interaction as never, ["th-1"]);
+    expect(result).toEqual([thread]);
+    expect(interaction.guild?.channels.fetch).toHaveBeenCalledWith("th-1");
+    expect(createWarningEmbedMock).not.toHaveBeenCalled();
+    expect(createErrorEmbedMock).not.toHaveBeenCalled();
+  });
+
+  it("通常のチャンネルとスレッドを混ぜて指定した場合は両方を対象にし、個別取得はスレッドだけに行う", async () => {
+    const { buildTargetChannels } = await loadModule();
+    const textCh = {
+      id: "ch-1",
+      type: ChannelType.GuildText,
+      isTextBased: () => true,
+      permissionsFor: vi.fn(() => ({ has: vi.fn(() => true) })),
+    };
+    const thread = {
+      id: "th-1",
+      type: ChannelType.PrivateThread,
+      isTextBased: () => true,
+      permissionsFor: vi.fn(() => ({ has: vi.fn(() => true) })),
+    };
+    const interaction = makeInteraction({
+      channels: [textCh],
+      threads: [thread],
+    });
+    const result = await buildTargetChannels(interaction as never, [
+      "ch-1",
+      "th-1",
+    ]);
+    expect(result).toEqual([textCh, thread]);
+    expect(interaction.guild?.channels.fetch).not.toHaveBeenCalledWith("ch-1");
+    expect(interaction.guild?.channels.fetch).toHaveBeenCalledWith("th-1");
+  });
+
+  it("解決できない ID は黙って落とさず、スキップとして通知する", async () => {
+    const { buildTargetChannels } = await loadModule();
+    const textCh = {
+      id: "ch-1",
+      type: ChannelType.GuildText,
+      isTextBased: () => true,
+      permissionsFor: vi.fn(() => ({ has: vi.fn(() => true) })),
+    };
+    const interaction = makeInteraction({ channels: [textCh] });
+    const result = await buildTargetChannels(interaction as never, [
+      "ch-1",
+      "missing",
+    ]);
+    expect(result).toEqual([textCh]);
+    expect(createWarningEmbedMock).toHaveBeenCalledWith(
+      expect.stringContaining("<#missing>"),
+    );
+    expect(interaction.followUp).toHaveBeenCalled();
+  });
+
+  it("解決できない ID だけを指定した場合は null を返してエラーを送信する", async () => {
+    const { buildTargetChannels } = await loadModule();
+    const interaction = makeInteraction({});
+    const result = await buildTargetChannels(interaction as never, ["missing"]);
+    expect(result).toBeNull();
+    expect(createErrorEmbedMock).toHaveBeenCalled();
+  });
+
+  it("Bot が権限を持たないスレッドはスキップして通知する", async () => {
+    const { buildTargetChannels } = await loadModule();
+    const textCh = {
+      id: "ch-1",
+      type: ChannelType.GuildText,
+      isTextBased: () => true,
+      permissionsFor: vi.fn(() => ({ has: vi.fn(() => true) })),
+    };
+    const deniedThread = {
+      id: "th-1",
+      type: ChannelType.PublicThread,
+      isTextBased: () => true,
+      permissionsFor: vi.fn(() => ({ has: vi.fn(() => false) })),
+    };
+    const interaction = makeInteraction({
+      channels: [textCh],
+      threads: [deniedThread],
+    });
+    const result = await buildTargetChannels(interaction as never, [
+      "ch-1",
+      "th-1",
+    ]);
+    expect(result).toEqual([textCh]);
+    expect(createWarningEmbedMock).toHaveBeenCalledWith(
+      expect.stringContaining("<#th-1>"),
+    );
   });
 
   it("Bot がアクセスできないチャンネルをスキップして警告を送信する", async () => {

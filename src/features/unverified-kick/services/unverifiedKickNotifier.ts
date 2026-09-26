@@ -4,6 +4,7 @@ import { EmbedBuilder } from "discord.js";
 import { STATUS_COLORS } from "../../../bot/utils/messageResponse";
 import { EMBED_COLORS } from "../../../shared/constants/embedColors";
 import type { GuildTFunction } from "../../../shared/locale/helpers";
+import { formatPlaceholders } from "../../../shared/utils/formatPlaceholders";
 import type {
   CandidateBuckets,
   CategorizedCandidate,
@@ -21,19 +22,6 @@ function chunk<T>(items: T[], size: number): T[][] {
     pages.push(items.slice(i, i + size));
   }
   return pages;
-}
-
-/**
- * 単一波括弧 `{name}` プレースホルダーを実値へ置換する。
- * 未知のプレースホルダーはそのまま残す。
- */
-export function formatUnverifiedKickMessage(
-  template: string,
-  vars: Record<string, string | number>,
-): string {
-  return template.replace(/\{(\w+)\}/g, (match, key: string) =>
-    key in vars ? String(vars[key]) : match,
-  );
 }
 
 /**
@@ -136,7 +124,7 @@ export interface DmMessageContext {
 export function buildDmMessage(ctx: DmMessageContext): string {
   const template =
     ctx.customMessage ?? ctx.t("unverifiedKick:default.dm_message");
-  return formatUnverifiedKickMessage(template, {
+  return formatPlaceholders(template, {
     serverName: ctx.serverName,
     graceDays: ctx.graceDays,
     warnDays: ctx.warnDays,
@@ -183,7 +171,7 @@ export function buildWarnNotification(
   );
   const template =
     ctx.customMessage ?? ctx.t("unverifiedKick:default.notify_message");
-  const rendered = formatUnverifiedKickMessage(template, {
+  const rendered = formatPlaceholders(template, {
     count: candidates.length,
     serverName: ctx.serverName,
     graceDays: ctx.graceDays,

@@ -42,6 +42,21 @@ describe("features/vc-auto-recruit/vcAutoRecruitMessageBuilder", () => {
 
       expect(result).toBe("XX");
     });
+
+    it("ユーザー名・VC 名・サーバー名に $& 等の特殊置換シーケンスが含まれても展開せずそのまま出すこと", () => {
+      const result = formatInviteMessage(
+        "{userName} / {channelName} / {serverName}",
+        {
+          userMention: "<@u1>",
+          userName: "a$&b",
+          channelMention: "<#vc1>",
+          channelName: "c$`d",
+          serverName: "e$'f$$",
+        },
+      );
+
+      expect(result).toBe("a$&b / c$`d / e$'f$$");
+    });
   });
 
   describe("buildInviteEmbed", () => {

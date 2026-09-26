@@ -30,10 +30,10 @@
 
 | 区分 | 残件 |
 | --- | ---: |
-| いま着手できる | 19 |
+| いま着手できる | 18 |
 | 完了待ち | 6 |
 | 未決（判断が要る） | 2 |
-| **合計** | **27** |
+| **合計** | **26** |
 
 > **着手順は「いま着手できる」の並び順そのもの**（1件＝1 PR）。番号付きの「次にやること」は 2026-09-20 に廃止。1件動くたびに本体・サマリー・リストの3箇所を直すことになり、番号も挿入のたびにずれるため。
 >
@@ -52,21 +52,6 @@
 ## いま着手できる
 
 依存なし。上から順に1件ずつ着手する（1件＝1 PR）。並び順が実行順を兼ねるので、順番を変えたいときはこのセクション内で移動する。
-
-### `/bump-reminder-settings disable` が予約をキャンセルできていない 【実装・小・バグ】
-
-**依存なし。最小。** 2026-08-20 の棚卸しで発見（既存の記載なし）。
-
-> **要件は「disable したら予約が消えること」**であって、`cancelAllForGuild` に差し替えることではない。実装手段はポーリング化の前後で変わるが、要件は変わらない（下記 ⚠️）。
-
-`handleBumpReminderSettingsDisable`（`src/features/bump-reminder/commands/bumpReminderSettingsCommand.disable.ts:29`）が `cancelReminder(guildId)` を呼んでいるが、実リマインダーは常に複合キー `"guildId:serviceName"` で登録される（`scheduleBumpReminder` は `serviceName` を必須引数で受け取る）。`toBumpReminderKey(guildId, undefined)` は素の `guildId` を返すため**完全一致照合が1件もヒットせず、タイマーが解除されない**。`f79d703` で reset 系3経路（reset-all / guildDelete / Web API）は `cancelAllForGuild` に差し替えたが、**disable だけ取り残されている。** 「ギルド単位の後始末では必ず本メソッドを使うこと」と明記した `cancelAllForGuild` の JSDoc に違反している唯一の呼び出し元。
-
-**影響範囲**: 送信直前に `sendBumpReminder` が最新設定を再取得して `enabled=false` なら抑止するため、**無効化したまま誤送信されることはない**。実害が出るのは **disable → 予定時刻より前に enable し直した場合**で、解除されなかった旧タイマーがそのまま発火し、無効化前の bump に対するリマインダーが送られる。
-
-- [ ] `cancelReminder(guildId)` → `cancelAllForGuild(guildId)` に差し替え（`cancelAllForGuild` はメモリ解除と DB の `status=cancelled` を両方やるので、これ1本で足りる）
-- [ ] 回帰テストは **「disable 後にそのギルドの pending が残っていないこと」** を見る（メモリ上の Map を直接覗かない。ポーリング化で Map ごと消えてもテストが生き残る形にする）
-
-> ⚠️ **ポーリング化しても自動的には消えないバグ。** 消えるのは*メカニズム*（複合キー照合のすれ違い）だけ。ポーリング後は「`status=pending` かつ `scheduledAt <= now`」で拾う形になるため、**disable が pending 行を cancelled にしなければ、disable → 予定時刻前に enable で同じ症状が再現する。** その DB 側キャンセルこそ `bumpReminderRepository.cancelByGuild()` で、ポーリング化タスクで「デッドコードだから消す」候補に入っているもの。**消すと決める前に、この経路の受け皿になるかを必ず確認すること。**
 
 ### カスタム文面の置換で `$&` 等が展開される 【実装・小・バグ】
 
@@ -350,7 +335,7 @@ HISTORY.md「saika のメジャー更新は『利用者の操作が変わるか�
 - 期限切れの即時実行 → クエリ条件が等価になる。楽
 - **重複の正規化**（同一 guild+service の pending を最新1件に）→ 現在はメモリ上の Map が担保。**DB側で担保し直すのが最大の移行ポイント**（`serviceName` が nullable な点に注意）
 - **送信失敗時の status 更新 → 新方式で新たに必要。**更新しないと永久に拾い続ける
-- **disable / reset で予約をキャンセルすること** → メモリ解除が無くなる分、DB 側で `pending` → `cancelled` にしないと「無効化 → 予定時刻前に再有効化」で古い予約が発火する。「`/bump-reminder-settings disable` が予約をキャンセルできていない」を参照
+- **disable / reset で予約をキャンセルすること** → メモリ解除が無くなる分、DB 側で `pending` → `cancelled` にしないと「無効化 → 予定時刻前に再有効化」で古い予約が発火する。disable は 2026-09-26 に `cancelAllForGuild` で直した（→ HISTORY.md「`/bump-reminder-settings disable` が予約を取り消していなかった」）。**その回帰テスト（`tests/integration/features/bump-reminder/commands/bumpReminderSettingsCommand.disable.integration.test.ts`）はポーリング化後も通ること**
 
 **既にある資産**: schema の `@@index([status, scheduledAt])`（確認済み）、`jobScheduler`
 

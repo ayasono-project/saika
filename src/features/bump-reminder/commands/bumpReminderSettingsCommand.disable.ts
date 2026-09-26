@@ -23,9 +23,10 @@ export async function handleBumpReminderSettingsDisable(
   interaction: ChatInputCommandInteraction,
   guildId: string,
 ): Promise<void> {
-  // メモリ上の pending リマインダーをキャンセル
+  // このギルドの予約をすべて取り消す（タイマー解除 + DB の status を cancelled へ）
+  // 予約は "guildId:serviceName" の複合キーで登録されるため、guildId だけで照合する cancelReminder では外れる
   const bumpReminderManager = getBotBumpReminderManager();
-  await bumpReminderManager.cancelReminder(guildId);
+  await bumpReminderManager.cancelAllForGuild(guildId);
 
   // 機能を無効化
   await getBotBumpReminderSettingsService().setBumpReminderEnabled(

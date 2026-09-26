@@ -1,6 +1,6 @@
 import { handleBumpReminderSettingsDisable } from "@/features/bump-reminder/commands/bumpReminderSettingsCommand.disable";
 
-const cancelReminderMock = vi.fn();
+const cancelAllForGuildMock = vi.fn();
 const setEnabledMock = vi.fn();
 const createSuccessEmbedMock = vi.fn((description: string) => ({
   description,
@@ -36,7 +36,7 @@ vi.mock("@/shared/utils/logger", () => ({
 
 vi.mock("@/bot/services/botCompositionRoot", () => ({
   getBotBumpReminderManager: () => ({
-    cancelReminder: (...args: unknown[]) => cancelReminderMock(...args),
+    cancelAllForGuild: (...args: unknown[]) => cancelAllForGuildMock(...args),
   }),
   getBotBumpReminderSettingsService: () => ({
     setBumpReminderEnabled: (...args: unknown[]) => setEnabledMock(...args),
@@ -51,11 +51,11 @@ vi.mock("@/bot/utils/messageResponse", () => ({
 describe("bot/features/bump-reminder/commands/bumpReminderSettingsCommand.disable", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    cancelReminderMock.mockResolvedValue(undefined);
+    cancelAllForGuildMock.mockResolvedValue(0);
     setEnabledMock.mockResolvedValue(undefined);
   });
 
-  it("リマインダーをキャンセルし、設定を無効化して成功応答を返す", async () => {
+  it("ギルドの予約をすべて取り消し、設定を無効化して成功応答を返す", async () => {
     const interaction = {
       locale: "ja",
       reply: vi.fn().mockResolvedValue(undefined),
@@ -63,7 +63,7 @@ describe("bot/features/bump-reminder/commands/bumpReminderSettingsCommand.disabl
 
     await handleBumpReminderSettingsDisable(interaction as never, "guild-1");
 
-    expect(cancelReminderMock).toHaveBeenCalledWith("guild-1");
+    expect(cancelAllForGuildMock).toHaveBeenCalledWith("guild-1");
     expect(setEnabledMock).toHaveBeenCalledWith("guild-1", false);
     expect(interaction.reply).toHaveBeenCalledWith({
       embeds: [

@@ -76,6 +76,7 @@ vi.mock("@/features/ticket/services/ticketService", () => ({
 
 import { DiscordAPIError, RESTJSONErrorCodes } from "discord.js";
 import { createTicketChannel } from "@/features/ticket/services/ticketService";
+import { logger } from "@/shared/utils/logger";
 
 function createMockModalInteraction(
   customId: string,
@@ -139,6 +140,7 @@ describe("bot/features/ticket/handlers/ui/ticketCreateModalHandler", () => {
     it("正常系: チケットチャンネルを作成し成功応答する", async () => {
       const mockChannel = { id: "new-channel-1" };
       vi.mocked(createTicketChannel).mockResolvedValue({
+        ticket: { ticketNumber: 7 },
         channel: mockChannel,
       } as never);
 
@@ -166,6 +168,10 @@ describe("bot/features/ticket/handlers/ui/ticketCreateModalHandler", () => {
         expect.objectContaining({
           embeds: expect.any(Array),
         }),
+      );
+      // 作成ログに作成者とチケット番号が埋め込まれること（{{userId}} 等のまま出ない）
+      expect(logger.info).toHaveBeenCalledWith(
+        expect.stringContaining('"userId":"user-1","ticketNumber":"7"'),
       );
     });
 

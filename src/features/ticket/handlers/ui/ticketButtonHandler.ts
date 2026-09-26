@@ -172,6 +172,7 @@ async function handleClose(interaction: ButtonInteraction): Promise<void> {
     logPrefixed("system:log_prefix.ticket", "ticket:log.ticket_closed", {
       guildId: ticket.guildId,
       channelId: ticket.channelId,
+      closedBy: interaction.user.id,
     }),
   );
 
@@ -265,6 +266,7 @@ async function handleOpen(interaction: ButtonInteraction): Promise<void> {
     logPrefixed("system:log_prefix.ticket", "ticket:log.ticket_opened", {
       guildId: ticket.guildId,
       channelId: ticket.channelId,
+      openedBy: interaction.user.id,
     }),
   );
 
@@ -423,6 +425,7 @@ async function handleDeleteConfirm(
     logPrefixed("system:log_prefix.ticket", "ticket:log.ticket_deleted", {
       guildId: ticket.guildId,
       channelId: ticket.channelId,
+      deletedBy: interaction.user.id,
     }),
   );
 

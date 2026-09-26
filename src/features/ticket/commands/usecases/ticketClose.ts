@@ -102,6 +102,7 @@ export async function handleTicketClose(
     logPrefixed("system:log_prefix.ticket", "ticket:log.ticket_closed", {
       guildId: ticket.guildId,
       channelId: ticket.channelId,
+      closedBy: interaction.user.id,
     }),
   );
 

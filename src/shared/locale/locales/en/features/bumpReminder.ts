@@ -120,6 +120,8 @@ export const bumpReminder = {
   "log.database_create_failed":
     "Failed to create bump reminder GuildId: {{guildId}}",
   "log.database_find_failed": "Failed to find bump reminder Id: {{id}}",
+  "log.database_find_pending_failed":
+    "failed to find pending bump reminder GuildId: {{guildId}} Service: {{serviceName}}",
   "log.database_find_all_failed": "Failed to find pending bump reminders",
   "log.database_status_updated":
     "Bump reminder status updated Id: {{id}} Status: {{status}}",

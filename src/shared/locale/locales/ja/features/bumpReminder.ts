@@ -119,6 +119,8 @@ export const bumpReminder = {
   "log.database_create_failed":
     "Bumpリマインダー作成に失敗 GuildId: {{guildId}}",
   "log.database_find_failed": "Bumpリマインダー取得に失敗 Id: {{id}}",
+  "log.database_find_pending_failed":
+    "保留中Bumpリマインダーの取得に失敗 GuildId: {{guildId}} Service: {{serviceName}}",
   "log.database_find_all_failed": "保留中Bumpリマインダーの取得に失敗",
   "log.database_status_updated":
     "Bumpリマインダーのステータスを更新 Id: {{id}} Status: {{status}}",

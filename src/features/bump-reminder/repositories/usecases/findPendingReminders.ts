@@ -31,6 +31,29 @@ export async function findPendingByGuildAndServiceUseCase(
 }
 
 /**
+ * ギルドのpendingリマインダーを全サービス分、実行時刻昇順で取得する
+ * @param prisma Prismaクライアント
+ * @param guildId 対象ギルドID
+ * @returns pendingリマインダー一覧
+ */
+export async function findPendingByGuildUseCase(
+  prisma: PrismaClient,
+  guildId: string,
+): Promise<BumpReminder[]> {
+  const results = await prisma.bumpReminder.findMany({
+    where: {
+      guildId,
+      status: BUMP_REMINDER_STATUS.PENDING,
+    },
+    orderBy: {
+      scheduledAt: "asc",
+    },
+  });
+
+  return results as BumpReminder[];
+}
+
+/**
  * 全ギルドのpendingリマインダーを実行時刻昇順で取得する
  * @param prisma Prismaクライアント
  * @returns pendingリマインダー一覧

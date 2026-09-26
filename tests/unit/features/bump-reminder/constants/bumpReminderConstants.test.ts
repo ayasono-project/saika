@@ -131,4 +131,35 @@ describe("shared/features/bump-reminder/constants", () => {
       mod.toBumpReminderJobId("guild-123", mod.BUMP_SERVICES.DISBOARD),
     ).toBe("bump-reminder-guild-123:Disboard");
   });
+
+  // 管理キーの分解は、ログの GuildId に複合キーが出ないよう guildId とサービス名を取り出すのに使う
+  describe("parseBumpReminderKey", () => {
+    it("複合キーを guildId とサービス名に分解し、toBumpReminderKey で元のキーに戻る", async () => {
+      const mod = await loadModule(false);
+
+      const parsed = mod.parseBumpReminderKey("123:Disboard");
+
+      expect(parsed).toEqual({ guildId: "123", serviceName: "Disboard" });
+      expect(mod.toBumpReminderKey(parsed.guildId, parsed.serviceName)).toBe(
+        "123:Disboard",
+      );
+    });
+
+    it("サービス名の無いキーは guildId だけを返す", async () => {
+      const mod = await loadModule(false);
+
+      expect(mod.parseBumpReminderKey("123")).toEqual({ guildId: "123" });
+    });
+
+    it("未知のサービス名で終わるキーはキー全体を guildId として返し、往復変換で元のキーに戻る", async () => {
+      const mod = await loadModule(false);
+
+      const parsed = mod.parseBumpReminderKey("123:Unknown");
+
+      expect(parsed).toEqual({ guildId: "123:Unknown" });
+      expect(mod.toBumpReminderKey(parsed.guildId, parsed.serviceName)).toBe(
+        "123:Unknown",
+      );
+    });
+  });
 });

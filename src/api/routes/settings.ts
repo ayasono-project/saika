@@ -41,7 +41,7 @@ export const settingsRoutes: FastifyPluginAsync<SettingsRoutesOptions> = async (
   registerSettingsResource(fastify, createAfkResource());
   registerSettingsResource(fastify, createVacResource());
   registerSettingsResource(fastify, createMemberLogResource(deps.prisma));
-  registerSettingsResource(fastify, createBumpResource());
+  registerSettingsResource(fastify, createBumpResource(deps.client));
   registerSettingsResource(fastify, createVcAutoRecruitResource(deps.prisma));
   registerSettingsResource(fastify, createUnverifiedKickResource(deps.prisma));
 
@@ -64,6 +64,7 @@ export const settingsRoutes: FastifyPluginAsync<SettingsRoutesOptions> = async (
     const guildId = getGuildId(request);
     await purgeGuildDataUsecase(
       {
+        client: deps.client,
         guildSettingsService: getBotGuildSettingsService(),
         ticketRepository: getBotTicketRepository(),
         bumpReminderManager: getBotBumpReminderManager(),

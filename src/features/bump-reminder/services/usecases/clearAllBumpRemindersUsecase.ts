@@ -2,6 +2,7 @@
 
 import { logPrefixed } from "../../../../shared/locale/localeManager";
 import { logger } from "../../../../shared/utils/logger";
+import { parseBumpReminderKey } from "../../constants/bumpReminderConstants";
 import { type ScheduledReminderRef } from "../helpers/bumpReminderScheduleHelper";
 
 type ClearAllBumpRemindersUsecaseInput = {
@@ -27,12 +28,13 @@ export async function clearAllBumpRemindersUsecase(
 
   results.forEach((result, index) => {
     if (result.status === "rejected") {
+      // 複合キーのままだとログの GuildId に "guildId:serviceName" が出るため分解する
       logger.error(
         logPrefixed(
           "system:log_prefix.bump_reminder",
           "bumpReminder:log.scheduler_task_failed",
           {
-            guildId: reminderKeys[index],
+            guildId: parseBumpReminderKey(reminderKeys[index]).guildId,
           },
         ),
         result.reason,

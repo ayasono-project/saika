@@ -81,6 +81,15 @@ export const BUMP_DETECTION_RULES: readonly {
 // 分からミリ秒へ変換するための係数
 const MS_PER_MINUTE = 60 * 1000;
 
+/** 通常運用のリマインダー遅延（分）。Disboard / ディス速の Bump の待ち時間（2時間）に合わせる */
+const REMINDER_DELAY_MINUTES = 120;
+
+/** BUMP_REMINDER_TEST_MODE 有効時の短縮遅延（分） */
+const TEST_MODE_REMINDER_DELAY_MINUTES = 1;
+
+/** 管理キーで guildId と serviceName をつなぐ区切り文字（Discord のギルドIDは数字のみで、この文字を含まない） */
+const BUMP_REMINDER_KEY_SEPARATOR = ":";
+
 /**
  * リマインダー遅延時間（分）を取得
  * モジュールロード時に固定しないよう関数として実装
@@ -89,7 +98,9 @@ const MS_PER_MINUTE = 60 * 1000;
  */
 export function getReminderDelayMinutes(): number {
   // テスト時は短縮し、通常運用では本番待機時間を返す
-  return env.BUMP_REMINDER_TEST_MODE ? 1 : 120;
+  return env.BUMP_REMINDER_TEST_MODE
+    ? TEST_MODE_REMINDER_DELAY_MINUTES
+    : REMINDER_DELAY_MINUTES;
 }
 
 /**
@@ -140,7 +151,37 @@ export function toBumpReminderKey(
   guildId: string,
   serviceName?: BumpServiceName,
 ): string {
-  return serviceName ? `${guildId}:${serviceName}` : guildId;
+  return serviceName
+    ? `${guildId}${BUMP_REMINDER_KEY_SEPARATOR}${serviceName}`
+    : guildId;
+}
+
+/**
+ * 管理キーを guildId と serviceName に分解する（toBumpReminderKey の逆変換）
+ *
+ * 既知のサービス名で終わらないキーは、キー全体を guildId として返す。
+ * どの場合も `toBumpReminderKey(guildId, serviceName)` で元のキーに戻る。
+ * @param reminderKey toBumpReminderKey で作った管理キー
+ * @returns ギルドIDとサービス名（サービス名の無いキーでは serviceName は undefined）
+ */
+export function parseBumpReminderKey(reminderKey: string): {
+  guildId: string;
+  serviceName?: BumpServiceName;
+} {
+  const separatorIndex = reminderKey.indexOf(BUMP_REMINDER_KEY_SEPARATOR);
+  // 区切りの無いキーはサービス名なしで登録された予約
+  if (separatorIndex === -1) {
+    return { guildId: reminderKey };
+  }
+
+  const serviceName = reminderKey.slice(
+    separatorIndex + BUMP_REMINDER_KEY_SEPARATOR.length,
+  );
+  // 未知のサービス名は分解せず、キー全体をそのまま返して往復変換を保つ
+  if (!isBumpServiceName(serviceName)) {
+    return { guildId: reminderKey };
+  }
+  return { guildId: reminderKey.slice(0, separatorIndex), serviceName };
 }
 
 /**

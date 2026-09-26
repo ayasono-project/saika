@@ -63,4 +63,19 @@ describe("bot/features/bump-reminder/services/usecases/clearAllBumpRemindersUsec
 
     expect(loggerErrorMock).toHaveBeenCalled();
   });
+
+  it("複合キーの取り消しが失敗した場合、エラーログの GuildId には複合キーではなくギルドIDを出す", async () => {
+    const cancelByKey = vi.fn().mockRejectedValueOnce(new Error("failed"));
+    const reminders = new Map([
+      ["g1:Disboard", { jobId: "job-1", reminderId: "r1" }],
+    ]);
+
+    await clearAllBumpRemindersUsecase({ reminders, cancelByKey });
+
+    expect(cancelByKey).toHaveBeenCalledWith("g1:Disboard");
+    expect(loggerErrorMock).toHaveBeenCalledWith(
+      `[system:log_prefix.bump_reminder] bumpReminder:log.scheduler_task_failed:${JSON.stringify({ guildId: "g1" })}`,
+      expect.any(Error),
+    );
+  });
 });

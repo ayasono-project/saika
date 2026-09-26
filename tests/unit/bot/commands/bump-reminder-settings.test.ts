@@ -41,6 +41,10 @@ vi.mock("@/bot/services/botCompositionRoot", () => ({
   getBotBumpReminderManager: vi.fn(() => ({
     cancelAllForGuild: (...args: unknown[]) => cancelAllForGuildMock(...args),
   })),
+  // disable は予約を取り消す前に、パネルの場所を pending 行から引く
+  getBotBumpReminderRepository: vi.fn(() => ({
+    findPendingByGuild: vi.fn().mockResolvedValue([]),
+  })),
 }));
 
 // 共通エラーハンドラの委譲を確認

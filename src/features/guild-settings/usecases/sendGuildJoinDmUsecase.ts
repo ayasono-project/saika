@@ -69,9 +69,15 @@ export async function sendGuildJoinDmUsecase(
     await owner.send({ embeds: [embed] });
 
     logger.debug(
-      logPrefixed(LOG_PREFIX, "system:guild_create.dm_sent", {
-        guildId: guild.id,
-      }),
+      logPrefixed(
+        LOG_PREFIX,
+        cancelledDeletionAt
+          ? "system:guild_create.dm_return_sent"
+          : "system:guild_create.dm_sent",
+        {
+          guildId: guild.id,
+        },
+      ),
     );
   } catch (error) {
     // オーナーが DM を閉じているのは日常的に起きるので warn に留める

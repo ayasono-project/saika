@@ -107,7 +107,10 @@ export class BumpReminderRepository implements IBumpReminderRepository {
           serviceName,
         );
       },
-      tDefault("bumpReminder:log.database_find_failed", { guildId }),
+      tDefault("bumpReminder:log.database_find_pending_failed", {
+        guildId,
+        serviceName,
+      }),
     );
   }
 

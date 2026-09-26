@@ -37,6 +37,8 @@ export const system = {
     "ギルドへの参加を検知しました GuildId: {{guildId}} GuildName: {{guildName}}",
   "guild_create.dm_sent":
     "オーナーへ導入 DM を送信しました GuildId: {{guildId}}",
+  "guild_create.dm_return_sent":
+    "オーナーへ再導入 DM を送信しました GuildId: {{guildId}}",
   "guild_create.dm_failed":
     "オーナーへの導入 DM の送信に失敗しました（DM 拒否など）GuildId: {{guildId}}",
   "guild_create.registry_failed":

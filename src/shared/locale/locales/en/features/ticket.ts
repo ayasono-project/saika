@@ -125,6 +125,8 @@ export const ticket = {
   // ── Logs
   "log.setup":
     "ticket panel set up GuildId: {{guildId}} CategoryId: {{categoryId}} ChannelId: {{channelId}}",
+  "log.setup_started":
+    "ticket panel setup started GuildId: {{guildId}} CategoryId: {{categoryId}}",
   "log.teardown":
     "ticket panel removed GuildId: {{guildId}} CategoryId: {{categoryId}}",
   "log.ticket_created":

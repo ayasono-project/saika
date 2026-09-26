@@ -73,6 +73,7 @@ export const ticketCreateButtonHandler: ButtonHandler = {
         tInteraction(
           interaction.locale,
           "ticket:user-response.max_tickets_reached",
+          { max: config.maxTicketsPerUser },
         ),
         { locale: interaction.locale },
       );

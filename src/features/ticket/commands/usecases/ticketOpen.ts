@@ -105,6 +105,7 @@ export async function handleTicketOpen(
     logPrefixed("system:log_prefix.ticket", "ticket:log.ticket_opened", {
       guildId: ticket.guildId,
       channelId: ticket.channelId,
+      openedBy: interaction.user.id,
     }),
   );
 

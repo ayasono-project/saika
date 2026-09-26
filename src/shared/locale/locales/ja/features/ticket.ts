@@ -126,6 +126,8 @@ export const ticket = {
   // ── ログ
   "log.setup":
     "チケットパネルを設置 GuildId: {{guildId}} CategoryId: {{categoryId}} ChannelId: {{channelId}}",
+  "log.setup_started":
+    "チケットパネルの設置を開始 GuildId: {{guildId}} CategoryId: {{categoryId}}",
   "log.teardown":
     "チケットパネルを撤去 GuildId: {{guildId}} CategoryId: {{categoryId}}",
   "log.ticket_created":

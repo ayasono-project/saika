@@ -53,7 +53,7 @@ export const ticketCreateModalHandler: ModalHandler = {
     const ticketRepository = getBotTicketRepository();
 
     // MissingPermissions は上位の interactionErrorHandler で統一処理される
-    const { channel } = await createTicketChannel(
+    const { ticket, channel } = await createTicketChannel(
       guild,
       categoryId,
       interaction.user.id,
@@ -67,6 +67,8 @@ export const ticketCreateModalHandler: ModalHandler = {
       logPrefixed("system:log_prefix.ticket", "ticket:log.ticket_created", {
         guildId: guild.id,
         channelId: channel.id,
+        userId: interaction.user.id,
+        ticketNumber: String(ticket.ticketNumber),
       }),
     );
 

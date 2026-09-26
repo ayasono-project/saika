@@ -37,6 +37,8 @@ export const system = {
     "guild join detected GuildId: {{guildId}} GuildName: {{guildName}}",
   "guild_create.dm_sent":
     "sent the welcome DM to the owner GuildId: {{guildId}}",
+  "guild_create.dm_return_sent":
+    "sent the welcome-back DM to the owner GuildId: {{guildId}}",
   "guild_create.dm_failed":
     "failed to send the welcome DM to the owner (DMs closed, etc.) GuildId: {{guildId}}",
   "guild_create.registry_failed":

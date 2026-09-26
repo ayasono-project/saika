@@ -3,11 +3,16 @@
 import cron, { type ScheduledTask } from "node-cron";
 import { logPrefixed } from "../locale/localeManager";
 import { logger } from "../utils/logger";
+import { MAX_TIMEOUT_DELAY_MS } from "./jobScheduler.constants";
 
 interface ScheduledJob {
+  /** ジョブID（同IDの再登録は置き換えになる） */
   id: string;
+  /** cron 式 */
   schedule: string;
+  /** 発火時に実行するタスク */
   task: () => Promise<void> | void;
+  /** ジョブの説明（任意） */
   description?: string;
   /** cron 評価に用いるタイムゾーン（例: "Asia/Tokyo"）。未指定時はサーバーのローカルタイム */
   timezone?: string;
@@ -83,6 +88,7 @@ export class JobScheduler {
 
   /**
    * 繰り返しジョブを追加（cron式）
+   * @param job 登録するジョブ（同IDの既存ジョブは置き換える）
    */
   public addJob(job: ScheduledJob): void {
     // 同IDの既存ジョブは置き換え（多重実行を防止）
@@ -128,9 +134,12 @@ export class JobScheduler {
 
   /**
    * 一回限りのジョブを追加（setTimeoutベース）
-   * node-cron は年フィールドをサポートしないため、特定日時への1回実行は setTimeout を使用する
+   *
+   * node-cron は年フィールドをサポートしないため、特定日時への1回実行は setTimeout を使用する。
+   * setTimeout 1回で待てる上限（MAX_TIMEOUT_DELAY_MS・約24.8日）を超える遅延は、上限ずつ区切って
+   * 同じジョブIDのまま張り直す。hasJob / removeJob / stopAll / 同ID置換は、待機のどの区間でも効く。
    * @param id ジョブID
-   * @param delayMs 実行までの遅延時間（ミリ秒）。0以下の場合は即時実行
+   * @param delayMs 実行までの遅延時間（ミリ秒）。0以下は即時実行。NaN・±Infinity は登録を拒否し、既存の同IDジョブもそのまま残す
    * @param task 実行するタスク
    * @param options quiet を立てると同ID置換時の warn を抑止する（デバウンス用途）
    */
@@ -140,24 +149,28 @@ export class JobScheduler {
     task: () => Promise<void> | void,
     options?: { quiet?: boolean },
   ): void {
+    // 有限でない遅延は発火時刻が決まらない。setTimeout に渡すと Node は 1ms で発火させ、
+    // チケットの自動削除のようにデータを消すジョブが即座に走るため、登録自体を拒否する
+    if (!Number.isFinite(delayMs)) {
+      logger.error(
+        logPrefixed(
+          "system:log_prefix.scheduler",
+          "system:scheduler.invalid_delay",
+          { jobId: id, delayMs: String(delayMs) },
+        ),
+      );
+      return;
+    }
+
     // 既存の同IDジョブをキャンセル
     this.replaceExistingJob(id, options?.quiet ?? false);
 
     // 負数遅延は0に丸めて即時実行扱いにする
     const safeDelay = Math.max(0, delayMs);
 
-    // setTimeout ベースの one-time 実行を登録
-    const handle = setTimeout(async () => {
-      // 実行開始時点で管理マップから除去
-      this.oneTimeJobs.delete(id);
-      await this.runTask(id, task);
-    }, safeDelay);
+    // setTimeout ベースの one-time 実行を登録（上限超えは区切って張り直す）
+    this.armOneTimeTimer(id, safeDelay, task);
 
-    // Node.js が終了を待たないようにする
-    handle.unref();
-
-    // 管理マップへ保存
-    this.oneTimeJobs.set(id, handle);
     logger.info(
       logPrefixed(
         "system:log_prefix.scheduler",
@@ -168,7 +181,53 @@ export class JobScheduler {
   }
 
   /**
+   * one-time ジョブのタイマーを1区間ぶん張り、管理マップのハンドルを差し替える
+   *
+   * 残りが MAX_TIMEOUT_DELAY_MS を超える場合は上限ぶんだけ待ち、発火時に残りで張り直す。
+   * 残りは時計を読まず区間の長さを差し引いて求める。setTimeout は単調時計で動き、区間ごとに
+   * 指定より早くは発火しないので、合計の待ち時間は必ず delayMs 以上になる（システム時刻の変更にも影響されない）。
+   * @param id ジョブID
+   * @param remainingMs 発火までの残り時間（ミリ秒・0以上の有限値）
+   * @param task 実行するタスク
+   */
+  private armOneTimeTimer(
+    id: string,
+    remainingMs: number,
+    task: () => Promise<void> | void,
+  ): void {
+    const segmentMs = Math.min(remainingMs, MAX_TIMEOUT_DELAY_MS);
+
+    const handle = setTimeout(async () => {
+      // 上限で区切った途中の区間なら、同じIDのまま残りで張り直す
+      const restMs = remainingMs - segmentMs;
+      if (restMs > 0) {
+        logger.debug(
+          logPrefixed(
+            "system:log_prefix.scheduler",
+            "system:scheduler.job_rearmed",
+            { jobId: id, remainingMs: String(restMs) },
+          ),
+        );
+        this.armOneTimeTimer(id, restMs, task);
+        return;
+      }
+
+      // 実行開始時点で管理マップから除去
+      this.oneTimeJobs.delete(id);
+      await this.runTask(id, task);
+    }, segmentMs);
+
+    // Node.js が終了を待たないようにする（張り直した区間のタイマーも同様）
+    handle.unref();
+
+    // 管理マップへ保存（張り直しでは同じIDのハンドルを差し替え、removeJob / stopAll が現区間を止められるようにする）
+    this.oneTimeJobs.set(id, handle);
+  }
+
+  /**
    * ジョブを削除（cron・oneTime 両方対応）
+   * @param id ジョブID
+   * @returns 削除した場合は true、該当ジョブが無い場合は false
    */
   public removeJob(id: string): boolean {
     // cron ジョブを優先的に探索して停止
@@ -240,6 +299,8 @@ export class JobScheduler {
 
   /**
    * ジョブの存在確認（cron・oneTime 両方）
+   * @param id ジョブID
+   * @returns 登録済み（one-time は発火前）なら true
    */
   public hasJob(id: string): boolean {
     return this.jobs.has(id) || this.oneTimeJobs.has(id);
@@ -247,6 +308,7 @@ export class JobScheduler {
 
   /**
    * すべてのジョブIDを取得
+   * @returns cron ジョブと one-time ジョブのID一覧
    */
   public getJobIds(): string[] {
     // cron と one-time のIDを連結して返す
@@ -258,6 +320,7 @@ export class JobScheduler {
 
   /**
    * ジョブ数を取得
+   * @returns cron ジョブと one-time ジョブの合計数
    */
   public getJobCount(): number {
     return this.jobs.size + this.oneTimeJobs.size;

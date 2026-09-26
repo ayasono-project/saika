@@ -113,6 +113,10 @@ export const system = {
   "scheduler.job_removed": "Job削除 JobId: {{jobId}}",
   "scheduler.job_stopped": "Job停止 JobId: {{jobId}}",
   "scheduler.job_scheduled": "Jobスケジュール完了 JobId: {{jobId}}",
+  "scheduler.job_rearmed":
+    "Jobの待機を延長（setTimeout の上限を超えるため張り直し） JobId: {{jobId}} RemainingMs: {{remainingMs}}",
+  "scheduler.invalid_delay":
+    "遅延時間が不正なためJobを登録しません JobId: {{jobId}} DelayMs: {{delayMs}}",
 
   // シャットダウン
   "shutdown.signal_received":

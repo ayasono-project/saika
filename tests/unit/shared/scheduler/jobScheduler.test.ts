@@ -1,5 +1,9 @@
 import { JobScheduler } from "@/shared/scheduler/jobScheduler";
+import { MAX_TIMEOUT_DELAY_MS } from "@/shared/scheduler/jobScheduler.constants";
 import { logger } from "@/shared/utils/logger";
+
+/** 1日のミリ秒 */
+const DAY_MS = 24 * 60 * 60 * 1000;
 
 const cronScheduleMock = vi.fn();
 
@@ -57,6 +61,8 @@ describe("shared/scheduler/jobScheduler", () => {
   afterEach(() => {
     scheduler.stopAll();
     vi.clearAllTimers();
+    // fake の setTimeout に掛けたスパイは、実タイマーへ戻す前に外す（戻した後に fake を書き戻さないため）
+    vi.restoreAllMocks();
     vi.useRealTimers();
   });
 
@@ -344,5 +350,189 @@ describe("shared/scheduler/jobScheduler", () => {
     expect(scheduler.getJobIds()).toEqual([]);
     expect(scheduler.hasJob("cron-a")).toBe(false);
     expect(scheduler.hasJob("once-a")).toBe(false);
+  });
+
+  // setTimeout の上限（2^31-1 ms・約24.8日）を超える遅延を、区切って張り直して正しく待つことを検証する。
+  // fake timers も Node と同じく上限超えを 1ms に切り詰めるため、上限をそのまま渡すと即時に発火して落ちる
+  describe("addOneTimeJob（setTimeout の上限を超える遅延）", () => {
+    // 30日のジョブ（チケットの自動削除 30日相当）が期限前に発火せず、期限ちょうどに1回だけ発火すること
+    it("30日のジョブ → 期限の1ms前までは発火せず、期限ちょうどに1回だけ発火する", async () => {
+      const task = vi.fn().mockResolvedValue(undefined);
+
+      scheduler.addOneTimeJob("long-30d", 30 * DAY_MS, task);
+
+      await vi.advanceTimersByTimeAsync(30 * DAY_MS - 1);
+      expect(task).not.toHaveBeenCalled();
+      expect(scheduler.hasJob("long-30d")).toBe(true);
+
+      await vi.advanceTimersByTimeAsync(1);
+      expect(task).toHaveBeenCalledTimes(1);
+      expect(scheduler.hasJob("long-30d")).toBe(false);
+
+      // 期限後にさらに時間が進んでも再発火しない
+      await vi.advanceTimersByTimeAsync(90 * DAY_MS);
+      expect(task).toHaveBeenCalledTimes(1);
+    });
+
+    // 90日のジョブ（ダッシュボードの上限）は区間を何度も張り直すが、setTimeout には常に上限以下しか渡さないこと
+    it("90日のジョブ → setTimeout に上限を超える値を渡さず、期限ちょうどに1回だけ発火する", async () => {
+      const setTimeoutSpy = vi.spyOn(globalThis, "setTimeout");
+      const task = vi.fn().mockResolvedValue(undefined);
+
+      scheduler.addOneTimeJob("long-90d", 90 * DAY_MS, task);
+
+      await vi.advanceTimersByTimeAsync(90 * DAY_MS - 1);
+      expect(task).not.toHaveBeenCalled();
+      // 張り直し中も同じ ID が1件だけ管理される
+      expect(scheduler.getJobIds()).toEqual(["long-90d"]);
+
+      await vi.advanceTimersByTimeAsync(1);
+      expect(task).toHaveBeenCalledTimes(1);
+      expect(scheduler.getJobCount()).toBe(0);
+
+      const delays = setTimeoutSpy.mock.calls.map((call) => call[1]);
+      // 90日 ÷ 上限 → 4区間に分けて待つ
+      expect(delays).toHaveLength(4);
+      for (const delay of delays) {
+        expect(delay).toBeLessThanOrEqual(MAX_TIMEOUT_DELAY_MS);
+      }
+      expect(logger.debug).toHaveBeenCalledWith(
+        expect.stringContaining("system:scheduler.job_rearmed"),
+      );
+    });
+
+    // 上限ちょうどは1区間、上限+1ms は2区間になり、どちらも指定時刻より早く発火しないこと
+    it("上限ちょうど・上限+1ms の遅延 → どちらも指定時刻ちょうどに発火する", async () => {
+      const atLimit = vi.fn().mockResolvedValue(undefined);
+      const overLimit = vi.fn().mockResolvedValue(undefined);
+
+      scheduler.addOneTimeJob("at-limit", MAX_TIMEOUT_DELAY_MS, atLimit);
+      scheduler.addOneTimeJob(
+        "over-limit",
+        MAX_TIMEOUT_DELAY_MS + 1,
+        overLimit,
+      );
+
+      await vi.advanceTimersByTimeAsync(MAX_TIMEOUT_DELAY_MS - 1);
+      expect(atLimit).not.toHaveBeenCalled();
+
+      await vi.advanceTimersByTimeAsync(1);
+      expect(atLimit).toHaveBeenCalledTimes(1);
+      expect(overLimit).not.toHaveBeenCalled();
+      expect(scheduler.hasJob("over-limit")).toBe(true);
+
+      await vi.advanceTimersByTimeAsync(1);
+      expect(overLimit).toHaveBeenCalledTimes(1);
+    });
+
+    // 張り直した区間のタイマーも unref され、プロセスの終了を妨げないこと
+    it("張り直した区間のタイマーも unref される", async () => {
+      const setTimeoutSpy = vi.spyOn(globalThis, "setTimeout");
+
+      scheduler.addOneTimeJob("long-unref", 30 * DAY_MS, vi.fn());
+      await vi.advanceTimersByTimeAsync(MAX_TIMEOUT_DELAY_MS);
+
+      const handles = setTimeoutSpy.mock.results.map(
+        (result) => result.value as NodeJS.Timeout,
+      );
+      expect(handles).toHaveLength(2);
+      for (const handle of handles) {
+        expect(handle.hasRef()).toBe(false);
+      }
+    });
+
+    // 張り直し後の区間でも removeJob が効き、以後発火しないこと
+    it("張り直し中に removeJob → true を返し、以後発火しない", async () => {
+      const task = vi.fn().mockResolvedValue(undefined);
+
+      scheduler.addOneTimeJob("long-remove", 30 * DAY_MS, task);
+      await vi.advanceTimersByTimeAsync(MAX_TIMEOUT_DELAY_MS + 1_000);
+      expect(scheduler.hasJob("long-remove")).toBe(true);
+
+      expect(scheduler.removeJob("long-remove")).toBe(true);
+      expect(scheduler.hasJob("long-remove")).toBe(false);
+
+      await vi.advanceTimersByTimeAsync(90 * DAY_MS);
+      expect(task).not.toHaveBeenCalled();
+    });
+
+    // 張り直し後の区間で同 ID を登録し直すと、古いジョブは発火せず新しい予定だけが発火すること
+    it("張り直し中に同 ID で再登録 → 古いジョブは発火せず、新しい期限で1回だけ発火する", async () => {
+      const oldTask = vi.fn().mockResolvedValue(undefined);
+      const newTask = vi.fn().mockResolvedValue(undefined);
+
+      scheduler.addOneTimeJob("long-replace", 30 * DAY_MS, oldTask);
+      await vi.advanceTimersByTimeAsync(MAX_TIMEOUT_DELAY_MS + 1_000);
+
+      // 置き換え時点から30日（古い期限より後）で登録し直す
+      scheduler.addOneTimeJob("long-replace", 30 * DAY_MS, newTask);
+      expect(logger.warn).toHaveBeenCalledWith(
+        expect.stringContaining("system:scheduler.job_exists"),
+      );
+      expect(scheduler.getJobIds()).toEqual(["long-replace"]);
+
+      // 古いジョブの期限を過ぎても何も発火しない
+      await vi.advanceTimersByTimeAsync(30 * DAY_MS - 1);
+      expect(oldTask).not.toHaveBeenCalled();
+      expect(newTask).not.toHaveBeenCalled();
+
+      await vi.advanceTimersByTimeAsync(1);
+      expect(oldTask).not.toHaveBeenCalled();
+      expect(newTask).toHaveBeenCalledTimes(1);
+    });
+
+    // 張り直し後の区間でも stopAll が効き、以後発火しないこと
+    it("張り直し中に stopAll → すべて止まり、以後発火しない", async () => {
+      const task = vi.fn().mockResolvedValue(undefined);
+
+      scheduler.addOneTimeJob("long-stop", 30 * DAY_MS, task);
+      await vi.advanceTimersByTimeAsync(MAX_TIMEOUT_DELAY_MS + 1_000);
+
+      scheduler.stopAll();
+      expect(scheduler.getJobCount()).toBe(0);
+
+      await vi.advanceTimersByTimeAsync(90 * DAY_MS);
+      expect(task).not.toHaveBeenCalled();
+    });
+  });
+
+  // 有限でない遅延は発火時刻が決まらないため、即時発火させずに登録自体を拒否することを検証
+  describe("addOneTimeJob（有限でない遅延）", () => {
+    it.each([
+      ["NaN", Number.NaN],
+      ["Infinity", Number.POSITIVE_INFINITY],
+      ["-Infinity", Number.NEGATIVE_INFINITY],
+    ])(
+      "%s → エラーをログに出して登録せず、発火もしない",
+      async (_label, delayMs) => {
+        const task = vi.fn().mockResolvedValue(undefined);
+
+        scheduler.addOneTimeJob("invalid-delay", delayMs, task);
+
+        expect(logger.error).toHaveBeenCalledWith(
+          expect.stringContaining("system:scheduler.invalid_delay"),
+        );
+        expect(scheduler.hasJob("invalid-delay")).toBe(false);
+
+        await vi.advanceTimersByTimeAsync(90 * DAY_MS);
+        expect(task).not.toHaveBeenCalled();
+      },
+    );
+
+    // 拒否した登録は副作用を持たず、同 ID の既存ジョブを消さないこと
+    it("同 ID の既存ジョブがある場合 → 既存ジョブを残し、元の期限で発火する", async () => {
+      const existing = vi.fn().mockResolvedValue(undefined);
+      const rejected = vi.fn().mockResolvedValue(undefined);
+
+      scheduler.addOneTimeJob("keep-existing", 1_000, existing);
+      scheduler.addOneTimeJob("keep-existing", Number.NaN, rejected);
+
+      expect(logger.warn).not.toHaveBeenCalled();
+      expect(scheduler.hasJob("keep-existing")).toBe(true);
+
+      await vi.advanceTimersByTimeAsync(1_000);
+      expect(existing).toHaveBeenCalledTimes(1);
+      expect(rejected).not.toHaveBeenCalled();
+    });
   });
 });

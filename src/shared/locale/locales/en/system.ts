@@ -37,6 +37,8 @@ export const system = {
     "guild join detected GuildId: {{guildId}} GuildName: {{guildName}}",
   "guild_create.dm_sent":
     "sent the welcome DM to the owner GuildId: {{guildId}}",
+  "guild_create.dm_return_sent":
+    "sent the welcome-back DM to the owner GuildId: {{guildId}}",
   "guild_create.dm_failed":
     "failed to send the welcome DM to the owner (DMs closed, etc.) GuildId: {{guildId}}",
   "guild_create.registry_failed":
@@ -111,6 +113,10 @@ export const system = {
   "scheduler.job_removed": "Job removed JobId: {{jobId}}",
   "scheduler.job_stopped": "Job stopped JobId: {{jobId}}",
   "scheduler.job_scheduled": "Job scheduled JobId: {{jobId}}",
+  "scheduler.job_rearmed":
+    "Job timer re-armed (delay exceeds the setTimeout limit) JobId: {{jobId}} RemainingMs: {{remainingMs}}",
+  "scheduler.invalid_delay":
+    "Job not scheduled because the delay is invalid JobId: {{jobId}} DelayMs: {{delayMs}}",
 
   // Shutdown
   "shutdown.signal_received":

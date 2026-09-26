@@ -13,8 +13,15 @@ import {
 } from "../../../../bot/services/botCompositionRoot";
 import { createErrorEmbed } from "../../../../bot/utils/messageResponse";
 import { tInteraction } from "../../../../shared/locale/localeManager";
-import { hasStaffRole } from "../../services/ticketService";
-import { TICKET_CUSTOM_ID } from "../ticketCommand.constants";
+import {
+  canOperateTicketOrReply,
+  findHandleableTicketChannelOrReply,
+  findTicketConfigOrReply,
+} from "../../services/ticketGuards";
+import {
+  TICKET_CHANNEL_BOT_DELETE_PERMISSIONS,
+  TICKET_CUSTOM_ID,
+} from "../ticketCommand.constants";
 
 /**
  * ticket delete サブコマンドを処理する
@@ -23,6 +30,9 @@ import { TICKET_CUSTOM_ID } from "../ticketCommand.constants";
 export async function handleTicketDelete(
   interaction: ChatInputCommandInteraction,
 ): Promise<void> {
+  const guild = interaction.guild;
+  if (!guild) return;
+
   const ticketRepository = getBotTicketRepository();
   const settingsService = getBotTicketSettingsService();
 
@@ -43,28 +53,30 @@ export async function handleTicketDelete(
     return;
   }
 
-  // 設定を取得してスタッフロールを解析
-  const config = await settingsService.findByGuildAndCategory(
-    ticket.guildId,
-    ticket.categoryId,
+  // 設定を取得（スタッフロールは権限チェックに使う）
+  // カテゴリの設定が無い（パネルが削除された）チケットは操作できない旨を返信する
+  const config = await findTicketConfigOrReply(
+    interaction,
+    ticket,
+    settingsService,
   );
-  const staffRoleIds: string[] = config ? config.staffRoleIds : [];
+  if (!config) return;
 
-  // 権限チェック（スタッフロールのみ）
-  const memberRoleIds = Array.from(
-    interaction.member && "cache" in interaction.member.roles
-      ? interaction.member.roles.cache.keys()
-      : [],
-  );
-  if (!hasStaffRole(memberRoleIds, staffRoleIds)) {
-    const embed = createErrorEmbed(
-      tInteraction(interaction.locale, "ticket:user-response.not_authorized"),
-      { locale: interaction.locale },
-    );
-    await interaction.reply({
-      embeds: [embed],
-      flags: MessageFlags.Ephemeral,
-    });
+  // 権限チェック（スタッフロール・管理者権限。作成者だけでは削除できない）。無ければ、誰が削除できるかを返信する
+  if (!(await canOperateTicketOrReply(interaction, ticket, config, "delete"))) {
+    return;
+  }
+
+  // Bot がチャンネルを扱えない（Bot を外して入れ直した後の古いチケット等）か、削除に要る「チャンネルの管理」が
+  // 無いなら、確認を出す前に理由と対処を返信する
+  if (
+    !(await findHandleableTicketChannelOrReply(
+      interaction,
+      guild,
+      ticket,
+      TICKET_CHANNEL_BOT_DELETE_PERMISSIONS,
+    ))
+  ) {
     return;
   }
 

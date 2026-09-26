@@ -2,8 +2,10 @@ import { BUMP_REMINDER_STATUS } from "@/features/bump-reminder/constants/bumpRem
 import {
   findAllPendingUseCase,
   findPendingByGuildAndServiceUseCase,
+  findPendingByGuildUseCase,
 } from "@/features/bump-reminder/repositories/usecases/findPendingReminders";
 
+// pending リマインダーの検索条件（ギルド・サービス・状態）と並び順を検証
 describe("bot/features/bump-reminder/repositories/usecases/findPendingReminders", () => {
   it("ギルド+サービスの次の pending リマインダーを取得する", async () => {
     const findFirst = vi.fn().mockResolvedValue({ id: "r1" });
@@ -22,6 +24,19 @@ describe("bot/features/bump-reminder/repositories/usecases/findPendingReminders"
         serviceName: "Disboard",
         status: BUMP_REMINDER_STATUS.PENDING,
       },
+      orderBy: { scheduledAt: "asc" },
+    });
+  });
+
+  it("ギルドの pending リマインダーをサービスを問わずスケジュール順で取得する", async () => {
+    const findMany = vi.fn().mockResolvedValue([{ id: "r1" }, { id: "r2" }]);
+    const prisma = { bumpReminder: { findMany } };
+
+    const result = await findPendingByGuildUseCase(prisma as never, "guild-1");
+
+    expect(result).toEqual([{ id: "r1" }, { id: "r2" }]);
+    expect(findMany).toHaveBeenCalledWith({
+      where: { guildId: "guild-1", status: BUMP_REMINDER_STATUS.PENDING },
       orderBy: { scheduledAt: "asc" },
     });
   });

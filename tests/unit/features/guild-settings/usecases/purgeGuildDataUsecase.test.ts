@@ -7,6 +7,12 @@ vi.mock("@/shared/scheduler/jobScheduler", () => ({
   },
 }));
 
+vi.mock(
+  "@/features/bump-reminder/handlers/usecases/cancelGuildBumpReminders",
+  () => ({ cancelGuildBumpReminders: vi.fn() }),
+);
+
+import { cancelGuildBumpReminders } from "@/features/bump-reminder/handlers/usecases/cancelGuildBumpReminders";
 import { purgeGuildDataUsecase } from "@/features/guild-settings/usecases/purgeGuildDataUsecase";
 import { jobScheduler } from "@/shared/scheduler/jobScheduler";
 
@@ -17,6 +23,7 @@ describe("features/guild-settings/usecases/purgeGuildDataUsecase", () => {
 
   function createDeps() {
     return {
+      client: { id: "client" } as never,
       guildSettingsService: { deleteAllSettings } as never,
       ticketRepository: { findAllClosedByGuild } as never,
       bumpReminderManager: { cancelAllForGuild } as never,
@@ -28,6 +35,7 @@ describe("features/guild-settings/usecases/purgeGuildDataUsecase", () => {
     deleteAllSettings = vi.fn().mockResolvedValue(undefined);
     findAllClosedByGuild = vi.fn().mockResolvedValue([]);
     cancelAllForGuild = vi.fn().mockResolvedValue(0);
+    vi.mocked(cancelGuildBumpReminders).mockResolvedValue(0);
   });
 
   it("チケット自動削除タイマー・Bump タイマー・DB 削除をすべて実行すること", async () => {
@@ -53,6 +61,10 @@ describe("features/guild-settings/usecases/purgeGuildDataUsecase", () => {
       order.push("ticket");
       return true;
     });
+    vi.mocked(cancelGuildBumpReminders).mockImplementation(async () => {
+      order.push("bump-panels");
+      return 0;
+    });
     cancelAllForGuild.mockImplementation(async () => {
       order.push("bump");
       return 0;
@@ -63,7 +75,12 @@ describe("features/guild-settings/usecases/purgeGuildDataUsecase", () => {
 
     await purgeGuildDataUsecase(createDeps(), "guild-1");
 
-    expect(order).toEqual(["ticket", "bump", "delete"]);
+    // パネルの場所は pending 行から引くので、DB 削除より前に片付ける
+    expect(order).toEqual(["bump-panels", "ticket", "bump", "delete"]);
+    expect(cancelGuildBumpReminders).toHaveBeenCalledWith(
+      { id: "client" },
+      "guild-1",
+    );
   });
 
   it("ジョブが未登録のチケットは removeJob を呼ばないこと", async () => {

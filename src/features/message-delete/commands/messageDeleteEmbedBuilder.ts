@@ -19,13 +19,100 @@ import {
   type MessageDeleteFilter,
   MS_PER_DAY,
   MSG_DEL_AUTHOR_TYPE_VALUE,
+  MSG_DEL_CHANNEL_LIST_MAX_LINES,
   MSG_DEL_CUSTOM_ID,
   MSG_DEL_DEFAULT_COUNT,
+  MSG_DEL_EMBED_FIELD_VALUE_MAX_LENGTH,
   MSG_DEL_PAGE_SIZE,
+  MSG_DEL_REPLY_CONTENT_MAX_LENGTH,
   MSG_DEL_SELECT_MAX_OPTIONS,
   type ScannedMessage,
 } from "../constants/messageDeleteConstants";
-import { matchesAuthorType } from "../services/messageDeleteService";
+import {
+  type DeleteProgressData,
+  matchesAuthorType,
+} from "../services/messageDeleteService";
+
+/**
+ * チャンネルごとの行を、表示件数の上限（MSG_DEL_CHANNEL_LIST_MAX_LINES）と文字数の上限に収まるように改行で結合する。
+ * 収まらない分は「ほか M チャンネル」の1行にまとめる（削除の進捗表示と完了表示で共用）
+ * @param locale interaction.locale
+ * @param lines チャンネルごとの表示行（表示したい順）
+ * @param maxLength 結合後の最大文字数
+ * @returns 結合した文字列（maxLength 以内）
+ */
+export function joinChannelLines(
+  locale: string,
+  lines: readonly string[],
+  maxLength: number,
+): string {
+  const joined = lines.join("\n");
+  if (
+    lines.length <= MSG_DEL_CHANNEL_LIST_MAX_LINES &&
+    joined.length <= maxLength
+  )
+    return joined;
+
+  const buildMoreLine = (count: number) =>
+    tInteraction(locale, "messageDelete:user-response.channel_list_more", {
+      count,
+    });
+
+  // 先頭から、「ほか M チャンネル」の行を足しても maxLength に収まるところまで並べる
+  const shown: string[] = [];
+  let length = 0;
+  for (const line of lines) {
+    if (shown.length >= MSG_DEL_CHANNEL_LIST_MAX_LINES) break;
+    const nextLength = length + (shown.length > 0 ? 1 : 0) + line.length;
+    const rest = lines.length - (shown.length + 1);
+    const moreLength = rest > 0 ? 1 + buildMoreLine(rest).length : 0;
+    if (nextLength + moreLength > maxLength) break;
+    shown.push(line);
+    length = nextLength;
+  }
+
+  const rest = lines.length - shown.length;
+  return [...shown, ...(rest > 0 ? [buildMoreLine(rest)] : [])].join("\n");
+}
+
+/**
+ * 削除の進捗表示（メッセージの content）を生成する
+ * 全体の件数の下にチャンネル別の件数を並べ、content の文字数の上限に収める
+ * @param locale interaction.locale
+ * @param data 削除の進捗データ
+ * @returns 進捗表示の content（MSG_DEL_REPLY_CONTENT_MAX_LENGTH 以内）
+ */
+export function buildDeleteProgressContent(
+  locale: string,
+  data: DeleteProgressData,
+): string {
+  const header = tInteraction(
+    locale,
+    "messageDelete:user-response.delete_progress",
+    {
+      totalDeleted: data.totalDeleted,
+      total: data.total,
+    },
+  );
+  const lines = data.channelStatuses.map(({ channelId, deleted, total }) =>
+    tInteraction(
+      locale,
+      "messageDelete:user-response.delete_progress_channel",
+      {
+        channelId,
+        deleted,
+        total,
+      },
+    ),
+  );
+  // ヘッダーと改行1文字の分を差し引いた残りにチャンネル別の行を収める
+  const channelText = joinChannelLines(
+    locale,
+    lines,
+    MSG_DEL_REPLY_CONTENT_MAX_LENGTH - header.length - 1,
+  );
+  return `${header}\n${channelText}`;
+}
 
 /**
  * メッセージ 1 件分の Embed フィールド（name/value）を生成する
@@ -507,19 +594,24 @@ export function buildCompletionEmbed(
   totalDeleted: number,
   channelBreakdown: Record<string, { name: string; count: number }>,
 ): EmbedBuilder {
+  const breakdownLines = Object.entries(channelBreakdown).map(
+    ([channelId, { count }]) =>
+      tInteraction(
+        locale,
+        "messageDelete:embed.field.value.channel_breakdown_item",
+        {
+          channelId,
+          count,
+        },
+      ),
+  );
+  // フィールドの値の上限（1024文字）を超えると Embed の生成自体が例外になるため、収まる分だけ並べる
   const breakdownText =
-    Object.entries(channelBreakdown)
-      .map(([channelId, { count }]) =>
-        tInteraction(
-          locale,
-          "messageDelete:embed.field.value.channel_breakdown_item",
-          {
-            channelId,
-            count,
-          },
-        ),
-      )
-      .join("\n") ||
+    joinChannelLines(
+      locale,
+      breakdownLines,
+      MSG_DEL_EMBED_FIELD_VALUE_MAX_LENGTH,
+    ) ||
     tInteraction(locale, "messageDelete:embed.field.value.breakdown_empty");
 
   return createSuccessEmbed("", {

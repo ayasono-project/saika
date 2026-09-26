@@ -2,7 +2,7 @@
 
 > Implementation Guidelines - 実装方針とコーディング規約
 
-最終更新: 2026年9月24日
+最終更新: 2026年9月26日
 
 ---
 
@@ -45,7 +45,8 @@
 - Bot/Web 両方で再利用する横断実装のみ配置し、`bot` / `features` / `web` へ逆依存しない
 - **`database/types/`**: エンティティ・リポジトリインターフェースの唯一の定義場所
 - **`scheduler/`**: JobScheduler（saika 固有だが横断利用のため shared に維持）
-- **`config/` / `constants/` / `errors/` / `locale/` / `utils/`**: 環境変数・定数・エラー・i18n・ユーティリティ（`serviceFactory.ts`・`errorHandling.ts`・`ttlMap.ts` 等）
+- **`config/` / `constants/` / `errors/` / `locale/` / `utils/`**: 環境変数・定数・エラー・i18n・ユーティリティ（`serviceFactory.ts`・`errorHandling.ts`・`ttlMap.ts`・`formatPlaceholders.ts` 等）
+  - 利用者が書く文面の `{name}` プレースホルダーは **`formatPlaceholders()` で置換する**。`String.prototype.replace` に置換値を文字列で渡すと、表示名などに含まれる `$&` / `$'` 等が特殊置換として展開されて文面が壊れる
 
 #### settingsService 経由の DB アクセス
 
@@ -65,7 +66,7 @@ src/features/<feature>/handlers/**
 
 **機能追加時の必須手順:**
 
-1. `prisma/schema.prisma` に `GuildXxxSettings` モデルを追加し、マイグレーションを作成する。**ギルド単位のテーブルには `guild Guild @relation(fields: [guildId], references: [guildId], onDelete: Cascade)` を必ず張る**（張り忘れると退出時の削除から漏れる）。列名はスネークケース（`@map`）で揃える
+1. `prisma/schema.prisma` に `GuildXxxSettings` モデルを追加し、マイグレーションを作成する。**ギルド単位のテーブルには `guild Guild @relation(fields: [guildId], references: [guildId], onDelete: Cascade)` を必ず張る**（張り忘れると退出時の削除から漏れる）。列名はスネークケース（`@map`）で揃える。**列のリネームやデータ移行を含む、複数の文からなるマイグレーションは全体を `BEGIN;` / `COMMIT;` で囲む**（`prisma migrate deploy` は1文ずつ確定させるため、囲まないと途中で失敗したとき前半だけが適用された状態が残る。Prisma 7.4.0 以降の挙動で、2026-09-25 に実測）。1文だけなら不要。囲んだ場合は失敗の本当の原因が Prisma の出力に出ないので、復旧は DEV_TIPS.md の「Prisma マイグレーション失敗（P3009）でコンテナが再起動ループする」に従う
 2. `src/shared/database/types/entities.ts` に `XxxSettings` インターフェースを、`repositories.ts` に `IXxxSettingsRepository` を追記する
 3. `src/features/xxx/xxxSettingsRepository.ts` でスタンドアロンリポジトリを実装し、シングルトンゲッター `getXxxSettingsRepository(prisma?)` を追加する
 4. `src/features/xxx/xxxSettingsDefaults.ts` にデフォルト設定と正規化関数を定義する
@@ -186,7 +187,6 @@ src/features/<feature-name>/
 "guild-settings:reset-confirm"              // リセットの確認ボタン
 "guild-settings:reset-cancel"               // リセットのキャンセルボタン
 "guild-settings:reset-all-confirm"          // 全設定リセットの確認ボタン
-"guild-settings:import-confirm"             // インポートの確認ボタン
 "message-delete:deletion-confirm"         // 削除の最終確認ボタン
 "message-delete:preview-confirm"          // プレビューの確認ボタン
 
@@ -214,7 +214,6 @@ src/features/<feature-name>/
 
 // ❌ 修飾子から始めている
 "guild-settings:confirm-reset"
-"guild-settings:cancel-import"
 
 // ❌ subject が形容詞・前置詞のみ
 "message-delete:final-confirm"            // → deletion-confirm

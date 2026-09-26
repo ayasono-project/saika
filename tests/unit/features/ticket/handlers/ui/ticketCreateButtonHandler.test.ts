@@ -1,5 +1,6 @@
 import { MessageFlags } from "discord.js";
 import { ticketCreateButtonHandler } from "@/features/ticket/handlers/ui/ticketCreateButtonHandler";
+import { tInteraction } from "@/shared/locale/localeManager";
 
 vi.mock("@/shared/locale/localeManager", () => ({
   logPrefixed: (
@@ -13,7 +14,7 @@ vi.mock("@/shared/locale/localeManager", () => ({
     return sub ? `[${p}:${sub}] ${m}` : `[${p}] ${m}`;
   },
   tDefault: vi.fn((key: string) => key),
-  tInteraction: (...args: unknown[]) => args[1],
+  tInteraction: vi.fn((...args: unknown[]) => args[1]),
 }));
 
 vi.mock("@/shared/utils/logger", () => ({
@@ -128,6 +129,12 @@ describe("bot/features/ticket/handlers/ui/ticketCreateButtonHandler", () => {
         expect.objectContaining({
           embeds: expect.any(Array),
         }),
+      );
+      // 上限の件数が文面に渡ること（「{{max}}件」のまま表示されない）
+      expect(tInteraction).toHaveBeenCalledWith(
+        expect.anything(),
+        "ticket:user-response.max_tickets_reached",
+        { max: 1 },
       );
       expect(interaction.showModal).not.toHaveBeenCalled();
     });

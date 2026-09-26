@@ -5,7 +5,7 @@ import type { Mock } from "vitest";
 const setBumpReminderEnabledMock = vi.fn();
 const getBumpReminderSettingsMock = vi.fn();
 const setBumpReminderMentionRoleMock = vi.fn();
-const cancelReminderMock = vi.fn();
+const cancelAllForGuildMock = vi.fn();
 const tDefaultMock = vi.hoisted(() => vi.fn((key: string) => `default:${key}`));
 const tGuildMock = vi.hoisted(() => vi.fn());
 const createSuccessEmbedMock = vi.fn((description: string) => ({
@@ -39,7 +39,11 @@ vi.mock("@/bot/services/botCompositionRoot", () => ({
       setBumpReminderMentionRoleMock(...args),
   })),
   getBotBumpReminderManager: vi.fn(() => ({
-    cancelReminder: (...args: unknown[]) => cancelReminderMock(...args),
+    cancelAllForGuild: (...args: unknown[]) => cancelAllForGuildMock(...args),
+  })),
+  // disable は予約を取り消す前に、パネルの場所を pending 行から引く
+  getBotBumpReminderRepository: vi.fn(() => ({
+    findPendingByGuild: vi.fn().mockResolvedValue([]),
   })),
 }));
 
@@ -156,7 +160,7 @@ describe("bot/commands/bump-reminder-settings", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     // tInteraction mock returns the key as-is (configured in vi.mock)
-    cancelReminderMock.mockResolvedValue(undefined);
+    cancelAllForGuildMock.mockResolvedValue(0);
     setBumpReminderEnabledMock.mockResolvedValue(undefined);
     getBumpReminderSettingsMock.mockResolvedValue({
       enabled: true,
@@ -209,7 +213,7 @@ describe("bot/commands/bump-reminder-settings", () => {
       interaction as unknown as ChatInputCommandInteraction,
     );
 
-    expect(cancelReminderMock).toHaveBeenCalledWith("guild-1");
+    expect(cancelAllForGuildMock).toHaveBeenCalledWith("guild-1");
     expect(setBumpReminderEnabledMock).toHaveBeenCalledWith("guild-1", false);
     expect(interaction.reply).toHaveBeenCalledWith({
       embeds: [

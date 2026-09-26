@@ -13,6 +13,7 @@ import {
   upsertGuildSettingsRecord,
 } from "../persistence/guildSettingsWritePersistence";
 import {
+  type GuildSettingsUpdate,
   toGuildSettings,
   toGuildSettingsCreateData,
   toGuildSettingsUpdateData,
@@ -76,19 +77,19 @@ export async function saveGuildSettingsUsecase(
  * Guild設定を部分更新する
  * @param deps 依存オブジェクト
  * @param guildId 対象ギルドID
- * @param updates 更新差分
+ * @param updates 更新差分（`errorChannelId: null` は設定を消す）
  * @returns 実行完了を示す Promise
  */
 export async function updateGuildSettingsUsecase(
   deps: CoreDeps,
   guildId: string,
-  updates: Partial<GuildSettings>,
+  updates: GuildSettingsUpdate,
 ): Promise<void> {
   try {
     const data = toGuildSettingsUpdateData(updates);
     await upsertGuildSettingsRecord(deps.prisma, guildId, data, {
       guildId,
-      locale: (updates.locale as string | undefined) ?? deps.defaultLocale,
+      locale: updates.locale ?? deps.defaultLocale,
       ...data,
     });
   } catch (error) {

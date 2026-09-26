@@ -11,9 +11,6 @@ export const guildSettings = {
   "guild-settings.view.description": "現在のギルド設定を表示",
   "guild-settings.reset.description": "ギルド設定をリセット",
   "guild-settings.reset-all.description": "全機能の設定を一括リセット",
-  "guild-settings.export.description": "ギルド設定をエクスポート",
-  "guild-settings.import.description": "JSONファイルからギルド設定をインポート",
-  "guild-settings.import.file.description": "エクスポートしたJSONファイル",
 
   // ── チョイス名 ──────────────────────────────
   "choice.locale.ja": "日本語",
@@ -30,18 +27,6 @@ export const guildSettings = {
   "user-response.reset_cancelled": "リセットをキャンセルしました。",
   "user-response.reset_all_success": "全機能の設定をリセットしました。",
   "user-response.reset_all_cancelled": "リセットをキャンセルしました。",
-  "user-response.export_success": "ギルド設定をエクスポートしました。",
-  "user-response.export_empty": "エクスポートする設定がありません。",
-  "user-response.import_success": "ギルド設定をインポートしました。",
-  "user-response.import_cancelled": "インポートをキャンセルしました。",
-  "user-response.import_invalid_json":
-    "ファイルの形式が正しくありません。エクスポートしたJSONファイルを添付してください。",
-  "user-response.import_unsupported_version":
-    "このファイルのバージョンには対応していません。",
-  "user-response.import_guild_mismatch":
-    "このファイルは別のサーバーの設定です。同じサーバーでエクスポートしたファイルを使用してください。",
-  "user-response.import_missing_channels":
-    "一部のチャンネルまたはロールが見つかりません。設定を確認してください。",
 
   // ── embed: view ───────────────────────────────
   "embed.title.view": "ギルド設定",
@@ -63,15 +48,6 @@ export const guildSettings = {
   "embed.field.value.reset_all_target":
     "言語設定 / エラー通知チャンネル / AFK / VC自動作成（VAC）/ VC自動募集 / メッセージ固定 / メンバーログ / Bumpリマインダー（予約を含む）/ チケット（設定とチケット記録）/ リアクションロール / 未承認ユーザー自動キック（警告記録を含む）",
 
-  // ── embed: import_confirm ─────────────────────
-  "embed.title.import_confirm": "ギルド設定インポート確認",
-  "embed.description.import_confirm":
-    "設定系は上書き、stateful データはマージ（既存優先）で取り込みます。この操作は元に戻せません。",
-  "embed.field.name.import_config": "設定系",
-  "embed.field.name.import_state": "stateful（新規追加予定）",
-  "embed.field.value.import_state_summary":
-    "チケット設定: {{ticketSettings}} 件 / open チケット: {{openTickets}} 件 / スティッキー: {{stickyMessages}} 件 / リアクションロール: {{reactionRolePanels}} 件 / VAC 作成 VC: {{vacCreatedChannels}} 件",
-
   // ── embed: join_intro（導入時 DM） ──────────────
   "embed.title.join_intro": "彩加を導入いただきありがとうございます",
   "embed.description.join_intro":
@@ -89,11 +65,16 @@ export const guildSettings = {
   "embed.description.join_return":
     "おかえりなさい。このサーバーのデータは **{{deleteAt}}** に自動削除される予定でしたが、再導入を検知したため削除を取り消し、以前のデータを引き継ぎました。",
 
+  // ── embed: inaccessible_ticket_channels（導入・再導入 DM に足す欄） ──
+  // エラー通知チャンネルへ届けられなかったときだけ載せる（キックで Bot のロールも消え、入れないことがあるため）
+  "embed.field.name.inaccessible_ticket_channels":
+    "Bot が扱えないチケットのチャンネル",
+  "embed.field.value.inaccessible_ticket_channels":
+    "Bot を外したときに Discord が Bot の権限を消したため、入れ直す前に作ったチケットのチャンネル **{{count}}件** を Bot が扱えなくなっています（エラー通知チャンネルが未設定か、そこへ送れなかったため、DM でお知らせします）。各チャンネルの「チャンネルの編集」→「権限」で Bot を追加し、「チャンネルを見る」「メッセージを送信」「埋め込みリンク」「メッセージ履歴を読む」を許可してください（カテゴリの権限を変えても反映されません）。エラー通知チャンネルやログなど、Bot 用に権限を付けていた非公開チャンネルも、同じく付け直しが必要です。",
+
   // ── UIラベル ──────────────────────────────────
   "ui.button.reset_all_confirm": "リセットする",
   "ui.button.reset_all_cancel": "キャンセル",
-  "ui.button.import_confirm": "インポートする",
-  "ui.button.import_cancel": "キャンセル",
 
   // ── エラーチャンネル通知 ─────────────────────────
   "error-notification.title": "エラー通知",
@@ -108,8 +89,6 @@ export const guildSettings = {
     "エラー通知チャンネル設定 GuildId: {{guildId}} ChannelId: {{channelId}}",
   "log.reset": "ギルド設定リセット GuildId: {{guildId}}",
   "log.reset_all": "全設定リセット GuildId: {{guildId}}",
-  "log.exported": "ギルド設定エクスポート GuildId: {{guildId}}",
-  "log.imported": "ギルド設定インポート GuildId: {{guildId}}",
 } as const;
 
 export type GuildSettingsTranslations = typeof guildSettings;

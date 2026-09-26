@@ -35,6 +35,8 @@ export interface IBumpReminderRepository {
     guildId: string,
     serviceName: string,
   ): Promise<BumpReminder | null>;
+  /** ギルドの pending リマインダーを全サービス分取得する（予約を取り消す前にパネルを片付けるため） */
+  findPendingByGuild(guildId: string): Promise<BumpReminder[]>;
   findAllPending(): Promise<BumpReminder[]>;
   updateStatus(id: string, status: BumpReminderStatus): Promise<void>;
   delete(id: string): Promise<void>;

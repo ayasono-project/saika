@@ -3,7 +3,10 @@
 import { Events } from "discord.js";
 import { restoreBumpRemindersOnStartup } from "../../features/bump-reminder/handlers/bumpReminderStartup";
 import { initGuildInviteCache } from "../../features/member-log/handlers/inviteTracker";
-import { restoreAutoDeleteTimers } from "../../features/ticket/services/ticketAutoDeleteService";
+import {
+  syncGuildTicketsOnAvailable,
+  syncTicketsOnStartup,
+} from "../../features/ticket/services/ticketChannelSync";
 import {
   resolveUnverifiedKickSchedule,
   runUnverifiedKickDailyCheck,
@@ -24,6 +27,8 @@ import {
 
 /**
  * clientReady 発火時の初期化後処理をまとめて実行する関数
+ * @param client Bot クライアント
+ * @returns 実行完了を示す Promise
  */
 export async function handleClientReady(client: BotClient): Promise<void> {
   try {
@@ -83,8 +88,15 @@ export async function handleClientReady(client: BotClient): Promise<void> {
     await cleanupVacOnStartup(client);
     // 空・不在 VC の募集投稿を募集終了へ差し替えて追跡を整理
     await cleanupVcAutoRecruitOnStartup(client);
-    // クローズ済みチケットの自動削除タイマーを復元
-    await restoreAutoDeleteTimers(client, getBotTicketRepository());
+    // 停止中に消されたチャンネルのチケットを片付けてから、クローズ済みチケットの自動削除タイマーを復元
+    await syncTicketsOnStartup(client, getBotTicketRepository());
+    // 再 IDENTIFY で戻ったとき（guildAvailable）にも、そのギルドのチケットを合わせる。切断中に
+    // 消されたチャンネルの channelDelete は再送されないため。起動時の各ギルドの guildAvailable は
+    // clientReady より前に出て、上の syncTicketsOnStartup が済ませているので、二重にならないよう
+    // ここで登録する。失敗は内部でログに残すだけなので待たずに投げる
+    client.on(Events.GuildAvailable, (guild) => {
+      void syncGuildTicketsOnAvailable(guild, getBotTicketRepository());
+    });
 
     // 未承認ユーザー自動キックのスイープを登録（毎時・per-guild timezone/runHour で絞り込み）
     // UNVERIFIED_KICK_CRON が設定されていれば検証用にスケジュールを上書きする

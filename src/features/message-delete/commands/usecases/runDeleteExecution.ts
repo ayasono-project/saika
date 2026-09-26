@@ -17,14 +17,19 @@ import {
 import {
   type DeleteProgressData,
   deleteScannedMessages,
+  type MessageDeleteResult,
 } from "../../services/messageDeleteService";
-import { buildCompletionEmbed } from "../messageDeleteEmbedBuilder";
+import {
+  buildCompletionEmbed,
+  buildDeleteProgressContent,
+} from "../messageDeleteEmbedBuilder";
 import type { ParsedOptions } from "./dialogUtils";
 
 /**
  * 確認済みメッセージの削除を実行する
  * - 14分タイムアウトで削除を中断し、削除済み件数を通知する
  * - 削除進捗をリアルタイムで表示
+ * - 表示の失敗（進捗・完了）では削除を止めず、「削除に失敗」とも表示しない
  * @param interaction 削除実行ボタンの MessageComponentInteraction
  * @param targetMessages 削除対象のスキャン済みメッセージ配列（除外済みを含まない）
  * @param options パース済みコマンドオプション（ログ出力に使用）
@@ -42,107 +47,30 @@ export async function executeDelete(
     deleteController.abort();
   }, MSG_DEL_PHASE_TIMEOUT_MS);
 
-  // オブジェクト参照にすることで TypeScript の制御フロー解析による誤ナローイングを回避
-  const progressRef = { data: null as DeleteProgressData | null };
-
+  let result: MessageDeleteResult;
   try {
-    const result = await deleteScannedMessages(
+    result = await deleteScannedMessages(
       targetMessages,
       async (data: DeleteProgressData) => {
-        progressRef.data = data;
-        const header = tInteraction(
-          interaction.locale,
-          "messageDelete:user-response.delete_progress",
-          {
-            totalDeleted: data.totalDeleted,
-            total: data.total,
-          },
-        );
-        const lines = data.channelStatuses
-          .map(({ channelId, deleted, total }) =>
-            tInteraction(
-              interaction.locale,
-              "messageDelete:user-response.delete_progress_channel",
-              {
-                channelId,
-                deleted,
-                total,
-              },
-            ),
-          )
-          .join("\n");
-        await interaction.editReply({
-          content: `${header}\n${lines}`,
-          embeds: [],
-          components: [],
-        });
+        // 進捗表示は途中経過にすぎないため、表示に失敗しても削除は続ける
+        await interaction
+          .editReply({
+            content: buildDeleteProgressContent(interaction.locale, data),
+            embeds: [],
+            components: [],
+          })
+          .catch((error: unknown) => {
+            logger.warn(
+              logPrefixed(
+                "system:log_prefix.msg_del",
+                "messageDelete:log.progress_display_failed",
+                { error: String(error) },
+              ),
+            );
+          });
       },
       deleteController.signal,
     );
-
-    // タイムアウトなし・正常完了
-    if (!deleteController.signal.aborted) {
-      await interaction.editReply({
-        embeds: [
-          buildCompletionEmbed(
-            interaction.locale,
-            result.totalDeleted,
-            result.channelBreakdown,
-          ),
-        ],
-        components: [],
-        content: "",
-      });
-
-      // 仕様ログフォーマット: [count=N] [target=<id>] [keyword="..."] [days=N | after=... before=...]
-      const countPart = options.countSpecified ? ` count=${options.count}` : "";
-      const targetPart =
-        options.targetUserIds.length > 0
-          ? ` target=${options.targetUserIds.join(",")}`
-          : "";
-      const keywordPart = options.keyword
-        ? ` keyword="${options.keyword}"`
-        : "";
-      const periodPart = options.daysOption
-        ? ` days=${options.daysOption}`
-        : [
-            options.afterStr && `after=${options.afterStr}`,
-            options.beforeStr && `before=${options.beforeStr}`,
-          ]
-            .filter(Boolean)
-            .join(" ");
-      logger.info(
-        logPrefixed("system:log_prefix.msg_del", "messageDelete:log.deleted", {
-          userId: interaction.user.id,
-          count: result.totalDeleted,
-          countPart,
-          targetPart,
-          keywordPart,
-          periodPart: periodPart ? ` ${periodPart}` : "",
-          channels: Object.keys(result.channelBreakdown).join(", "),
-        }),
-      );
-      return;
-    }
-
-    // 削除タイムアウト: 削除済み件数を通知して終了
-    const deletedCount = progressRef.data?.totalDeleted ?? 0;
-    await interaction.editReply({
-      embeds: [
-        createWarningEmbed(
-          tInteraction(
-            interaction.locale,
-            "messageDelete:user-response.delete_timed_out",
-            {
-              count: deletedCount,
-            },
-          ),
-          { title: tInteraction(interaction.locale, "common:title_timeout") },
-        ),
-      ],
-      components: [],
-      content: "",
-    });
   } catch (error) {
     logger.error(
       logPrefixed(
@@ -171,7 +99,84 @@ export async function executeDelete(
         components: [],
       })
       .catch(() => {});
+    return;
   } finally {
     clearTimeout(deleteTimeoutId);
   }
+
+  // ここから先は削除が終わった後の記録と表示。表示に失敗しても削除自体は済んでいるので、記録を先に残す
+  logDeletion(interaction, options, result);
+
+  // 表示の組み立て（Embed の検証）と送信のどちらで失敗しても、「削除に失敗」にはしない
+  try {
+    const resultEmbed = deleteController.signal.aborted
+      ? // 削除タイムアウト: 実際に削除できた件数を通知して終了
+        createWarningEmbed(
+          tInteraction(
+            interaction.locale,
+            "messageDelete:user-response.delete_timed_out",
+            {
+              count: result.totalDeleted,
+            },
+          ),
+          { title: tInteraction(interaction.locale, "common:title_timeout") },
+        )
+      : buildCompletionEmbed(
+          interaction.locale,
+          result.totalDeleted,
+          result.channelBreakdown,
+        );
+    await interaction.editReply({
+      embeds: [resultEmbed],
+      components: [],
+      content: "",
+    });
+  } catch (error) {
+    logger.warn(
+      logPrefixed(
+        "system:log_prefix.msg_del",
+        "messageDelete:log.result_display_failed",
+        { error: String(error) },
+      ),
+    );
+  }
+}
+
+/**
+ * 削除した件数と条件をログに残す（タイムアウトで途中までの場合も、実際に削除できた件数で残す）
+ * 仕様ログフォーマット: [count=N] [target=<id>] [keyword="..."] [days=N | after=... before=...]
+ * @param interaction 削除実行ボタンの MessageComponentInteraction（実行者の特定に使用）
+ * @param options パース済みコマンドオプション
+ * @param result 削除結果
+ */
+function logDeletion(
+  interaction: MessageComponentInteraction,
+  options: ParsedOptions,
+  result: MessageDeleteResult,
+): void {
+  const countPart = options.countSpecified ? ` count=${options.count}` : "";
+  const targetPart =
+    options.targetUserIds.length > 0
+      ? ` target=${options.targetUserIds.join(",")}`
+      : "";
+  const keywordPart = options.keyword ? ` keyword="${options.keyword}"` : "";
+  const periodPart = options.daysOption
+    ? ` days=${options.daysOption}`
+    : [
+        options.afterStr && `after=${options.afterStr}`,
+        options.beforeStr && `before=${options.beforeStr}`,
+      ]
+        .filter(Boolean)
+        .join(" ");
+  logger.info(
+    logPrefixed("system:log_prefix.msg_del", "messageDelete:log.deleted", {
+      userId: interaction.user.id,
+      count: result.totalDeleted,
+      countPart,
+      targetPart,
+      keywordPart,
+      periodPart: periodPart ? ` ${periodPart}` : "",
+      channels: Object.keys(result.channelBreakdown).join(", "),
+    }),
+  );
 }

@@ -1,7 +1,6 @@
 import { handleBumpReminderSettingsReset } from "@/features/bump-reminder/commands/bumpReminderSettingsCommand.reset";
 
-const cancelAllForGuildMock = vi.fn();
-const saveBumpReminderSettingsMock = vi.fn();
+const resetBumpReminderSettingsMock = vi.fn();
 const createSuccessEmbedMock = vi.fn(
   (description: string, opts?: { title?: string }) => ({
     description,
@@ -33,22 +32,13 @@ vi.mock("@/shared/utils/logger", () => ({
   logger: { info: vi.fn() },
 }));
 
-vi.mock("@/features/bump-reminder/bumpReminderSettingsDefaults", () => ({
-  createDefaultBumpReminderSettings: () => ({
-    enabled: true,
-    mentionUserIds: [],
+vi.mock(
+  "@/features/bump-reminder/handlers/usecases/resetBumpReminderSettings",
+  () => ({
+    resetBumpReminderSettings: (...args: unknown[]) =>
+      resetBumpReminderSettingsMock(...args),
   }),
-}));
-
-vi.mock("@/bot/services/botCompositionRoot", () => ({
-  getBotBumpReminderManager: () => ({
-    cancelAllForGuild: (...args: unknown[]) => cancelAllForGuildMock(...args),
-  }),
-  getBotBumpReminderSettingsService: () => ({
-    saveBumpReminderSettings: (...args: unknown[]) =>
-      saveBumpReminderSettingsMock(...args),
-  }),
-}));
+);
 
 vi.mock("@/bot/utils/messageResponse", () => ({
   createSuccessEmbed: (description: string, opts?: { title?: string }) =>
@@ -57,11 +47,15 @@ vi.mock("@/bot/utils/messageResponse", () => ({
     createWarningEmbedMock(description, opts),
 }));
 
+// reset の確認ダイアログと、確認・キャンセル・タイムアウトそれぞれの応答を検証
 describe("bumpReminderSettingsCommand.reset", () => {
+  // ケースごとに呼び出し記録を消し、リセット処理を成功させる
   beforeEach(() => {
     vi.clearAllMocks();
-    saveBumpReminderSettingsMock.mockResolvedValue(undefined);
-    cancelAllForGuildMock.mockResolvedValue(0);
+    resetBumpReminderSettingsMock.mockResolvedValue({
+      enabled: true,
+      mentionUserIds: [],
+    });
   });
 
   it("確認ダイアログを ephemeral で表示する", async () => {
@@ -90,7 +84,7 @@ describe("bumpReminderSettingsCommand.reset", () => {
     expect(createWarningEmbedMock).toHaveBeenCalled();
   });
 
-  it("confirm ボタンで設定リセットとリマインダーキャンセルを実行する", async () => {
+  it("confirm ボタンで、ダッシュボードと共通のリセット処理（初期状態への保存と予約・パネルの取り消し）を実行する", async () => {
     let collectHandler: (i: unknown) => Promise<void> = async () => {};
 
     const replyMock = vi.fn().mockResolvedValue({
@@ -102,9 +96,11 @@ describe("bumpReminderSettingsCommand.reset", () => {
       }),
     });
 
+    const client = { channels: { fetch: vi.fn() } };
     const interaction = {
       locale: "ja",
       user: { id: "user-1" },
+      client,
       reply: replyMock,
     };
 
@@ -117,11 +113,10 @@ describe("bumpReminderSettingsCommand.reset", () => {
       update: updateMock,
     });
 
-    expect(saveBumpReminderSettingsMock).toHaveBeenCalledWith("guild-1", {
-      enabled: true,
-      mentionUserIds: [],
-    });
-    expect(cancelAllForGuildMock).toHaveBeenCalledWith("guild-1");
+    expect(resetBumpReminderSettingsMock).toHaveBeenCalledWith(
+      client,
+      "guild-1",
+    );
     expect(updateMock).toHaveBeenCalledWith(
       expect.objectContaining({
         embeds: expect.any(Array),
@@ -156,7 +151,7 @@ describe("bumpReminderSettingsCommand.reset", () => {
       update: updateMock,
     });
 
-    expect(saveBumpReminderSettingsMock).not.toHaveBeenCalled();
+    expect(resetBumpReminderSettingsMock).not.toHaveBeenCalled();
     expect(updateMock).toHaveBeenCalledWith(
       expect.objectContaining({
         embeds: expect.any(Array),

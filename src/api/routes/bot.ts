@@ -25,8 +25,6 @@ export interface BotRoutesOptions {
  * - unverified-kick: KickMembers
  * - member-log（招待元トラッキング = guild.invites.fetch）: ManageGuild
  * - message-delete（削除対象にスレッドを選べる）: ManageThreads
- *   ※ 現時点では buildTargetChannels の guild.channels.fetch() がスレッドを返さないため
- *     この機能自体が動作しない（init からの不具合）。修正は TODO に積んである
  * - bump-reminder（スレッド内で Bump された場合の予約パネル・リマインダー送信）: SendMessagesInThreads
  *   ※ Bot はスレッドを作らないため CreatePublicThreads は不要。
  *     interaction 応答は interaction トークン経由で送信権限を要求しないため、

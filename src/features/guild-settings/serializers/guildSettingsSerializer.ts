@@ -50,18 +50,32 @@ export function toGuildSettingsCreateData(
 }
 
 /**
+ * GuildSettings の部分更新差分
+ *
+ * `errorChannelId` は `undefined` なら「変更しない」、`null` なら「設定を消す」。
+ * ドメイン型の `errorChannelId?: string` だけでは「消す」を表せず、`undefined` を
+ * 渡しても update から落ちて DB に残るため、`null` を受け付ける形にしている。
+ */
+export type GuildSettingsUpdate = Omit<
+  Partial<GuildSettings>,
+  "errorChannelId"
+> & {
+  errorChannelId?: string | null;
+};
+
+/**
  * GuildSettings の部分更新データを DB update 形式へ変換する
- * @param updates 更新差分
+ * @param updates 更新差分（`errorChannelId: null` は設定を消す）
  * @returns Prisma update 用データ
  */
 export function toGuildSettingsUpdateData(
-  updates: Partial<GuildSettings>,
+  updates: GuildSettingsUpdate,
 ): Record<string, unknown> {
   const data: Record<string, unknown> = {};
 
   if (updates.locale !== undefined) data.locale = updates.locale;
   if (updates.errorChannelId !== undefined)
-    data.errorChannelId = updates.errorChannelId ?? null;
+    data.errorChannelId = updates.errorChannelId;
 
   return data;
 }

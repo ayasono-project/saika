@@ -45,8 +45,6 @@ export default defineConfig({
         // Repository usecases: 単一 prisma 呼び出しのみ（分岐・変換なし）→ 計測対象外
         "src/bot/features/bump-reminder/repositories/usecases/deleteBumpReminder.ts",
         "src/bot/features/bump-reminder/repositories/usecases/findBumpReminderById.ts",
-        // クリーンアップサービス: Discord API 委譲のみ → 計測対象外
-        "src/bot/features/ticket/services/ticketCleanupService.ts",
         // DI composition root: 配線のみ、ロジックなし → 計測対象外
         "src/bot/services/botCompositionRoot.ts",
         // UI handler array barrels: 配列エクスポートのみ → 計測対象外

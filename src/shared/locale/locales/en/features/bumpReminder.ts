@@ -48,7 +48,7 @@ export const bumpReminder = {
     "Are you sure you want to reset bump reminder settings?\nThe following settings will be deleted. This action cannot be undone.",
   "embed.field.name.reset_target": "Targets to Delete",
   "embed.field.value.reset_target":
-    "Enabled/Disabled setting / Mention role / Mention users / Pending reminders",
+    "Enabled/Disabled setting / Detection channel / Mention role / Mention users / Pending reminders",
 
   // ── embed: remove_users ──────────────────────
   "embed.title.remove_users": "Remove Notification Users",
@@ -92,7 +92,8 @@ export const bumpReminder = {
     "Scheduled reminder in {{minutes}} minutes GuildId: {{guildId}}",
   "log.scheduler_cancelling":
     "Cancelling existing reminder GuildId: {{guildId}}",
-  "log.scheduler_cancelled": "Reminder cancelled GuildId: {{guildId}}",
+  "log.scheduler_cancelled":
+    "Reminder cancelled GuildId: {{guildId}} Service: {{service}}",
   "log.scheduler_executing_immediately":
     "Executing overdue reminder immediately GuildId: {{guildId}}",
   "log.scheduler_restored": "Restored {{count}} pending reminders",
@@ -104,6 +105,8 @@ export const bumpReminder = {
   "log.scheduler_channel_not_found":
     "Channel not found GuildId: {{guildId}} ChannelId: {{channelId}}",
   "log.scheduler_disabled": "Disabled GuildId: {{guildId}}",
+  "log.scheduler_disabled_after_schedule":
+    "Cancelled reminder because the feature was disabled while scheduling GuildId: {{guildId}} Service: {{service}}",
   "log.scheduler_restore_failed": "Failed to restore:",
   "log.scheduler_duplicates_cancelled":
     "Cancelled {{count}} duplicate reminders",
@@ -113,13 +116,19 @@ export const bumpReminder = {
   "log.scheduler_panel_deleted":
     "Deleted panel message GuildId: {{guildId}} PanelMessageId: {{panelMessageId}}",
   "log.scheduler_panel_delete_failed":
-    "Failed to delete panel message PanelMessageId: {{panelMessageId}}",
+    "Failed to delete panel message GuildId: {{guildId}} PanelMessageId: {{panelMessageId}}",
+  "log.scheduler_panel_lookup_failed":
+    "Failed to look up panel messages to delete GuildId: {{guildId}}",
   "log.scheduler_panel_send_failed": "Failed to send panel",
   "log.database_created":
     "Bump reminder created Id: {{id}} GuildId: {{guildId}}",
   "log.database_create_failed":
     "Failed to create bump reminder GuildId: {{guildId}}",
   "log.database_find_failed": "Failed to find bump reminder Id: {{id}}",
+  "log.database_find_pending_failed":
+    "failed to find pending bump reminder GuildId: {{guildId}} Service: {{serviceName}}",
+  "log.database_find_pending_by_guild_failed":
+    "Failed to find pending bump reminders for guild GuildId: {{guildId}}",
   "log.database_find_all_failed": "Failed to find pending bump reminders",
   "log.database_status_updated":
     "Bump reminder status updated Id: {{id}} Status: {{status}}",

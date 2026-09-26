@@ -47,7 +47,7 @@ export const bumpReminder = {
     "Bumpリマインダー設定をリセットしますか？\n以下の設定が削除されます。この操作は元に戻せません。",
   "embed.field.name.reset_target": "削除対象",
   "embed.field.value.reset_target":
-    "有効/無効設定 / メンションロール / メンションユーザー / 進行中のリマインダー",
+    "有効/無効設定 / 検知チャンネル / メンションロール / メンションユーザー / 進行中のリマインダー",
 
   // ── embed: remove_users ──────────────────────
   "embed.title.remove_users": "通知ユーザー削除",
@@ -91,7 +91,7 @@ export const bumpReminder = {
   "log.scheduler_cancelling":
     "既存リマインダーをキャンセル中 GuildId: {{guildId}}",
   "log.scheduler_cancelled":
-    "リマインダーをキャンセルしました。 GuildId: {{guildId}}",
+    "リマインダーをキャンセルしました。 GuildId: {{guildId}} Service: {{service}}",
   "log.scheduler_executing_immediately":
     "期限切れリマインダーを即座に実行 GuildId: {{guildId}}",
   "log.scheduler_restored": "保留中リマインダー {{count}} 件を復元",
@@ -103,6 +103,8 @@ export const bumpReminder = {
   "log.scheduler_channel_not_found":
     "チャンネルが見つかりません。 GuildId: {{guildId}} ChannelId: {{channelId}}",
   "log.scheduler_disabled": "無効化されています。 GuildId: {{guildId}}",
+  "log.scheduler_disabled_after_schedule":
+    "予約の登録中に無効化されたため取り消しました。 GuildId: {{guildId}} Service: {{service}}",
   "log.scheduler_restore_failed": "復元に失敗:",
   "log.scheduler_duplicates_cancelled":
     "重複リマインダー {{count}} 件をキャンセル",
@@ -112,13 +114,19 @@ export const bumpReminder = {
   "log.scheduler_panel_deleted":
     "パネルメッセージを削除 GuildId: {{guildId}} PanelMessageId: {{panelMessageId}}",
   "log.scheduler_panel_delete_failed":
-    "パネルメッセージ削除失敗 PanelMessageId: {{panelMessageId}}",
+    "パネルメッセージ削除失敗 GuildId: {{guildId}} PanelMessageId: {{panelMessageId}}",
+  "log.scheduler_panel_lookup_failed":
+    "削除するパネルメッセージの検索に失敗 GuildId: {{guildId}}",
   "log.scheduler_panel_send_failed": "パネルの送信に失敗",
   "log.database_created":
     "Bumpリマインダーを作成 Id: {{id}} GuildId: {{guildId}}",
   "log.database_create_failed":
     "Bumpリマインダー作成に失敗 GuildId: {{guildId}}",
   "log.database_find_failed": "Bumpリマインダー取得に失敗 Id: {{id}}",
+  "log.database_find_pending_failed":
+    "保留中Bumpリマインダーの取得に失敗 GuildId: {{guildId}} Service: {{serviceName}}",
+  "log.database_find_pending_by_guild_failed":
+    "ギルドの保留中Bumpリマインダーの取得に失敗 GuildId: {{guildId}}",
   "log.database_find_all_failed": "保留中Bumpリマインダーの取得に失敗",
   "log.database_status_updated":
     "Bumpリマインダーのステータスを更新 Id: {{id}} Status: {{status}}",

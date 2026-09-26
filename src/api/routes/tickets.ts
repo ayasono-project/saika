@@ -7,6 +7,7 @@ import {
   getBotTicketRepository,
   getBotTicketSettingsService,
 } from "../../bot/services/botCompositionRoot";
+import { resumeAutoDeleteForCategory } from "../../features/ticket/services/ticketAutoDeleteService";
 import type { GuildTicketSettings } from "../../shared/database/types/ticketTypes";
 import { tDefault } from "../../shared/locale/localeManager";
 import {
@@ -24,7 +25,12 @@ export interface TicketRoutesOptions {
   deps: ApiServerDeps;
 }
 
-/** カテゴリのオープン中チケット数を数える */
+/**
+ * カテゴリのオープン中チケット数を数える
+ * @param guildId ギルドID
+ * @param categoryId カテゴリID
+ * @returns オープン中のチケット数
+ */
 async function openCountOf(
   guildId: string,
   categoryId: string,
@@ -94,7 +100,20 @@ export const ticketRoutes: FastifyPluginAsync<TicketRoutesOptions> = async (
           panelMessageId: messageId,
         })
       : created;
-    return { data: toContractTicket(saved, 0) };
+    // パネルが無い間は止めていた、このカテゴリのクローズ済みチケットの自動削除を再開する
+    // （Bot 側の /ticket-settings setup と同じ扱い。失敗はログのみで作成は妨げない）
+    await resumeAutoDeleteForCategory(
+      guildId,
+      body.categoryId,
+      deps.client,
+      getBotTicketRepository(),
+    );
+    return {
+      data: toContractTicket(
+        saved,
+        await openCountOf(guildId, body.categoryId),
+      ),
+    };
   });
 
   // 更新（部分）→ Discord メッセージを再構築して編集
@@ -128,7 +147,9 @@ export const ticketRoutes: FastifyPluginAsync<TicketRoutesOptions> = async (
     };
   });
 
-  // 削除（Discord メッセージも best-effort で除去）
+  // 削除（Discord メッセージも best-effort で除去）。チケットの記録とチャンネルは残す。
+  // そのカテゴリのチケットは、同じカテゴリにパネルを作り直すまで Bot から操作できず、
+  // 自動削除も止まる（Discord 上でパネルを消したときと同じ扱い）
   fastify.delete("/:guildId/tickets/:id", guarded, async (request) => {
     const guildId = getGuildId(request);
     const { id: categoryId } = request.params as { id: string };

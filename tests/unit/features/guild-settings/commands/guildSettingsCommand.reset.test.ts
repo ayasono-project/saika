@@ -17,10 +17,10 @@ const loggerMock = vi.hoisted(() => ({
 vi.mock("@/shared/utils/logger", () => ({ logger: loggerMock }));
 
 const resetGuildSettingsMock = vi.fn();
+// 既定はモックのサービス。実サービス経由のケースだけ差し替える
+const serviceHolder = vi.hoisted(() => ({ current: undefined as unknown }));
 vi.mock("@/bot/services/botCompositionRoot", () => ({
-  getBotGuildSettingsService: () => ({
-    resetGuildSettings: resetGuildSettingsMock,
-  }),
+  getBotGuildSettingsService: () => serviceHolder.current,
 }));
 
 vi.mock("@/bot/utils/messageResponse", () => ({
@@ -33,6 +33,8 @@ vi.mock("@/bot/utils/messageResponse", () => ({
 
 import { handleReset } from "@/features/guild-settings/commands/guildSettingsCommand.reset";
 import { GUILD_SETTINGS_CUSTOM_ID } from "@/features/guild-settings/constants/guildSettings.constants";
+import { GuildCoreRepository } from "@/features/guild-settings/guildCoreRepository";
+import { createGuildSettingsService } from "@/features/guild-settings/guildSettingsService";
 
 function createInteraction() {
   const collectCb: Record<string, (...args: unknown[]) => void> = {};
@@ -56,9 +58,10 @@ function createInteraction() {
 
 // reset 確認ダイアログの表示・確認・キャンセルフローを検証
 describe("bot/features/guild-settings/commands/guildSettingsCommand.reset", () => {
-  // 各ケースでモック呼び出し記録をリセットする
+  // 各ケースでモック呼び出し記録をリセットし、委譲先をモックのサービスに戻す
   beforeEach(() => {
     vi.clearAllMocks();
+    serviceHolder.current = { resetGuildSettings: resetGuildSettingsMock };
   });
 
   it("確認ダイアログが ephemeral で表示されること", async () => {
@@ -86,6 +89,30 @@ describe("bot/features/guild-settings/commands/guildSettingsCommand.reset", () =
     expect(buttonInteraction.update).toHaveBeenCalledWith(
       expect.objectContaining({ components: [] }),
     );
+  });
+
+  // サービス・リポジトリ・シリアライザーを実物にして、DB へ渡る値まで確かめる
+  //（委譲の引数とシリアライザーを別々に見るだけでは、errorChannelId が update から落ちるのを検出できない）
+  it("確認ボタン押下で、実サービス経由でエラー通知チャンネルの設定も DB から消えること", async () => {
+    const upsert = vi.fn().mockResolvedValue(undefined);
+    serviceHolder.current = createGuildSettingsService(
+      new GuildCoreRepository({ guildSettings: { upsert } } as never),
+      { deleteAllSettings: vi.fn() },
+    );
+    const { interaction, collectCb } = createInteraction();
+    await handleReset(interaction, "guild-1");
+
+    await collectCb.collect({
+      customId: GUILD_SETTINGS_CUSTOM_ID.RESET_CONFIRM,
+      user: { id: "user-1" },
+      update: vi.fn().mockResolvedValue(undefined),
+    });
+
+    expect(upsert).toHaveBeenCalledWith({
+      where: { guildId: "guild-1" },
+      update: { locale: "ja", errorChannelId: null },
+      create: { guildId: "guild-1", locale: "ja", errorChannelId: null },
+    });
   });
 
   it("キャンセルボタン押下で resetGuildSettings が呼ばれないこと", async () => {

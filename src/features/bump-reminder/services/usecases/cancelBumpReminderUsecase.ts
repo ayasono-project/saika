@@ -16,6 +16,7 @@ import {
 type CancelBumpReminderUsecaseInput = {
   repository: IBumpReminderRepository;
   reminders: Map<string, ScheduledReminderRef>;
+  /** ギルドID（管理キーをそのまま渡さない。ログにこの値が出る） */
   guildId: string;
   serviceName?: BumpServiceName;
 };
@@ -56,7 +57,7 @@ export async function cancelBumpReminderUsecase(
     logPrefixed(
       "system:log_prefix.bump_reminder",
       "bumpReminder:log.scheduler_cancelled",
-      { guildId },
+      { guildId, service: serviceName },
     ),
   );
   return true;

@@ -34,14 +34,19 @@ const h = vi.hoisted(() => {
       },
     },
     repo: {
-      findOpenByCategory: async () => [],
+      findOpenByCategory: vi.fn(async () => [] as unknown[]),
     },
+    resumeAutoDeleteForCategory: vi.fn(async () => undefined),
   };
 });
 
 vi.mock("@/bot/services/botCompositionRoot", () => ({
   getBotTicketSettingsService: () => h.service,
   getBotTicketRepository: () => h.repo,
+}));
+
+vi.mock("@/features/ticket/services/ticketAutoDeleteService", () => ({
+  resumeAutoDeleteForCategory: h.resumeAutoDeleteForCategory,
 }));
 
 import { toErrorResponse } from "@/api/lib/httpError";
@@ -100,6 +105,8 @@ describe("ticketRoutes", () => {
   });
   beforeEach(async () => {
     h.reset();
+    vi.clearAllMocks();
+    h.repo.findOpenByCategory.mockResolvedValue([]);
     app = await buildApp();
   });
   afterEach(async () => {
@@ -119,6 +126,27 @@ describe("ticketRoutes", () => {
     });
     expect(res.statusCode).toBe(200);
     expect(res.json().data).toEqual({ ...PANEL, id: "cat1", openCount: 0 });
+  });
+
+  it("POST でパネルを作り直すと、そのカテゴリの残っていたチケットの自動削除を再開し、オープン件数も返す", async () => {
+    // パネル削除後も残っていた（孤立していた）オープン中のチケットが2件ある
+    h.repo.findOpenByCategory.mockResolvedValue([{ id: "t1" }, { id: "t2" }]);
+
+    const res = await app.inject({
+      method: "POST",
+      url: "/guilds/g1/tickets",
+      payload: PANEL,
+    });
+
+    expect(res.statusCode).toBe(200);
+    expect(res.json().data.openCount).toBe(2);
+    expect(h.resumeAutoDeleteForCategory).toHaveBeenCalledTimes(1);
+    expect(h.resumeAutoDeleteForCategory).toHaveBeenCalledWith(
+      "g1",
+      "cat1",
+      expect.anything(),
+      h.repo,
+    );
   });
 
   it("同一カテゴリの再 POST は 409 CONFLICT", async () => {

@@ -2,7 +2,7 @@
 
 > 多言語対応の実装ガイド — 翻訳の取得・キーの追加・命名規則
 
-最終更新: 2026年9月23日
+最終更新: 2026年9月26日
 
 ---
 
@@ -257,7 +257,7 @@ builder.setDescription(desc.base).setDescriptionLocalizations(desc.localizations
 localeManager.invalidateLocaleCache(guildId);
 ```
 
-現在の呼び出し箇所: 言語変更（コマンド / Web API）・設定 import・設定 reset。**ここを忘れると最大5分間、古い言語で応答し続けます。**
+現在の呼び出し箇所: 言語変更（コマンド / Web API）・設定 reset。**ここを忘れると最大5分間、古い言語で応答し続けます。**
 
 初期化は `main.ts` で composition root の構築後に行われます（`localeManager.setRepository()` → `localeManager.initialize()` の順）。
 

@@ -135,6 +135,33 @@ describe("bot/features/bump-reminder/handlers/usecases/sendBumpReminder", () => 
     expect(channel.send).not.toHaveBeenCalled();
   });
 
+  // 発火した予約は sent になり、無効化の取り消しや次の Bump でもパネルを探せなくなるため、ここで消す（回帰テスト）
+  it("設定が無効で送らない場合も、パネルメッセージは削除する", async () => {
+    const panelDelete = vi.fn().mockResolvedValue(undefined);
+    const channel = makeChannel({
+      messagesFetch: vi.fn().mockResolvedValue({ delete: panelDelete }),
+    });
+    const client = makeClient(channel);
+    const service = makeConfigService({ enabled: false });
+
+    const { sendBumpReminder } = await import(
+      "@/features/bump-reminder/handlers/usecases/sendBumpReminder"
+    );
+    await sendBumpReminder(
+      client as never,
+      "guild-1",
+      "ch-1",
+      "msg-1",
+      "Disboard",
+      service as never,
+      "panel-1",
+    );
+
+    expect(channel.send).not.toHaveBeenCalled();
+    expect(channel.messages.fetch).toHaveBeenCalledWith("panel-1");
+    expect(panelDelete).toHaveBeenCalled();
+  });
+
   it("Disboard は bump 元メッセージへのリプライ形式で通知するため messageId が提供された場合に reply フィールドが含まれることを確認", async () => {
     const channel = makeChannel();
     const client = makeClient(channel);

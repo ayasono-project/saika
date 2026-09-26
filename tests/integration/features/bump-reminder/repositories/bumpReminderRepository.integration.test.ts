@@ -266,6 +266,59 @@ describe("BumpReminderRepository", () => {
     });
   });
 
+  describe("findPendingByGuild()", () => {
+    it("ギルドの pending リマインダーをサービスを問わず返すこと", async () => {
+      const mockReminders = [
+        {
+          id: "reminder-1",
+          guildId: "guild-123",
+          channelId: "channel-456",
+          messageId: "msg-1",
+          panelMessageId: "panel-1",
+          serviceName: "Disboard",
+          scheduledAt: atOffsetMs(10 * 60 * 1000),
+          status: "pending",
+          createdAt: atOffsetMs(0),
+          updatedAt: atOffsetMs(0),
+        },
+        {
+          id: "reminder-2",
+          guildId: "guild-123",
+          channelId: "channel-456",
+          messageId: "msg-2",
+          panelMessageId: "panel-2",
+          serviceName: "Dissoku",
+          scheduledAt: atOffsetMs(20 * 60 * 1000),
+          status: "pending",
+          createdAt: atOffsetMs(0),
+          updatedAt: atOffsetMs(0),
+        },
+      ];
+      mockPrismaClient.bumpReminder.findMany.mockResolvedValue(mockReminders);
+
+      const result = await repository.findPendingByGuild("guild-123");
+
+      expect(result).toEqual(mockReminders);
+      expect(mockPrismaClient.bumpReminder.findMany).toHaveBeenCalledWith({
+        where: { guildId: "guild-123", status: "pending" },
+        orderBy: { scheduledAt: "asc" },
+      });
+    });
+
+    it("findPendingByGuild 失敗時に専用のメッセージキーで DatabaseError をスローすること", async () => {
+      mockPrismaClient.bumpReminder.findMany.mockRejectedValue(
+        new Error("DB error"),
+      );
+
+      const result = repository.findPendingByGuild("guild-123");
+
+      await expect(result).rejects.toThrow(DatabaseError);
+      await expect(result).rejects.toThrow(
+        "mocked:bumpReminder:log.database_find_pending_by_guild_failed",
+      );
+    });
+  });
+
   describe("findAllPending()", () => {
     it("全 pending リマインダーを返すこと", async () => {
       const mockReminders = [

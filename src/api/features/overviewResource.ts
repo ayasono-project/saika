@@ -144,7 +144,7 @@ async function collectInputs(
     createAfkResource().read(guildId),
     createVacResource().read(guildId),
     createMemberLogResource(prisma).read(guildId),
-    createBumpResource().read(guildId),
+    createBumpResource(deps.client).read(guildId),
     createVcAutoRecruitResource(prisma).read(guildId),
     createUnverifiedKickResource(prisma).read(guildId),
     getBotStickyMessageSettingsService().findAllByGuild(guildId),

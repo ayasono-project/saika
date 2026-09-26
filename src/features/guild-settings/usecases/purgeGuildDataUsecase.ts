@@ -1,11 +1,15 @@
-// ギルドの全データ後始末（インメモリタイマー解除 + DB 一括削除）のユースケース
+// ギルドの全データ後始末（Bump の予約パネル削除 + インメモリタイマー解除 + DB 一括削除）のユースケース
 
+import type { Client } from "discord.js";
 import type { ITicketRepository } from "../../../shared/database/types/repositories";
+import { cancelGuildBumpReminders } from "../../bump-reminder/handlers/usecases/cancelGuildBumpReminders";
 import type { BumpReminderManager } from "../../bump-reminder/services/bumpReminderService";
 import type { GuildSettingsService } from "../guildSettingsService";
 import { stopGuildJobsUsecase } from "./stopGuildJobsUsecase";
 
 type PurgeGuildDataDeps = {
+  /** Bump の予約パネルを消すのに使う（reset-all は Bot がギルドにいる間に実行されるので消せる） */
+  client: Client;
   guildSettingsService: GuildSettingsService;
   ticketRepository: ITicketRepository;
   bumpReminderManager: BumpReminderManager;
@@ -13,6 +17,12 @@ type PurgeGuildDataDeps = {
 
 /**
  * ギルドの全データを**即時**に後始末する（reset-all 専用）
+ *
+ * 最初に Bump の予約パネル（「<t:…:R>にリマインドが通知されます」）を消し、予約を取り消す
+ * （`cancelGuildBumpReminders`：pending 行からパネルの場所を控える → 予約の取り消し → パネル削除）。
+ * パネルの場所は pending 行からしか引けないため、DB 削除より前に行う。
+ * reset-all は Bot がギルドにいる間に実行されるのでパネルを消せる（Bot の退出時の
+ * `stopGuildJobsUsecase` はパネルに触れない）。
  *
  * DB 行を消すだけではインメモリタイマーは止まらない。
  * `createTrackedReminderTask` は投稿を実行した「後に」status を更新するため、
@@ -31,7 +41,17 @@ export async function purgeGuildDataUsecase(
   deps: PurgeGuildDataDeps,
   guildId: string,
 ): Promise<void> {
-  const { guildSettingsService, ticketRepository, bumpReminderManager } = deps;
+  const {
+    client,
+    guildSettingsService,
+    ticketRepository,
+    bumpReminderManager,
+  } = deps;
+
+  // 0. Bump の予約を取り消し、予約パネル（「リマインドが通知されます」）も消す
+  //    （pending 行からパネルの場所を控える → 取り消す → パネルを消す）。
+  //    DB を消すとパネルの場所を引けなくなるため、DB 削除より前に行う
+  await cancelGuildBumpReminders(client, guildId);
 
   // 1. インメモリタイマーを先に解除する（順序の理由は上記 JSDoc）
   await stopGuildJobsUsecase(

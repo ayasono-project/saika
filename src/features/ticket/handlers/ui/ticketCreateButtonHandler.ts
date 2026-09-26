@@ -3,7 +3,6 @@
 import {
   ActionRowBuilder,
   type ButtonInteraction,
-  MessageFlags,
   ModalBuilder,
   TextInputBuilder,
   TextInputStyle,
@@ -13,9 +12,9 @@ import {
   getBotTicketRepository,
   getBotTicketSettingsService,
 } from "../../../../bot/services/botCompositionRoot";
-import { createErrorEmbed } from "../../../../bot/utils/messageResponse";
 import { tInteraction } from "../../../../shared/locale/localeManager";
 import { TICKET_CUSTOM_ID } from "../../commands/ticketCommand.constants";
+import { findCreatableTicketConfigOrReply } from "../../services/ticketGuards";
 
 /**
  * チケット作成ボタンを処理するハンドラ
@@ -43,45 +42,15 @@ export const ticketCreateButtonHandler: ButtonHandler = {
     const guildId = interaction.guildId;
     if (!guildId) return;
 
-    const config = await settingsService.findByGuildAndCategory(
+    // パネルの設定と、ユーザーのオープンチケット数を確認（送信時にも確かめ直す）
+    const config = await findCreatableTicketConfigOrReply(
+      interaction,
       guildId,
       categoryId,
+      settingsService,
+      ticketRepository,
     );
-    if (!config) {
-      const embed = createErrorEmbed(
-        tInteraction(
-          interaction.locale,
-          "ticket:user-response.panel_not_found",
-        ),
-        { locale: interaction.locale },
-      );
-      await interaction.reply({
-        embeds: [embed],
-        flags: MessageFlags.Ephemeral,
-      });
-      return;
-    }
-
-    // ユーザーのオープンチケット数を確認
-    const openTickets = await ticketRepository.findOpenByUserAndCategory(
-      guildId,
-      categoryId,
-      interaction.user.id,
-    );
-    if (openTickets.length >= config.maxTicketsPerUser) {
-      const embed = createErrorEmbed(
-        tInteraction(
-          interaction.locale,
-          "ticket:user-response.max_tickets_reached",
-        ),
-        { locale: interaction.locale },
-      );
-      await interaction.reply({
-        embeds: [embed],
-        flags: MessageFlags.Ephemeral,
-      });
-      return;
-    }
+    if (!config) return;
 
     // チケット作成モーダルを表示
     const modal = new ModalBuilder()

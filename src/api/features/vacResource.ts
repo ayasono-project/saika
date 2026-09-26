@@ -12,7 +12,7 @@ import { requireBotGuild } from "../lib/botGuild";
 import { relativeLabel } from "../lib/time";
 import type { SettingsResource } from "../routes/settingsResource";
 
-/** ドメイン → 契約（createdChannels は state 側のため除外） */
+/** ドメイン → 契約（createdChannels は実行時データのため除外） */
 export function toContractVac(domain: VacSettings): ContractVacSettings {
   return {
     enabled: domain.enabled,

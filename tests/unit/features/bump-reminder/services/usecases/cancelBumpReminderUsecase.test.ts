@@ -82,4 +82,27 @@ describe("bot/features/bump-reminder/services/usecases/cancelBumpReminderUsecase
     );
     expect(loggerInfoMock).toHaveBeenCalled();
   });
+
+  it("取り消しログにはギルドIDとサービス名を分けて出す", async () => {
+    cancelScheduledReminderMock.mockReturnValue({
+      jobId: "job-1",
+      reminderId: "r1",
+    });
+    const repository = { updateStatus: vi.fn().mockResolvedValue(undefined) };
+
+    await cancelBumpReminderUsecase({
+      repository: repository as never,
+      reminders: new Map(),
+      guildId: "g1",
+      serviceName: "Disboard",
+    });
+
+    expect(cancelScheduledReminderMock).toHaveBeenCalledWith(
+      expect.any(Map),
+      "g1:Disboard",
+    );
+    expect(loggerInfoMock).toHaveBeenCalledWith(
+      `[system:log_prefix.bump_reminder] bumpReminder:log.scheduler_cancelled:${JSON.stringify({ guildId: "g1", service: "Disboard" })}`,
+    );
+  });
 });

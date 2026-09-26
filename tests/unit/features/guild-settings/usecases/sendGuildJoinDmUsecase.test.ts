@@ -3,6 +3,7 @@
 const getFixedTMock = vi.fn();
 const buildIntroMock = vi.fn();
 const buildReturnMock = vi.fn();
+const addInaccessibleFieldMock = vi.fn();
 const loggerWarnMock = vi.fn();
 const loggerDebugMock = vi.fn();
 
@@ -31,6 +32,8 @@ vi.mock("@/shared/utils/logger", () => ({
 vi.mock("@/features/guild-settings/services/guildJoinDmBuilder", () => ({
   buildGuildJoinIntroDm: (...args: unknown[]) => buildIntroMock(...args),
   buildGuildJoinReturnDm: (...args: unknown[]) => buildReturnMock(...args),
+  addInaccessibleTicketChannelsField: (...args: unknown[]) =>
+    addInaccessibleFieldMock(...args),
 }));
 vi.mock("@/shared/config/env", () => ({
   env: {
@@ -56,7 +59,7 @@ function createGuild() {
   };
 }
 
-// DM の出し分け・日英の翻訳関数の組み立て・送信失敗の握りつぶしを検証する
+// DM の出し分け・日英の翻訳関数の組み立て・Bot が扱えないチケットの欄の出し分け・送信失敗の握りつぶしを検証する
 describe("features/guild-settings/sendGuildJoinDmUsecase", () => {
   // 各ケースでモック呼び出し記録と既定の解決値をリセットする
   beforeEach(() => {
@@ -112,6 +115,31 @@ describe("features/guild-settings/sendGuildJoinDmUsecase", () => {
       privacyPolicyUrl: "https://example.com/privacy",
       supportServerUrl: undefined,
     });
+  });
+
+  it("エラー通知チャンネルで知らせられなかった、Bot が扱えないチケットの件数を受け取ったら、その欄を足した DM を送ること", async () => {
+    const deleteAt = new Date("2026-10-24T00:00:00.000Z");
+    const guild = createGuild();
+
+    await sendGuildJoinDmUsecase(guild as never, deleteAt, 3);
+
+    const translators = buildReturnMock.mock.calls[0][0];
+    expect(addInaccessibleFieldMock).toHaveBeenCalledWith(
+      { return: true },
+      translators,
+      3,
+    );
+    expect(sendMock).toHaveBeenCalledWith({ embeds: [{ return: true }] });
+  });
+
+  it("件数が0（渡されない）なら、Bot が扱えないチケットの欄は足さないこと", async () => {
+    const guild = createGuild();
+
+    await sendGuildJoinDmUsecase(guild as never, new Date());
+    await sendGuildJoinDmUsecase(guild as never, null, 0);
+
+    expect(addInaccessibleFieldMock).not.toHaveBeenCalled();
+    expect(sendMock).toHaveBeenCalledTimes(2);
   });
 
   it("DM 送信が失敗しても例外を投げず警告ログに落とすこと（導入処理は成功扱い）", async () => {

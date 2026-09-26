@@ -31,6 +31,8 @@ const getBotBumpReminderRepositoryMock = vi.fn(() => ({
   findPendingByGuildAndService: vi.fn().mockResolvedValue(null),
 }));
 
+const cancelReminderMock = vi.fn();
+
 vi.mock("@/bot/shared/errorChannelNotifier", () => ({
   notifyErrorChannel: vi.fn(),
   notifyWarnChannel: vi.fn(),
@@ -40,6 +42,9 @@ vi.mock("@/bot/services/botCompositionRoot", () => ({
   getBotBumpReminderSettingsService: () =>
     getBotBumpReminderSettingsServiceMock(),
   getBotBumpReminderRepository: () => getBotBumpReminderRepositoryMock(),
+  getBotBumpReminderManager: () => ({
+    cancelReminder: (...args: unknown[]) => cancelReminderMock(...args),
+  }),
 }));
 
 vi.mock(
@@ -785,6 +790,52 @@ describe("bot/features/bump-reminder/bumpReminderHandler", () => {
       expect(scheduleBumpReminderMock).toHaveBeenCalled();
     });
 
+    it("前回パネルの検索（DB）が失敗した場合は検索失敗のログを残し、新パネル送信に影響しない", async () => {
+      getBotBumpReminderRepositoryMock.mockReturnValue({
+        findPendingByGuildAndService: vi
+          .fn()
+          .mockRejectedValue(new Error("db down")),
+      });
+
+      const settingsService = {
+        getBumpReminderSettingsOrDefault: vi
+          .fn()
+          .mockResolvedValue({ enabled: true, mentionUserIds: [] }),
+      };
+      getBotBumpReminderSettingsServiceMock.mockReturnValue(settingsService);
+      scheduleBumpReminderMock.mockResolvedValue(undefined);
+
+      const channel = {
+        isTextBased: () => true,
+        isSendable: () => true,
+        send: vi.fn().mockResolvedValue({ id: "new-panel-1" }),
+        messages: { fetch: vi.fn() },
+      };
+      const client = {
+        channels: {
+          fetch: vi.fn().mockResolvedValue(channel),
+        },
+      };
+      getGuildTranslatorMock.mockResolvedValue((key: string) => key);
+
+      await handleBumpDetected(
+        client as never,
+        "guild-1",
+        "ch-1",
+        "msg-1",
+        "Disboard",
+      );
+
+      expect(loggerMock.debug).toHaveBeenCalledWith(
+        expect.stringContaining(
+          "bumpReminder:log.scheduler_panel_lookup_failed",
+        ),
+        expect.any(Error),
+      );
+      expect(channel.messages.fetch).not.toHaveBeenCalled();
+      expect(scheduleBumpReminderMock).toHaveBeenCalled();
+    });
+
     it("前回パネルのメッセージフェッチが失敗した場合でも新パネル送信に影響しない", async () => {
       const findPendingByGuildAndServiceMock = vi.fn().mockResolvedValue({
         panelMessageId: "old-panel-1",
@@ -870,6 +921,61 @@ describe("bot/features/bump-reminder/bumpReminderHandler", () => {
         "panel-1",
       );
       expect(loggerMock.info).toHaveBeenCalledWith(
+        expect.stringContaining("bumpReminder:log.detected"),
+      );
+      // 登録後の読み直しでも有効なので、予約は取り消さない
+      expect(
+        settingsService.getBumpReminderSettingsOrDefault,
+      ).toHaveBeenCalledTimes(2);
+      expect(cancelReminderMock).not.toHaveBeenCalled();
+    });
+
+    it("予約の登録中に無効化されていたら、今回の予約とパネルを取り消して検知ログは残さない", async () => {
+      // 最初の確認では有効、予約を登録した後の読み直しでは無効（その間に無効化が完了した）
+      const settingsService = {
+        getBumpReminderSettingsOrDefault: vi
+          .fn()
+          .mockResolvedValueOnce({ enabled: true, mentionUserIds: [] })
+          .mockResolvedValueOnce({ enabled: false, mentionUserIds: [] }),
+      };
+      getBotBumpReminderSettingsServiceMock.mockReturnValue(settingsService);
+      scheduleBumpReminderMock.mockResolvedValue(undefined);
+      cancelReminderMock.mockResolvedValue(true);
+
+      const panelDeleteMock = vi.fn().mockResolvedValue(undefined);
+      const channel = {
+        isTextBased: () => true,
+        isSendable: () => true,
+        send: vi.fn().mockResolvedValue({ id: "panel-1" }),
+        messages: {
+          fetch: vi.fn().mockResolvedValue({ delete: panelDeleteMock }),
+        },
+      };
+      const client = {
+        channels: {
+          fetch: vi.fn().mockResolvedValue(channel),
+        },
+      };
+      getGuildTranslatorMock.mockResolvedValue((key: string) => key);
+
+      await handleBumpDetected(
+        client as never,
+        "guild-1",
+        "ch-1",
+        "msg-1",
+        "Disboard",
+      );
+
+      expect(scheduleBumpReminderMock).toHaveBeenCalled();
+      expect(cancelReminderMock).toHaveBeenCalledWith("guild-1", "Disboard");
+      expect(channel.messages.fetch).toHaveBeenCalledWith("panel-1");
+      expect(panelDeleteMock).toHaveBeenCalled();
+      expect(loggerMock.info).toHaveBeenCalledWith(
+        expect.stringContaining(
+          "bumpReminder:log.scheduler_disabled_after_schedule",
+        ),
+      );
+      expect(loggerMock.info).not.toHaveBeenCalledWith(
         expect.stringContaining("bumpReminder:log.detected"),
       );
     });

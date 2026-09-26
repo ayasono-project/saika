@@ -84,7 +84,7 @@ export async function handleTicketSettingsSetup(
   });
 
   logger.info(
-    logPrefixed("system:log_prefix.ticket", "ticket:log.setup", {
+    logPrefixed("system:log_prefix.ticket", "ticket:log.setup_started", {
       guildId,
       categoryId: category.id,
     }),

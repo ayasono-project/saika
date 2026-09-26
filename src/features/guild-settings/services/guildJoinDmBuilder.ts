@@ -15,6 +15,10 @@ const JOIN_DM_I18N_KEYS = {
   SUPPORT_NAME: "guildSettings:embed.field.name.support_server",
   RETURN_TITLE: "guildSettings:embed.title.join_return",
   RETURN_DESCRIPTION: "guildSettings:embed.description.join_return",
+  INACCESSIBLE_TICKETS_NAME:
+    "guildSettings:embed.field.name.inaccessible_ticket_channels",
+  INACCESSIBLE_TICKETS_VALUE:
+    "guildSettings:embed.field.value.inaccessible_ticket_channels",
 } as const;
 
 /**
@@ -121,7 +125,9 @@ export function buildGuildJoinIntroDm(
  * 猶予期間内の再導入でオーナーへ送る DM の Embed を組み立てる
  *
  * 「削除予約を取り消した」ことと「いつ消えるはずだったか」を伝えるのが本体。
- * 設定が「すべて」戻ったとは書かない（退出時に止めたタイマー等は戻らないため）。
+ * 設定が「すべて」戻ったとは書かない。チケットの自動削除タイマーは再導入時に
+ * 組み直す（`syncGuildTickets`）が、Bump リマインダーの予約は退出時に DB でも
+ * 取り消しているため戻らない（`stopGuildJobsUsecase`）。
  * @param t 言語ごとの翻訳関数（日本語 → 英語の順に併記する）
  * @param cancelledDeletionAt 取り消した削除予定時刻
  * @returns 送信用の Embed
@@ -138,4 +144,36 @@ export function buildGuildJoinReturnDm(
         deleteAt: toDiscordDate(cancelledDeletionAt),
       }),
     );
+}
+
+/**
+ * Bot が扱えないチケットのチャンネルの件数と、付け直す手順の欄を DM の Embed に足す
+ *
+ * Bot を外すと、Discord はチケットのチャンネルに付けていた Bot の権限を消す。再導入時はまず
+ * エラー通知チャンネルで知らせる（`syncGuildTickets`）が、キックで Bot のロールも消えるため、
+ * 管理者専用のエラー通知チャンネルには Bot も入れず届かないことがある。そのとき（未設定を含む）だけ、
+ * 代わりにオーナー宛の DM でこの欄を出す。導入 DM・再導入 DM のどちらにも足せる
+ * @param embed 欄を足す DM の Embed
+ * @param t 言語ごとの翻訳関数（日本語 → 英語の順に併記する）
+ * @param count Bot が扱えないチケットのチャンネルの件数（1以上）
+ * @returns 欄を足した Embed（引数と同じもの）
+ */
+export function addInaccessibleTicketChannelsField(
+  embed: EmbedBuilder,
+  t: GuildJoinDmTranslators,
+  count: number,
+): EmbedBuilder {
+  return embed.addFields({
+    name: bilingual(
+      t,
+      JOIN_DM_I18N_KEYS.INACCESSIBLE_TICKETS_NAME,
+      LABEL_SEPARATOR,
+    ),
+    value: bilingual(
+      t,
+      JOIN_DM_I18N_KEYS.INACCESSIBLE_TICKETS_VALUE,
+      TEXT_SEPARATOR,
+      { count },
+    ),
+  });
 }

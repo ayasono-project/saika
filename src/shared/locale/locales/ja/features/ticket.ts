@@ -50,13 +50,27 @@ export const ticket = {
   "user-response.no_configs": "チケット設定がありません。",
   "user-response.not_ticket_channel":
     "このコマンドはチケットチャンネル内でのみ実行できます。",
-  "user-response.not_authorized": "この操作を実行する権限がありません。",
+  "user-response.not_authorized_close_open":
+    "チケットをクローズ・再オープンできるのは、チケットを作ったメンバー、スタッフロール（{{staffRoles}}）を持つメンバー、管理者権限を持つメンバーだけです。",
+  "user-response.not_authorized_delete":
+    "チケットを削除できるのは、スタッフロール（{{staffRoles}}）を持つメンバーと、管理者権限を持つメンバーだけです。",
+  // 上の2つの {{staffRoles}} に入れる、スタッフロールの区切りと、スタッフロールが無いときの表示
+  "user-response.staff_roles_separator": "、",
+  "user-response.staff_roles_not_set": "未設定",
+  "user-response.ticket_config_missing":
+    "このチケットのカテゴリのパネルが削除されているため、操作できません。同じカテゴリを指定してパネルを設置し直すと再び操作できますが、クローズしてから自動削除の日数を過ぎているチケットは、設置し直した時点で削除されます。不要なチケットは、チャンネルを直接削除してください。",
+  "user-response.bot_channel_access_missing":
+    "Bot がこのチャンネルで必要な権限を持っていないため、チケットを操作できません（何も変更していません）。Bot をサーバーから外して入れ直すと、それより前に作ったチケットのチャンネルでは Bot の権限が外れるため、こうなります。サーバーの管理者が、このチャンネルの「チャンネルの編集」→「権限」で Bot を追加し、「チャンネルを見る」「メッセージを送信」「埋め込みリンク」「メッセージ履歴を読む」を許可すると、操作できるようになります。",
+  "user-response.bot_manage_channels_missing":
+    "Bot に「チャンネルの管理」の権限が無いため、このチケットを削除できません（何も変更していません）。Bot のロールに「チャンネルの管理」を付けるか、このチャンネルの権限設定で Bot の「チャンネルの管理」を拒否していないか確認してください。",
   "user-response.ticket_already_closed":
     "このチケットは既にクローズされています。",
   "user-response.ticket_already_open":
     "このチケットは既にオープンされています。",
   "user-response.max_tickets_reached":
     "チケットの同時作成上限（{{max}}件）に達しています。",
+  "user-response.ticket_creation_in_progress":
+    "このカテゴリのチケットを作成中です。作成が終わるまでお待ちください。",
   "user-response.cannot_remove_last_role":
     "スタッフロールを0件にすることはできません。",
   "user-response.panel_not_found":
@@ -99,6 +113,11 @@ export const ticket = {
   "embed.field.value.auto_delete_days": "{{days}}日",
   "embed.field.value.max_tickets_count": "{{count}}件",
   "embed.field.value.open_ticket_count": "{{count}}件",
+  "embed.field.value.error_notification_feature": "チケット",
+  "embed.field.value.channel_access_missing_action":
+    "Bot が入れないチケットのチャンネルを検出",
+  "embed.field.value.channel_access_missing_notice":
+    "Bot をサーバーから外すと、Discord はチケットのチャンネルに付けていた Bot の権限を消します。そのため、入れ直す前に作った次のチケットのチャンネル（{{count}}件）では、Bot がクローズ・再オープン・削除・自動削除を行えません。\n{{channels}}\n各チャンネルの「チャンネルの編集」→「権限」で Bot を追加し、「チャンネルを見る」「メッセージを送信」「埋め込みリンク」「メッセージ履歴を読む」を許可してください（カテゴリの権限を変えても、チケットのチャンネルには反映されません）。不要なチケットは、チャンネルを直接削除すれば記録も片付きます。ログなど、Bot 用に権限を付けていた他の非公開チャンネルも、同じく付け直しが必要です。",
 
   // ── UIラベル
   "ui.button.create_ticket": "チケットを作成",
@@ -126,6 +145,8 @@ export const ticket = {
   // ── ログ
   "log.setup":
     "チケットパネルを設置 GuildId: {{guildId}} CategoryId: {{categoryId}} ChannelId: {{channelId}}",
+  "log.setup_started":
+    "チケットパネルの設置を開始 GuildId: {{guildId}} CategoryId: {{categoryId}}",
   "log.teardown":
     "チケットパネルを撤去 GuildId: {{guildId}} CategoryId: {{categoryId}}",
   "log.ticket_created":
@@ -138,6 +159,18 @@ export const ticket = {
     "チケット削除 GuildId: {{guildId}} ChannelId: {{channelId}} DeletedBy: {{deletedBy}}",
   "log.ticket_auto_deleted":
     "チケット自動削除 GuildId: {{guildId}} ChannelId: {{channelId}}",
+  "log.ticket_auto_delete_failed":
+    "チケット自動削除に失敗 GuildId: {{guildId}} ChannelId: {{channelId}}",
+  "log.auto_delete_skipped_not_closed":
+    "自動削除を中止（チケットが再オープン済みか削除済み） GuildId: {{guildId}} TicketId: {{ticketId}}",
+  "log.auto_delete_held_config_missing":
+    "自動削除を保留（カテゴリの設定が無い） GuildId: {{guildId}} CategoryId: {{categoryId}} TicketId: {{ticketId}}",
+  "log.auto_delete_resumed":
+    "パネルの再設置で自動削除タイマーを再開 GuildId: {{guildId}} CategoryId: {{categoryId}} 件数: {{count}}",
+  "log.auto_delete_resume_failed":
+    "パネルの再設置時に自動削除タイマーの再開に失敗 GuildId: {{guildId}} CategoryId: {{categoryId}}",
+  "log.unrecorded_channel_delete_failed":
+    "記録を作れなかったチケットのチャンネルの削除に失敗 GuildId: {{guildId}} ChannelId: {{channelId}}",
   "log.database_config_save_failed":
     "チケット設定保存に失敗 GuildId: {{guildId}} CategoryId: {{categoryId}}",
   "log.database_config_find_failed":
@@ -159,6 +192,8 @@ export const ticket = {
     "チケット一覧取得に失敗 GuildId: {{guildId}} CategoryId: {{categoryId}}",
   "log.database_ticket_find_closed_failed":
     "クローズ済みチケット取得に失敗 GuildId: {{guildId}}",
+  "log.database_ticket_find_all_by_guild_failed":
+    "ギルドのチケット取得に失敗 GuildId: {{guildId}}",
   "log.database_ticket_create_failed":
     "チケット作成に失敗 GuildId: {{guildId}} CategoryId: {{categoryId}}",
   "log.database_ticket_update_failed": "チケット更新に失敗 Id: {{id}}",
@@ -178,6 +213,30 @@ export const ticket = {
     "パネル設置チャンネル削除を検知 GuildId: {{guildId}} CategoryId: {{categoryId}}",
   "log.panel_cleanup_failed":
     "パネル削除時のクリーンアップに失敗 GuildId: {{guildId}}",
+  "log.ticket_channel_deleted":
+    "チケットのチャンネル削除を検知し記録を削除 GuildId: {{guildId}} ChannelId: {{channelId}}",
+  "log.ticket_channel_cleanup_failed":
+    "チケットのチャンネル削除後の片付けに失敗 GuildId: {{guildId}} ChannelId: {{channelId}}",
+  "log.missing_channel_tickets_removed":
+    "チャンネルが無くなったチケットの記録を削除 GuildId: {{guildId}} 件数: {{count}}",
+  "log.ticket_channel_sync_failed":
+    "チケットとチャンネルの突き合わせに失敗（何も削除しない） GuildId: {{guildId}}",
+  "log.auto_delete_restore_guild":
+    "再導入・再接続時 自動削除タイマー復元 GuildId: {{guildId}} 件数: {{count}}",
+  "log.guild_resync_failed":
+    "再接続後のチケットとチャンネルの突き合わせに失敗 GuildId: {{guildId}}",
+  "log.ticket_channel_access_missing":
+    "Bot がチケットのチャンネルを扱えない（削除では「チャンネルの管理」が無い場合も含む）ため操作を止めた GuildId: {{guildId}} ChannelId: {{channelId}}",
+  "log.auto_delete_held_channel_inaccessible":
+    "自動削除を保留し、後で再試行する（Bot がチャンネルを扱えない・「チャンネルの管理」が無い、またはギルドを取得できない） GuildId: {{guildId}} ChannelId: {{channelId}} TicketId: {{ticketId}} RetryInMs: {{retryInMs}}",
+  "log.auto_delete_still_held":
+    "自動削除の再試行でも保留し、再び後で再試行する GuildId: {{guildId}} ChannelId: {{channelId}} TicketId: {{ticketId}} RetryInMs: {{retryInMs}}",
+  "log.ticket_channel_delete_failed":
+    "チケットのチャンネルの削除に失敗（記録は削除済みで、チャンネルが残っている） GuildId: {{guildId}} ChannelId: {{channelId}}",
+  "log.inaccessible_ticket_channels_found":
+    "Bot が扱えないチケットのチャンネルがある GuildId: {{guildId}} 件数: {{count}} ChannelIds: {{channelIds}}",
+  "log.teardown_channel_inaccessible":
+    "撤去で Bot が扱えない（または「チャンネルの管理」が無い）チケットのチャンネルを削除できなかった（チャンネルが残る） GuildId: {{guildId}} ChannelId: {{channelId}}",
 } as const;
 
 export type TicketTranslations = typeof ticket;

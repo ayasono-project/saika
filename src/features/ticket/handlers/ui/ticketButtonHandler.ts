@@ -22,29 +22,20 @@ import {
 } from "../../../../shared/locale/localeManager";
 import { logger } from "../../../../shared/utils/logger";
 import {
+  TICKET_CHANNEL_BOT_DELETE_PERMISSIONS,
   TICKET_CUSTOM_ID,
   TICKET_STATUS,
 } from "../../commands/ticketCommand.constants";
 import {
+  canOperateTicketOrReply,
+  findHandleableTicketChannelOrReply,
+  findTicketConfigOrReply,
+} from "../../services/ticketGuards";
+import {
   closeTicket,
   deleteTicket,
-  hasStaffRole,
-  hasTicketPermission,
   reopenTicket,
 } from "../../services/ticketService";
-
-/**
- * メンバーのロールID一覧を取得する
- * @param interaction ボタンインタラクション
- * @returns ロールIDの配列
- */
-function getMemberRoleIds(interaction: ButtonInteraction): string[] {
-  return Array.from(
-    interaction.member && "cache" in interaction.member.roles
-      ? interaction.member.roles.cache.keys()
-      : [],
-  );
-}
 
 /**
  * チケット操作ボタン（close/open/delete/confirm/cancel）を処理するハンドラ
@@ -134,35 +125,29 @@ async function handleClose(interaction: ButtonInteraction): Promise<void> {
     return;
   }
 
-  // スタッフロールと操作権限を確認
-  const config = await settingsService.findByGuildAndCategory(
-    ticket.guildId,
-    ticket.categoryId,
+  // 押した人の権限を確認（作成者・スタッフロール・管理者権限）
+  // カテゴリの設定が無い（パネルが削除された）チケットは操作できない旨を返信する
+  const config = await findTicketConfigOrReply(
+    interaction,
+    ticket,
+    settingsService,
   );
-  const staffRoleIds: string[] = config ? config.staffRoleIds : [];
-  const memberRoleIds = getMemberRoleIds(interaction);
+  if (!config) return;
 
+  // 作成者・スタッフロール・管理者権限のどれも無ければ、誰が操作できるかを返信する
   if (
-    !hasTicketPermission(
-      ticket,
-      interaction.user.id,
-      memberRoleIds,
-      staffRoleIds,
-    )
+    !(await canOperateTicketOrReply(interaction, ticket, config, "close_open"))
   ) {
-    const embed = createErrorEmbed(
-      tInteraction(interaction.locale, "ticket:user-response.not_authorized"),
-      { locale: interaction.locale },
-    );
-    await interaction.reply({
-      embeds: [embed],
-      flags: MessageFlags.Ephemeral,
-    });
     return;
   }
 
   const guild = interaction.guild;
   if (!guild) return;
+
+  // Bot がチャンネルを扱えない（Bot を外して入れ直した後の古いチケット等）なら、何も変えずに理由と対処を返信する
+  if (!(await findHandleableTicketChannelOrReply(interaction, guild, ticket))) {
+    return;
+  }
 
   await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
@@ -172,6 +157,7 @@ async function handleClose(interaction: ButtonInteraction): Promise<void> {
     logPrefixed("system:log_prefix.ticket", "ticket:log.ticket_closed", {
       guildId: ticket.guildId,
       channelId: ticket.channelId,
+      closedBy: interaction.user.id,
     }),
   );
 
@@ -227,35 +213,29 @@ async function handleOpen(interaction: ButtonInteraction): Promise<void> {
     return;
   }
 
-  // スタッフロールと操作権限を確認
-  const config = await settingsService.findByGuildAndCategory(
-    ticket.guildId,
-    ticket.categoryId,
+  // 押した人の権限を確認（作成者・スタッフロール・管理者権限）
+  // カテゴリの設定が無い（パネルが削除された）チケットは操作できない旨を返信する
+  const config = await findTicketConfigOrReply(
+    interaction,
+    ticket,
+    settingsService,
   );
-  const staffRoleIds: string[] = config ? config.staffRoleIds : [];
-  const memberRoleIds = getMemberRoleIds(interaction);
+  if (!config) return;
 
+  // 作成者・スタッフロール・管理者権限のどれも無ければ、誰が操作できるかを返信する
   if (
-    !hasTicketPermission(
-      ticket,
-      interaction.user.id,
-      memberRoleIds,
-      staffRoleIds,
-    )
+    !(await canOperateTicketOrReply(interaction, ticket, config, "close_open"))
   ) {
-    const embed = createErrorEmbed(
-      tInteraction(interaction.locale, "ticket:user-response.not_authorized"),
-      { locale: interaction.locale },
-    );
-    await interaction.reply({
-      embeds: [embed],
-      flags: MessageFlags.Ephemeral,
-    });
     return;
   }
 
   const guild = interaction.guild;
   if (!guild) return;
+
+  // Bot がチャンネルを扱えない（Bot を外して入れ直した後の古いチケット等）なら、何も変えずに理由と対処を返信する
+  if (!(await findHandleableTicketChannelOrReply(interaction, guild, ticket))) {
+    return;
+  }
 
   await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
@@ -265,6 +245,7 @@ async function handleOpen(interaction: ButtonInteraction): Promise<void> {
     logPrefixed("system:log_prefix.ticket", "ticket:log.ticket_opened", {
       guildId: ticket.guildId,
       channelId: ticket.channelId,
+      openedBy: interaction.user.id,
     }),
   );
 
@@ -304,23 +285,33 @@ async function handleDelete(interaction: ButtonInteraction): Promise<void> {
     return;
   }
 
-  // スタッフロール権限を確認（削除はスタッフのみ可能）
-  const config = await settingsService.findByGuildAndCategory(
-    ticket.guildId,
-    ticket.categoryId,
+  // 操作権限を確認（削除はスタッフロールか管理者権限を持つメンバーのみ可能）
+  // カテゴリの設定が無い（パネルが削除された）チケットは操作できない旨を返信する
+  const config = await findTicketConfigOrReply(
+    interaction,
+    ticket,
+    settingsService,
   );
-  const staffRoleIds: string[] = config ? config.staffRoleIds : [];
-  const memberRoleIds = getMemberRoleIds(interaction);
+  if (!config) return;
 
-  if (!hasStaffRole(memberRoleIds, staffRoleIds)) {
-    const embed = createErrorEmbed(
-      tInteraction(interaction.locale, "ticket:user-response.not_authorized"),
-      { locale: interaction.locale },
-    );
-    await interaction.reply({
-      embeds: [embed],
-      flags: MessageFlags.Ephemeral,
-    });
+  // スタッフロールも管理者権限も無ければ（作成者でも）、誰が削除できるかを返信する
+  if (!(await canOperateTicketOrReply(interaction, ticket, config, "delete"))) {
+    return;
+  }
+
+  const guild = interaction.guild;
+  if (!guild) return;
+
+  // Bot がチャンネルを扱えない（Bot を外して入れ直した後の古いチケット等）か、削除に要る「チャンネルの管理」が
+  // 無いなら、確認を出す前に理由と対処を返信する
+  if (
+    !(await findHandleableTicketChannelOrReply(
+      interaction,
+      guild,
+      ticket,
+      TICKET_CHANNEL_BOT_DELETE_PERMISSIONS,
+    ))
+  ) {
     return;
   }
 
@@ -387,23 +378,33 @@ async function handleDeleteConfirm(
     return;
   }
 
-  // スタッフロール権限を確認（削除はスタッフのみ可能）
-  const config = await settingsService.findByGuildAndCategory(
-    ticket.guildId,
-    ticket.categoryId,
+  // 操作権限を確認（削除はスタッフロールか管理者権限を持つメンバーのみ可能）
+  // カテゴリの設定が無い（パネルが削除された）チケットは操作できない旨を返信する
+  const config = await findTicketConfigOrReply(
+    interaction,
+    ticket,
+    settingsService,
   );
-  const staffRoleIds: string[] = config ? config.staffRoleIds : [];
-  const memberRoleIds = getMemberRoleIds(interaction);
+  if (!config) return;
 
-  if (!hasStaffRole(memberRoleIds, staffRoleIds)) {
-    const embed = createErrorEmbed(
-      tInteraction(interaction.locale, "ticket:user-response.not_authorized"),
-      { locale: interaction.locale },
-    );
-    await interaction.reply({
-      embeds: [embed],
-      flags: MessageFlags.Ephemeral,
-    });
+  // スタッフロールも管理者権限も無ければ（作成者でも）、誰が削除できるかを返信する
+  if (!(await canOperateTicketOrReply(interaction, ticket, config, "delete"))) {
+    return;
+  }
+
+  const guild = interaction.guild;
+  if (!guild) return;
+
+  // 確認を出した後に権限が変わっていることもあるので、削除の直前にも確かめる
+  // （扱えないまま進めると、記録だけが消えてチャンネルが残るため）
+  if (
+    !(await findHandleableTicketChannelOrReply(
+      interaction,
+      guild,
+      ticket,
+      TICKET_CHANNEL_BOT_DELETE_PERMISSIONS,
+    ))
+  ) {
     return;
   }
 
@@ -423,11 +424,9 @@ async function handleDeleteConfirm(
     logPrefixed("system:log_prefix.ticket", "ticket:log.ticket_deleted", {
       guildId: ticket.guildId,
       channelId: ticket.channelId,
+      deletedBy: interaction.user.id,
     }),
   );
-
-  const guild = interaction.guild;
-  if (!guild) return;
 
   await deleteTicket(ticket, guild, ticketRepository);
 }

@@ -24,13 +24,10 @@ const GUILD_SETTINGS_COMMAND = {
     VIEW: "view",
     RESET: "reset",
     RESET_ALL: "reset-all",
-    EXPORT: "export",
-    IMPORT: "import",
   },
   OPTION: {
     LOCALE: "locale",
     CHANNEL: "channel",
-    FILE: "file",
   },
 } as const;
 
@@ -71,18 +68,6 @@ export const guildSettingsCommand: Command = {
     const resetAllDesc = getCommandLocalizations(
       "guildSettings",
       "guild-settings.reset-all.description",
-    );
-    const exportDesc = getCommandLocalizations(
-      "guildSettings",
-      "guild-settings.export.description",
-    );
-    const importDesc = getCommandLocalizations(
-      "guildSettings",
-      "guild-settings.import.description",
-    );
-    const fileOptDesc = getCommandLocalizations(
-      "guildSettings",
-      "guild-settings.import.file.description",
     );
 
     // チョイス名のローカライゼーション
@@ -155,27 +140,6 @@ export const guildSettingsCommand: Command = {
             .setName(GUILD_SETTINGS_COMMAND.SUBCOMMAND.RESET_ALL)
             .setDescription(resetAllDesc.base)
             .setDescriptionLocalizations(resetAllDesc.localizations),
-        )
-        .addSubcommand((sub) =>
-          // エクスポート
-          sub
-            .setName(GUILD_SETTINGS_COMMAND.SUBCOMMAND.EXPORT)
-            .setDescription(exportDesc.base)
-            .setDescriptionLocalizations(exportDesc.localizations),
-        )
-        .addSubcommand((sub) =>
-          // インポート
-          sub
-            .setName(GUILD_SETTINGS_COMMAND.SUBCOMMAND.IMPORT)
-            .setDescription(importDesc.base)
-            .setDescriptionLocalizations(importDesc.localizations)
-            .addAttachmentOption((opt) =>
-              opt
-                .setName(GUILD_SETTINGS_COMMAND.OPTION.FILE)
-                .setDescription(fileOptDesc.base)
-                .setDescriptionLocalizations(fileOptDesc.localizations)
-                .setRequired(true),
-            ),
         )
     );
   })(),

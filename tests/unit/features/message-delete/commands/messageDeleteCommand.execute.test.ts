@@ -148,7 +148,11 @@ function makeScanInteraction(userId: string, guildId: string) {
     guildId,
     guild: {
       id: guildId,
-      members: { me },
+      members: {
+        me,
+        // 対象チャンネルの絞り込みで、実行者の権限を確かめるために取得する
+        fetch: vi.fn().mockResolvedValue({ id: userId }),
+      },
       channels: {
         fetch: vi
           .fn()

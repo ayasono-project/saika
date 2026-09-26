@@ -12,6 +12,7 @@ import { logPrefixed } from "../../../../shared/locale/localeManager";
 import { logger } from "../../../../shared/utils/logger";
 import type { BumpReminderSettingsService } from "../../bumpReminderSettingsService";
 import type { BumpServiceName } from "../../constants/bumpReminderConstants";
+import { deleteBumpPanelMessage } from "./deleteBumpPanel";
 
 /**
  * スケジュール到達時に Bump リマインダー通知を送信する関数
@@ -21,7 +22,7 @@ import type { BumpServiceName } from "../../constants/bumpReminderConstants";
  * @param messageId 返信参照に使う元メッセージID
  * @param serviceName 通知文言切り替え用サービス名
  * @param bumpReminderSettingsService 設定取得サービス
- * @param panelMessageId 通知完了後に削除するパネルメッセージID
+ * @param panelMessageId 通知完了後（無効化されていて送らない場合も）に削除するパネルメッセージID
  * @returns 実行完了を示す Promise
  */
 export async function sendBumpReminder(
@@ -75,6 +76,8 @@ export async function sendBumpReminder(
           },
         ),
       );
+      // この予約は発火済み（sent）になり、無効化の取り消しや次の Bump でもパネルを探せなくなるため、ここで消す
+      await deleteBumpPanelMessage(client, channelId, panelMessageId, guildId);
       return;
     }
 
@@ -142,7 +145,7 @@ export async function sendBumpReminder(
     );
 
     // リマインド完了後にパネルメッセージを削除する
-    await deletePanelMessage(client, channelId, panelMessageId, guildId);
+    await deleteBumpPanelMessage(client, channelId, panelMessageId, guildId);
   } catch (error) {
     logger.error(
       logPrefixed(
@@ -162,57 +165,5 @@ export async function sendBumpReminder(
         action: "リマインダー送信失敗",
       });
     }
-  }
-}
-
-/**
- * リマインド完了後にパネルメッセージを削除する
- * @param client Discord クライアント
- * @param channelId パネルが存在するチャンネルID
- * @param panelMessageId 削除対象のパネルメッセージID
- * @param guildId ログ用ギルドID
- */
-async function deletePanelMessage(
-  client: Client,
-  channelId: string,
-  panelMessageId: string | undefined,
-  guildId: string,
-): Promise<void> {
-  if (!panelMessageId) {
-    return;
-  }
-
-  try {
-    const channel = await client.channels.fetch(channelId).catch(() => null);
-    if (channel?.isTextBased()) {
-      const panelMessage = await channel.messages
-        .fetch(panelMessageId)
-        .catch(() => null);
-      if (panelMessage) {
-        await panelMessage.delete();
-        logger.debug(
-          logPrefixed(
-            "system:log_prefix.bump_reminder",
-            "bumpReminder:log.scheduler_panel_deleted",
-            {
-              panelMessageId,
-              guildId,
-            },
-          ),
-        );
-      }
-    }
-  } catch (error) {
-    // パネル削除失敗はリマインド送信の成功に影響しない
-    logger.debug(
-      logPrefixed(
-        "system:log_prefix.bump_reminder",
-        "bumpReminder:log.scheduler_panel_delete_failed",
-        {
-          panelMessageId,
-        },
-      ),
-      error,
-    );
   }
 }

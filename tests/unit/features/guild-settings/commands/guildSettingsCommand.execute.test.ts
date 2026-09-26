@@ -12,8 +12,6 @@ const handleSetErrorChannelMock = vi.fn();
 const handleViewMock = vi.fn();
 const handleResetMock = vi.fn();
 const handleResetAllMock = vi.fn();
-const handleExportMock = vi.fn();
-const handleImportMock = vi.fn();
 
 vi.mock(
   "@/features/guild-settings/commands/guildSettingsCommand.setLocale",
@@ -41,18 +39,6 @@ vi.mock(
   "@/features/guild-settings/commands/guildSettingsCommand.resetAll",
   () => ({
     handleResetAll: (...args: unknown[]) => handleResetAllMock(...args),
-  }),
-);
-vi.mock(
-  "@/features/guild-settings/commands/guildSettingsCommand.export",
-  () => ({
-    handleExport: (...args: unknown[]) => handleExportMock(...args),
-  }),
-);
-vi.mock(
-  "@/features/guild-settings/commands/guildSettingsCommand.import",
-  () => ({
-    handleImport: (...args: unknown[]) => handleImportMock(...args),
   }),
 );
 
@@ -96,8 +82,6 @@ describe("bot/features/guild-settings/commands/guildSettingsCommand.execute", ()
     ["view", handleViewMock],
     ["reset", handleResetMock],
     ["reset-all", handleResetAllMock],
-    ["export", handleExportMock],
-    ["import", handleImportMock],
   ])(
     "サブコマンド '%s' が正しいハンドラに委譲されること",
     async (subcommand, mock) => {

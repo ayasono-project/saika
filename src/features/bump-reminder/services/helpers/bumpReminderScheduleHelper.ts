@@ -2,6 +2,7 @@
 
 import { jobScheduler } from "../../../../shared/scheduler/jobScheduler";
 
+/** メモリ上で追跡する予約1件（スケジューラーのジョブIDと DB の行ID） */
 export interface ScheduledReminderRef {
   jobId: string;
   reminderId: string;
@@ -9,6 +10,12 @@ export interface ScheduledReminderRef {
 
 /**
  * メモリ上の one-time リマインダーを登録する
+ * @param reminders 予約を追跡する管理マップ
+ * @param reminderKey 管理キー（toBumpReminderKey で作ったもの）
+ * @param jobId スケジューラーのジョブID
+ * @param reminderId DB 上のリマインダーID
+ * @param delayMs 実行までの遅延（ミリ秒）
+ * @param task 予定時刻に実行するタスク
  */
 export function scheduleReminderInMemory(
   reminders: Map<string, ScheduledReminderRef>,
@@ -23,7 +30,11 @@ export function scheduleReminderInMemory(
     try {
       await task();
     } finally {
-      reminders.delete(reminderKey);
+      // 実行中に同じキーへ次の予約が入っていたら、そのエントリは消さない
+      // （消すとタイマーと DB の pending 行が生きたまま管理から外れ、取り消せなくなる）
+      if (reminders.get(reminderKey)?.reminderId === reminderId) {
+        reminders.delete(reminderKey);
+      }
     }
   });
 
@@ -32,6 +43,9 @@ export function scheduleReminderInMemory(
 
 /**
  * リマインダーをスケジューラーとメモリ管理の双方から除去する
+ * @param reminders 予約を追跡する管理マップ
+ * @param reminderKey 除去する予約の管理キー
+ * @returns 除去した予約（該当が無ければ undefined）
  */
 export function cancelScheduledReminder(
   reminders: Map<string, ScheduledReminderRef>,

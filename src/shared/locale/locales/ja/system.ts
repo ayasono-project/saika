@@ -37,6 +37,8 @@ export const system = {
     "ギルドへの参加を検知しました GuildId: {{guildId}} GuildName: {{guildName}}",
   "guild_create.dm_sent":
     "オーナーへ導入 DM を送信しました GuildId: {{guildId}}",
+  "guild_create.dm_return_sent":
+    "オーナーへ再導入 DM を送信しました GuildId: {{guildId}}",
   "guild_create.dm_failed":
     "オーナーへの導入 DM の送信に失敗しました（DM 拒否など）GuildId: {{guildId}}",
   "guild_create.registry_failed":
@@ -111,6 +113,10 @@ export const system = {
   "scheduler.job_removed": "Job削除 JobId: {{jobId}}",
   "scheduler.job_stopped": "Job停止 JobId: {{jobId}}",
   "scheduler.job_scheduled": "Jobスケジュール完了 JobId: {{jobId}}",
+  "scheduler.job_rearmed":
+    "Jobの待機を延長（setTimeout の上限を超えるため張り直し） JobId: {{jobId}} RemainingMs: {{remainingMs}}",
+  "scheduler.invalid_delay":
+    "遅延時間が不正なためJobを登録しません JobId: {{jobId}} DelayMs: {{delayMs}}",
 
   // シャットダウン
   "shutdown.signal_received":

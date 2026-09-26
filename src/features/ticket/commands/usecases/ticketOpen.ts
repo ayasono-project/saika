@@ -15,9 +15,11 @@ import {
 } from "../../../../shared/locale/localeManager";
 import { logger } from "../../../../shared/utils/logger";
 import {
-  hasTicketPermission,
-  reopenTicket,
-} from "../../services/ticketService";
+  canOperateTicketOrReply,
+  findHandleableTicketChannelOrReply,
+  findTicketConfigOrReply,
+} from "../../services/ticketGuards";
+import { reopenTicket } from "../../services/ticketService";
 import { TICKET_STATUS } from "../ticketCommand.constants";
 
 /**
@@ -66,35 +68,24 @@ export async function handleTicketOpen(
     return;
   }
 
-  // 設定を取得してスタッフロールを解析
-  const config = await settingsService.findByGuildAndCategory(
-    ticket.guildId,
-    ticket.categoryId,
+  // 設定を取得（スタッフロールは権限チェックに使う）
+  // カテゴリの設定が無い（パネルが削除された）チケットは操作できない旨を返信する
+  const config = await findTicketConfigOrReply(
+    interaction,
+    ticket,
+    settingsService,
   );
-  const staffRoleIds: string[] = config ? config.staffRoleIds : [];
+  if (!config) return;
 
-  // 権限チェック（作成者またはスタッフロール）
-  const memberRoleIds = Array.from(
-    interaction.member && "cache" in interaction.member.roles
-      ? interaction.member.roles.cache.keys()
-      : [],
-  );
+  // 権限チェック（作成者・スタッフロール・管理者権限）。どれも無ければ、誰が操作できるかを返信する
   if (
-    !hasTicketPermission(
-      ticket,
-      interaction.user.id,
-      memberRoleIds,
-      staffRoleIds,
-    )
+    !(await canOperateTicketOrReply(interaction, ticket, config, "close_open"))
   ) {
-    const embed = createErrorEmbed(
-      tInteraction(interaction.locale, "ticket:user-response.not_authorized"),
-      { locale: interaction.locale },
-    );
-    await interaction.reply({
-      embeds: [embed],
-      flags: MessageFlags.Ephemeral,
-    });
+    return;
+  }
+
+  // Bot がチャンネルを扱えない（Bot を外して入れ直した後の古いチケット等）なら、何も変えずに理由と対処を返信する
+  if (!(await findHandleableTicketChannelOrReply(interaction, guild, ticket))) {
     return;
   }
 
@@ -105,6 +96,7 @@ export async function handleTicketOpen(
     logPrefixed("system:log_prefix.ticket", "ticket:log.ticket_opened", {
       guildId: ticket.guildId,
       channelId: ticket.channelId,
+      openedBy: interaction.user.id,
     }),
   );
 

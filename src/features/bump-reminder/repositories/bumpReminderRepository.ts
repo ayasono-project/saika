@@ -1,7 +1,7 @@
 // Bumpリマインダー用リポジトリ
 
 import type { PrismaClient } from "@prisma/client";
-import { tDefault } from "../../../shared/locale/localeManager";
+import { logPrefixed, tDefault } from "../../../shared/locale/localeManager";
 import { executeWithDatabaseError } from "../../../shared/utils/errorHandling";
 import { logger } from "../../../shared/utils/logger";
 import { type BumpReminderStatus } from "../constants/bumpReminderConstants";
@@ -13,12 +13,16 @@ import { findBumpReminderByIdUseCase } from "./usecases/findBumpReminderById";
 import {
   findAllPendingUseCase,
   findPendingByGuildAndServiceUseCase,
+  findPendingByGuildUseCase,
 } from "./usecases/findPendingReminders";
 import {
   cancelPendingByGuildAndChannelUseCase,
   cancelPendingByGuildUseCase,
   updateReminderStatusUseCase,
 } from "./usecases/updateBumpReminderStatus";
+
+/** cleanupOld の既定の保持日数（これより古い sent / cancelled の行を消す） */
+const DEFAULT_CLEANUP_DAYS_OLD = 7;
 
 /**
  * Prisma実装
@@ -61,10 +65,14 @@ export class BumpReminderRepository implements IBumpReminderRepository {
         );
 
         logger.debug(
-          tDefault("bumpReminder:log.database_created", {
-            id: reminder.id,
-            guildId,
-          }),
+          logPrefixed(
+            "system:log_prefix.bump_reminder",
+            "bumpReminder:log.database_created",
+            {
+              id: reminder.id,
+              guildId,
+            },
+          ),
         );
 
         return reminder as BumpReminder;
@@ -107,7 +115,26 @@ export class BumpReminderRepository implements IBumpReminderRepository {
           serviceName,
         );
       },
-      tDefault("bumpReminder:log.database_find_failed", { guildId }),
+      tDefault("bumpReminder:log.database_find_pending_failed", {
+        guildId,
+        serviceName,
+      }),
+    );
+  }
+
+  /**
+   * ギルドのpendingリマインダーを全サービス分取得
+   * @param guildId 取得対象のギルドID
+   * @returns pending リマインダー一覧（実行予定時刻の昇順）
+   */
+  async findPendingByGuild(guildId: string): Promise<BumpReminder[]> {
+    return executeWithDatabaseError(
+      async () => {
+        return findPendingByGuildUseCase(this.prisma, guildId);
+      },
+      tDefault("bumpReminder:log.database_find_pending_by_guild_failed", {
+        guildId,
+      }),
     );
   }
 
@@ -135,10 +162,14 @@ export class BumpReminderRepository implements IBumpReminderRepository {
         await updateReminderStatusUseCase(this.prisma, id, status);
 
         logger.debug(
-          tDefault("bumpReminder:log.database_status_updated", {
-            id,
-            status,
-          }),
+          logPrefixed(
+            "system:log_prefix.bump_reminder",
+            "bumpReminder:log.database_status_updated",
+            {
+              id,
+              status,
+            },
+          ),
         );
       },
       tDefault("bumpReminder:log.database_update_failed", { id }),
@@ -156,7 +187,13 @@ export class BumpReminderRepository implements IBumpReminderRepository {
         await deleteBumpReminderUseCase(this.prisma, id);
         // 物理削除は履歴保持不要な最終状態でのみ実行される想定
 
-        logger.debug(tDefault("bumpReminder:log.database_deleted", { id }));
+        logger.debug(
+          logPrefixed(
+            "system:log_prefix.bump_reminder",
+            "bumpReminder:log.database_deleted",
+            { id },
+          ),
+        );
       },
       tDefault("bumpReminder:log.database_delete_failed", { id }),
     );
@@ -173,9 +210,13 @@ export class BumpReminderRepository implements IBumpReminderRepository {
         await cancelPendingByGuildUseCase(this.prisma, guildId);
 
         logger.debug(
-          tDefault("bumpReminder:log.database_cancelled_by_guild", {
-            guildId,
-          }),
+          logPrefixed(
+            "system:log_prefix.bump_reminder",
+            "bumpReminder:log.database_cancelled_by_guild",
+            {
+              guildId,
+            },
+          ),
         );
       },
       tDefault("bumpReminder:log.database_cancel_failed", {
@@ -203,10 +244,14 @@ export class BumpReminderRepository implements IBumpReminderRepository {
         );
 
         logger.debug(
-          tDefault("bumpReminder:log.database_cancelled_by_channel", {
-            guildId,
-            channelId,
-          }),
+          logPrefixed(
+            "system:log_prefix.bump_reminder",
+            "bumpReminder:log.database_cancelled_by_channel",
+            {
+              guildId,
+              channelId,
+            },
+          ),
         );
       },
       tDefault("bumpReminder:log.database_cancel_failed", {
@@ -221,16 +266,22 @@ export class BumpReminderRepository implements IBumpReminderRepository {
    * @param daysOld 何日前のデータを削除するか（デフォルト: 7日）
    * @returns 削除した件数
    */
-  async cleanupOld(daysOld: number = 7): Promise<number> {
+  async cleanupOld(
+    daysOld: number = DEFAULT_CLEANUP_DAYS_OLD,
+  ): Promise<number> {
     return executeWithDatabaseError(async () => {
       const count = await cleanupOldBumpRemindersUseCase(this.prisma, daysOld);
       // PENDING は削除対象外にし、未実行タスクの痕跡を保持する
 
       logger.info(
-        tDefault("bumpReminder:log.database_cleanup_completed", {
-          count,
-          days: daysOld,
-        }),
+        logPrefixed(
+          "system:log_prefix.bump_reminder",
+          "bumpReminder:log.database_cleanup_completed",
+          {
+            count,
+            days: daysOld,
+          },
+        ),
       );
 
       return count;

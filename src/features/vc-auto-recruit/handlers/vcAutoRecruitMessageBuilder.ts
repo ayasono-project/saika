@@ -7,6 +7,7 @@ import {
   EmbedBuilder,
 } from "discord.js";
 import type { GuildTFunction } from "../../../shared/locale/helpers";
+import { formatPlaceholders } from "../../../shared/utils/formatPlaceholders";
 import {
   buildChannelJumpUrl,
   VC_AUTO_RECRUIT_BUTTON_ID,
@@ -37,13 +38,13 @@ export function formatInviteMessage(
   template: string,
   params: InviteMessageParams,
 ): string {
-  // {userMention} 等のプレースホルダーを content 用の実値へ置換
-  return template
-    .replace(/\{userMention\}/g, params.userMention)
-    .replace(/\{userName\}/g, params.userName)
-    .replace(/\{channelMention\}/g, params.channelMention)
-    .replace(/\{channelName\}/g, params.channelName)
-    .replace(/\{serverName\}/g, params.serverName);
+  return formatPlaceholders(template, {
+    userMention: params.userMention,
+    userName: params.userName,
+    channelMention: params.channelMention,
+    channelName: params.channelName,
+    serverName: params.serverName,
+  });
 }
 
 /** 募集 Embed 生成に使う値 */

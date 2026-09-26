@@ -43,7 +43,7 @@
 >
 > **2026-09-23 にカバレッジの実態が判明し、タスクを2件起こした**（「カバレッジ設定の実態合わせ」「結合テストの穴」）。`pnpm test:coverage` は4項目とも閾値割れしているが、CI も pre-commit も `pnpm test` しか実行しないため見えていなかった。テスト自体は277ファイル全部通っている。2026-09-26 に、export/import の削除と2回分のリリース（v3.3.0 と次のリリース）を先に出すことにしたため後ろへ回した。
 >
-> **2026-09-26 に v3.3.0 をリリースした**（export/import の削除 ＋ バグ修正6件 ＋ message-delete の全チャンネルにスレッドを含める改善 ＋ マニュアルの既存の誤りの修正・→ HISTORY.md）。告知はリリース後にサポートサーバーへ出す。**次のリリースは未承認キックのログチャンネル必須化とメンバーログ2件**（「Bot の除外 ＋ 彩加によるキックの退出ログ抑止」と「join/leave 出力先分離」）で、そのときにまた告知する。「いま着手できる」の先頭から「メンバーログの join/leave 出力先分離」までが次のリリースぶん。
+> **2026-09-26 に v3.3.0 をリリースした**（export/import の削除 ＋ バグ修正 ＋ message-delete の全チャンネルにスレッドを含める改善 ＋ マニュアルの既存の誤りの修正 ＋ リリース前のレビューで見つけた不具合の修正・→ HISTORY.md）。告知はリリース後にサポートサーバーへ出す。**次のリリースは未承認キックのログチャンネル必須化とメンバーログ2件**（「Bot の除外 ＋ 彩加によるキックの退出ログ抑止」と「join/leave 出力先分離」）で、そのときにまた告知する。「いま着手できる」の先頭から「メンバーログの join/leave 出力先分離」までが次のリリースぶん。
 >
 > **2026-09-23 に未決を9件から2件へ減らした**（→ HISTORY.md）。残るのは「メッセージ出力機能の設計」と「変更履歴を作るか」の2件で、どちらも新機能の番が来るまで止めておける。決着に伴い、`deleteAllSettings` のレジストリ化（親テーブルで不要）とドキュメント整理（役割が HISTORY.md へ移行）を取り下げ、パッケージ更新・bump ポーリング化・メンバーログの join/leave 分離が着手可能になった。
 
@@ -163,6 +163,7 @@
 - [ ] **`IMPLEMENTATION_GUIDELINES.md` の customId の命名例を、実在するものへ差し替える。** 良い例の `guild-settings:page-first` / `page-prev` / `page-next` / `page-last` / `page-jump` / `page-select` は src に存在しない（ページングの実体は `src/bot/shared/pagination.ts` の `page-*` と `message-delete:page-*`）
 - [ ] **`src/shared/config/env.ts` の `DATABASE_URL` の既定値 `file:./storage/db.sqlite` を外す。** SQLite 時代の名残で、Postgres の今は意味がない。必須にするか判断する。`tests/setup.ts` の SQLite 形式の値も合わせて直す
 - [ ] **`scripts/list-guilds.mjs` 冒頭のコメントを直す。**「guildCreate を記録していないため」は、v3.2.0 の `guilds` テーブル（`joinedAt`）で事実でなくなった
+- [ ] **エラーチャンネル通知に渡す機能名・動作が日本語の生文字列になっている**（2026-09-26 発見）。`notifyErrorChannel` / `notifyWarnChannel` の呼び出し（機能をまたいで多数）で、機能名や `"Channel ${channelId} not found"` のような文言をロケールを通さず直書きしている。英語設定のギルドにも日本語が出る。ロケールキー化して ja/en を揃える
 
 ### biome の `recommended` 非推奨対応 【保守・小】
 
@@ -260,7 +261,7 @@
 - 期限切れの即時実行 → クエリ条件が等価になる。楽
 - **重複の正規化**（同一 guild+service の pending を最新1件に）→ 現在はメモリ上の Map が担保。**DB側で担保し直すのが最大の移行ポイント**（`serviceName` が nullable な点に注意）
 - **送信失敗時の status 更新 → 新方式で新たに必要。**更新しないと永久に拾い続ける
-- **disable / reset で予約をキャンセルすること** → メモリ解除が無くなる分、DB 側で `pending` → `cancelled` にしないと「無効化 → 予定時刻前に再有効化」で古い予約が発火する。disable は 2026-09-26 に `cancelAllForGuild` で直した（→ HISTORY.md「`/bump-reminder-settings disable` が予約を取り消していなかった」）。**その回帰テスト（`tests/integration/features/bump-reminder/commands/bumpReminderSettingsCommand.disable.integration.test.ts`）はポーリング化後も通ること**
+- **disable / reset で予約をキャンセルすること** → メモリ解除が無くなる分、DB 側で `pending` → `cancelled` にしないと「無効化 → 予定時刻前に再有効化」で古い予約が発火する。2026-09-26 に、コマンドの disable / reset・ダッシュボードの無効化 / リセット・全設定リセットのすべてで、予約とパネルを `cancelGuildBumpReminders` で取り消すようにした（→ HISTORY.md）。取り消す前に pending 行からパネルの場所を引いているので、**ポーリング化で pending 行の扱いを変えるときはパネルの片付けも一緒に移すこと**。回帰テスト（`tests/integration/features/bump-reminder/commands/bumpReminderSettingsCommand.disable.integration.test.ts` 等）はポーリング化後も通ること
 
 **既にある資産**: schema の `@@index([status, scheduledAt])`（確認済み）、`jobScheduler`
 
@@ -274,7 +275,7 @@
 
 **依存なし。最小。隙間で潰せる。**
 
-- 現状 `getReminderDelayMinutes()`（`bumpReminderConstants.ts:91`）は `env.BUMP_REMINDER_TEST_MODE ? 1 : 120` で**120分がハードコード**、かつサービス名を引数に取らないため Disboard / Dissoku 共通
+- 現状 `getReminderDelayMinutes()`（`bumpReminderConstants.ts`）は定数 `REMINDER_DELAY_MINUTES = 120`（テスト時は `TEST_MODE_REMINDER_DELAY_MINUTES = 1`）で**120分が固定**、かつサービス名を引数に取らないため Disboard / Dissoku 共通
 - **env が持つのはクールタイムの分数だけ。サービスごとに独立して持つ**（Bot ID・コマンド名などはコード側の定数のまま）
 - 予約時に絶対時刻を確定させる現在の形（`toScheduledAt`）は**維持する** → 設定値を変えても既存の予約は繰り上がらない
 - env 名の付け方は実装時に決めてよい

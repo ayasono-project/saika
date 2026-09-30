@@ -45,43 +45,6 @@
 
 依存なし。上から順に1件ずつ着手する（1件＝1 PR）。並び順が実行順を兼ねるので、順番を変えたいときはこのセクション内で移動する。
 
-### 名前の整理（事前メッセージ・VC自動作成・VC募集） 【保守・中・saika / shared / web】
-
-**依存なし。2026-09-29 決定**（→ HISTORY.md「名前をそろえる（事前メッセージ・VC自動作成・VC募集）」）。次の3つの名前を、画面・マニュアル・コード・DB・API・コマンド・文面の変数まで1回でそろえる。次のリリースで、保守の6件より先にやる（保守の6件を新しい名前とパスで書くため）。
-
-| 今 | 画面の名前 | コードの名前（案） |
-| --- | --- | --- |
-| 未承認キックの「警告」（事前警告・警告日数・警告 DM など） | 事前メッセージ | notice |
-| VAC | VC自動作成 | vc-auto-create / `VcAutoCreate` |
-| VC自動募集 | VC募集 | vc-recruit / `VcRecruit` |
-
-**変える前に**: 3つとも本番で使っているギルド数を測り直す（9月の実測では、どれも設定を持つギルドは1〜2件）。コマンド名を変えると Discord では別のコマンドとして作り直されるので、管理者が連携設定で付けた権限の上書き（既定は Bot が決め、上書きは管理者がする）は引き継がれない。
-
-**未承認キック**
-
-- [ ] 画面（Bot の表示・ダッシュボード）の「警告」を「事前メッセージ」にする。文面の意味の「メッセージ」は「文面」と呼び分ける（「事前メッセージのメッセージ」を避ける）。通知チャンネルへの「キック予告」も、設定の上では事前メッセージの一つとして呼ぶ（送る Embed のタイトル「未承認メンバーの自動キック予告」は中身なので変えない）。英語の表示は warning を notice にする
-- [ ] コードの名前（案）: `graceDays` → `kickAfterDays`、`warnDays` → `noticeAfterDays`、`remainingDays` → `daysUntilKick`、`sendWarnDms` → `sendNoticeDms`、`GuildUnverifiedKickWarn`・`warnedAt` → `GuildUnverifiedKickNotice`・`noticedAt`。ロケールのキー名も合わせる
-- [ ] DB: 列 `grace_days` / `warn_days`、表 `guild_unverified_kick_warns` とその列 `warned_at` の名前を変える
-- [ ] 文面の変数 `{graceDays}` / `{warnDays}` / `{remainingDays}` を新しい名前にする。保存済みの文面は migration で書き換える。古い名前を書いたときは、今ある廃止変数の案内（`unverifiedKickObsoletePlaceholders.ts`・web の `UNVERIFIED_KICK_DEPRECATED`）で知らせる
-- [ ] サブコマンド `set-warn-days` / `clear-warn-days` の名前を変える
-
-**VC自動作成（旧 VAC）・VC募集（旧 VC自動募集）**
-
-- [ ] コマンド `/vac-settings` → `/vc-auto-create-settings`、`/vc-auto-recruit-settings` → `/vc-recruit-settings`（案）
-- [ ] コードのディレクトリ・ファイル・型、DB の表 `guild_vac_settings` / `guild_vc_auto_recruit_settings`、API のパス（`/vac`・`/vc-auto-recruit` と、それぞれの `/active`）、ロケールの名前空間 `vac` / `vcAutoRecruit` を新しい名前にする
-- [ ] 2026-09-20 に削除した旧機能も「VC募集」（`vc-recruit`・`/vc-recruit-settings`）だったので、HISTORY.md の旧機能の記録を「旧 VC募集」と書き分ける
-
-**共通**
-
-- [ ] DB の名前の変更は1つの migration にまとめ、BEGIN / COMMIT で囲む（IMPLEMENTATION_GUIDELINES の規則）。リリース前に DB をバックアップする
-- [ ] shared: `UnverifiedKickSettings` の項目名、`VacSettings` → `VcAutoCreateSettings`、`VcAutoRecruitSettings` → `VcRecruitSettings`。互換が切れるので major（v4.0.0）
-- [ ] web: web/TODO.md「名前の整理（web 側）」（同じリリース・saika を先にデプロイする）
-- [ ] マニュアルの言葉とコマンド名をこのタスクで直す（コマンド名が変わるので、「最後にまとめて1回」は待たない）。docs/guides の他の文書も合わせる
-- [ ] saika のバージョンは major（利用者の操作が変わる）。リリースで告知する（変わったコマンド名と文面の変数を並べる）
-- [ ] 終わったら、TODO の中の古い名前（`warnDays`・「VAC 作成 VC の募集ボタン」など）も新しい名前に直す
-
-> 「VC作成機能」ではなく「VC自動作成」にしたのは、VC に入ると自動で作られるという中身が名前で分かるため。「VC自動募集」から「自動」を外すのは、「VAC 作成 VC の募集ボタン」が入ると、募集はボタンでも出せるようになるため。
-
 ### 以前からある残骸の掃除 【保守・小】
 
 **依存なし。** 2026-09-26、export/import 削除の残骸探しで見つかった、**今回の削除とは関係なく以前からあったもの**。どれも今は動作に影響しないが、先頭の1件は将来の掃除で事故を起こしうる。どこからも使われていないコードとテストの3件は、2026-09-30 の全体の掃除で片付けた（→ HISTORY.md「どこからも使われていないコードとテストを消した」）。
@@ -165,6 +128,43 @@
 - **bump-reminder の独自 Map 廃止はポーリング化に含める**（→「bump-reminder のポーリング化」）。Map が持つのは `jobId` と `reminderId` だけで、`jobId` は `toBumpReminderJobId(guildId, serviceName)` で決定的に再計算でき、`reminderId` は DB から引ける。**チケット自動削除は実際にこの形（決定的 jobId のみ・Map なし）で成立している。** 先に ticket 方式へ寄せることもできるが、二重作業を避けるためポーリング化の一部として扱う
 - **`cooldownManager` と `TtlMap` の統合は見送り寄り。** どちらも「キー付き TTL エントリ」だが、`cooldownManager` は `commandName × userId` の二段 Map ＋ `expiresAt` 一致チェック（古いタイマーによる誤削除防止）を持ち、`TtlMap` に押し込むと機能が落ちる。やるなら `TtlMap` 側の拡張になるので**別タスク**
 
+### 名前の整理（事前メッセージ・VC自動作成・VC募集） 【保守・中・saika / shared / web】
+
+**依存なし。2026-09-29 決定**（→ HISTORY.md「名前をそろえる（事前メッセージ・VC自動作成・VC募集）」）。次の3つの名前を、画面・マニュアル・コード・DB・API・コマンド・文面の変数まで1回でそろえる。次のリリースで、保守の5件（「以前からある残骸の掃除」〜「タイマー / スケジューラ実装の整理」）の後、「カバレッジ設定の実態合わせ」の前にやる（2026-09-30 に順番を変更 → HISTORY.md）。
+
+| 今 | 画面の名前 | コードの名前（案） |
+| --- | --- | --- |
+| 未承認キックの「警告」（事前警告・警告日数・警告 DM など） | 事前メッセージ | notice |
+| VAC | VC自動作成 | vc-auto-create / `VcAutoCreate` |
+| VC自動募集 | VC募集 | vc-recruit / `VcRecruit` |
+
+**変える前に**: 3つとも本番で使っているギルド数を測り直す（9月の実測では、どれも設定を持つギルドは1〜2件）。コマンド名を変えると Discord では別のコマンドとして作り直されるので、管理者が連携設定で付けた権限の上書き（既定は Bot が決め、上書きは管理者がする）は引き継がれない。
+
+**未承認キック**
+
+- [ ] 画面（Bot の表示・ダッシュボード）の「警告」を「事前メッセージ」にする。文面の意味の「メッセージ」は「文面」と呼び分ける（「事前メッセージのメッセージ」を避ける）。通知チャンネルへの「キック予告」も、設定の上では事前メッセージの一つとして呼ぶ（送る Embed のタイトル「未承認メンバーの自動キック予告」は中身なので変えない）。英語の表示は warning を notice にする
+- [ ] コードの名前（案）: `graceDays` → `kickAfterDays`、`warnDays` → `noticeAfterDays`、`remainingDays` → `daysUntilKick`、`sendWarnDms` → `sendNoticeDms`、`GuildUnverifiedKickWarn`・`warnedAt` → `GuildUnverifiedKickNotice`・`noticedAt`。ロケールのキー名も合わせる
+- [ ] DB: 列 `grace_days` / `warn_days`、表 `guild_unverified_kick_warns` とその列 `warned_at` の名前を変える
+- [ ] 文面の変数 `{graceDays}` / `{warnDays}` / `{remainingDays}` を新しい名前にする。保存済みの文面は migration で書き換える。古い名前を書いたときは、今ある廃止変数の案内（`unverifiedKickObsoletePlaceholders.ts`・web の `UNVERIFIED_KICK_DEPRECATED`）で知らせる
+- [ ] サブコマンド `set-warn-days` / `clear-warn-days` の名前を変える
+
+**VC自動作成（旧 VAC）・VC募集（旧 VC自動募集）**
+
+- [ ] コマンド `/vac-settings` → `/vc-auto-create-settings`、`/vc-auto-recruit-settings` → `/vc-recruit-settings`（案）
+- [ ] コードのディレクトリ・ファイル・型、DB の表 `guild_vac_settings` / `guild_vc_auto_recruit_settings`、API のパス（`/vac`・`/vc-auto-recruit` と、それぞれの `/active`）、ロケールの名前空間 `vac` / `vcAutoRecruit` を新しい名前にする
+- [ ] 2026-09-20 に削除した旧機能も「VC募集」（`vc-recruit`・`/vc-recruit-settings`）だったので、HISTORY.md の旧機能の記録を「旧 VC募集」と書き分ける
+
+**共通**
+
+- [ ] DB の名前の変更は1つの migration にまとめ、BEGIN / COMMIT で囲む（IMPLEMENTATION_GUIDELINES の規則）。リリース前に DB をバックアップする
+- [ ] shared: `UnverifiedKickSettings` の項目名、`VacSettings` → `VcAutoCreateSettings`、`VcAutoRecruitSettings` → `VcRecruitSettings`。互換が切れるので major（v4.0.0）
+- [ ] web: web/TODO.md「名前の整理（web 側）」（同じリリース・saika を先にデプロイする）
+- [ ] マニュアルの言葉とコマンド名をこのタスクで直す（コマンド名が変わるので、「最後にまとめて1回」は待たない）。docs/guides の他の文書も合わせる
+- [ ] saika のバージョンは major（利用者の操作が変わる）。リリースで告知する（変わったコマンド名と文面の変数を並べる）
+- [ ] 終わったら、TODO の中の古い名前（`warnDays`・「VAC 作成 VC の募集ボタン」など）も新しい名前に直す
+
+> 「VC作成機能」ではなく「VC自動作成」にしたのは、VC に入ると自動で作られるという中身が名前で分かるため。「VC自動募集」から「自動」を外すのは、「VAC 作成 VC の募集ボタン」が入ると、募集はボタンでも出せるようになるため。
+
 ### カバレッジ設定の実態合わせ 【保守・小〜中】
 
 **依存なし。** 2026-09-23 に発見し「次回の最初にやる」と決めたが、2026-09-26 に export/import の削除と2回分のリリースを優先することにして後ろへ回した。2026-09-29 に、未承認キックより先にやることにして前へ戻し、保守の6件の最後に置いた。**閾値は、同じリリースでコードを変える他の作業（名前の整理と保守の5件）が終わってから測る。** 先に置くと、残骸の掃除でテストごと消すコードの分などで数字が動き、閾値を下げ直すことになるため。
@@ -180,27 +180,26 @@
 
 **やること**
 
-- [ ] **死んだ除外5件を直す**（意図の復元であって基準の引き下げではない）。`src/bot/features/` は存在せず機能は `src/features/` へ移動済み
+- [ ] **死んだ除外3件を直す**（意図の復元であって基準の引き下げではない）。`src/bot/features/` は存在せず機能は `src/features/` へ移動済み
   - `src/bot/features/**/repositories/*.ts` → 実際は `src/features/{bump-reminder,sticky-message,ticket}/repositories/`
-  - `src/bot/features/ticket/services/ticketCleanupService.ts` → 実際は `src/features/ticket/services/`
   - `src/shared/database/repositories/*.ts` → ディレクトリごと存在しない
   - `src/bot/handlers/index.ts` → バレル廃止で消滅
-- [ ] **委譲ラッパー3件を除外に追加する。** いずれも15〜17行・分岐ゼロで、サービス層を1行呼ぶだけ（`ticketCleanupService.ts` を除外したのと同じ判断）
+- [ ] **委譲ラッパー3件を除外に追加する。** いずれも15〜17行・分岐ゼロで、サービス層を1行呼ぶだけ（リポジトリの純粋委譲を除外しているのと同じ判断）。なお `ticketCleanupService.ts` は 2026-09-26 にロジックが増えて除外を外したので、計測対象のままにする
   - `src/features/vc-auto-recruit/handlers/vcAutoRecruitChannelDelete.ts`
   - `src/features/vc-auto-recruit/handlers/vcAutoRecruitStartupCleanup.ts`
   - `src/features/vc-auto-recruit/handlers/vcAutoRecruitVoiceStateUpdate.ts`
 - [ ] **測り直して、実測のわずかに下に閾値を置く（ラチェット）。** 「今の数字が通る値」にすると基準ではなく現状の記録になる。少し下に置けば新しいテストを書かずに**回帰だけ止められ**、以後は上げる方向にしか動かない
-- [ ] **TESTING_GUIDELINES.md を2箇所直す**（詳細は下記）
+- [ ] **TESTING_GUIDELINES.md を直す**（4か所・詳細は下記）
 - [ ] **`test:coverage` を CI で回すか決める。** 回さないなら閾値は飾りのままなので、ラチェットの意味も半減する
 
 **TESTING_GUIDELINES.md の修正内容**（2026-09-23 決定）
 
 冒頭の原則「**ロジックがある層だけをテストする**」は既に正しいが、それを具体化した2箇所が委譲ラッパーを拾えていない。
 
-- **除外基準**（41行目）: 「Prisma への純粋委譲」→「**純粋委譲（Prisma / サービス層への委譲ラッパー）**」へ広げる。現在の文言はリポジトリしか想定していない
-- **レイヤ別表**（33行目）: `features/*/handlers/*.ts` を **必須** → **要判断** へ。リポジトリ行（「独自ロジックがあれば必須、純粋委譲なら不要」）と同じ扱いに揃える。無条件必須は冒頭の原則と矛盾している
+- **除外基準**（40〜41行目）: 「Prisma への純粋委譲」→「**純粋委譲（Prisma / サービス層への委譲ラッパー）**」へ広げる。現在の文言はリポジトリしか想定していない
+- **レイヤ別表**（31行目）: `features/*/handlers/*.ts` を **必須** → **要判断** へ。リポジトリ行（「独自ロジックがあれば必須、純粋委譲なら不要」）と同じ扱いに揃える。無条件必須は冒頭の原則と矛盾している
 - **歯止めを必ず書くこと**: 判定条件は「**分岐・変換・副作用制御をひとつも持たない**」。後からラッパーに条件分岐が入ったら計測へ戻す。これが無いと「そこそこ薄いファイルは何でも外せる」抜け道になる
-- カバレッジ目標の数値（現在「Stmts/Lines 95%以上・Functions 87%以上・Branches 92%以上」）もラチェット後の値に合わせる
+- カバレッジ目標の数値（現在「Stmts/Lines 95%以上・Functions 87%以上・Branches 92%以上」）もラチェット後の値に合わせる。22行目の目標と、213行目のチェックリストの2か所にある
 
 > **未承認キックと VC自動募集の結合テスト不在は、このタスクでは埋めない。** → 下記「結合テストの穴」参照。
 

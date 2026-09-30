@@ -18,23 +18,6 @@ export async function findGuildSettingsRecord(
 }
 
 /**
- * guildSettings レコードの存在有無を返す
- * @param prisma Prismaクライアント
- * @param guildId 対象ギルドID
- * @returns 存在する場合 true
- */
-export async function existsGuildSettingsRecord(
-  prisma: PrismaClient,
-  guildId: string,
-): Promise<boolean> {
-  const record = await prisma.guildSettings.findUnique({
-    where: { guildId },
-    select: { id: true },
-  });
-  return record !== null;
-}
-
-/**
  * guild の locale を取得する
  * @param prisma Prismaクライアント
  * @param guildId 対象ギルドID

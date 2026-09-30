@@ -4,15 +4,7 @@ import type {
   IMemberLogSettingsRepository,
   MemberLogSettings,
 } from "../../shared/database/types";
-import { createServiceGetter } from "../../shared/utils/serviceFactory";
-import {
-  createDefaultMemberLogSettings,
-  DEFAULT_MEMBER_LOG_SETTINGS,
-} from "./memberLogSettingsDefaults";
-import { getMemberLogSettingsRepository } from "./memberLogSettingsRepository";
-
-export type { MemberLogSettings };
-export { DEFAULT_MEMBER_LOG_SETTINGS };
+import { createDefaultMemberLogSettings } from "./memberLogSettingsDefaults";
 
 /**
  * メンバーログ設定の取得・更新を担当するサービス
@@ -139,15 +131,3 @@ export function createMemberLogSettingsService(
 ): MemberLogSettingsService {
   return new MemberLogSettingsService(repository);
 }
-
-/**
- * メンバーログ設定サービスのシングルトンを取得する
- * @param repository 明示的に利用するリポジトリ（省略時は既定リポジトリ）
- * @returns MemberLogSettingsService シングルトン
- */
-export const getMemberLogSettingsService: (
-  repository?: IMemberLogSettingsRepository,
-) => MemberLogSettingsService = createServiceGetter(
-  createMemberLogSettingsService,
-  getMemberLogSettingsRepository,
-);

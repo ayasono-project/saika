@@ -2,7 +2,7 @@
 
 > 多言語対応の実装ガイド — 翻訳の取得・キーの追加・命名規則
 
-最終更新: 2026年9月26日
+最終更新: 2026年9月30日
 
 ---
 
@@ -57,7 +57,7 @@ import { getGuildTranslator } from "../../shared/locale/helpers";
 | 取得したいもの | import 元 |
 | --- | --- |
 | `tGuild` / `tInteraction` / `tDefault` / `logPrefixed` / `logCommand` / `localeManager` | `shared/locale/localeManager` |
-| `getGuildTranslator` / `getInteractionTranslator` / `getTimezoneOffsetForLocale` | `shared/locale/helpers` |
+| `getGuildTranslator` / `getTimezoneOffsetForLocale` | `shared/locale/helpers` |
 | `getCommandLocalizations` / `getChoiceLocalizations` | `shared/locale/commandLocalizations` |
 | `SUPPORTED_LOCALES` / `DEFAULT_LOCALE` / `I18N_NAMESPACES` | `shared/locale/i18n` |
 
@@ -87,9 +87,9 @@ import { getGuildTranslator } from "../../shared/locale/helpers";
 
 ```text
 src/shared/locale/
-├── i18n.ts                  ← 名前空間・サポート言語・初期化
+├── i18n.ts                  ← 名前空間・サポート言語の定数と、キーの型
 ├── i18next.d.ts             ← 型の宣言拡張（キーの型安全性はここ）
-├── localeManager.ts         ← 翻訳関数の本体（tGuild / tDefault / tInteraction ほか）
+├── localeManager.ts         ← i18next の初期化と翻訳関数の本体（tGuild / tDefault / tInteraction ほか）
 ├── helpers.ts               ← getGuildTranslator ほか
 ├── commandLocalizations.ts  ← スラッシュコマンド定義用のローカライズ
 └── locales/
@@ -271,7 +271,7 @@ localeManager.invalidateLocaleCache(guildId);
 2. `locales/<新locale>/` 一式（`common.ts` / `system.ts` / `features/*` 14ファイル + `index.ts` / `resources.ts`）
 3. `locales/resources.ts` への登録
 4. `localeManager.ts` の `resources` リテラル
-5. `localeManager.ts` の `tInteraction` と `helpers.ts` の `getInteractionTranslator` の言語判定分岐
+5. `localeManager.ts` の `tInteraction` の言語判定分岐
 6. `commandLocalizations.ts` の `localizations` マップ
 7. `helpers.ts` の `getTimezoneOffsetForLocale`
 8. `guildSettings` 名前空間の `choice.locale.*`（`/guild-settings set-locale` の選択肢）

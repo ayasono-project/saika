@@ -8,13 +8,9 @@ import type {
 import { createServiceGetter } from "../../shared/utils/serviceFactory";
 import {
   createDefaultVcAutoRecruitSettings,
-  DEFAULT_VC_AUTO_RECRUIT_SETTINGS,
   normalizeVcAutoRecruitSettings,
 } from "./vcAutoRecruitSettingsDefaults";
 import { getVcAutoRecruitSettingsRepository } from "./vcAutoRecruitSettingsRepository";
-
-export type { VcAutoRecruitSettings };
-export { DEFAULT_VC_AUTO_RECRUIT_SETTINGS };
 
 /**
  * VC自動募集設定の取得・更新を担当するサービス

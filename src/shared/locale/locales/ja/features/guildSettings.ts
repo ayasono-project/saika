@@ -90,5 +90,3 @@ export const guildSettings = {
   "log.reset": "ギルド設定リセット GuildId: {{guildId}}",
   "log.reset_all": "全設定リセット GuildId: {{guildId}}",
 } as const;
-
-export type GuildSettingsTranslations = typeof guildSettings;

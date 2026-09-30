@@ -1,39 +1,16 @@
 import { ticketRoleSelectHandler } from "@/features/ticket/handlers/ui/ticketRoleSelectHandler";
 
 vi.mock("@/shared/locale/localeManager", () => ({
-  logPrefixed: (
-    prefixKey: string,
-    messageKey: string,
-    params?: Record<string, unknown>,
-    sub?: string,
-  ) => {
-    const p = `${prefixKey}`;
-    const m = params ? `${messageKey}:${JSON.stringify(params)}` : messageKey;
-    return sub ? `[${p}:${sub}] ${m}` : `[${p}] ${m}`;
-  },
-  tDefault: vi.fn((key: string) => key),
   tInteraction: (...args: unknown[]) => args[1],
-}));
-
-vi.mock("@/shared/utils/logger", () => ({
-  logger: {
-    debug: vi.fn(),
-    info: vi.fn(),
-    warn: vi.fn(),
-    error: vi.fn(),
-  },
 }));
 
 vi.mock("@/bot/services/botCompositionRoot", () => ({
   getBotTicketSettingsService: vi.fn(),
-  getBotTicketRepository: vi.fn(),
 }));
 
 vi.mock("@/bot/utils/messageResponse", () => ({
   createSuccessEmbed: vi.fn(() => ({ type: "success" })),
   createErrorEmbed: vi.fn(() => ({ type: "error" })),
-  createWarningEmbed: vi.fn(() => ({ type: "warning" })),
-  createInfoEmbed: vi.fn(() => ({ type: "info" })),
 }));
 
 import { getBotTicketSettingsService } from "@/bot/services/botCompositionRoot";

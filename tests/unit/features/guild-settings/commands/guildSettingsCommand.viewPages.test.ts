@@ -1,8 +1,5 @@
 vi.mock("@/shared/locale/localeManager", () => ({
-  logPrefixed: vi.fn((...args: unknown[]) => String(args[1])),
-  tDefault: vi.fn((key: string) => key),
   tInteraction: (...args: unknown[]) => args[1],
-  localeManager: { invalidateLocaleCache: vi.fn() },
 }));
 
 const getConfigMock = vi.fn();
@@ -20,10 +17,6 @@ vi.mock("@/bot/utils/messageResponse", () => ({
     title: opts?.title,
     fields: opts?.fields,
   }),
-}));
-
-vi.mock("@/features/guild-settings/guildCoreRepository", () => ({
-  getGuildCoreRepository: () => ({}),
 }));
 
 import { buildGuildSettingsPage } from "@/features/guild-settings/commands/guildSettingsCommand.viewPages";

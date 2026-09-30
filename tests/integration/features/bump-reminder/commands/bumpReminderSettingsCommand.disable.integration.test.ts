@@ -20,7 +20,6 @@ import { jobScheduler } from "@/shared/scheduler/jobScheduler";
 vi.mock("@/shared/locale/localeManager", () => ({
   logPrefixed: (prefixKey: string, messageKey: string) =>
     `[${prefixKey}] ${messageKey}`,
-  tDefault: (key: string) => key,
   tInteraction: (...args: unknown[]) => args[1],
 }));
 

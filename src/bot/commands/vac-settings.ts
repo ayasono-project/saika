@@ -96,5 +96,3 @@ export const vacSettingsCommand: Command = {
 
   cooldown: 3,
 };
-
-export default vacSettingsCommand;

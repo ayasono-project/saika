@@ -63,7 +63,6 @@ type CommandInteraction = {
   client: {
     commands: Map<string, unknown>;
     cooldownManager: { check: Mock };
-    modals: Map<string, unknown>;
     ws: { ping: number };
   };
   commandName: string;
@@ -78,7 +77,6 @@ type CommandInteraction = {
   isAutocomplete: Mock<() => boolean>;
   isModalSubmit: Mock<() => boolean>;
   isButton: Mock<() => boolean>;
-  isUserSelectMenu: Mock<() => boolean>;
 };
 
 // ChatInput 経路の統合検証に必要な最小 interaction を組み立てる
@@ -87,7 +85,6 @@ function createInteraction(): CommandInteraction {
     client: {
       commands: new Map([["ping", pingCommand]]),
       cooldownManager: { check: vi.fn(() => 0) },
-      modals: new Map(),
       ws: { ping: 42 },
     },
     commandName: "ping",
@@ -102,7 +99,6 @@ function createInteraction(): CommandInteraction {
     isAutocomplete: vi.fn(() => false),
     isModalSubmit: vi.fn(() => false),
     isButton: vi.fn(() => false),
-    isUserSelectMenu: vi.fn(() => false),
   };
 }
 

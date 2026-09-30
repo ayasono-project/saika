@@ -1,5 +1,5 @@
 // メッセージ固定（sticky）のコレクション CRUD（/api/guilds/:guildId/sticky）。
-// channelId をキーに一覧/作成・上書き/更新/削除し、保存後に Discord へ反映する。
+// channelId をキーに一覧/作成・上書き/削除し、保存後に Discord へ反映する。
 
 import type { StickyMessage as ContractSticky } from "@ayasono/shared/api";
 import type { FastifyPluginAsync } from "fastify";
@@ -64,30 +64,6 @@ export const stickyRoutes: FastifyPluginAsync<StickyRoutesOptions> = async (
             body.content,
             embedData,
           );
-    await applyStickyToChannel(deps.client, saved);
-    return { data: toContractSticky(saved) };
-  });
-
-  // 部分更新（content / embed）。保存後に Discord へ再投稿する。
-  fastify.patch("/:guildId/sticky/:channelId", guarded, async (request) => {
-    const guildId = getGuildId(request);
-    const { channelId } = request.params as { channelId: string };
-    const body = request.body as Partial<ContractSticky>;
-    const service = getBotStickyMessageSettingsService();
-    const existing = await service.findByChannel(channelId);
-    if (!existing || existing.guildId !== guildId) {
-      throw ApiHttpError.notFound(tDefault("system:web.sticky_not_found"));
-    }
-    const content = body.content ?? existing.content;
-    const embedData =
-      body.embed !== undefined
-        ? toStickyEmbedData(body.embed)
-        : existing.embedData;
-    const saved = await service.updateContent(
-      existing.id,
-      content,
-      embedData ?? null,
-    );
     await applyStickyToChannel(deps.client, saved);
     return { data: toContractSticky(saved) };
   });

@@ -2,7 +2,7 @@
 
 > タスク管理・進捗状況・残件リスト。web ダッシュボード・インフラ（VPS / Cloudflare / Coolify）は別リポジトリで管理。
 
-最終更新: 2026年9月29日
+最終更新: 2026年9月30日
 
 **分類の基準**: 着手できるかどうかだけで分ける。①いま着手できる → ②完了待ち → ③未決（判断が要る）。**「いま着手できる」の並び順が実行順を兼ねる。** 実害の有無・依存関係・何を待っているかは各タスクの本文に書く。
 
@@ -94,15 +94,9 @@
 
 ### 以前からある残骸の掃除 【保守・小】
 
-**依存なし。** 2026-09-26、export/import 削除の残骸探しで見つかった、**今回の削除とは関係なく以前からあったもの**。どれも今は動作に影響しないが、先頭の1件は将来の掃除で事故を起こしうる。
+**依存なし。** 2026-09-26、export/import 削除の残骸探しで見つかった、**今回の削除とは関係なく以前からあったもの**。どれも今は動作に影響しないが、先頭の1件は将来の掃除で事故を起こしうる。どこからも使われていないコードとテストの3件は、2026-09-30 の全体の掃除で片付けた（→ HISTORY.md「どこからも使われていないコードとテストを消した」）。
 
 - [ ] **AFK のリポジトリの初期化を、副作用頼みから外す。** `botCompositionRoot.ts` の `getAfkSettingsRepository(prisma);`（戻り値を使わない呼び出し）でしか初期化されておらず、未使用に見えて消すと AFK と Web API の afkResource が実行時に `not initialized` で落ちる。**composition root はテストもカバレッジ計測もしていないので、typecheck でも test でも検出できない。** 他の機能と同じ `setBot*` の登録方式に揃えるか、回帰テストを置く（→ HISTORY.md「export / import を削除した」）
-- [ ] **どこからも呼ばれていないコードを消す**（対応するテストも一緒に）
-  - `IBaseGuildRepository`（`src/shared/database/types/repositories.ts`）— init（f9f4db6）から一度も参照されていない
-  - `IGuildCoreRepository` の `saveSettings` / `deleteSettings` / `exists` とその実装（`guildCoreRepository.ts`）— 呼んでいるのはテストだけ
-  - `invalidateGuildLocaleCache()`（`src/shared/locale/helpers.ts`）— 同上
-- [ ] **`tests/unit/bot/commands/guild-settings.test.ts` の古いモックを消す。** `view` が全機能の設定をページ形式で出していた頃の名残で、今の `/guild-settings` はどれも使っていない: `@/features/afk/afkSettingsService` / `@/bot/shared/disableComponentsAfterTimeout` / `@/bot/shared/pagination` / `@/features/guild-settings/guildCoreRepository`、および `botCompositionRoot` モック内の `getBotBumpReminderSettingsService` / `getBotVacSettingsService` / `getBotStickyMessageSettingsService` / `getBotMemberLogSettingsService`
-- [ ] **`tests/unit/bot/errors/interactionErrorHandler.test.ts` の死んだ分岐を消す。** `tGuild` モックが、8af44dc で撤去済みのキー `common:validation.error_title` を条件にしている
 - [ ] **`IMPLEMENTATION_GUIDELINES.md` の customId の命名例を、実在するものへ差し替える。** 良い例の `guild-settings:page-first` / `page-prev` / `page-next` / `page-last` / `page-jump` / `page-select` は src に存在しない（ページングの実体は `src/bot/shared/pagination.ts` の `page-*` と `message-delete:page-*`）
 - [ ] **`src/shared/config/env.ts` の `DATABASE_URL` の既定値 `file:./storage/db.sqlite` を外す。** SQLite 時代の名残で、Postgres の今は意味がない。必須にするか判断する。`tests/setup.ts` の SQLite 形式の値も合わせて直す
 - [ ] **`scripts/list-guilds.mjs` 冒頭のコメントを直す。**「guildCreate を記録していないため」は、v3.2.0 の `guilds` テーブル（`joinedAt`）で事実でなくなった
@@ -196,9 +190,8 @@
 
 **やること**
 
-- [ ] **死んだ除外6件を直す**（意図の復元であって基準の引き下げではない）。`src/bot/features/` は存在せず機能は `src/features/` へ移動済み
+- [ ] **死んだ除外5件を直す**（意図の復元であって基準の引き下げではない）。`src/bot/features/` は存在せず機能は `src/features/` へ移動済み
   - `src/bot/features/**/repositories/*.ts` → 実際は `src/features/{bump-reminder,sticky-message,ticket}/repositories/`
-  - `src/bot/features/bump-reminder/repositories/usecases/deleteBumpReminder.ts` / `findBumpReminderById.ts`
   - `src/bot/features/ticket/services/ticketCleanupService.ts` → 実際は `src/features/ticket/services/`
   - `src/shared/database/repositories/*.ts` → ディレクトリごと存在しない
   - `src/bot/handlers/index.ts` → バレル廃止で消滅
@@ -225,16 +218,16 @@
 
 **依存なし。着手前提だった本番 DB の実測は 2026-09-23 に完了。** 2026-09-18 決定。「未承認キックの事前メッセージ DM のトグル化」と「メンバーログ: Bot の除外 ＋ 彩加によるキックの退出ログ抑止」の前提。
 
-**現状はサイレントキックが成立する。** `enable` は認証ロールと Bot の `KickMembers` しか見ないため（`unverifiedKickSettingsCommand.simple.ts:288-308`）`logChannelId` 未設定でも有効化でき、日次実行は「チャンネルが不正なら当該通知のみスキップ・キックは継続」の設計（`unverifiedKickRunner.ts:509`）。ログチャンネルが無いギルドではキックまとめがどこにも出ず、メンバーログが有効でも「退出」としか見えない。
+**現状はサイレントキックが成立する。** `enable` は認証ロールと Bot の `KickMembers` しか見ないため（`unverifiedKickSettingsCommand.simple.ts:288-308`）`logChannelId` 未設定でも有効化でき、日次実行は「チャンネルが不正なら当該通知のみスキップ・キックは継続」の設計（`unverifiedKickRunner.ts:504`）。ログチャンネルが無いギルドではキックまとめがどこにも出ず、メンバーログが有効でも「退出」としか見えない。
 
-**このタスクでは、通知チャンネルと事前メッセージの日数を必須にしない。** 事前メッセージの DM は通知チャンネルと無関係に必ず送る設計で（`unverifiedKickRunner.ts:577-579`）、このタスクだけならメンバー側のベースラインは残る。通知チャンネルと事前メッセージの日数の必須化は、同じリリースに入る「未承認キックの事前メッセージ DM のトグル化」でまとめて入れる（DM だけの構成を認めない原則もあちら）。
+**このタスクでは、通知チャンネルと事前メッセージの日数を必須にしない。** 事前メッセージの DM は通知チャンネルと無関係に必ず送る設計で（`unverifiedKickRunner.ts:572-574`）、このタスクだけならメンバー側のベースラインは残る。通知チャンネルと事前メッセージの日数の必須化は、同じリリースに入る「未承認キックの事前メッセージ DM のトグル化」でまとめて入れる（DM だけの構成を認めない原則もあちら）。
 
 **やること**（既存の実行時無効化 `disableAndNotify` → `disableInvalid` を流用するので小さい）
 
 - [x] ~~**本番 DB で「enabled かつ `logChannelId` が null」の件数を実測する。**~~ → **2026-09-23 実測: 0件**。設定レコード自体が1件のみで、ログ・通知チャンネルとも設定済み。**誰にも見えない変更として入れられる**（リリースノートの記載も不要）。`notifyChannelId` が null の有効ギルドも0件なので、後続の「未承認キックの事前メッセージ DM のトグル化」で通知チャンネルを必須にするときも無風
 - [ ] `enable` 時に `logChannelId` 未設定なら ValidationError（認証ロール未設定と同じ扱い）
 - [ ] 日次実行時にログチャンネルが解決できなければ、認証ロール消失などと同じ `disableAndNotify` で無効化する。既存ギルドは次回実行で自動的にこの経路に乗るので migration も `disabledReason` の永続化も要らない
-- [ ] **無効化通知のフォールバック。** `disableAndNotify` は今ログチャンネルにしか送らず（`unverifiedKickRunner.ts:415-416`）、無い時は黙って止まる。guild-settings のエラーチャンネル（`notifyWarnChannel`）→ システムチャンネルの順で落とす。既存の「認証ロール消失で無効化」にも同じ穴があるので一緒に塞がる
+- [ ] **無効化通知のフォールバック。** `disableAndNotify` は今ログチャンネルにしか送らず（`unverifiedKickRunner.ts:412-413`）、無い時は黙って止まる。guild-settings のエラーチャンネル（`notifyWarnChannel`）→ システムチャンネルの順で落とす。既存の「認証ロール消失で無効化」にも同じ穴があるので一緒に塞がる
 - [ ] `clear-log-channel` は有効中なら拒否して「先に disable」と返す
 - [ ] web の PATCH で `enabled=true` の検証を揃える。**`logChannelId` と `verifiedRoleId` の両方を必須にする**（2026-09-23 決定）。現状 `unverifiedKickResource.ts` の `patch` は**検証ゼロ**で、ダッシュボードから素通しで有効化できる。Bot の権限チェックは API 側では行わない。**検証は送られた本文ではなく、今の設定に重ねた後の値（`applyUnverifiedKickPatch` の結果）に対して行う**（ダッシュボードは設定全体を送るため）。テンプレートの500文字の上限も API でそろえる（今はコマンドのモーダルだけが持つ）
 - [ ] **ダッシュボードから有効化したときも、事前メッセージの記録を消す**（2026-09-29 発見）。コマンドの `enable` は `deleteAllByGuild` で消すが（`unverifiedKickSettingsCommand.simple.ts:312`）、API は `enabledAt` を更新するだけ。ふだんは有効化後の最初の日次実行で片付くが、その実行が事前メッセージの日数を過ぎてから走ると（Bot が止まっていたときなど）、古い記録を「通知済み」と見なして新しい事前メッセージなしにキックしうる
@@ -255,7 +248,7 @@
 
 - [ ] `POST /:guildId/unverified-kick/preview` を足す。下書き（保存前の設定）を受け取って今の設定に重ね（`applyUnverifiedKickPatch` と同じ解釈。保存はしない）、事前メッセージの DM と通知チャンネルへの投稿を **Bot が送るのと同じ関数**（`unverifiedKickNotifier.ts` の `buildDmMessage` / `buildWarnNotification`）で組み立てて返す。Discord には何も送らない
 - [ ] 事前メッセージ DM がオフのとき（「未承認キックの事前メッセージ DM のトグル化」で入る）は、Bot が DM を送らないので DM を返さない
-- [ ] 事前メッセージで伝える残日数（`graceDays - warnDays`）の計算を1つの関数にまとめ、日次実行とプレビューの両方から使う。今は同じ計算が3か所にある（Runner の DM 送信 `unverifiedKickRunner.ts:212`・候補の区分 `unverifiedKickCandidates.ts:130`・区分関数 `unverifiedKickEligibility.ts:106`）。予告の組み立てに渡す値（猶予日数・実行時刻・メンションの有無など）を設定から作る処理も Runner の中にあるので、あわせて切り出す
+- [ ] 事前メッセージで伝える残日数（`graceDays - warnDays`）の計算を1つの関数にまとめ、日次実行とプレビューの両方から使う。今は同じ計算が3か所にある（Runner の DM 送信 `unverifiedKickRunner.ts:209`・候補の区分 `unverifiedKickCandidates.ts:126`・区分関数 `unverifiedKickEligibility.ts:106`）。予告の組み立てに渡す値（猶予日数・実行時刻・メンションの有無など）を設定から作る処理も Runner の中にあるので、あわせて切り出す
 - [ ] 本文・Embed と一緒に、出てくるユーザー・ロール・チャンネルの名前と色の対応表を返す。ギルドのキャッシュから引き、キャッシュに無いメンバーは fetch で補う。見つからない ID は「無い」と返し、web 側で Discord と同じ表示（`@unknown-user` など）にする。引くのはそのギルドのメンバー・ロール・チャンネルだけ
 - [ ] キック予定日時は「次に日次実行が走る時刻」を起点に計算する。プレビューを開いた時刻を起点にすると、本番と1日ずれることがある
 - [ ] 見本の対象者は操作している本人（JWT の `discordUserId`）にする。実際の対象者の情報は出さない

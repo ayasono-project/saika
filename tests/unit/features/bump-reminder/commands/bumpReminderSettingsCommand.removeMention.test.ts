@@ -2,7 +2,6 @@ import { ValidationError } from "@ayasono/shared/core";
 import { BUMP_REMINDER_MENTION_ROLE_RESULT } from "@/features/bump-reminder/bumpReminderSettingsService";
 import { handleBumpReminderSettingsRemoveMention } from "@/features/bump-reminder/commands/bumpReminderSettingsCommand.removeMention";
 
-const getBumpReminderSettingsMock = vi.fn();
 const setMentionRoleMock = vi.fn();
 
 vi.mock("@/shared/locale/localeManager", () => ({
@@ -16,16 +15,6 @@ vi.mock("@/shared/locale/localeManager", () => ({
     const m = params ? `${messageKey}:${JSON.stringify(params)}` : messageKey;
     return sub ? `[${p}:${sub}] ${m}` : `[${p}] ${m}`;
   },
-  logCommand: (
-    commandName: string,
-    messageKey: string,
-    params?: Record<string, unknown>,
-  ) => {
-    const m = params ? `${messageKey}:${JSON.stringify(params)}` : messageKey;
-    return `[${commandName}] ${m}`;
-  },
-  tDefault: vi.fn((key: string) => `default:${key}`),
-  tGuild: vi.fn(async () => "translated"),
   tInteraction: (...args: unknown[]) => args[1],
 }));
 
@@ -35,18 +24,12 @@ vi.mock("@/shared/utils/logger", () => ({
 
 vi.mock("@/bot/services/botCompositionRoot", () => ({
   getBotBumpReminderSettingsService: () => ({
-    getBumpReminderSettings: (...args: unknown[]) =>
-      getBumpReminderSettingsMock(...args),
     setBumpReminderMentionRole: (...args: unknown[]) =>
       setMentionRoleMock(...args),
-    clearBumpReminderMentionUsers: vi.fn(),
-    clearBumpReminderMentions: vi.fn(),
-    removeBumpReminderMentionUser: vi.fn(),
   }),
 }));
 
 vi.mock("@/bot/utils/messageResponse", () => ({
-  createErrorEmbed: vi.fn((description: string) => ({ description })),
   createSuccessEmbed: vi.fn((description: string) => ({ description })),
 }));
 
@@ -56,11 +39,6 @@ vi.mock("@/bot/utils/messageResponse", () => ({
 describe("bot/features/bump-reminder/commands/bumpReminderSettingsCommand.removeMention", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    getBumpReminderSettingsMock.mockResolvedValue({
-      enabled: true,
-      mentionRoleId: "role-1",
-      mentionUserIds: ["user-1"],
-    });
   });
 
   it("サービスが NOT_CONFIGURED を返した場合（削除対象のロールが存在しない）は ValidationError を投げることを確認", async () => {
@@ -70,9 +48,6 @@ describe("bot/features/bump-reminder/commands/bumpReminderSettingsCommand.remove
 
     const interaction = {
       locale: "ja",
-      options: {
-        getString: vi.fn(() => "role"),
-      },
       reply: vi.fn(),
     };
 
@@ -88,9 +63,6 @@ describe("bot/features/bump-reminder/commands/bumpReminderSettingsCommand.remove
 
     const interaction = {
       locale: "ja",
-      options: {
-        getString: vi.fn(() => "role"),
-      },
       reply: vi.fn().mockResolvedValue(undefined),
     };
 

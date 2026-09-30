@@ -1,3 +1,5 @@
+import { DEFAULT_AFK_SETTINGS } from "@/features/afk/afkSettingsDefaults";
+
 // AfkSettingsService クラスのメソッド動作・シングルトンキャッシュ挙動・モジュールレベル関数 API を検証するグループ
 describe("shared/features/afk/afkSettingsService", () => {
   const createRepositoryMock = () => ({
@@ -49,7 +51,7 @@ describe("shared/features/afk/afkSettingsService", () => {
     const first = await service.getAfkSettingsOrDefault("guild-1");
     const second = await service.getAfkSettingsOrDefault("guild-1");
 
-    expect(first).toEqual(module.DEFAULT_AFK_SETTINGS);
+    expect(first).toEqual(DEFAULT_AFK_SETTINGS);
     expect(first).not.toBe(second);
   });
 
@@ -118,9 +120,6 @@ describe("shared/features/afk/afkSettingsService", () => {
     });
     await module.getAfkSettings("guild-1");
     expect(repository.getAfkSettings).toHaveBeenCalledWith("guild-1");
-
-    repository.getAfkSettings.mockResolvedValueOnce(null);
-    await module.getAfkSettingsOrDefault("guild-1");
 
     await module.saveAfkSettings("guild-1", { enabled: false });
     expect(repository.updateAfkSettings).toHaveBeenCalledWith(

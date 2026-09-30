@@ -53,12 +53,6 @@ const mockTDefault = (key: string, params?: Record<string, unknown>) => {
 vi.mock("@/shared/locale/localeManager", () => ({
   tDefault: (key: string, params?: Record<string, unknown>) =>
     mockTDefault(key, params),
-  tGuild: async (_guildId: string, key: string) => {
-    if (key === "common:validation.error_title") {
-      return "サーバー検証エラー";
-    }
-    return key;
-  },
   tInteraction: (...args: unknown[]) => args[1],
   logPrefixed: (
     prefixKey: string,

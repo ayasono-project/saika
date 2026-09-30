@@ -93,15 +93,7 @@ function makeClient(): BotClient {
 
 async function buildApp(): Promise<FastifyInstance> {
   const app = Fastify({ logger: false });
-  app.decorate("authenticate", async (request) => {
-    request.authUser = {
-      discordUserId: "u1",
-      username: "u",
-      globalName: null,
-      avatar: null,
-      guilds: ["g1"],
-    };
-  });
+  app.decorate("authenticate", async () => {});
   app.decorate("requireGuildAccess", async (request) => {
     request.guildId = (request.params as { guildId?: string }).guildId;
   });
@@ -179,31 +171,6 @@ describe("stickyRoutes", () => {
     expect(list.json().data).toEqual([
       { channelId: "c1", content: "second", embed: null },
     ]);
-  });
-
-  it("PATCH で content を部分更新する", async () => {
-    await app.inject({
-      method: "POST",
-      url: "/guilds/g1/sticky",
-      payload: { channelId: "c1", content: "old", embed: null },
-    });
-    const patch = await app.inject({
-      method: "PATCH",
-      url: "/guilds/g1/sticky/c1",
-      payload: { content: "new" },
-    });
-    expect(patch.statusCode).toBe(200);
-    expect(patch.json().data.content).toBe("new");
-  });
-
-  it("存在しない channelId の PATCH は 404", async () => {
-    const res = await app.inject({
-      method: "PATCH",
-      url: "/guilds/g1/sticky/ghost",
-      payload: { content: "x" },
-    });
-    expect(res.statusCode).toBe(404);
-    expect(res.json().error.code).toBe("NOT_FOUND");
   });
 
   it("DELETE で削除し、GET が空になる", async () => {

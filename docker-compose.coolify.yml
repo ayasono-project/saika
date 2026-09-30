@@ -26,7 +26,6 @@ services:
       DATABASE_URL: ${DATABASE_URL}
 
       # ── 基本 ──
-      LOCALE: ${LOCALE:-ja}
       NODE_ENV: ${NODE_ENV:-production}
       LOG_LEVEL: ${LOG_LEVEL:-info}
 

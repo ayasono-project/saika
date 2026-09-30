@@ -11,12 +11,9 @@ import { logger } from "../../shared/utils/logger";
 import { createServiceGetter } from "../../shared/utils/serviceFactory";
 import {
   createDefaultVacSettings,
-  DEFAULT_VAC_SETTINGS,
   normalizeVacSettings,
 } from "./vacSettingsDefaults";
 import { getVacSettingsRepository } from "./vacSettingsRepository";
-
-export { DEFAULT_VAC_SETTINGS };
 
 /**
  * 指定VCが管理対象に含まれるか判定する

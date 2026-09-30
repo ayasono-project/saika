@@ -6,7 +6,6 @@ const mockConfigService = { create: vi.fn() };
 vi.mock("@/shared/locale/localeManager", () => ({
   logPrefixed: (p: string, m: string, params?: Record<string, unknown>) =>
     params ? `[${p}] ${m}:${JSON.stringify(params)}` : `[${p}] ${m}`,
-  tDefault: vi.fn((key: string) => key),
   tInteraction: (_locale: string, key: string) => key,
 }));
 vi.mock("@/shared/utils/logger", () => ({
@@ -55,7 +54,6 @@ function createMockModalInteraction(customId: string, overrides = {}) {
           "reaction-role:setup-color": "#FF0000",
           "reaction-role:button-label": "Role A",
           "reaction-role:button-emoji": "🎉",
-          "reaction-role:button-style": "primary",
         };
         return map[fieldId] ?? "";
       }),
@@ -237,7 +235,6 @@ describe("bot/features/reaction-role/handlers/ui/reactionRoleSetupHandlers", () 
             getTextInputValue: vi.fn((fieldId: string) => {
               if (fieldId === "reaction-role:button-label") return "Label";
               if (fieldId === "reaction-role:button-emoji") return "not-emoji";
-              if (fieldId === "reaction-role:button-style") return "primary";
               return "";
             }),
           },

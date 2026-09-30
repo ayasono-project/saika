@@ -94,7 +94,6 @@ function toCandidateInput(
   member: GuildMember,
   guild: Guild,
   verifiedRoleId: string | undefined,
-  markerRoleId: string | undefined,
   warnedAt: Date | null,
 ): CandidateMemberInput {
   return {
@@ -105,7 +104,6 @@ function toCandidateInput(
     isVerified: verifiedRoleId ? member.roles.cache.has(verifiedRoleId) : false,
     memberRoleIds: [...member.roles.cache.keys()],
     joinedAt: member.joinedAt,
-    hasMarkerRole: markerRoleId ? member.roles.cache.has(markerRoleId) : false,
     warnedAt,
   };
 }
@@ -125,7 +123,6 @@ export function buildCandidateBuckets(
       m,
       guild,
       settings.verifiedRoleId,
-      settings.markerRoleId,
       warnedMap.get(m.id) ?? null,
     ),
   );
@@ -436,13 +433,11 @@ function buildMockUnverifiedKickBuckets(
       userId: `mock-uv-warn-${i}`,
       ageDays: graceDays - effectiveWarnDays + 1,
       remainingDays: Math.max(0, effectiveWarnDays - 1),
-      hasMarkerRole: false,
     })),
     kick: Array.from({ length: count }, (_, i) => ({
       userId: `mock-uv-kick-${i}`,
       ageDays: graceDays + 1,
       remainingDays: 0,
-      hasMarkerRole: true,
     })),
     clearWarn: [],
   };

@@ -22,9 +22,6 @@ const client = {
 function claims(guilds: string[]): SessionClaims {
   return {
     discordUserId: "u1",
-    username: "u",
-    globalName: null,
-    avatar: null,
     guilds,
   };
 }

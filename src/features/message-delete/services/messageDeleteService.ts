@@ -63,14 +63,11 @@ export interface ScanProgressData {
   totalScanned: number;
   /** フィルタ後に収集した件数 */
   collected: number;
-  /** 収集上限 */
-  limit: number;
 }
 
 /** チャンネル単位の削除状態（進捗表示用） */
 export interface ChannelDeleteStatus {
   channelId: string;
-  name: string;
   deleted: number;
   total: number;
 }
@@ -90,7 +87,7 @@ export interface MessageDeleteResult {
   /** 合計削除件数 */
   totalDeleted: number;
   /** チャンネル別削除件数（キー: チャンネルID） */
-  channelBreakdown: Record<string, { name: string; count: number }>;
+  channelBreakdown: Record<string, { count: number }>;
 }
 
 /**
@@ -129,10 +126,10 @@ function createThrottledReporter<T>(
   intervalMs = MSG_DEL_PROGRESS_THROTTLE_MS,
 ) {
   let lastTs = 0;
-  return async (data: T, force = false) => {
+  return async (data: T) => {
     if (!callback) return;
     const now = Date.now();
-    if (force || now - lastTs >= intervalMs) {
+    if (now - lastTs >= intervalMs) {
       lastTs = now;
       await callback(data);
     }
@@ -365,7 +362,7 @@ export async function scanMessages(
     return scanned;
   }
 
-  await report({ totalScanned, collected: scanned.length, limit: count });
+  await report({ totalScanned, collected: scanned.length });
 
   // ━━ k-way マージ: 常に全チャンネル中で最も新しいメッセージを選択 ━━
   while (scanned.length < count) {
@@ -389,7 +386,7 @@ export async function scanMessages(
         );
         await fetchIntoCursor(cursor, cursor.lastId);
         await sleep(MSG_DEL_REFILL_WAIT_MS);
-        await report({ totalScanned, collected: scanned.length, limit: count });
+        await report({ totalScanned, collected: scanned.length });
       }
     }
     // リフィルを途中で打ち切った場合、補充していないチャンネルがあり新しい順を保てないので選ばずに抜ける
@@ -441,7 +438,6 @@ export async function scanMessages(
       authorIsBot,
       authorIsMember,
       channelId: bestCursor.channel.id,
-      channelName: bestCursor.channel.name,
       createdAt: msg.createdAt,
       content: buildDisplayContent(locale, msg),
       _channel: bestCursor.channel,
@@ -492,7 +488,7 @@ export async function deleteScannedMessages(
   signal?: AbortSignal,
 ): Promise<MessageDeleteResult> {
   const twoWeeksAgo = Date.now() - MSG_DEL_BULK_MAX_AGE_MS;
-  const channelBreakdown: Record<string, { name: string; count: number }> = {};
+  const channelBreakdown: Record<string, { count: number }> = {};
   let totalDeleted = 0;
 
   const report = createThrottledReporter(onProgress);
@@ -508,7 +504,7 @@ export async function deleteScannedMessages(
   const channelStatusMap = new Map<string, ChannelDeleteStatus>(
     [...byChannel.entries()].map(([channelId, msgs]) => [
       channelId,
-      { channelId, name: msgs[0].channelName, deleted: 0, total: msgs.length },
+      { channelId, deleted: 0, total: msgs.length },
     ]),
   );
   const channelStatuses = [...channelStatusMap.values()];
@@ -623,7 +619,6 @@ export async function deleteScannedMessages(
     if (signal?.aborted) break;
 
     const channelId = channelMessages[0].channelId;
-    const channelName = channelMessages[0].channelName;
     const rawChannel = channelMessages[0]._channel;
     // byChannel と channelStatusMap は同じキーセットで構築されるため必ず存在する
     // biome-ignore lint/style/noNonNullAssertion: byChannel と channelStatusMap は同じキーセットで構築されるため必ず存在する
@@ -663,7 +658,6 @@ export async function deleteScannedMessages(
     }
 
     channelBreakdown[channelId] = {
-      name: channelName,
       count: totalDeleted - channelStartDeleted,
     };
   }

@@ -142,16 +142,11 @@ describe("bot/features/vac/commands/usecases/vacSettingsRemoveTrigger", () => {
     const fetchMock = vi.fn((id: string) => Promise.resolve(channelMocks[id]));
 
     const collectHandlers: ((i: unknown) => Promise<void>)[] = [];
-    const endHandlers: ((
-      collected: unknown,
-      reason: string,
-    ) => Promise<void>)[] = [];
 
     const collectorMock = {
       on: vi.fn(
         (event: string, handler: (...args: unknown[]) => Promise<void>) => {
           if (event === "collect") collectHandlers.push(handler);
-          if (event === "end") endHandlers.push(handler);
           return collectorMock;
         },
       ),

@@ -28,38 +28,14 @@ vi.mock("@/shared/locale/localeManager", () => ({
     const m = params ? `${messageKey}:${JSON.stringify(params)}` : messageKey;
     return sub ? `[${p}:${sub}] ${m}` : `[${p}] ${m}`;
   },
-  logCommand: (
-    commandName: string,
-    messageKey: string,
-    params?: Record<string, unknown>,
-  ) => {
-    const m = params ? `${messageKey}:${JSON.stringify(params)}` : messageKey;
-    return `[${commandName}] ${m}`;
-  },
-  tDefault: (key: string) => `mocked:${key}`,
-  tInteraction: (...args: unknown[]) => args[1],
-}));
-
-// Prismaユーティリティのモック
-vi.mock("@/shared/utils/prisma", () => ({
-  requirePrismaClient: vi.fn(() => ({})),
 }));
 
 // Repositoryのモック
 const mockRepository = {
   create: vi.fn(),
-  findById: vi.fn(),
-  findPendingByGuildAndService: vi.fn(),
   findAllPending: vi.fn(),
   updateStatus: vi.fn(),
-  delete: vi.fn(),
-  cancelByGuild: vi.fn(),
-  cleanupOld: vi.fn(),
 };
-
-vi.mock("@/features/bump-reminder/repositories/bumpReminderRepository", () => ({
-  getBumpReminderRepository: () => mockRepository,
-}));
 
 describe("BumpReminderManager Integration", () => {
   // DB連携とJobScheduler連携を含むリマインダー運用フローを検証
@@ -322,66 +298,6 @@ describe("BumpReminderManager Integration", () => {
 
       expect(result).toBe(0);
       expect(taskFactory).not.toHaveBeenCalled();
-    });
-  });
-
-  describe("clearAll()", () => {
-    it("全リマインダーを一括でクリアできること", async () => {
-      // 複数ギルド分のジョブが一括でクリアされること
-      const scheduledAt = new Date(Date.now() + 2 * 60 * 60 * 1000);
-      const mockReminder1 = {
-        id: "reminder-1",
-        guildId: "guild-123",
-        channelId: "channel-456",
-        messageId: null,
-        panelMessageId: null,
-        scheduledAt,
-        status: "pending" as const,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-      const mockReminder2 = {
-        id: "reminder-2",
-        guildId: "guild-456",
-        channelId: "channel-789",
-        messageId: null,
-        panelMessageId: null,
-        scheduledAt,
-        status: "pending" as const,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-
-      mockRepository.create.mockResolvedValueOnce(mockReminder1);
-      mockRepository.create.mockResolvedValueOnce(mockReminder2);
-
-      // 複数のリマインダー設定
-      await manager.setReminder(
-        "guild-123",
-        "channel-456",
-        undefined,
-        undefined,
-        120,
-        vi.fn(),
-      );
-      await manager.setReminder(
-        "guild-456",
-        "channel-789",
-        undefined,
-        undefined,
-        120,
-        vi.fn(),
-      );
-
-      // 両方存在することを確認
-      expect(manager.hasReminder("guild-123")).toBe(true);
-      expect(manager.hasReminder("guild-456")).toBe(true);
-
-      await manager.clearAll();
-
-      // 両方削除されたことを確認
-      expect(manager.hasReminder("guild-123")).toBe(false);
-      expect(manager.hasReminder("guild-456")).toBe(false);
     });
   });
 });

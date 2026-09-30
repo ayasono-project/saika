@@ -94,5 +94,3 @@ export const common = {
   "ui.button.reset_confirm": "リセットする",
   "ui.button.reset_cancel": "キャンセル",
 } as const;
-
-export type CommonTranslations = typeof common;

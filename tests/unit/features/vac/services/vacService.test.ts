@@ -16,7 +16,6 @@ const executeWithLoggedErrorMock = vi.fn(
   },
 );
 const loggerInfoMock = vi.fn();
-const getVacSettingsServiceMock = vi.fn();
 
 vi.mock("@/shared/locale/localeManager", () => ({
   logPrefixed: (
@@ -29,16 +28,7 @@ vi.mock("@/shared/locale/localeManager", () => ({
     const m = params ? `${messageKey}:${JSON.stringify(params)}` : messageKey;
     return sub ? `[${p}:${sub}] ${m}` : `[${p}] ${m}`;
   },
-  logCommand: (
-    commandName: string,
-    messageKey: string,
-    params?: Record<string, unknown>,
-  ) => {
-    const m = params ? `${messageKey}:${JSON.stringify(params)}` : messageKey;
-    return `[${commandName}] ${m}`;
-  },
   tDefault: vi.fn((key: string) => `default:${key}`),
-  tInteraction: (...args: unknown[]) => args[1],
 }));
 
 vi.mock("@/shared/utils/errorHandling", () => ({
@@ -53,8 +43,7 @@ vi.mock("@/shared/utils/logger", () => ({
 }));
 
 vi.mock("@/features/vac/vacSettingsService", () => ({
-  getVacSettingsService: (service?: VacSettingsService) =>
-    getVacSettingsServiceMock(service),
+  getVacSettingsService: vi.fn(),
 }));
 
 vi.mock("@/features/vac/services/usecases/handleVacCreate", () => ({
@@ -83,15 +72,9 @@ function createRepositoryMock(): Mocked<VacSettingsService> {
 // VacService クラスがボイス状態変化・チャンネル削除・起動時クリーンアップの各しきいを
 // 適切なユースケースに委譲し、シングルトン管理も正しく機能することを検証するテスト群
 describe("bot/features/vac/services/vacService", () => {
-  const defaultRepository = createRepositoryMock();
-
-  // 各テストのモック呼び出し記録をリセットし、
-  // getVacSettingsServiceMock が注入されたサービスをそのまま返すデフォルト動作を再設定する
+  // 各テストのモック呼び出し記録をリセットする
   beforeEach(() => {
     vi.clearAllMocks();
-    getVacSettingsServiceMock.mockImplementation(
-      (service?: VacSettingsService) => service ?? defaultRepository,
-    );
   });
 
   it("ボイス状態変化時にcreate/deleteユースケースへ委譲する", async () => {

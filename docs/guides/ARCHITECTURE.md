@@ -2,7 +2,7 @@
 
 > Architecture Guide - コード設計・モジュール構成・設計パターンの解説
 
-最終更新: 2026年9月26日
+最終更新: 2026年9月30日
 
 ---
 
@@ -100,7 +100,7 @@ src/
     ├── locale/                # i18n（i18next）
     ├── scheduler/             # JobScheduler（cron + setTimeout。saika 固有だが横断利用のため維持）
     ├── constants/             # 横断定数（embedColors 等）
-    └── utils/                 # logger（@ayasono/shared/core の createLogger を wiring）, prisma, serviceFactory 等
+    └── utils/                 # logger（@ayasono/shared/core の createLogger を wiring）, serviceFactory 等
 ```
 
 ### 設計原則
@@ -262,19 +262,17 @@ interface Command {
 
 ### 接続管理
 
-`setPrismaClient()` / `getPrismaClient()` / `requirePrismaClient()` をモジュールレベルで管理します。
-`global` 変数を使わず、モジュールスコープの変数で Prisma Client を保持します。
+Prisma Client は `main.ts` が起動時に1つだけ生成し（`@prisma/adapter-pg` 経由）、使う側へ引数で渡します。
+どこからでも取り出せるグローバルな置き場所は持ちません。
 
 ```typescript
-// 起動時に一度だけ登録
-setPrismaClient(prisma);
-
-// 利用側（必ず存在する前提）
-const prisma = requirePrismaClient(); // 存在しない場合は Error をスロー
-
-// 利用側（存在しない可能性あり）
-const prisma = getPrismaClient(); // null の場合あり
+// main.ts（抜粋）
+const prisma = new PrismaClient({ adapter });
+initializeBotCompositionRoot(prisma); // リポジトリ・サービスの初期化
+apiServer = await startApiServer({ client, prisma }); // /ready の DB 疎通確認に使う
 ```
+
+リポジトリの取得関数（例: `getAfkSettingsRepository`）は `createRepositoryGetter()`（`src/shared/utils/serviceFactory.ts`）で作ったシングルトンです。**最初の呼び出しで受け取った Prisma Client でインスタンスを作り、以降はそれを返します。** 初期化は Composition Root がまとめて行うため、それより後の呼び出し側は引数なしで取得できます。初期化前に引数なしで呼ぶと `Error` になります（→ [Composition Root と DI](#composition-root-と-di)）。
 
 ### スキーマ構成
 

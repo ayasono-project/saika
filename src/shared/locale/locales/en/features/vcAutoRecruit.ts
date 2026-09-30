@@ -127,5 +127,3 @@ export const vcAutoRecruit = {
     "Failed to sync on channelDelete (vc-auto-recruit)",
   "log.startup_cleanup_failed": "Startup cleanup failed (vc-auto-recruit)",
 } as const;
-
-export type VcAutoRecruitTranslations = typeof vcAutoRecruit;

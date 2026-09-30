@@ -13,10 +13,6 @@ import { DEV_JWT_SECRET_FALLBACK } from "./authConstants";
 export interface SessionClaims {
   /** Discord ユーザー ID */
   discordUserId: string;
-  username: string;
-  globalName: string | null;
-  /** アバターハッシュ（未設定で null） */
-  avatar: string | null;
   /** ユーザーが管理可能なギルド ID 一覧 */
   guilds: string[];
 }
@@ -41,9 +37,6 @@ export async function verifySessionToken(
   });
   return {
     discordUserId: String(payload.discordUserId),
-    username: String(payload.username),
-    globalName: (payload.globalName as string | null) ?? null,
-    avatar: (payload.avatar as string | null) ?? null,
     guilds: Array.isArray(payload.guilds) ? payload.guilds.map(String) : [],
   };
 }

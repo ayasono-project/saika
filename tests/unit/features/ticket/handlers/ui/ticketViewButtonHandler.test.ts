@@ -1,41 +1,7 @@
 import { ticketViewButtonHandler } from "@/features/ticket/handlers/ui/ticketViewButtonHandler";
 
 vi.mock("@/shared/locale/localeManager", () => ({
-  logPrefixed: (
-    prefixKey: string,
-    messageKey: string,
-    params?: Record<string, unknown>,
-    sub?: string,
-  ) => {
-    const p = `${prefixKey}`;
-    const m = params ? `${messageKey}:${JSON.stringify(params)}` : messageKey;
-    return sub ? `[${p}:${sub}] ${m}` : `[${p}] ${m}`;
-  },
-  logCommand: (
-    commandName: string,
-    messageKey: string,
-    params?: Record<string, unknown>,
-  ) => {
-    const m = params ? `${messageKey}:${JSON.stringify(params)}` : messageKey;
-    return `[${commandName}] ${m}`;
-  },
-  tDefault: vi.fn((key: string) => key),
   tInteraction: (...args: unknown[]) => args[1],
-}));
-vi.mock("@/shared/utils/logger", () => ({
-  logger: { debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() },
-}));
-vi.mock("@/bot/utils/messageResponse", () => ({
-  createSuccessEmbed: vi.fn(() => ({ type: "success" })),
-  createErrorEmbed: vi.fn(() => ({ type: "error" })),
-  createWarningEmbed: vi.fn((_desc: string, _opts?: unknown) => ({
-    type: "warning",
-    addFields: vi.fn().mockReturnThis(),
-  })),
-  createInfoEmbed: vi.fn((_desc: string, _opts?: unknown) => ({
-    type: "info",
-    addFields: vi.fn().mockReturnThis(),
-  })),
 }));
 
 const mockConfigService = {
@@ -44,7 +10,6 @@ const mockConfigService = {
   create: vi.fn(),
   update: vi.fn(),
   delete: vi.fn(),
-  deleteAllByGuild: vi.fn(),
   incrementCounter: vi.fn(),
 };
 const mockTicketRepository = {
@@ -52,13 +17,11 @@ const mockTicketRepository = {
   findByChannelId: vi.fn(),
   findOpenByUserAndCategory: vi.fn(),
   findOpenByCategory: vi.fn(),
-  findAllByCategory: vi.fn(),
   findAllClosedByGuild: vi.fn(),
   create: vi.fn(),
   update: vi.fn(),
   delete: vi.fn(),
   deleteByCategory: vi.fn(),
-  deleteAllByGuild: vi.fn(),
 };
 vi.mock("@/bot/services/botCompositionRoot", () => ({
   getBotTicketSettingsService: () => mockConfigService,
@@ -308,11 +271,6 @@ describe("bot/features/ticket/handlers/ui/ticketViewButtonHandler", () => {
     });
 
     it("単一設定の場合はページネーションとセレクトメニューを表示しない", async () => {
-      vi.mocked(parsePaginationAction).mockReturnValue("next");
-      vi.mocked(resolvePageFromAction).mockReturnValue(0);
-      // totalPages = 1 means same page, but resolvePageFromAction returns different
-      // Actually with 1 config, resolvePageFromAction(next, 0, 1) would return 0
-      // so it would deferUpdate. Let's use jump instead to test the single-page branch
       vi.mocked(parsePaginationAction).mockReturnValue("jump");
       vi.mocked(showPaginationJumpModal).mockResolvedValue("1");
       mockConfigService.findAllByGuild.mockResolvedValue([

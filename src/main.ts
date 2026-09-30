@@ -23,7 +23,6 @@ import {
   tDefault,
 } from "./shared/locale/localeManager";
 import { logger } from "./shared/utils/logger";
-import { setPrismaClient } from "./shared/utils/prisma";
 
 // コマンド登録先（ギルド/グローバル）をログ表示で識別するための定数
 const COMMAND_REGISTRATION_SCOPE = {
@@ -65,9 +64,6 @@ async function startBot() {
   });
   const prisma = new PrismaClient({ adapter });
   await prisma.$connect();
-
-  // Prismaクライアントをモジュール内に登録（イベントハンドラーからアクセス可能にする）
-  setPrismaClient(prisma);
 
   // Bot層の依存解決を初期化（Composition Root）
   initializeBotCompositionRoot(prisma);

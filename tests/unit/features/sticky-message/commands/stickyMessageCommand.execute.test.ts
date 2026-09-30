@@ -5,8 +5,6 @@ const handleStickyMessageRemoveMock = vi.fn();
 const handleStickyMessageViewMock = vi.fn();
 const handleStickyMessageUpdateMock = vi.fn();
 const handleCommandErrorMock = vi.fn();
-const tDefaultMock = vi.fn((key: string) => `[${key}]`);
-const tGuildMock = vi.fn(async (_guildId: string, key: string) => `[${key}]`);
 
 vi.mock("@/features/sticky-message/commands/usecases/stickyMessageSet", () => ({
   handleStickyMessageSet: handleStickyMessageSetMock,
@@ -27,26 +25,6 @@ vi.mock("@/bot/errors/interactionErrorHandler", () => ({
   handleCommandError: handleCommandErrorMock,
 }));
 vi.mock("@/shared/locale/localeManager", () => ({
-  logPrefixed: (
-    prefixKey: string,
-    messageKey: string,
-    params?: Record<string, unknown>,
-    sub?: string,
-  ) => {
-    const p = `${prefixKey}`;
-    const m = params ? `${messageKey}:${JSON.stringify(params)}` : messageKey;
-    return sub ? `[${p}:${sub}] ${m}` : `[${p}] ${m}`;
-  },
-  logCommand: (
-    commandName: string,
-    messageKey: string,
-    params?: Record<string, unknown>,
-  ) => {
-    const m = params ? `${messageKey}:${JSON.stringify(params)}` : messageKey;
-    return `[${commandName}] ${m}`;
-  },
-  tDefault: tDefaultMock,
-  tGuild: tGuildMock,
   tInteraction: (...args: unknown[]) => args[1],
 }));
 

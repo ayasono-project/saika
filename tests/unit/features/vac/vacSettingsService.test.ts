@@ -1,9 +1,7 @@
 // VacSettingsService のビジネスロジック・分岐・ファクトリ関数を検証する
 
-import {
-  DEFAULT_VAC_SETTINGS,
-  VacSettingsService,
-} from "@/features/vac/vacSettingsService";
+import { DEFAULT_VAC_SETTINGS } from "@/features/vac/vacSettingsDefaults";
+import { VacSettingsService } from "@/features/vac/vacSettingsService";
 import type { VacChannelPair, VacSettings } from "@/shared/database/types";
 
 describe("shared/features/vac/vacSettingsService", () => {

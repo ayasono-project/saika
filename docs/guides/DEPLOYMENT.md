@@ -2,7 +2,7 @@
 
 > Coolify による saika の自動デプロイフロー
 
-最終更新: 2026年9月26日
+最終更新: 2026年9月30日
 
 ---
 
@@ -96,7 +96,6 @@ Coolify の管理画面 **Environment Variables** で設定する。サーバー
 | `DISCORD_TOKEN` | Yes | Discord Developer Portal で取得 |
 | `DISCORD_APP_ID` | Yes | Discord Developer Portal で取得 |
 | `DATABASE_URL` | Yes | マネージド PostgreSQL の接続文字列（例: `postgresql://saika_app:****@<db-host>:5432/saika?schema=public`） |
-| `LOCALE` | No | デフォルト: `ja` |
 | `NODE_ENV` | No | デフォルト: `production` |
 | `LOG_LEVEL` | No | デフォルト: `info` |
 | `DISCORD_ERROR_WEBHOOK_URL` | No | エラー通知用 Discord Webhook URL |

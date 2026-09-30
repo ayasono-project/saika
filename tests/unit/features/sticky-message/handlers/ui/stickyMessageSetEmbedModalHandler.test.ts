@@ -10,7 +10,6 @@ const createMock = vi.fn();
 const updateLastMessageIdMock = vi.fn();
 const buildPayloadMock = vi.fn(() => ({ embeds: [] }));
 const parseColorStrMock = vi.fn(() => 0x008969);
-const tGuildMock = vi.fn(async (_guildId: string, key: string) => `[${key}]`);
 const loggerMock = { error: vi.fn() };
 
 vi.mock("@/bot/services/botCompositionRoot", () => ({
@@ -38,16 +37,6 @@ vi.mock("@/shared/locale/localeManager", () => ({
     const m = params ? `${messageKey}:${JSON.stringify(params)}` : messageKey;
     return sub ? `[${p}:${sub}] ${m}` : `[${p}] ${m}`;
   },
-  logCommand: (
-    commandName: string,
-    messageKey: string,
-    params?: Record<string, unknown>,
-  ) => {
-    const m = params ? `${messageKey}:${JSON.stringify(params)}` : messageKey;
-    return `[${commandName}] ${m}`;
-  },
-  tGuild: tGuildMock,
-  tDefault: vi.fn((key: string) => key),
   tInteraction: (...args: unknown[]) => args[1],
 }));
 vi.mock("@/shared/utils/logger", () => ({ logger: loggerMock }));

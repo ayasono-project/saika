@@ -40,17 +40,6 @@ vi.mock("@/shared/locale/localeManager", () => ({
     const m = params ? `${messageKey}:${JSON.stringify(params)}` : messageKey;
     return sub ? `[${p}:${sub}] ${m}` : `[${p}] ${m}`;
   },
-  logCommand: (
-    commandName: string,
-    messageKey: string,
-    params?: Record<string, unknown>,
-  ) => {
-    const m = params ? `${messageKey}:${JSON.stringify(params)}` : messageKey;
-    return `[${commandName}] ${m}`;
-  },
-  tDefault: vi.fn((key: string, params?: Record<string, unknown>) =>
-    params ? `${key}:${JSON.stringify(params)}` : key,
-  ),
   // 表示した件数を検証できるよう、パラメータも文字列に含める
   tInteraction: (
     _locale: string,
@@ -101,7 +90,7 @@ describe("bot/features/message-delete/commands/usecases/runDeleteExecution", () 
 
     deleteScannedMessagesMock.mockResolvedValue({
       totalDeleted: 5,
-      channelBreakdown: { "ch-1": { name: "general", count: 5 } },
+      channelBreakdown: { "ch-1": { count: 5 } },
     });
 
     const interaction = makeInteraction();
@@ -109,7 +98,7 @@ describe("bot/features/message-delete/commands/usecases/runDeleteExecution", () 
 
     expect(deleteScannedMessagesMock).toHaveBeenCalled();
     expect(buildCompletionEmbedMock).toHaveBeenCalledWith("ja", 5, {
-      "ch-1": { name: "general", count: 5 },
+      "ch-1": { count: 5 },
     });
     expect(interaction.editReply).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -187,9 +176,7 @@ describe("bot/features/message-delete/commands/usecases/runDeleteExecution", () 
           await onProgress({
             totalDeleted: 2,
             total: 10,
-            channelStatuses: [
-              { channelId: "ch-1", name: "general", deleted: 2, total: 10 },
-            ],
+            channelStatuses: [{ channelId: "ch-1", deleted: 2, total: 10 }],
           });
         }
         // signal.abort() が呼ばれるまで待機（setTimeout の発火をシミュレート）
@@ -198,7 +185,7 @@ describe("bot/features/message-delete/commands/usecases/runDeleteExecution", () 
         if (signal?.aborted) {
           return {
             totalDeleted: 3,
-            channelBreakdown: { "ch-1": { name: "general", count: 3 } },
+            channelBreakdown: { "ch-1": { count: 3 } },
           };
         }
         return { totalDeleted: 10, channelBreakdown: {} };
@@ -234,9 +221,7 @@ describe("bot/features/message-delete/commands/usecases/runDeleteExecution", () 
     const progress = {
       totalDeleted: 2,
       total: 5,
-      channelStatuses: [
-        { channelId: "ch-1", name: "general", deleted: 2, total: 5 },
-      ],
+      channelStatuses: [{ channelId: "ch-1", deleted: 2, total: 5 }],
     };
     deleteScannedMessagesMock.mockImplementation(
       async (
@@ -303,7 +288,7 @@ describe("bot/features/message-delete/commands/usecases/runDeleteExecution", () 
 
     deleteScannedMessagesMock.mockResolvedValue({
       totalDeleted: 4,
-      channelBreakdown: { "ch-1": { name: "general", count: 4 } },
+      channelBreakdown: { "ch-1": { count: 4 } },
     });
 
     const interaction = makeInteraction();
@@ -325,7 +310,7 @@ describe("bot/features/message-delete/commands/usecases/runDeleteExecution", () 
 
     deleteScannedMessagesMock.mockResolvedValue({
       totalDeleted: 4,
-      channelBreakdown: { "ch-1": { name: "general", count: 4 } },
+      channelBreakdown: { "ch-1": { count: 4 } },
     });
     buildCompletionEmbedMock.mockImplementationOnce(() => {
       throw new Error("Received one or more errors");

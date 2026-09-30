@@ -50,12 +50,10 @@ describe("Environment Configuration", () => {
       process.env.DISCORD_TOKEN = "a".repeat(50);
       process.env.DISCORD_APP_ID = "1234567890";
       // NODE_ENVはsetup.tsで"test"に設定されている
-      delete process.env.LOCALE;
 
       const { env } = await import("@/shared/config/env");
 
       expect(env.NODE_ENV).toBe("test"); // setup.tsで設定済み
-      expect(env.LOCALE).toBe("ja");
       // LOG_LEVELはenv.tsのデフォルト値が適用される
       expect(["info", "error"]).toContain(env.LOG_LEVEL);
     });
@@ -161,18 +159,6 @@ describe("Environment Configuration", () => {
       const { env } = await import("@/shared/config/env");
 
       expect(env.DATABASE_URL).toBe("file:./custom/path/db.sqlite");
-    });
-  });
-
-  describe("Locale Configuration", () => {
-    it("カスタムの LOCALE 値が受け入れられること", async () => {
-      process.env.DISCORD_TOKEN = "a".repeat(50);
-      process.env.DISCORD_APP_ID = "1234567890";
-      process.env.LOCALE = "en";
-
-      const { env } = await import("@/shared/config/env");
-
-      expect(env.LOCALE).toBe("en");
     });
   });
 

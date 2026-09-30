@@ -154,5 +154,3 @@ export const stickyMessageCommand: Command = {
 
   cooldown: 3,
 };
-
-export default stickyMessageCommand;

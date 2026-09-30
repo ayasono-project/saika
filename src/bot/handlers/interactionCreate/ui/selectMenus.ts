@@ -30,13 +30,7 @@ import { ticketViewSelectHandler } from "../../../../features/ticket/handlers/ui
 import { unverifiedKickExemptRemoveSelectHandler } from "../../../../features/unverified-kick/handlers/ui/unverifiedKickExemptRemoveSelectHandler";
 import { vcAutoRecruitAddChannelSelectHandler } from "../../../../features/vc-auto-recruit/handlers/ui/vcAutoRecruitAddChannelSelectHandler";
 import { vcAutoRecruitRemoveChannelSelectHandler } from "../../../../features/vc-auto-recruit/handlers/ui/vcAutoRecruitRemoveChannelSelectHandler";
-import type {
-  RoleSelectHandler,
-  StringSelectHandler,
-  UserSelectHandler,
-} from "./types";
-
-export const userSelectHandlers: UserSelectHandler[] = [];
+import type { RoleSelectHandler, StringSelectHandler } from "./types";
 
 export const roleSelectHandlers: RoleSelectHandler[] = [
   // リアクションロール setup のロール選択を処理

@@ -2,16 +2,12 @@
 
 import type { PrismaClient } from "@prisma/client";
 import {
-  BUMP_REMINDER_MENTION_CLEAR_RESULT,
   BUMP_REMINDER_MENTION_ROLE_RESULT,
   BUMP_REMINDER_MENTION_USER_ADD_RESULT,
   BUMP_REMINDER_MENTION_USER_REMOVE_RESULT,
-  BUMP_REMINDER_MENTION_USERS_CLEAR_RESULT,
-  type BumpReminderMentionClearResult,
   type BumpReminderMentionRoleResult,
   type BumpReminderMentionUserAddResult,
   type BumpReminderMentionUserRemoveResult,
-  type BumpReminderMentionUsersClearResult,
   type BumpReminderSettings,
   type IBumpReminderSettingsRepository,
 } from "../../shared/database/types";
@@ -151,52 +147,6 @@ export class BumpReminderSettingsRepository
       },
     });
     return BUMP_REMINDER_MENTION_USER_REMOVE_RESULT.REMOVED;
-  }
-
-  async clearBumpReminderMentionUsers(
-    guildId: string,
-  ): Promise<BumpReminderMentionUsersClearResult> {
-    const record = await this.prisma.guildBumpReminderSettings.findUnique({
-      where: { guildId },
-      select: { mentionUserIds: true },
-    });
-    if (!record) {
-      return BUMP_REMINDER_MENTION_USERS_CLEAR_RESULT.NOT_CONFIGURED;
-    }
-
-    const mentionUserIds = record.mentionUserIds as string[];
-    if (mentionUserIds.length === 0) {
-      return BUMP_REMINDER_MENTION_USERS_CLEAR_RESULT.ALREADY_EMPTY;
-    }
-
-    await this.prisma.guildBumpReminderSettings.update({
-      where: { guildId },
-      data: { mentionUserIds: [] },
-    });
-    return BUMP_REMINDER_MENTION_USERS_CLEAR_RESULT.CLEARED;
-  }
-
-  async clearBumpReminderMentions(
-    guildId: string,
-  ): Promise<BumpReminderMentionClearResult> {
-    const record = await this.prisma.guildBumpReminderSettings.findUnique({
-      where: { guildId },
-      select: { mentionRoleId: true, mentionUserIds: true },
-    });
-    if (!record) {
-      return BUMP_REMINDER_MENTION_CLEAR_RESULT.NOT_CONFIGURED;
-    }
-
-    const mentionUserIds = record.mentionUserIds as string[];
-    if (!record.mentionRoleId && mentionUserIds.length === 0) {
-      return BUMP_REMINDER_MENTION_CLEAR_RESULT.ALREADY_CLEARED;
-    }
-
-    await this.prisma.guildBumpReminderSettings.update({
-      where: { guildId },
-      data: { mentionRoleId: null, mentionUserIds: [] },
-    });
-    return BUMP_REMINDER_MENTION_CLEAR_RESULT.CLEARED;
   }
 }
 

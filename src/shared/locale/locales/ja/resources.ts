@@ -54,5 +54,3 @@ export const ja: {
   ticket,
   guildSettings,
 };
-
-export type JapaneseTranslations = typeof ja;

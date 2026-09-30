@@ -2,8 +2,6 @@ import { ChannelType, MessageFlags } from "discord.js";
 
 const findByChannelMock = vi.fn();
 const showModalMock = vi.fn().mockResolvedValue(undefined);
-const tGuildMock = vi.fn(async (_guildId: string, key: string) => `[${key}]`);
-const tDefaultMock = vi.fn((_key: string) => "mock text");
 
 vi.mock("@/bot/services/botCompositionRoot", () => ({
   getBotStickyMessageSettingsService: vi.fn(() => ({
@@ -11,26 +9,6 @@ vi.mock("@/bot/services/botCompositionRoot", () => ({
   })),
 }));
 vi.mock("@/shared/locale/localeManager", () => ({
-  logPrefixed: (
-    prefixKey: string,
-    messageKey: string,
-    params?: Record<string, unknown>,
-    sub?: string,
-  ) => {
-    const p = `${prefixKey}`;
-    const m = params ? `${messageKey}:${JSON.stringify(params)}` : messageKey;
-    return sub ? `[${p}:${sub}] ${m}` : `[${p}] ${m}`;
-  },
-  logCommand: (
-    commandName: string,
-    messageKey: string,
-    params?: Record<string, unknown>,
-  ) => {
-    const m = params ? `${messageKey}:${JSON.stringify(params)}` : messageKey;
-    return `[${commandName}] ${m}`;
-  },
-  tGuild: tGuildMock,
-  tDefault: tDefaultMock,
   tInteraction: (_locale: string, _key: string) => "mock text",
 }));
 vi.mock("@/bot/utils/messageResponse", () => ({

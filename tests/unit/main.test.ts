@@ -72,12 +72,6 @@ const mutableMocks = vi.hoisted(() => ({
 
 // vi.resetModules()後もコンストラクタとして動作するよう、
 // アロー関数でなくfunction式を使ってvi.fn()に渡す
-vi.mock("@prisma/adapter-libsql", () => ({
-  PrismaLibSql: vi.fn(function (this: unknown) {
-    return {};
-  }),
-}));
-
 vi.mock("@prisma/client", () => ({
   PrismaClient: vi.fn(function (this: unknown) {
     return mutableMocks.prisma;
@@ -152,10 +146,6 @@ vi.mock("@/shared/utils/logger", () => ({
   get logger() {
     return mutableMocks.logger;
   },
-}));
-
-vi.mock("@/shared/utils/prisma", () => ({
-  setPrismaClient: vi.fn(),
 }));
 
 vi.mock("@/bot/services/botEventRegistration", () => ({

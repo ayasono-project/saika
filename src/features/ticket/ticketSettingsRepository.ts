@@ -87,17 +87,6 @@ export class TicketSettingsRepository
     );
   }
 
-  async deleteAllByGuild(guildId: string): Promise<number> {
-    const result = await executeWithDatabaseError(
-      () =>
-        this.prisma.guildTicketSettings.deleteMany({
-          where: { guildId },
-        }),
-      tDefault("ticket:log.database_config_delete_all_failed", { guildId }),
-    );
-    return result.count;
-  }
-
   async incrementCounter(guildId: string, categoryId: string): Promise<number> {
     const updated = await executeWithDatabaseError(
       () =>

@@ -9,11 +9,8 @@ import type {
 import { DEFAULT_LOCALE } from "../../shared/locale/i18n";
 import { createRepositoryGetter } from "../../shared/utils/serviceFactory";
 import {
-  deleteGuildSettingsUsecase,
-  existsGuildSettingsUsecase,
   getGuildLocaleUsecase,
   getGuildSettingsUsecase,
-  saveGuildSettingsUsecase,
   updateGuildLocaleUsecase,
   updateGuildSettingsUsecase,
 } from "./usecases/guildSettingsCoreUsecases";
@@ -53,14 +50,6 @@ export class GuildCoreRepository implements IGuildCoreRepository {
   }
 
   /**
-   * ギルド設定を新規保存する
-   * @param config 保存する設定
-   */
-  async saveSettings(config: GuildSettings): Promise<void> {
-    await saveGuildSettingsUsecase(this.getCoreDeps(), config);
-  }
-
-  /**
    * ギルド設定を部分更新する（未作成なら作成する）
    * @param guildId 対象ギルドID
    * @param updates 更新差分
@@ -70,23 +59,6 @@ export class GuildCoreRepository implements IGuildCoreRepository {
     updates: Partial<GuildSettings>,
   ): Promise<void> {
     await updateGuildSettingsUsecase(this.getCoreDeps(), guildId, updates);
-  }
-
-  /**
-   * ギルド設定を削除する
-   * @param guildId 対象ギルドID
-   */
-  async deleteSettings(guildId: string): Promise<void> {
-    await deleteGuildSettingsUsecase(this.getCoreDeps(), guildId);
-  }
-
-  /**
-   * ギルド設定が存在するかを確認する
-   * @param guildId 対象ギルドID
-   * @returns 存在する場合 true
-   */
-  async exists(guildId: string): Promise<boolean> {
-    return existsGuildSettingsUsecase(this.getCoreDeps(), guildId);
   }
 
   /**

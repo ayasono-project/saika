@@ -22,24 +22,6 @@ vi.mock("@/bot/services/botCompositionRoot", () => ({
   })),
 }));
 vi.mock("@/shared/locale/localeManager", () => ({
-  logPrefixed: (
-    prefixKey: string,
-    messageKey: string,
-    params?: Record<string, unknown>,
-    sub?: string,
-  ) => {
-    const p = `${prefixKey}`;
-    const m = params ? `${messageKey}:${JSON.stringify(params)}` : messageKey;
-    return sub ? `[${p}:${sub}] ${m}` : `[${p}] ${m}`;
-  },
-  logCommand: (
-    commandName: string,
-    messageKey: string,
-    params?: Record<string, unknown>,
-  ) => {
-    const m = params ? `${messageKey}:${JSON.stringify(params)}` : messageKey;
-    return `[${commandName}] ${m}`;
-  },
   tInteraction: (_locale: string, key: string) =>
     tInteractionMock(_locale, key),
 }));
@@ -49,17 +31,14 @@ vi.mock("@/bot/utils/messageResponse", () => ({
 }));
 
 function createInteractionMock({
-  guildId = "guild-1",
   values = ["ch-1"] as string[],
   messageComponents = [{ type: 3 }],
   updateMock = vi.fn().mockResolvedValue(undefined),
 }: {
-  guildId?: string | null;
   values?: string[];
   messageComponents?: unknown[];
   updateMock?: Mock;
 } = {}): {
-  guildId: string | null;
   locale: string;
   values: string[];
   update: Mock;
@@ -67,7 +46,6 @@ function createInteractionMock({
   _updateMock: Mock;
 } {
   return {
-    guildId,
     locale: "ja",
     values,
     update: updateMock,
@@ -291,26 +269,6 @@ describe("bot/features/sticky-message/handlers/ui/stickyMessageViewSelectHandler
     expect(tGuildKeys).not.toContain(
       "stickyMessage:embed.field.name.embed_color",
     );
-    expect(updateMock).toHaveBeenCalled();
-  });
-
-  it("guildId が null の場合に null 合体演算子で undefined にフォールバックし、クラッシュせず更新できる", async () => {
-    const { stickyMessageViewSelectHandler } = await import(
-      "@/features/sticky-message/handlers/ui/stickyMessageViewSelectHandler"
-    );
-    findByChannelMock.mockResolvedValue({
-      id: "sticky-1",
-      channelId: "ch-1",
-      content: "Sticky content",
-      embedData: null,
-      updatedAt: new Date("2025-01-01T00:00:00Z"),
-      updatedBy: null,
-    });
-    const updateMock = vi.fn().mockResolvedValue(undefined);
-    const interaction = createInteractionMock({ guildId: null, updateMock });
-
-    await stickyMessageViewSelectHandler.execute(interaction as never);
-
     expect(updateMock).toHaveBeenCalled();
   });
 });

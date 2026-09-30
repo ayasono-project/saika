@@ -17,7 +17,6 @@ describe("shared/errors/processErrorHandler", () => {
     vi.clearAllMocks();
 
     vi.doMock("@/shared/locale/localeManager", () => ({
-      tDefault: tDefaultMock,
       logPrefixed: (
         prefixKey: string,
         messageKey: string,
@@ -29,16 +28,6 @@ describe("shared/errors/processErrorHandler", () => {
           ? tDefaultMock(messageKey, params as { signal?: string })
           : tDefaultMock(messageKey);
         return sub ? `[${p}:${sub}] ${m}` : `[${p}] ${m}`;
-      },
-      logCommand: (
-        commandName: string,
-        messageKey: string,
-        params?: Record<string, unknown>,
-      ) => {
-        const m = params
-          ? tDefaultMock(messageKey, params as { signal?: string })
-          : tDefaultMock(messageKey);
-        return `[${commandName}] ${m}`;
       },
     }));
     vi.doMock("@/shared/utils/logger", () => ({
@@ -357,7 +346,6 @@ describe("shared/errors/processErrorHandler", () => {
     vi.resetModules();
     vi.clearAllMocks();
     vi.doMock("@/shared/locale/localeManager", () => ({
-      tDefault: tDefaultMock,
       logPrefixed: (
         prefixKey: string,
         messageKey: string,
@@ -369,16 +357,6 @@ describe("shared/errors/processErrorHandler", () => {
           ? tDefaultMock(messageKey, params as { signal?: string })
           : tDefaultMock(messageKey);
         return sub ? `[${p}:${sub}] ${m}` : `[${p}] ${m}`;
-      },
-      logCommand: (
-        commandName: string,
-        messageKey: string,
-        params?: Record<string, unknown>,
-      ) => {
-        const m = params
-          ? tDefaultMock(messageKey, params as { signal?: string })
-          : tDefaultMock(messageKey);
-        return `[${commandName}] ${m}`;
       },
     }));
     vi.doMock("@/shared/utils/logger", () => ({

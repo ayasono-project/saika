@@ -26,7 +26,6 @@ export type Env = {
   DISCORD_APP_ID: string;
   DISCORD_GUILD_ID?: string | undefined;
   DISCORD_ERROR_WEBHOOK_URL?: string | undefined;
-  LOCALE: string;
   DATABASE_URL: string;
   LOG_LEVEL: "error" | "warn" | "info" | "http" | "verbose" | "debug" | "silly";
   USER_MANUAL_URL?: string | undefined;
@@ -74,9 +73,6 @@ export const envSchema: z.ZodType<Env> = z.object({
   DISCORD_APP_ID: z.string().min(10, "DISCORD_APP_ID is not configured"),
   DISCORD_GUILD_ID: z.string().optional(), // 開発用：設定するとギルドコマンドとして即座に登録
   DISCORD_ERROR_WEBHOOK_URL: z.string().optional(), // エラー通知用 Discord Webhook URL（任意）
-
-  // ロケール
-  LOCALE: z.string().default("ja"),
 
   // データベース
   DATABASE_URL: z.string().default("file:./storage/db.sqlite"),

@@ -2,8 +2,6 @@ import type { ChatInputCommandInteraction } from "discord.js";
 import { PermissionFlagsBits } from "discord.js";
 import type { Mock } from "vitest";
 
-const tDefaultMock = vi.hoisted(() => vi.fn((key: string) => `default:${key}`));
-
 vi.mock("@/shared/locale/commandLocalizations", () => ({
   getCommandLocalizations: () => ({
     base: "desc",
@@ -20,9 +18,6 @@ vi.mock("@/shared/locale/commandLocalizations", () => ({
 
 vi.mock("@/shared/locale/localeManager", () => ({
   logPrefixed: vi.fn((...args: unknown[]) => String(args[1])),
-  logCommand: vi.fn((...args: unknown[]) => String(args[1])),
-  tDefault: tDefaultMock,
-  tGuild: vi.fn(),
   tInteraction: (...args: unknown[]) => args[1],
   localeManager: { invalidateLocaleCache: vi.fn() },
 }));
@@ -41,26 +36,6 @@ vi.mock("@/bot/services/botCompositionRoot", () => ({
     resetGuildSettings: resetGuildSettingsMock,
     deleteAllSettings: deleteAllConfigMock,
   }),
-  getBotBumpReminderSettingsService: () => ({
-    getBumpReminderSettings: vi.fn().mockResolvedValue(null),
-  }),
-  getBotVacSettingsService: () => ({
-    getVacSettingsOrDefault: vi.fn().mockResolvedValue({
-      enabled: false,
-      triggerChannelIds: [],
-      createdChannels: [],
-    }),
-  }),
-  getBotStickyMessageSettingsService: () => ({
-    findAllByGuild: vi.fn().mockResolvedValue([]),
-  }),
-  getBotMemberLogSettingsService: () => ({
-    getMemberLogSettings: vi.fn().mockResolvedValue(null),
-  }),
-}));
-
-vi.mock("@/features/afk/afkSettingsService", () => ({
-  getAfkSettings: vi.fn().mockResolvedValue(null),
 }));
 
 vi.mock("@/bot/utils/messageResponse", () => ({
@@ -80,21 +55,6 @@ vi.mock("@/bot/utils/messageResponse", () => ({
 
 vi.mock("@/bot/errors/interactionErrorHandler", () => ({
   handleCommandError: vi.fn(),
-}));
-
-vi.mock("@/bot/shared/disableComponentsAfterTimeout", () => ({
-  disableComponentsAfterTimeout: vi.fn(),
-}));
-
-vi.mock("@/bot/shared/pagination", () => ({
-  buildPaginationRow: vi.fn(() => ({ components: [] })),
-  parsePaginationAction: vi.fn(),
-  resolvePageFromAction: vi.fn(),
-  showPaginationJumpModal: vi.fn(),
-}));
-
-vi.mock("@/features/guild-settings/guildCoreRepository", () => ({
-  getGuildCoreRepository: () => ({}),
 }));
 
 import { guildSettingsCommand } from "@/bot/commands/guild-settings";

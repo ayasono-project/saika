@@ -34,15 +34,6 @@ vi.mock("@/shared/locale/localeManager", () => ({
     const m = params ? `${messageKey}:${JSON.stringify(params)}` : messageKey;
     return sub ? `[${p}:${sub}] ${m}` : `[${p}] ${m}`;
   },
-  logCommand: (
-    commandName: string,
-    messageKey: string,
-    params?: Record<string, unknown>,
-  ) => {
-    const m = params ? `${messageKey}:${JSON.stringify(params)}` : messageKey;
-    return `[${commandName}] ${m}`;
-  },
-  tDefault: (key: string) => `default:${key}`,
   tInteraction: vi.fn((_locale: string, key: string) => key),
 }));
 
@@ -90,7 +81,6 @@ function createInteraction() {
     reply: vi.fn().mockResolvedValue(undefined),
     setChannelMock,
     afkChannel,
-    sourceChannel,
   };
 }
 

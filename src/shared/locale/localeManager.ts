@@ -217,13 +217,6 @@ export class LocaleManager {
   }
 
   /**
-   * 対応言語一覧を取得
-   */
-  getSupportedLocales(): readonly SupportedLocale[] {
-    return SUPPORTED_LOCALES;
-  }
-
-  /**
    * 言語が対応しているか確認
    */
   isSupported(locale: string): boolean {

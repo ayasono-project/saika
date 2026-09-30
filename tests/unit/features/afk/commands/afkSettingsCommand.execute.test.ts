@@ -5,8 +5,6 @@ import { executeAfkSettingsCommand } from "@/features/afk/commands/afkSettingsCo
 const setAfkChannelMock = vi.fn();
 const getAfkSettingsMock = vi.fn();
 const saveAfkSettingsMock = vi.fn();
-const tGuildMock = vi.fn();
-const tDefaultMock = vi.fn((key: string) => `default:${key}`);
 const createSuccessEmbedMock = vi.fn((description: string) => ({
   description,
   kind: "success",
@@ -14,10 +12,6 @@ const createSuccessEmbedMock = vi.fn((description: string) => ({
 const createInfoEmbedMock = vi.fn((description: string) => ({
   description,
   kind: "info",
-}));
-const createWarningEmbedMock = vi.fn((description: string) => ({
-  description,
-  kind: "warning",
 }));
 
 vi.mock("@/features/afk/afkSettingsDefaults", () => ({
@@ -44,17 +38,6 @@ vi.mock("@/shared/locale/localeManager", () => ({
     const m = params ? `${messageKey}:${JSON.stringify(params)}` : messageKey;
     return sub ? `[${p}:${sub}] ${m}` : `[${p}] ${m}`;
   },
-  logCommand: (
-    commandName: string,
-    messageKey: string,
-    params?: Record<string, unknown>,
-  ) => {
-    const m = params ? `${messageKey}:${JSON.stringify(params)}` : messageKey;
-    return `[${commandName}] ${m}`;
-  },
-  tDefault: (key: string) => tDefaultMock(key),
-  tGuild: (guildId: string, key: string, params?: Record<string, unknown>) =>
-    tGuildMock(guildId, key, params),
   tInteraction: vi.fn((_locale: string, key: string) => key),
 }));
 
@@ -68,8 +51,6 @@ vi.mock("@/bot/utils/messageResponse", () => ({
   createSuccessEmbed: (description: string) =>
     createSuccessEmbedMock(description),
   createInfoEmbed: (description: string) => createInfoEmbedMock(description),
-  createWarningEmbed: (description: string) =>
-    createWarningEmbedMock(description),
 }));
 
 function createInteraction(subcommand: string) {

@@ -103,5 +103,3 @@ export const memberLog = {
   "log.config_reset": "設定リセット GuildId: {{guildId}}",
   "log.config_leave_message_cleared": "退出メッセージ削除 GuildId: {{guildId}}",
 } as const;
-
-export type MemberLogTranslations = typeof memberLog;

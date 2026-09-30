@@ -19,7 +19,6 @@ vi.mock("@/shared/locale/localeManager", () => ({
 // ギルドエラーチャンネル通知（動的 import される）をモック
 vi.mock("@/bot/shared/errorChannelNotifier", () => ({
   notifyWarnChannel: notifyWarnMock,
-  notifyErrorChannel: vi.fn(),
 }));
 
 import { deletePanelMessage } from "@/api/features/reactionRoleResource";

@@ -15,9 +15,6 @@ const USER_ID = "u1";
 function fakeGuild(id: string) {
   return {
     id,
-    name: "Bot Guild",
-    iconURL: () => null,
-    memberCount: 5,
     channels: {
       cache: new Map([
         ["c1", { id: "c1", name: "general", type: ChannelType.GuildText }],
@@ -57,9 +54,6 @@ async function buildApp(client: BotClient): Promise<FastifyInstance> {
   app.decorate("authenticate", async (request) => {
     request.authUser = {
       discordUserId: USER_ID,
-      username: "u",
-      globalName: null,
-      avatar: null,
       guilds: ["g1"],
     };
   });

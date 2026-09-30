@@ -9,7 +9,6 @@ const mocks = vi.hoisted(() => ({
   getWarnedMap: vi.fn(),
   recordWarned: vi.fn(),
   deleteWarned: vi.fn(),
-  deleteAllByGuild: vi.fn(),
   env: {
     UNVERIFIED_KICK_DRY_RUN: false,
     UNVERIFIED_KICK_CRON_OVERRIDE: undefined as string | undefined,
@@ -29,7 +28,6 @@ vi.mock("@/bot/services/botCompositionRoot", () => ({
     getWarnedMap: mocks.getWarnedMap,
     recordWarned: mocks.recordWarned,
     deleteWarned: mocks.deleteWarned,
-    deleteAllByGuild: mocks.deleteAllByGuild,
   }),
 }));
 vi.mock("@/bot/shared/notificationSender", () => ({
@@ -124,7 +122,6 @@ function fakeGuild(
         ),
       ),
     },
-    _channel: channel,
   };
 }
 
@@ -159,11 +156,10 @@ describe("unverified-kick/runner", () => {
     mocks.env.UNVERIFIED_KICK_MOCK_MEMBERS = undefined;
     mocks.disableInvalid.mockResolvedValue(undefined);
     mocks.updateLastRunDate.mockResolvedValue(undefined);
-    mocks.sendNotification.mockResolvedValue({ firstMessageSent: true });
+    mocks.sendNotification.mockResolvedValue(undefined);
     mocks.getWarnedMap.mockResolvedValue(new Map());
     mocks.recordWarned.mockResolvedValue(undefined);
     mocks.deleteWarned.mockResolvedValue(undefined);
-    mocks.deleteAllByGuild.mockResolvedValue(undefined);
   });
 
   it("認証ロール未設定なら自動無効化してキックしない", async () => {

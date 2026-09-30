@@ -30,7 +30,6 @@ export interface IBumpReminderRepository {
     panelMessageId?: string,
     serviceName?: string,
   ): Promise<BumpReminder>;
-  findById(id: string): Promise<BumpReminder | null>;
   findPendingByGuildAndService(
     guildId: string,
     serviceName: string,
@@ -39,8 +38,6 @@ export interface IBumpReminderRepository {
   findPendingByGuild(guildId: string): Promise<BumpReminder[]>;
   findAllPending(): Promise<BumpReminder[]>;
   updateStatus(id: string, status: BumpReminderStatus): Promise<void>;
-  delete(id: string): Promise<void>;
   cancelByGuild(guildId: string): Promise<void>;
   cancelByGuildAndChannel(guildId: string, channelId: string): Promise<void>;
-  cleanupOld(daysOld?: number): Promise<number>;
 }

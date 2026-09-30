@@ -52,29 +52,6 @@ import { localeManager } from "../../shared/locale/localeManager";
 import { createBotServiceAccessor } from "../../shared/utils/serviceFactory";
 
 // ---------------------------------------------------------------------------
-// BotServices interface
-// ---------------------------------------------------------------------------
-
-export interface BotServices {
-  guildSettingsService: GuildSettingsService;
-  guildRegistryRepository: IGuildRegistryRepository;
-  bumpReminderSettingsService: BumpReminderSettingsService;
-  bumpReminderRepository: BumpReminderRepositoryType;
-  bumpReminderManager: BumpReminderManager;
-  vacSettingsService: VacSettingsService;
-  vacService: VacService;
-  vcAutoRecruitSettingsService: VcAutoRecruitSettingsService;
-  vcAutoRecruitService: VcAutoRecruitService;
-  stickyMessageSettingsService: StickyMessageSettingsService;
-  stickyMessageResendService: StickyMessageResendService;
-  memberLogSettingsService: MemberLogSettingsService;
-  unverifiedKickSettingsService: UnverifiedKickSettingsService;
-  ticketSettingsService: TicketSettingsService;
-  ticketRepository: ITicketRepository;
-  reactionRolePanelSettingsService: ReactionRolePanelSettingsService;
-}
-
-// ---------------------------------------------------------------------------
 // Module-level singletons
 // ---------------------------------------------------------------------------
 
@@ -231,9 +208,7 @@ export const setBotTicketRepository: (value: ITicketRepository) => void =
 /**
  * Botで利用する主要依存を起動時に初期化する
  */
-export function initializeBotCompositionRoot(
-  prisma: PrismaClient,
-): BotServices {
+export function initializeBotCompositionRoot(prisma: PrismaClient): void {
   // スタンドアロンリポジトリ群
   const guildCoreRepo = getGuildCoreRepository(prisma);
   const guildRegistryRepo = getGuildRegistryRepository(prisma);
@@ -322,23 +297,4 @@ export function initializeBotCompositionRoot(
   const reactionRolePanelSettingsService =
     createReactionRolePanelSettingsService(reactionRolePanelRepository);
   setBotReactionRolePanelSettingsService(reactionRolePanelSettingsService);
-
-  return {
-    guildSettingsService,
-    guildRegistryRepository: guildRegistryRepo,
-    bumpReminderSettingsService,
-    bumpReminderRepository,
-    bumpReminderManager,
-    vacSettingsService,
-    vacService,
-    vcAutoRecruitSettingsService,
-    vcAutoRecruitService,
-    stickyMessageSettingsService,
-    stickyMessageResendService,
-    memberLogSettingsService,
-    unverifiedKickSettingsService,
-    ticketSettingsService,
-    ticketRepository,
-    reactionRolePanelSettingsService,
-  };
 }

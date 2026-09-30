@@ -7,7 +7,6 @@ const buildPayloadMock = vi.fn(() => ({ embeds: [{ description: "sticky" }] }));
 const parseColorStrMock = vi.fn((v: string | null) =>
   v === "#ff0000" ? 0xff0000 : undefined,
 );
-const tGuildMock = vi.fn(async (_guildId: string, key: string) => `[${key}]`);
 const loggerMock = { error: vi.fn() };
 
 vi.mock("@/bot/services/botCompositionRoot", () => ({
@@ -35,16 +34,6 @@ vi.mock("@/shared/locale/localeManager", () => ({
     const m = params ? `${messageKey}:${JSON.stringify(params)}` : messageKey;
     return sub ? `[${p}:${sub}] ${m}` : `[${p}] ${m}`;
   },
-  logCommand: (
-    commandName: string,
-    messageKey: string,
-    params?: Record<string, unknown>,
-  ) => {
-    const m = params ? `${messageKey}:${JSON.stringify(params)}` : messageKey;
-    return `[${commandName}] ${m}`;
-  },
-  tGuild: tGuildMock,
-  tDefault: vi.fn((key: string) => key),
   tInteraction: (...args: unknown[]) => args[1],
 }));
 vi.mock("@/shared/utils/logger", () => ({ logger: loggerMock }));
@@ -70,7 +59,6 @@ function createInteractionMock({
   embedDescription?: string;
   embedColor?: string;
   channelInCache?: boolean;
-  lastMessageId?: string | null;
   sendResult?: unknown;
   fetchSuccess?: boolean;
 } = {}) {
@@ -295,10 +283,7 @@ describe("bot/features/sticky-message/handlers/ui/stickyMessageUpdateEmbedModalH
       lastMessageId: null,
     });
     updateContentMock.mockRejectedValue(new Error("DB error"));
-    const interaction = createInteractionMock({
-      channelInCache: false,
-      lastMessageId: null,
-    });
+    const interaction = createInteractionMock({ channelInCache: false });
 
     await expect(
       stickyMessageUpdateEmbedModalHandler.execute(interaction as never),

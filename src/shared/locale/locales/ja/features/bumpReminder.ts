@@ -122,7 +122,6 @@ export const bumpReminder = {
     "Bumpリマインダーを作成 Id: {{id}} GuildId: {{guildId}}",
   "log.database_create_failed":
     "Bumpリマインダー作成に失敗 GuildId: {{guildId}}",
-  "log.database_find_failed": "Bumpリマインダー取得に失敗 Id: {{id}}",
   "log.database_find_pending_failed":
     "保留中Bumpリマインダーの取得に失敗 GuildId: {{guildId}} Service: {{serviceName}}",
   "log.database_find_pending_by_guild_failed":
@@ -131,17 +130,10 @@ export const bumpReminder = {
   "log.database_status_updated":
     "Bumpリマインダーのステータスを更新 Id: {{id}} Status: {{status}}",
   "log.database_update_failed": "Bumpリマインダー更新に失敗 Id: {{id}}",
-  "log.database_deleted": "Bumpリマインダーを削除 Id: {{id}}",
-  "log.database_delete_failed": "Bumpリマインダー削除に失敗 Id: {{id}}",
   "log.database_cancelled_by_guild":
     "保留中Bumpリマインダーをキャンセル GuildId: {{guildId}}",
   "log.database_cancelled_by_channel":
     "保留中Bumpリマインダーをキャンセル GuildId: {{guildId}} ChannelId: {{channelId}}",
   "log.database_cancel_failed":
     "Bumpリマインダーキャンセルに失敗 GuildId: {{guildId}}",
-  "log.database_cleanup_completed":
-    "古いBumpリマインダー {{count}} 件をクリーンアップ ({{days}} 日以前)",
-  "log.database_cleanup_failed": "古いBumpリマインダーのクリーンアップに失敗",
 } as const;
-
-export type BumpReminderTranslations = typeof bumpReminder;

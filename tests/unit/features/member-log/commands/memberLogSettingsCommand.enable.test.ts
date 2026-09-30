@@ -8,9 +8,6 @@ const setEnabledMock = vi.fn();
 const tInteractionMock = vi.fn(
   (_locale: string, key: string, _params?: Record<string, unknown>) => key,
 );
-const tDefaultMock = vi.fn(
-  (key: string, _opts?: Record<string, unknown>) => key,
-);
 const loggerInfoMock = vi.fn();
 const createSuccessEmbedMock = vi.fn(
   (desc: string, opts?: { title?: string }) => ({
@@ -47,21 +44,11 @@ vi.mock("@/shared/locale/localeManager", () => ({
     const m = params ? `${messageKey}:${JSON.stringify(params)}` : messageKey;
     return sub ? `[${p}:${sub}] ${m}` : `[${p}] ${m}`;
   },
-  logCommand: (
-    commandName: string,
-    messageKey: string,
-    params?: Record<string, unknown>,
-  ) => {
-    const m = params ? `${messageKey}:${JSON.stringify(params)}` : messageKey;
-    return `[${commandName}] ${m}`;
-  },
   tInteraction: (
     locale: string,
     key: string,
     params?: Record<string, unknown>,
   ) => tInteractionMock(locale, key, params),
-  tDefault: (key: string, opts?: Record<string, unknown>) =>
-    tDefaultMock(key, opts),
 }));
 
 vi.mock("@/shared/utils/logger", () => ({

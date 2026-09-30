@@ -193,5 +193,3 @@ export const messageDelete = {
   "log.cancel_collector_ended": "Scan cancelCollector ended: reason={{reason}}",
   "log.aborting_non_user_end": "Aborting scan due to non-user end",
 } as const;
-
-export type MessageDeleteTranslations = typeof messageDelete;

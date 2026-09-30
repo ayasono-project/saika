@@ -69,35 +69,29 @@ function groupEmbeds(embeds: EmbedBuilder[]): EmbedBuilder[][] {
   return batches;
 }
 
-export interface SendNotificationResult {
-  /** 最初のメッセージが送信成功したか（warnStage 前進判定に使う） */
-  firstMessageSent: boolean;
-}
-
 /**
  * 通知を送信する（コンテンツ先行 → Embed パック）。
  *
  * 1. `content` を 2000 文字ずつ分割して順番に送信する
  * 2. Embed を最大 10 件・6000 文字でグループ化し、各グループに "(p / M)" フッターを付けて送信する
- * 3. 最初のメッセージ（コンテンツまたは Embed）の送信成功で `firstMessageSent: true` を返す
- *    — 以後のメッセージ送信失敗は非致命的（ログのみ）
+ * 3. 最初のメッセージ（コンテンツまたは Embed）の送信に失敗したらそこで打ち切る
+ *    — 以後のメッセージ送信失敗は非致命的
  *
  * @param send チャンネルへの送信関数
- * @param payload コンテンツ・Embed・allowedMentions
+ * @param payload コンテンツ・Embed
  */
 export async function sendNotification(
   send: (payload: MessageCreateOptions) => Promise<unknown>,
   payload: {
     content?: string;
     embeds: EmbedBuilder[];
-    allowedMentions?: MessageCreateOptions["allowedMentions"];
   },
-): Promise<SendNotificationResult> {
+): Promise<void> {
   const contentChunks = payload.content ? splitContent(payload.content) : [];
   const embedBatches = groupEmbeds(payload.embeds);
 
   if (contentChunks.length === 0 && embedBatches.length === 0) {
-    return { firstMessageSent: false };
+    return;
   }
 
   // 全 Embed にページフッターを付与（メッセージ単位ではなく embed 単位で連番）
@@ -116,11 +110,10 @@ export async function sendNotification(
     try {
       await send({
         content: contentChunks[i],
-        allowedMentions: payload.allowedMentions,
       });
       firstMessageSent = true;
     } catch {
-      if (i === 0) return { firstMessageSent: false };
+      if (i === 0) return;
       // 2枚目以降のコンテンツ送信失敗は非致命的
     }
   }
@@ -130,14 +123,10 @@ export async function sendNotification(
     try {
       await send({
         embeds: embedBatches[i],
-        allowedMentions: payload.allowedMentions,
       });
-      firstMessageSent = true;
     } catch {
-      if (i === 0 && !firstMessageSent) return { firstMessageSent: false };
+      if (i === 0 && !firstMessageSent) return;
       // 2枚目以降の Embed 送信失敗は非致命的
     }
   }
-
-  return { firstMessageSent };
 }

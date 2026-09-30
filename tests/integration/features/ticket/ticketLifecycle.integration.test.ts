@@ -19,14 +19,6 @@ vi.mock("@/shared/locale/localeManager", () => ({
     const m = params ? `${messageKey}:${JSON.stringify(params)}` : messageKey;
     return sub ? `[${p}:${sub}] ${m}` : `[${p}] ${m}`;
   },
-  logCommand: (
-    commandName: string,
-    messageKey: string,
-    params?: Record<string, unknown>,
-  ) => {
-    const m = params ? `${messageKey}:${JSON.stringify(params)}` : messageKey;
-    return `[${commandName}] ${m}`;
-  },
   tDefault: vi.fn((key: string) => key),
   tInteraction: (...args: unknown[]) => args[1],
 }));
@@ -96,16 +88,6 @@ function createInMemoryTicketSettingsRepository(): IGuildTicketSettingsRepositor
     delete: vi.fn(async (guildId, categoryId) => {
       configs.delete(makeKey(guildId, categoryId));
     }),
-    deleteAllByGuild: vi.fn(async (guildId) => {
-      let count = 0;
-      for (const [key, config] of configs.entries()) {
-        if (config.guildId === guildId) {
-          configs.delete(key);
-          count++;
-        }
-      }
-      return count;
-    }),
     incrementCounter: vi.fn(async (guildId, categoryId) => {
       const key = makeKey(guildId, categoryId);
       const existing = configs.get(key);
@@ -138,15 +120,6 @@ function createInMemoryTicketRepository(): ITicketRepository {
           ticket.userId === userId &&
           ticket.status === "open"
         ) {
-          results.push(ticket);
-        }
-      }
-      return results;
-    }),
-    findAllByCategory: vi.fn(async (guildId, categoryId) => {
-      const results: Ticket[] = [];
-      for (const ticket of tickets.values()) {
-        if (ticket.guildId === guildId && ticket.categoryId === categoryId) {
           results.push(ticket);
         }
       }
@@ -207,16 +180,6 @@ function createInMemoryTicketRepository(): ITicketRepository {
       let count = 0;
       for (const [key, ticket] of tickets.entries()) {
         if (ticket.guildId === guildId && ticket.categoryId === categoryId) {
-          tickets.delete(key);
-          count++;
-        }
-      }
-      return count;
-    }),
-    deleteAllByGuild: vi.fn(async (guildId) => {
-      let count = 0;
-      for (const [key, ticket] of tickets.entries()) {
-        if (ticket.guildId === guildId) {
           tickets.delete(key);
           count++;
         }

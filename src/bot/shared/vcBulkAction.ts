@@ -8,7 +8,6 @@ import {
   type ChatInputCommandInteraction,
   type Guild,
   MessageFlags,
-  type VoiceChannel,
 } from "discord.js";
 import { logCommand, tInteraction } from "../../shared/locale/localeManager";
 import { logger } from "../../shared/utils/logger";
@@ -56,7 +55,7 @@ export interface BulkActionSession {
   /** 対象VCチャンネルID */
   sourceChannelId: string;
   /** 移動先VCチャンネルID（AFKチャンネル） */
-  destinationChannelId?: string;
+  destinationChannelId: string;
 }
 
 // コマンド受付（interaction.id）と確認待ちセッションを紐づける短命ストア
@@ -97,15 +96,12 @@ export async function presentBulkConfirm(
       value: formatMentionList(session.locale, memberIds),
       inline: false,
     },
-  ];
-  // 移動系は移動先を確認フィールドに表示する
-  if (session.destinationChannelId) {
-    fields.push({
+    {
       name: tInteraction(session.locale, "afk:bulk-confirm.field.destination"),
       value: `<#${session.destinationChannelId}>`,
       inline: true,
-    });
-  }
+    },
+  ];
 
   const embed = createWarningEmbed(description, { title, fields });
 
@@ -153,15 +149,14 @@ async function executeBulkVcAction(
   const targetUserIds = members.map((m) => m.id);
 
   // 移動先VCを解決する。消えていた場合は全件失敗扱い
-  let destinationChannel: VoiceChannel | null = null;
-  if (session.destinationChannelId) {
-    const dest = await guild.channels
-      .fetch(session.destinationChannelId)
-      .catch(() => null);
-    if (!dest || dest.type !== ChannelType.GuildVoice) {
-      return { targetUserIds, failureUserIds: [...targetUserIds] };
-    }
-    destinationChannel = dest;
+  const destinationChannel = await guild.channels
+    .fetch(session.destinationChannelId)
+    .catch(() => null);
+  if (
+    !destinationChannel ||
+    destinationChannel.type !== ChannelType.GuildVoice
+  ) {
+    return { targetUserIds, failureUserIds: [...targetUserIds] };
   }
 
   const auditReason = resolveAuditReason(session.action, session.locale);
@@ -170,9 +165,7 @@ async function executeBulkVcAction(
   const failureUserIds: string[] = [];
   for (const member of members) {
     try {
-      if (destinationChannel) {
-        await member.voice.setChannel(destinationChannel, auditReason);
-      }
+      await member.voice.setChannel(destinationChannel, auditReason);
     } catch {
       failureUserIds.push(member.id);
     }

@@ -4,7 +4,6 @@ import type { Mock } from "vitest";
 
 const setAfkChannelMock = vi.fn();
 const getAfkSettingsMock = vi.fn();
-const tGuildMock = vi.hoisted(() => vi.fn());
 const tDefaultMock = vi.hoisted(() => vi.fn((key: string) => `default:${key}`));
 const createSuccessEmbedMock = vi.fn(
   (description: string, _options?: unknown) => ({
@@ -57,16 +56,7 @@ vi.mock("@/shared/locale/localeManager", () => ({
     const m = params ? `${messageKey}:${JSON.stringify(params)}` : messageKey;
     return sub ? `[${p}:${sub}] ${m}` : `[${p}] ${m}`;
   },
-  logCommand: (
-    commandName: string,
-    messageKey: string,
-    params?: Record<string, unknown>,
-  ) => {
-    const m = params ? `${messageKey}:${JSON.stringify(params)}` : messageKey;
-    return `[${commandName}] ${m}`;
-  },
   tDefault: tDefaultMock,
-  tGuild: tGuildMock,
   tInteraction: (...args: unknown[]) => args[1],
 }));
 

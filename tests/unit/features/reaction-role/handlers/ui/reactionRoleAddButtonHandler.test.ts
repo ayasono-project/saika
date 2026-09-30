@@ -17,15 +17,6 @@ vi.mock("@/shared/locale/localeManager", () => ({
     const m = params ? `${messageKey}:${params}` : messageKey;
     return sub ? `[${p}:${sub}] ${m}` : `[${p}] ${m}`;
   },
-  logCommand: (
-    commandName: string,
-    messageKey: string,
-    params?: Record<string, unknown>,
-  ) => {
-    const m = params ? `${messageKey}:${params}` : messageKey;
-    return `[${commandName}] ${m}`;
-  },
-  tDefault: vi.fn((key: string) => key),
   tInteraction: (...args: unknown[]) => args[1],
 }));
 vi.mock("@/shared/utils/logger", () => ({
@@ -34,14 +25,6 @@ vi.mock("@/shared/utils/logger", () => ({
 vi.mock("@/bot/utils/messageResponse", () => ({
   createSuccessEmbed: vi.fn(() => ({ type: "success" })),
   createErrorEmbed: vi.fn(() => ({ type: "error" })),
-  createWarningEmbed: vi.fn((_desc: string, _opts?: unknown) => ({
-    type: "warning",
-    addFields: vi.fn().mockReturnThis(),
-  })),
-  createInfoEmbed: vi.fn((_desc: string, _opts?: unknown) => ({
-    type: "info",
-    addFields: vi.fn().mockReturnThis(),
-  })),
 }));
 
 const mockConfigService = {
@@ -243,7 +226,6 @@ describe("bot/features/reaction-role/handlers/ui/reactionRoleAddButtonHandler", 
           {
             "reaction-role:button-label": "テスト",
             "reaction-role:button-emoji": "not-emoji",
-            "reaction-role:button-style": "primary",
           },
         );
 

@@ -124,5 +124,3 @@ export const vcAutoRecruit = {
   "log.channel_delete_failed": "channelDelete同期処理失敗（VC自動募集）",
   "log.startup_cleanup_failed": "起動クリーンアップ失敗（VC自動募集）",
 } as const;
-
-export type VcAutoRecruitTranslations = typeof vcAutoRecruit;

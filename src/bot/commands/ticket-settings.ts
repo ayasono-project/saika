@@ -263,5 +263,3 @@ export const ticketSettingsCommand: Command = {
 
   cooldown: 3,
 };
-
-export default ticketSettingsCommand;

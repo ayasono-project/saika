@@ -105,5 +105,3 @@ export const memberLog = {
   "log.config_leave_message_cleared":
     "leave message cleared GuildId: {{guildId}}",
 } as const;
-
-export type MemberLogTranslations = typeof memberLog;

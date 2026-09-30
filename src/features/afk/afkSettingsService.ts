@@ -10,13 +10,9 @@ import { logger } from "../../shared/utils/logger";
 import { createServiceGetter } from "../../shared/utils/serviceFactory";
 import {
   createDefaultAfkSettings,
-  DEFAULT_AFK_SETTINGS,
   normalizeAfkSettings,
 } from "./afkSettingsDefaults";
 import { getAfkSettingsRepository } from "./afkSettingsRepository";
-
-export type { AfkSettings };
-export { DEFAULT_AFK_SETTINGS };
 
 /**
  * AFK設定の取得・更新を担当するサービス
@@ -128,16 +124,6 @@ export async function getAfkSettings(
 ): Promise<AfkSettings | null> {
   // 関数APIはシングルトンサービスへ委譲
   return getAfkSettingsService().getAfkSettings(guildId);
-}
-
-/**
- * AFK設定を取得（未設定時は初期値を返す）
- */
-export async function getAfkSettingsOrDefault(
-  guildId: string,
-): Promise<AfkSettings> {
-  // 関数APIはシングルトンサービスへ委譲
-  return getAfkSettingsService().getAfkSettingsOrDefault(guildId);
 }
 
 /**

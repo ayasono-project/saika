@@ -89,29 +89,6 @@ export class TicketRepository implements ITicketRepository {
   }
 
   /**
-   * 指定カテゴリの全チケットを番号順で取得する
-   * @param guildId ギルドID
-   * @param categoryId カテゴリID
-   * @returns チケット一覧（番号昇順）
-   */
-  async findAllByCategory(
-    guildId: string,
-    categoryId: string,
-  ): Promise<Ticket[]> {
-    return executeWithDatabaseError(
-      () =>
-        this.prisma.ticket.findMany({
-          where: { guildId, categoryId },
-          orderBy: { ticketNumber: "asc" },
-        }),
-      tDefault("ticket:log.database_ticket_find_all_by_category_failed", {
-        guildId,
-        categoryId,
-      }),
-    );
-  }
-
-  /**
    * 指定カテゴリのオープンチケットを番号順で取得する
    * @param guildId ギルドID
    * @param categoryId カテゴリID
@@ -251,22 +228,6 @@ export class TicketRepository implements ITicketRepository {
         guildId,
         categoryId,
       }),
-    );
-    return result.count;
-  }
-
-  /**
-   * ギルドの全チケットを削除する
-   * @param guildId ギルドID
-   * @returns 削除されたチケット数
-   */
-  async deleteAllByGuild(guildId: string): Promise<number> {
-    const result = await executeWithDatabaseError(
-      () =>
-        this.prisma.ticket.deleteMany({
-          where: { guildId },
-        }),
-      tDefault("ticket:log.database_ticket_delete_all_failed", { guildId }),
     );
     return result.count;
   }

@@ -4,15 +4,7 @@ import type {
   IUnverifiedKickSettingsRepository,
   UnverifiedKickSettings,
 } from "../../shared/database/types";
-import { createServiceGetter } from "../../shared/utils/serviceFactory";
-import {
-  createDefaultUnverifiedKickSettings,
-  DEFAULT_UNVERIFIED_KICK_SETTINGS,
-} from "./unverifiedKickSettingsDefaults";
-import { getUnverifiedKickSettingsRepository } from "./unverifiedKickSettingsRepository";
-
-export type { UnverifiedKickSettings };
-export { DEFAULT_UNVERIFIED_KICK_SETTINGS };
+import { createDefaultUnverifiedKickSettings } from "./unverifiedKickSettingsDefaults";
 
 /**
  * 未承認ユーザー自動キック設定の取得・更新を担当するサービス
@@ -272,13 +264,3 @@ export function createUnverifiedKickSettingsService(
 ): UnverifiedKickSettingsService {
   return new UnverifiedKickSettingsService(repository);
 }
-
-/**
- * 未承認ユーザー自動キック設定サービスのシングルトンを取得する
- */
-export const getUnverifiedKickSettingsService: (
-  repository?: IUnverifiedKickSettingsRepository,
-) => UnverifiedKickSettingsService = createServiceGetter(
-  createUnverifiedKickSettingsService,
-  getUnverifiedKickSettingsRepository,
-);

@@ -21,7 +21,6 @@ function candidate(
   return {
     ageDays: 5,
     remainingDays: 2,
-    hasMarkerRole: false,
     ...over,
   };
 }

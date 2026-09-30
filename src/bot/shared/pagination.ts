@@ -177,10 +177,8 @@ export function resolvePageFromAction(
 export interface SendPaginatedEmbedsOptions {
   /** 最初のメッセージを送信する関数（戻り値の Message にコレクターを張る） */
   send: (payload: {
-    content?: string;
     embeds: EmbedBuilder[];
     components: ActionRowBuilder<ButtonBuilder>[];
-    allowedMentions?: { roles?: string[] };
   }) => Promise<Message>;
   pages: EmbedBuilder[];
   prefix: string;
@@ -188,10 +186,6 @@ export interface SendPaginatedEmbedsOptions {
   timeMs: number;
   /** 操作を許可するユーザー ID（preview 用。未指定なら誰でも操作可） */
   filterUserId?: string;
-  /** 1 ページ目に付与するメッセージ本文（対象ロールメンション等） */
-  content?: string;
-  /** 本文メンションのピング許可対象ロール */
-  allowedMentionRoleIds?: string[];
   /** 初期描画に使用するロケール（コレクター内では interaction.locale で上書き）。省略時は "ja" */
   locale?: string;
 }
@@ -212,12 +206,8 @@ export async function sendPaginatedEmbeds(
     totalPages > 1 ? [buildPaginationRow(prefix, 0, totalPages, locale)] : [];
 
   const message = await send({
-    content: options.content,
     embeds: [pages[0]],
     components,
-    ...(options.allowedMentionRoleIds
-      ? { allowedMentions: { roles: options.allowedMentionRoleIds } }
-      : {}),
   });
 
   if (totalPages <= 1) return message;

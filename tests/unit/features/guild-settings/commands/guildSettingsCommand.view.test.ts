@@ -1,12 +1,5 @@
 import type { ChatInputCommandInteraction } from "discord.js";
 
-vi.mock("@/shared/locale/localeManager", () => ({
-  logPrefixed: vi.fn((...args: unknown[]) => String(args[1])),
-  tDefault: vi.fn((key: string) => key),
-  tInteraction: (...args: unknown[]) => args[1],
-  localeManager: { invalidateLocaleCache: vi.fn() },
-}));
-
 const buildGuildSettingsPageMock = vi.fn().mockResolvedValue({ kind: "embed" });
 vi.mock(
   "@/features/guild-settings/commands/guildSettingsCommand.viewPages",

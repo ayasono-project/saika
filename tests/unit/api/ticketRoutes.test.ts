@@ -63,15 +63,7 @@ function makeClient(): BotClient {
 
 async function buildApp(): Promise<FastifyInstance> {
   const app = Fastify({ logger: false });
-  app.decorate("authenticate", async (request) => {
-    request.authUser = {
-      discordUserId: "u1",
-      username: "u",
-      globalName: null,
-      avatar: null,
-      guilds: ["g1"],
-    };
-  });
+  app.decorate("authenticate", async () => {});
   app.decorate("requireGuildAccess", async (request) => {
     request.guildId = (request.params as { guildId?: string }).guildId;
   });

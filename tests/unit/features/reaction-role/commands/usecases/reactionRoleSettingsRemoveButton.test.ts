@@ -23,21 +23,11 @@ vi.mock("@/bot/shared/disableComponentsAfterTimeout", () => ({
 }));
 
 vi.mock("@/shared/locale/localeManager", () => ({
-  logPrefixed: (p: string, m: string, params?: Record<string, unknown>) =>
-    params ? `[${p}] ${m}:${JSON.stringify(params)}` : `[${p}] ${m}`,
-  tDefault: vi.fn((key: string) => key),
   tInteraction: (_locale: string, key: string) => key,
 }));
 
-vi.mock("@/shared/utils/logger", () => ({
-  logger: { debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() },
-}));
-
 vi.mock("@/bot/utils/messageResponse", () => ({
-  createSuccessEmbed: vi.fn(() => ({ type: "success" })),
-  createInfoEmbed: vi.fn(() => ({ type: "info" })),
   createErrorEmbed: vi.fn(() => ({ type: "error" })),
-  createWarningEmbed: vi.fn(() => ({ type: "warning" })),
 }));
 
 function createPanel(

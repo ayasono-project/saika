@@ -3,7 +3,7 @@
 > 決定の記録。**何を決めたか・何をやらないと決めたか・何を終えたか**を残す。
 > これからやることは [TODO.md](TODO.md) にある。
 
-最終更新: 2026年9月29日
+最終更新: 2026年9月30日
 
 **ここに書くもの**: 再検討が起きたときに判断を復元できない情報（実測値・却下理由・決定の経緯）。
 **ここに書かないもの**: git log やコードを読めば分かること。
@@ -194,6 +194,20 @@ VAC を残す判断（→「VAC（トリガー VC 方式）は残し、募集は
 ## 完了済み
 
 > 詳細な作業経過は git log を参照。
+
+### どこからも使われていないコードとテストを消した（2026-09-30 develop merge）
+
+本番コード約60か所・テストコード約150か所を消した（279ファイル・約5,300行減）。次のリリース（名前の整理と保守の6件をまとめた1本）に入る。TODO「以前からある残骸の掃除」のうち、どこからも呼ばれていないコード・guild-settings.test.ts の古いモック・interactionErrorHandler.test.ts の死んだ分岐の3件もこの中で済ませた。
+
+- **本番コード**: ファイルごと消したのは `src/shared/utils/prisma.ts`（`setPrismaClient` で書き込むだけで誰も読んでいなかった。実際の受け渡しは composition root への引数）と `src/shared/constants/discord.ts`（`/vc limit` の残骸）。ほかは一度も呼ばれていないメソッド（`deleteAllByGuild` 系・guild-settings の `saveSettings` / `deleteSettings` / `exists`・bump-reminder の `clearAll` / `findById` / `delete` / `cleanupOld` とメンションの一括クリア・`CooldownManager` の reset 系など）、非アクティブキックと `/vc` の残骸（通知送信の戻り値と `allowedMentions`・ページングの未使用オプション・`/afk` 共通ヘルパーの「移動先なし」分岐）、使われていない型・再エクスポート・定数（ロケール各ファイルの型エイリアス30個など）
+- **外から見える口も3つ消した**: sticky の PATCH エンドポイント（ダッシュボードは作成時から一度も呼んでいない）、JWT の `username` / `globalName` / `avatar`（web BFF への移行で読み手がいなくなっていた）、env の `LOCALE`（どこからも読まれていなかった。`.env.example`・`docker-compose.coolify.yml`・DEPLOYMENT.md からも消した。Coolify の Environment Variables に残っていても無害）
+- **テスト**: 上で消したコード専用のテストのほか、テスト対象が読まないモジュールモック23件、モックの使われていないキー105件、起こり得ない入力のテストケースと書き込むだけのフィクスチャ約20件
+- **残したもの（次の掃除で再提案しないこと）**: TODO で使う予定があるもの（`jobScheduler.stopAll`・bump の `cancelByGuild` / `cancelByGuildAndChannel` / `cancelAllForGuild`・`TtlMap.has` / `clear`・JWT の `discordUserId`・未承認キックの廃止変数の案内と開発用モック）、テストが内部状態を確かめる窓口（`CooldownManager.getStats`・`BumpReminderManager.hasReminder`・`JobScheduler.getJobIds` / `getJobCount`）、中では使われていて export が余計なだけのもの（`setBot*` など約20件。使われているコードなので対象外）
+- ⚠️ **静的な走査では見えない使われ方がある。** `tests/unit/bot/{commands,events}/index.test.ts` のモックは、`loadCommands()` / `loadEvents()` がディレクトリを読んで動的 import するので生きている。composition root の `getAfkSettingsRepository(prisma);` も副作用による初期化で、消すと実行時に落ちる
+- vitest.config.ts の除外のうち、消した usecase 2ファイルを指していた2行も消した（もともと移動前の旧パスで効いていなかった）。これに合わせて TODO「カバレッジ設定の実態合わせ」の死んだ除外は6件から5件になった
+- web 側に残る後始末（未対応）: 開発用モック（MSW）の sticky PATCH（`web/src/client/mocks/handlers.ts`）と、`web/src/web/types.ts` のコメント「saika の SessionClaims と同形」
+
+**網羅の根拠**: knip 6.38（テストを入口に含める・含めないの2通り）の候補149件すべてに結論を付けた／knip v6 はクラスのメンバーを見ないので、src のクラス・インターフェース・オブジェクトの1,236メンバーを本番での読み取りと機械的に突き合わせた（洗い出しの取りこぼしは0件）／テストの `vi.mock` は、テスト対象から import でたどれるかで全件を判定した／ロケールは ja 約1,100キーを src と突き合わせた（未使用0件）。候補は12領域に分けて洗い出し、型チェックとテストでは捕まらない点（動的な参照・web からの HTTP 呼び出し・TODO での使用予定・テスト用の差し込み口）に絞って検証した。削除後に同じ走査をやり直し、連鎖で新たに使われなくなったものは0件。テストは 297ファイル・2552件 → 294ファイル・2465件。`pnpm build` と、ビルド成果物の起動・停止も確認した。
 
 ### チケット：Bot を外して入れ直すと、それより前に作ったチケットを Bot が扱えなくなっていた（2026-09-26 完了・本番デプロイ済み）
 

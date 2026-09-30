@@ -5,8 +5,8 @@ import { tInteraction } from "../../shared/locale/localeManager";
 
 /**
  * アクションログが対象とする操作種別。
- * 2026-09-20 の `/vc` 削除で disconnect / move が到達不能になり afk だけが残った。
- * ヘルパーを `/afk` 側へ畳む整理は掃除フェーズで行う（→ TODO「タイマー / スケジューラ実装の整理」の並び）。
+ * 2026-09-20 の `/vc` 削除で disconnect / move が無くなり afk だけが残った。
+ * ヘルパーを `/afk` 側へ畳む作り直しは見送った（→ TODO「タイマー / スケジューラ実装の整理」）。
  */
 export type VcActionType = "afk";
 
@@ -55,7 +55,7 @@ export interface VcActionLogParams {
   /** 一括操作時の失敗ユーザーID一覧 */
   failureUserIds?: string[];
   /** 移動先VCチャンネルID（AFKチャンネル） */
-  destinationChannelId?: string;
+  destinationChannelId: string;
 }
 
 /**
@@ -124,16 +124,12 @@ export function formatActionLog(params: VcActionLogParams): EmbedBuilder {
       value: targetValue,
       inline: true,
     },
-  ];
-
-  // 移動先が解決できている場合のみ移動先フィールドを追加する
-  if (params.destinationChannelId) {
-    fields.push({
+    {
       name: tInteraction(locale, "afk:action-log.field.destination"),
       value: `<#${params.destinationChannelId}>`,
       inline: true,
-    });
-  }
+    },
+  ];
 
   // 一括かつ失敗があった場合のみ失敗内訳フィールドを表示する
   if (isBulk && params.failureUserIds && params.failureUserIds.length > 0) {

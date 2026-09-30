@@ -1,10 +1,8 @@
-// BumpReminderSettingsService のデータ取得・保存・シングルトン管理・トップレベル関数委譲の動作を検証
+// BumpReminderSettingsService のデータ取得・保存・トップレベル関数委譲の動作を検証
 describe("shared/features/bump-reminder/bumpReminderSettingsService", () => {
-  const CLEAR = "CLEAR";
   const ROLE = "ROLE";
   const ADD = "ADD";
   const REMOVE = "REMOVE";
-  const USERS_CLEAR = "USERS_CLEAR";
 
   const createRepositoryMock = () => ({
     getBumpReminderSettings: vi.fn(),
@@ -13,8 +11,6 @@ describe("shared/features/bump-reminder/bumpReminderSettingsService", () => {
     setBumpReminderMentionRole: vi.fn(),
     addBumpReminderMentionUser: vi.fn(),
     removeBumpReminderMentionUser: vi.fn(),
-    clearBumpReminderMentionUsers: vi.fn(),
-    clearBumpReminderMentions: vi.fn(),
   });
 
   // vi.resetModules() で ESM キャッシュを破棄し、各テストで独立したモジュールスコープ・定数マッピングを使用するためのヘルパー
@@ -22,40 +18,25 @@ describe("shared/features/bump-reminder/bumpReminderSettingsService", () => {
     vi.resetModules();
     vi.clearAllMocks();
 
-    const getBumpReminderSettingsRepositoryMock = vi.fn();
     vi.doMock("@/shared/database/types", () => ({
-      BUMP_REMINDER_MENTION_CLEAR_RESULT: CLEAR,
       BUMP_REMINDER_MENTION_ROLE_RESULT: ROLE,
       BUMP_REMINDER_MENTION_USER_ADD_RESULT: ADD,
       BUMP_REMINDER_MENTION_USER_REMOVE_RESULT: REMOVE,
-      BUMP_REMINDER_MENTION_USERS_CLEAR_RESULT: USERS_CLEAR,
     }));
-    vi.doMock(
-      "@/features/bump-reminder/bumpReminderSettingsRepository",
-      () => ({
-        getBumpReminderSettingsRepository:
-          getBumpReminderSettingsRepositoryMock,
-      }),
-    );
 
     const module = await import(
       "@/features/bump-reminder/bumpReminderSettingsService"
     );
 
-    return {
-      module,
-      getBumpReminderSettingsRepositoryMock,
-    };
+    return { module };
   };
 
   it("リマインダー結果定数を再エクスポートすること", async () => {
     const { module } = await loadModule();
 
-    expect(module.BUMP_REMINDER_MENTION_CLEAR_RESULT).toBe(CLEAR);
     expect(module.BUMP_REMINDER_MENTION_ROLE_RESULT).toBe(ROLE);
     expect(module.BUMP_REMINDER_MENTION_USER_ADD_RESULT).toBe(ADD);
     expect(module.BUMP_REMINDER_MENTION_USER_REMOVE_RESULT).toBe(REMOVE);
-    expect(module.BUMP_REMINDER_MENTION_USERS_CLEAR_RESULT).toBe(USERS_CLEAR);
   });
 
   it("repository に設定がない場合は null を返し、ある場合は正規化コピーを返すこと", async () => {
@@ -91,7 +72,7 @@ describe("shared/features/bump-reminder/bumpReminderSettingsService", () => {
     const first = await service.getBumpReminderSettingsOrDefault("guild-1");
     const second = await service.getBumpReminderSettingsOrDefault("guild-1");
 
-    expect(first).toEqual(module.DEFAULT_BUMP_REMINDER_SETTINGS);
+    expect(first).toEqual({ enabled: true, mentionUserIds: [] });
     expect(first.mentionUserIds).toEqual([]);
     expect(first.mentionUserIds).not.toBe(second.mentionUserIds);
   });
@@ -167,41 +148,12 @@ describe("shared/features/bump-reminder/bumpReminderSettingsService", () => {
     await expect(
       service.removeBumpReminderMentionUser("guild-1", "user-2"),
     ).resolves.toBe(REMOVE);
-
-    repository.clearBumpReminderMentionUsers.mockResolvedValue(USERS_CLEAR);
-    await expect(
-      service.clearBumpReminderMentionUsers("guild-1"),
-    ).resolves.toBe(USERS_CLEAR);
-
-    repository.clearBumpReminderMentions.mockResolvedValue(CLEAR);
-    await expect(service.clearBumpReminderMentions("guild-1")).resolves.toBe(
-      CLEAR,
-    );
-  });
-
-  it("同一 repository ではシングルトンを返し、異なる repository では新しいインスタンスを生成すること", async () => {
-    const { module } = await loadModule();
-    const repositoryA = createRepositoryMock();
-    const repositoryB = createRepositoryMock();
-
-    const serviceA1 = module.getBumpReminderSettingsService(
-      repositoryA as never,
-    );
-    const serviceA2 = module.getBumpReminderSettingsService(
-      repositoryA as never,
-    );
-    const serviceB = module.getBumpReminderSettingsService(
-      repositoryB as never,
-    );
-
-    expect(serviceA1).toBe(serviceA2);
-    expect(serviceA1).not.toBe(serviceB);
   });
 
   it("サービスインスタンスの各 API が repository へ委譲すること", async () => {
     const { module } = await loadModule();
     const repository = createRepositoryMock();
-    const service = module.getBumpReminderSettingsService(repository as never);
+    const service = new module.BumpReminderSettingsService(repository as never);
 
     repository.getBumpReminderSettings.mockResolvedValue({
       enabled: true,
@@ -245,15 +197,5 @@ describe("shared/features/bump-reminder/bumpReminderSettingsService", () => {
     await expect(
       service.removeBumpReminderMentionUser("guild-1", "user-2"),
     ).resolves.toBe(REMOVE);
-
-    repository.clearBumpReminderMentionUsers.mockResolvedValue(USERS_CLEAR);
-    await expect(
-      service.clearBumpReminderMentionUsers("guild-1"),
-    ).resolves.toBe(USERS_CLEAR);
-
-    repository.clearBumpReminderMentions.mockResolvedValue(CLEAR);
-    await expect(service.clearBumpReminderMentions("guild-1")).resolves.toBe(
-      CLEAR,
-    );
   });
 });

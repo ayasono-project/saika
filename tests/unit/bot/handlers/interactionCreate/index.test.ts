@@ -4,7 +4,6 @@ const handleAutocompleteMock: Mock = vi.fn();
 const handleButtonMock: Mock = vi.fn();
 const handleChatInputCommandMock: Mock = vi.fn();
 const handleModalSubmitMock: Mock = vi.fn();
-const handleUserSelectMenuMock: Mock = vi.fn();
 const handleRoleSelectMenuMock: Mock = vi.fn();
 const handleStringSelectMenuMock: Mock = vi.fn();
 
@@ -18,19 +17,8 @@ vi.mock("@/bot/handlers/interactionCreate/flow/modal", () => ({
   handleModalSubmit: (...args: unknown[]) => handleModalSubmitMock(...args),
 }));
 
-vi.mock("@/bot/utils/messageResponse", () => ({
-  STATUS_COLORS: {
-    success: 0x57f287,
-    info: 0x3498db,
-    warning: 0xfee75c,
-    error: 0xed4245,
-  },
-}));
-
 vi.mock("@/bot/handlers/interactionCreate/flow/components", () => ({
   handleButton: (...args: unknown[]) => handleButtonMock(...args),
-  handleUserSelectMenu: (...args: unknown[]) =>
-    handleUserSelectMenuMock(...args),
   handleRoleSelectMenu: (...args: unknown[]) =>
     handleRoleSelectMenuMock(...args),
   handleStringSelectMenu: (...args: unknown[]) =>
@@ -55,7 +43,6 @@ describe("bot/handlers/interactionCreate/index", () => {
       isAutocomplete: () => false,
       isModalSubmit: () => false,
       isButton: () => false,
-      isUserSelectMenu: () => false,
       isRoleSelectMenu: () => false,
     };
 
@@ -63,28 +50,6 @@ describe("bot/handlers/interactionCreate/index", () => {
 
     expect(handleChatInputCommandMock).toHaveBeenCalledTimes(1);
     expect(handleAutocompleteMock).not.toHaveBeenCalled();
-  });
-
-  it("ユーザーセレクトメニューが handleUserSelectMenu へルーティングされることを確認", async () => {
-    const { handleInteractionCreate } = await import(
-      "@/bot/handlers/interactionCreate/handleInteractionCreate"
-    );
-
-    const interaction = {
-      client: {},
-      isChatInputCommand: () => false,
-      isAutocomplete: () => false,
-      isModalSubmit: () => false,
-      isButton: () => false,
-      isUserSelectMenu: () => true,
-      isRoleSelectMenu: () => false,
-      isStringSelectMenu: () => false,
-    };
-
-    await handleInteractionCreate(interaction as never);
-
-    expect(handleUserSelectMenuMock).toHaveBeenCalledTimes(1);
-    expect(handleButtonMock).not.toHaveBeenCalled();
   });
 
   it("ストリングセレクトメニューが handleStringSelectMenu へルーティングされることを確認", async () => {
@@ -98,7 +63,6 @@ describe("bot/handlers/interactionCreate/index", () => {
       isAutocomplete: () => false,
       isModalSubmit: () => false,
       isButton: () => false,
-      isUserSelectMenu: () => false,
       isRoleSelectMenu: () => false,
       isStringSelectMenu: () => true,
     };
@@ -106,7 +70,6 @@ describe("bot/handlers/interactionCreate/index", () => {
     await handleInteractionCreate(interaction as never);
 
     expect(handleStringSelectMenuMock).toHaveBeenCalledTimes(1);
-    expect(handleUserSelectMenuMock).not.toHaveBeenCalled();
   });
 
   it("ボタンが handleButton へルーティングされることを確認", async () => {
@@ -120,7 +83,6 @@ describe("bot/handlers/interactionCreate/index", () => {
       isAutocomplete: () => false,
       isModalSubmit: () => false,
       isButton: () => true,
-      isUserSelectMenu: () => false,
       isRoleSelectMenu: () => false,
       isStringSelectMenu: () => false,
     };
@@ -142,7 +104,6 @@ describe("bot/handlers/interactionCreate/index", () => {
       isAutocomplete: () => false,
       isModalSubmit: () => true,
       isButton: () => false,
-      isUserSelectMenu: () => false,
       isRoleSelectMenu: () => false,
       isStringSelectMenu: () => false,
     };
@@ -164,7 +125,6 @@ describe("bot/handlers/interactionCreate/index", () => {
       isAutocomplete: () => true,
       isModalSubmit: () => false,
       isButton: () => false,
-      isUserSelectMenu: () => false,
       isRoleSelectMenu: () => false,
       isStringSelectMenu: () => false,
     };
@@ -186,7 +146,6 @@ describe("bot/handlers/interactionCreate/index", () => {
       isAutocomplete: () => false,
       isModalSubmit: () => false,
       isButton: () => false,
-      isUserSelectMenu: () => false,
       isRoleSelectMenu: () => true,
       isStringSelectMenu: () => false,
     };

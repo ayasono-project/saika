@@ -2,9 +2,6 @@ import { BUMP_SERVICES } from "@/features/bump-reminder/constants/bumpReminderCo
 import { sendBumpReminder } from "@/features/bump-reminder/handlers/usecases/sendBumpReminder";
 
 const getGuildTranslatorMock = vi.fn();
-const tDefaultMock = vi.fn(
-  (key: string, _options?: Record<string, unknown>) => key,
-);
 
 const loggerInfoMock = vi.fn();
 const loggerDebugMock = vi.fn();
@@ -25,17 +22,6 @@ vi.mock("@/shared/locale/localeManager", () => ({
     const m = params ? `${messageKey}:${JSON.stringify(params)}` : messageKey;
     return sub ? `[${p}:${sub}] ${m}` : `[${p}] ${m}`;
   },
-  logCommand: (
-    commandName: string,
-    messageKey: string,
-    params?: Record<string, unknown>,
-  ) => {
-    const m = params ? `${messageKey}:${JSON.stringify(params)}` : messageKey;
-    return `[${commandName}] ${m}`;
-  },
-  tDefault: (key: string, options?: Record<string, unknown>) =>
-    tDefaultMock(key, options),
-  tInteraction: (...args: unknown[]) => args[1],
 }));
 
 vi.mock("@/shared/utils/logger", () => ({

@@ -39,9 +39,6 @@ vi.mock("@/shared/locale/localeManager", () => ({
   tDefault: vi.fn((key: string) => key),
   tInteraction: (...args: unknown[]) => args[1],
 }));
-vi.mock("@/shared/utils/prisma", () => ({
-  getPrismaClient: vi.fn(),
-}));
 vi.mock("@/bot/services/botCompositionRoot", () => ({
   getBotTicketSettingsService: vi.fn(() => ({})),
   getBotTicketRepository: vi.fn(() => ({})),

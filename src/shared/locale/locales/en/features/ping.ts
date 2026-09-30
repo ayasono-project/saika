@@ -9,5 +9,3 @@ export const ping = {
   "user-response.result":
     "📡 API Latency: **{{apiLatency}}ms**\n💓 WebSocket Ping: **{{wsLatency}}ms**",
 } as const;
-
-export type PingTranslations = typeof ping;

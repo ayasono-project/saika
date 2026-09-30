@@ -11,7 +11,6 @@ vi.mock("@/shared/locale/localeManager", () => ({
     const m = params ? `${messageKey}:${JSON.stringify(params)}` : messageKey;
     return sub ? `[${p}:${sub}] ${m}` : `[${p}] ${m}`;
   },
-  tDefault: vi.fn((key: string) => key),
   tInteraction: (
     _locale: string,
     key: string,
@@ -36,8 +35,6 @@ vi.mock("@/bot/services/botCompositionRoot", () => ({
 vi.mock("@/bot/utils/messageResponse", () => ({
   createSuccessEmbed: vi.fn(() => ({ type: "success" })),
   createErrorEmbed: vi.fn(() => ({ type: "error" })),
-  createWarningEmbed: vi.fn(() => ({ type: "warning" })),
-  createInfoEmbed: vi.fn(() => ({ type: "info" })),
 }));
 
 vi.mock("@/features/ticket/services/ticketService", () => ({

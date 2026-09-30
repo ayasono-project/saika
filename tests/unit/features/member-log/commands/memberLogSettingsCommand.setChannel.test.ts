@@ -6,12 +6,6 @@ import { handleMemberLogSettingsSetChannel } from "@/features/member-log/command
 // ---- モック定義 ----
 const ensurePermissionMock = vi.fn();
 const setChannelIdMock = vi.fn();
-const tGuildMock = vi.fn(
-  async (_guildId: string, key: string, _opts?: Record<string, unknown>) => key,
-);
-const tDefaultMock = vi.fn(
-  (key: string, _opts?: Record<string, unknown>) => key,
-);
 const loggerInfoMock = vi.fn();
 const createSuccessEmbedMock = vi.fn(
   (desc: string, opts?: { title?: string }) => ({
@@ -45,19 +39,7 @@ vi.mock("@/shared/locale/localeManager", () => ({
     const m = params ? `${messageKey}:${JSON.stringify(params)}` : messageKey;
     return sub ? `[${p}:${sub}] ${m}` : `[${p}] ${m}`;
   },
-  logCommand: (
-    commandName: string,
-    messageKey: string,
-    params?: Record<string, unknown>,
-  ) => {
-    const m = params ? `${messageKey}:${JSON.stringify(params)}` : messageKey;
-    return `[${commandName}] ${m}`;
-  },
-  tGuild: (guildId: string, key: string, opts?: Record<string, unknown>) =>
-    tGuildMock(guildId, key, opts),
   tInteraction: vi.fn((_locale: string, key: string) => key),
-  tDefault: (key: string, opts?: Record<string, unknown>) =>
-    tDefaultMock(key, opts),
 }));
 
 vi.mock("@/shared/utils/logger", () => ({

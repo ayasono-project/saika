@@ -63,15 +63,6 @@ vi.mock("@/shared/locale/localeManager", () => ({
     const m = params ? `${messageKey}:${JSON.stringify(params)}` : messageKey;
     return sub ? `[${p}:${sub}] ${m}` : `[${p}] ${m}`;
   },
-  logCommand: (
-    commandName: string,
-    messageKey: string,
-    params?: Record<string, unknown>,
-  ) => {
-    const m = params ? `${messageKey}:${JSON.stringify(params)}` : messageKey;
-    return `[${commandName}] ${m}`;
-  },
-  tDefault: vi.fn((key: string) => `t:${key}`),
   tInteraction: (_locale: string, key: string) => `t:${key}`,
 }));
 
@@ -173,12 +164,10 @@ interface InteractionOverrides {
   hasPermission?: boolean;
   botHasPermission?: boolean;
   count?: number | null;
-  userInput?: string | null;
   keyword?: string | null;
   daysOption?: number | null;
   afterStr?: string | null;
   beforeStr?: string | null;
-  channelOption?: object | null;
   editReplies?: ReturnType<typeof vi.fn>;
 }
 
@@ -189,12 +178,10 @@ function createInteraction(overrides: InteractionOverrides = {}) {
     hasPermission = true,
     botHasPermission = true,
     count = null,
-    userInput = null,
     keyword = null,
     daysOption = 7,
     afterStr = null,
     beforeStr = null,
-    channelOption = null,
     editReplies,
   } = overrides;
 
@@ -247,14 +234,9 @@ function createInteraction(overrides: InteractionOverrides = {}) {
         return null;
       }),
       getString: vi.fn((name: string) => {
-        if (name === "user") return userInput;
         if (name === "keyword") return keyword;
         if (name === "after") return afterStr;
         if (name === "before") return beforeStr;
-        return null;
-      }),
-      getChannel: vi.fn((name: string) => {
-        if (name === "channel") return channelOption;
         return null;
       }),
     },
@@ -275,7 +257,6 @@ const mockScannedMessages: ScannedMessageWithChannel[] = [
     authorIsBot: false,
     authorIsMember: true,
     channelId: "channel-1",
-    channelName: "general",
     createdAt: new Date("2024-01-01T00:00:00Z"),
     content: "Hello",
     _channel: {} as never,
@@ -295,7 +276,7 @@ describe("executeMessageDeleteCommand", () => {
     scanMessagesMock.mockResolvedValue(mockScannedMessages);
     deleteScannedMessagesMock.mockResolvedValue({
       totalDeleted: 1,
-      channelBreakdown: { "channel-1": { name: "general", count: 1 } },
+      channelBreakdown: { "channel-1": { count: 1 } },
     });
     // デフォルト: 条件設定フェーズはユーザー/チャンネル未選択で即座に返す
     // scanInteraction は buildTargetChannels / runScanPhase で使用される

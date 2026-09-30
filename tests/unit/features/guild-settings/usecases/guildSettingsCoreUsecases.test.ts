@@ -1,25 +1,16 @@
 import type { MockedFunction } from "vitest";
 import {
-  existsGuildSettingsRecord,
   findGuildLocale,
   findGuildSettingsRecord,
 } from "@/features/guild-settings/persistence/guildSettingsReadPersistence";
-import {
-  createGuildSettingsRecord,
-  deleteGuildSettingsRecord,
-  upsertGuildSettingsRecord,
-} from "@/features/guild-settings/persistence/guildSettingsWritePersistence";
+import { upsertGuildSettingsRecord } from "@/features/guild-settings/persistence/guildSettingsWritePersistence";
 import {
   toGuildSettings,
-  toGuildSettingsCreateData,
   toGuildSettingsUpdateData,
 } from "@/features/guild-settings/serializers/guildSettingsSerializer";
 import {
-  deleteGuildSettingsUsecase,
-  existsGuildSettingsUsecase,
   getGuildLocaleUsecase,
   getGuildSettingsUsecase,
-  saveGuildSettingsUsecase,
   updateGuildLocaleUsecase,
   updateGuildSettingsUsecase,
 } from "@/features/guild-settings/usecases/guildSettingsCoreUsecases";
@@ -27,7 +18,6 @@ import {
 vi.mock(
   "@/features/guild-settings/persistence/guildSettingsReadPersistence",
   () => ({
-    existsGuildSettingsRecord: vi.fn(),
     findGuildSettingsRecord: vi.fn(),
     findGuildLocale: vi.fn(),
   }),
@@ -36,8 +26,6 @@ vi.mock(
 vi.mock(
   "@/features/guild-settings/persistence/guildSettingsWritePersistence",
   () => ({
-    createGuildSettingsRecord: vi.fn(),
-    deleteGuildSettingsRecord: vi.fn(),
     upsertGuildSettingsRecord: vi.fn(),
   }),
 );
@@ -46,7 +34,6 @@ vi.mock(
   "@/features/guild-settings/serializers/guildSettingsSerializer",
   () => ({
     toGuildSettings: vi.fn(),
-    toGuildSettingsCreateData: vi.fn(),
     toGuildSettingsUpdateData: vi.fn(),
   }),
 );
@@ -71,27 +58,12 @@ describe("shared/database/repositories/usecases/guildSettingsCoreUsecases", () =
   const toGuildSettingsMock = toGuildSettings as MockedFunction<
     typeof toGuildSettings
   >;
-  const toCreateDataMock = toGuildSettingsCreateData as MockedFunction<
-    typeof toGuildSettingsCreateData
-  >;
-  const createGuildSettingsRecordMock =
-    createGuildSettingsRecord as MockedFunction<
-      typeof createGuildSettingsRecord
-    >;
   const toUpdateDataMock = toGuildSettingsUpdateData as MockedFunction<
     typeof toGuildSettingsUpdateData
   >;
   const upsertGuildSettingsRecordMock =
     upsertGuildSettingsRecord as MockedFunction<
       typeof upsertGuildSettingsRecord
-    >;
-  const deleteGuildSettingsRecordMock =
-    deleteGuildSettingsRecord as MockedFunction<
-      typeof deleteGuildSettingsRecord
-    >;
-  const existsGuildSettingsRecordMock =
-    existsGuildSettingsRecord as MockedFunction<
-      typeof existsGuildSettingsRecord
     >;
   const findGuildLocaleMock = findGuildLocale as MockedFunction<
     typeof findGuildLocale
@@ -131,19 +103,6 @@ describe("shared/database/repositories/usecases/guildSettingsCoreUsecases", () =
     expect(deps.toDatabaseError).toHaveBeenCalled();
   });
 
-  it("saveGuildSettingsUsecase が作成データをシリアライズして永続化すること", async () => {
-    const config = { guildId: "g1", locale: "ja" } as never;
-    const createData = { guildId: "g1", locale: "ja" } as never;
-    toCreateDataMock.mockReturnValueOnce(createData);
-
-    await saveGuildSettingsUsecase(deps, config);
-    expect(toCreateDataMock).toHaveBeenCalledWith(config, "ja");
-    expect(createGuildSettingsRecordMock).toHaveBeenCalledWith(
-      deps.prisma,
-      createData,
-    );
-  });
-
   // upsertペイロードが(updateData + createFallback)として正しく構築され、失敗時はエラーがラップされることを検証
   it("updateGuildSettingsUsecase が upsert ペイロードを構築し、失敗時はエラーをラップすること", async () => {
     toUpdateDataMock.mockReturnValueOnce({ afkSettings: "{}" });
@@ -160,31 +119,6 @@ describe("shared/database/repositories/usecases/guildSettingsCoreUsecases", () =
     await expect(
       updateGuildSettingsUsecase(deps, "g1", {} as never),
     ).rejects.toThrow("Failed to update guild config:conflict");
-  });
-
-  it("delete/exists ユースケースが処理を委譲し、失敗時にエラーをラップすること", async () => {
-    await deleteGuildSettingsUsecase(deps, "g1");
-    expect(deleteGuildSettingsRecordMock).toHaveBeenCalledWith(
-      deps.prisma,
-      "g1",
-    );
-
-    deleteGuildSettingsRecordMock.mockRejectedValueOnce(
-      new Error("delete err"),
-    );
-    await expect(deleteGuildSettingsUsecase(deps, "g1")).rejects.toThrow(
-      "Failed to delete guild config:delete err",
-    );
-
-    existsGuildSettingsRecordMock.mockResolvedValueOnce(true);
-    await expect(existsGuildSettingsUsecase(deps, "g1")).resolves.toBe(true);
-
-    existsGuildSettingsRecordMock.mockRejectedValueOnce(
-      new Error("exists err"),
-    );
-    await expect(existsGuildSettingsUsecase(deps, "g1")).rejects.toThrow(
-      "Failed to check guild config existence:exists err",
-    );
   });
 
   // ロケールが見つからない(null)場合とDBエラー発生時の両方でデフォルトロケールにフォールバックすることを確認

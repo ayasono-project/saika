@@ -102,17 +102,14 @@ describe("unverified-kick/unverifiedKickSettingsCommand.execute", () => {
   function createInteraction(
     subcommand: string,
     group: string | null = null,
-    overrides: Record<string, unknown> = {},
   ): ChatInputCommandInteraction {
     return {
       guildId: "g1",
-      memberPermissions: { has: vi.fn(() => true) },
       options: {
         getSubcommand: vi.fn(() => subcommand),
         getSubcommandGroup: vi.fn(() => group),
       },
       followUp: mocks.followUp.mockResolvedValue(undefined),
-      ...overrides,
     } as unknown as ChatInputCommandInteraction;
   }
 

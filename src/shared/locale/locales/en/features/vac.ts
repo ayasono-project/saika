@@ -75,5 +75,3 @@ export const vac = {
   "log.database_channel_unregister_failed":
     "Failed to unregister VAC managed channel GuildId: {{guildId}} ChannelId: {{voiceChannelId}}",
 } as const;
-
-export type VacTranslations = typeof vac;

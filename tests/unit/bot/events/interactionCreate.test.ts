@@ -26,25 +26,7 @@ vi.mock("@/shared/locale/localeManager", () => ({
     const m = params ? `${messageKey}:${JSON.stringify(params)}` : messageKey;
     return sub ? `[${p}:${sub}] ${m}` : `[${p}] ${m}`;
   },
-  logCommand: (
-    commandName: string,
-    messageKey: string,
-    params?: Record<string, unknown>,
-  ) => {
-    const m = params ? `${messageKey}:${JSON.stringify(params)}` : messageKey;
-    return `[${commandName}] ${m}`;
-  },
-  tDefault: vi.fn((key: string) => `default:${key}`),
   tInteraction: vi.fn((_locale: string, key: string) => `interaction:${key}`),
-}));
-
-vi.mock("@/bot/utils/messageResponse", () => ({
-  STATUS_COLORS: {
-    success: 0x57f287,
-    info: 0x3498db,
-    warning: 0xfee75c,
-    error: 0xed4245,
-  },
 }));
 
 // ログ出力は副作用回避のためダミー化する
@@ -78,28 +60,13 @@ vi.mock("@/bot/handlers/interactionCreate/ui/modals", () => {
     __mockModalHandler: mockModalHandler,
   };
 });
-vi.mock("@/bot/handlers/interactionCreate/ui/selectMenus", () => {
-  const mockUserSelectHandler = {
-    matches: vi.fn(() => false),
-    execute: vi.fn().mockResolvedValue(undefined),
-  };
-  const mockStringSelectHandler = {
-    matches: vi.fn(() => false),
-    execute: vi.fn().mockResolvedValue(undefined),
-  };
-  return {
-    userSelectHandlers: [mockUserSelectHandler],
-    __mockUserSelectHandler: mockUserSelectHandler,
-    stringSelectHandlers: [mockStringSelectHandler],
-    __mockStringSelectHandler: mockStringSelectHandler,
-  };
-});
+// 実レジストリ（全機能のセレクトハンドラを import する）を読み込ませないよう空モックにする
+vi.mock("@/bot/handlers/interactionCreate/ui/selectMenus", () => ({}));
 
 type BaseInteraction = {
   client: {
     commands: Map<string, unknown>;
     cooldownManager: { check: Mock };
-    modals: Map<string, { execute: Mock<(arg: unknown) => Promise<void>> }>;
   };
   commandName: string;
   customId: string;
@@ -111,7 +78,6 @@ type BaseInteraction = {
   isAutocomplete: Mock<() => boolean>;
   isModalSubmit: Mock<() => boolean>;
   isButton: Mock<() => boolean>;
-  isUserSelectMenu: Mock<() => boolean>;
   isRoleSelectMenu: Mock<() => boolean>;
   isStringSelectMenu: Mock<() => boolean>;
 };
@@ -124,7 +90,6 @@ function createInteraction(
     client: {
       commands: new Map(),
       cooldownManager: { check: vi.fn(() => 0) },
-      modals: new Map(),
     },
     commandName: "ping",
     customId: "custom-id",
@@ -136,7 +101,6 @@ function createInteraction(
     isAutocomplete: vi.fn(() => false),
     isModalSubmit: vi.fn(() => false),
     isButton: vi.fn(() => false),
-    isUserSelectMenu: vi.fn(() => false),
     isRoleSelectMenu: vi.fn(() => false),
     isStringSelectMenu: vi.fn(() => false),
     ...overrides,
@@ -393,34 +357,7 @@ describe("bot/events/interactionCreate", () => {
     );
   });
 
-  it("modal registry 非一致時は client.modals を使わず警告して終了することを確認", async () => {
-    const mockedModalModule = (await vi.importMock(
-      "@/bot/handlers/interactionCreate/ui/modals",
-    )) as {
-      __mockModalHandler: {
-        matches: Mock<(s: string) => boolean>;
-      };
-    };
-    mockedModalModule.__mockModalHandler.matches.mockReturnValue(false);
-
-    const modalExecute = vi.fn().mockResolvedValue(undefined);
-    const interaction = createInteraction({
-      isModalSubmit: vi.fn(() => true),
-      customId: "modal:exact",
-    });
-    interaction.client.modals.set("modal:exact", { execute: modalExecute });
-
-    await interactionCreateEvent.execute(interaction as never);
-
-    expect(modalExecute).not.toHaveBeenCalled();
-    expect(logger.warn).toHaveBeenCalledWith(
-      expect.stringContaining(
-        "[system:log_prefix.interaction_create:modal] system:interaction.unknown_modal",
-      ),
-    );
-  });
-
-  it("modal が registry にも collection にも存在しない場合は警告して終了することを確認", async () => {
+  it("modal が registry に存在しない場合は警告して終了することを確認", async () => {
     const mockedModalModule = (await vi.importMock(
       "@/bot/handlers/interactionCreate/ui/modals",
     )) as {
@@ -442,81 +379,7 @@ describe("bot/events/interactionCreate", () => {
         "[system:log_prefix.interaction_create:modal] system:interaction.unknown_modal",
       ),
     );
-  });
-
-  it("registry 非一致時は fallback モーダルの失敗も発生せず interaction error へ委譲しないことを確認", async () => {
-    const mockedModalModule = (await vi.importMock(
-      "@/bot/handlers/interactionCreate/ui/modals",
-    )) as {
-      __mockModalHandler: {
-        matches: Mock<(s: string) => boolean>;
-      };
-    };
-    mockedModalModule.__mockModalHandler.matches.mockReturnValue(false);
-
-    const modalError = new Error("modal failed");
-    const modalExecute = vi.fn().mockRejectedValue(modalError);
-    const interaction = createInteraction({
-      isModalSubmit: vi.fn(() => true),
-      customId: "modal:error",
-    });
-    interaction.client.modals.set("modal:error", { execute: modalExecute });
-
-    await interactionCreateEvent.execute(interaction as never);
-
-    expect(modalExecute).not.toHaveBeenCalled();
     expect(handleInteractionError).not.toHaveBeenCalled();
-  });
-
-  it("user select ハンドラーが一致した場合に execute が呼ばれることを確認", async () => {
-    const mockedSelectModule = (await vi.importMock(
-      "@/bot/handlers/interactionCreate/ui/selectMenus",
-    )) as {
-      __mockUserSelectHandler: {
-        matches: Mock<(s: string) => boolean>;
-        execute: Mock<(arg: unknown) => Promise<void>>;
-      };
-    };
-    mockedSelectModule.__mockUserSelectHandler.matches.mockReturnValue(true);
-
-    const interaction = createInteraction({
-      customId: "user-select:1",
-      isUserSelectMenu: vi.fn(() => true),
-    });
-
-    await interactionCreateEvent.execute(interaction as never);
-
-    expect(
-      mockedSelectModule.__mockUserSelectHandler.execute,
-    ).toHaveBeenCalledWith(interaction);
-  });
-
-  it("user select ハンドラー失敗時は handleInteractionError へ委譲されることを確認", async () => {
-    const mockedSelectModule = (await vi.importMock(
-      "@/bot/handlers/interactionCreate/ui/selectMenus",
-    )) as {
-      __mockUserSelectHandler: {
-        matches: Mock<(s: string) => boolean>;
-        execute: Mock<(arg: unknown) => Promise<void>>;
-      };
-    };
-    const selectError = new Error("select failed");
-    mockedSelectModule.__mockUserSelectHandler.matches.mockReturnValue(true);
-    mockedSelectModule.__mockUserSelectHandler.execute.mockRejectedValue(
-      selectError,
-    );
-
-    const interaction = createInteraction({
-      customId: "user-select:error",
-      isUserSelectMenu: vi.fn(() => true),
-    });
-
-    await interactionCreateEvent.execute(interaction as never);
-
-    expect(handleInteractionError).toHaveBeenCalledWith(
-      interaction,
-      selectError,
-    );
   });
 
   it("ボタンハンドラーが一致しない場合は何も実行しないことを確認", async () => {
@@ -539,30 +402,6 @@ describe("bot/events/interactionCreate", () => {
 
     expect(
       mockedButtonModule.__mockButtonHandler.execute,
-    ).not.toHaveBeenCalled();
-    expect(handleInteractionError).not.toHaveBeenCalled();
-  });
-
-  it("ユーザーセレクトハンドラーが一致しない場合は何も実行しないことを確認", async () => {
-    const mockedSelectModule = (await vi.importMock(
-      "@/bot/handlers/interactionCreate/ui/selectMenus",
-    )) as {
-      __mockUserSelectHandler: {
-        matches: Mock<(s: string) => boolean>;
-        execute: Mock<(arg: unknown) => Promise<void>>;
-      };
-    };
-    mockedSelectModule.__mockUserSelectHandler.matches.mockReturnValue(false);
-
-    const interaction = createInteraction({
-      customId: "user-select:none",
-      isUserSelectMenu: vi.fn(() => true),
-    });
-
-    await interactionCreateEvent.execute(interaction as never);
-
-    expect(
-      mockedSelectModule.__mockUserSelectHandler.execute,
     ).not.toHaveBeenCalled();
     expect(handleInteractionError).not.toHaveBeenCalled();
   });

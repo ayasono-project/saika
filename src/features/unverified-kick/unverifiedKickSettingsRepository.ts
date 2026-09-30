@@ -113,12 +113,6 @@ export class UnverifiedKickSettingsRepository
       ...this.toDomain(record),
     }));
   }
-
-  async deleteUnverifiedKickSettings(guildId: string): Promise<void> {
-    await this.prisma.guildUnverifiedKickSettings.deleteMany({
-      where: { guildId },
-    });
-  }
 }
 
 /**

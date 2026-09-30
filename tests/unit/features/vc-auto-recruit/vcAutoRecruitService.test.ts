@@ -74,12 +74,10 @@ function makeVoiceChannel(
   humanCount: number,
   botCount = 0,
   name = "VC",
-  parentId: string | null = null,
 ) {
   return {
     id,
     name,
-    parentId,
     type: ChannelType.GuildVoice,
     isVoiceBased: () => true,
     members: makeMembers(humanCount, botCount),

@@ -121,5 +121,3 @@ export const stickyMessage = {
   "log.database_delete_by_channel_failed":
     "スティッキーメッセージ削除に失敗 ChannelId: {{channelId}}",
 } as const;
-
-export type StickyMessageTranslations = typeof stickyMessage;

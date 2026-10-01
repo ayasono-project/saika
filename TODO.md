@@ -2,7 +2,7 @@
 
 > タスク管理・進捗状況・残件リスト。web ダッシュボード・インフラ（VPS / Cloudflare / Coolify）は別リポジトリで管理。
 
-最終更新: 2026年9月30日
+最終更新: 2026年10月1日
 
 **分類の基準**: 着手できるかどうかだけで分ける。①いま着手できる → ②完了待ち → ③未決（判断が要る）。**「いま着手できる」の並び順が実行順を兼ねる。** 実害の有無・依存関係・何を待っているかは各タスクの本文に書く。
 
@@ -47,12 +47,8 @@
 
 ### 以前からある残骸の掃除 【保守・小】
 
-**依存なし。** 2026-09-26、export/import 削除の残骸探しで見つかった、**今回の削除とは関係なく以前からあったもの**。どれも今は動作に影響しないが、先頭の1件は将来の掃除で事故を起こしうる。どこからも使われていないコードとテストの3件は、2026-09-30 の全体の掃除で片付けた（→ HISTORY.md「どこからも使われていないコードとテストを消した」）。
+**依存なし。** 2026-09-26、export/import 削除の残骸探しで見つかった、**今回の削除とは関係なく以前からあったもの**。どれも今は動作に影響しない。どこからも使われていないコードとテストの3件は、2026-09-30 の全体の掃除で片付けた（→ HISTORY.md「どこからも使われていないコードとテストを消した」）。AFK の初期化・customId の命名例・`DATABASE_URL` の既定値・`list-guilds.mjs` のコメントの4件は 2026-10-01 に片付けた（このタスクを閉じるときに HISTORY.md へまとめる）。残りは次の1件。
 
-- [ ] **AFK のリポジトリの初期化を、副作用頼みから外す。** `botCompositionRoot.ts` の `getAfkSettingsRepository(prisma);`（戻り値を使わない呼び出し）でしか初期化されておらず、未使用に見えて消すと AFK と Web API の afkResource が実行時に `not initialized` で落ちる。**composition root はテストもカバレッジ計測もしていないので、typecheck でも test でも検出できない。** 他の機能と同じ `setBot*` の登録方式に揃えるか、回帰テストを置く（→ HISTORY.md「export / import を削除した」）
-- [ ] **`IMPLEMENTATION_GUIDELINES.md` の customId の命名例を、実在するものへ差し替える。** 良い例の `guild-settings:page-first` / `page-prev` / `page-next` / `page-last` / `page-jump` / `page-select` は src に存在しない（ページングの実体は `src/bot/shared/pagination.ts` の `page-*` と `message-delete:page-*`）
-- [ ] **`src/shared/config/env.ts` の `DATABASE_URL` の既定値 `file:./storage/db.sqlite` を外す。** SQLite 時代の名残で、Postgres の今は意味がない。必須にするか判断する。`tests/setup.ts` の SQLite 形式の値も合わせて直す
-- [ ] **`scripts/list-guilds.mjs` 冒頭のコメントを直す。**「guildCreate を記録していないため」は、v3.2.0 の `guilds` テーブル（`joinedAt`）で事実でなくなった
 - [ ] **エラーチャンネル通知に渡す機能名・動作が日本語の生文字列になっている**（2026-09-26 発見）。`notifyErrorChannel` / `notifyWarnChannel` の呼び出し（機能をまたいで多数）で、機能名や `"Channel ${channelId} not found"` のような文言をロケールを通さず直書きしている。英語設定のギルドにも日本語が出る。ロケールキー化して ja/en を揃える
 
 ### biome の `recommended` 非推奨対応 【保守・小】

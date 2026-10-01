@@ -75,7 +75,7 @@ export const envSchema: z.ZodType<Env> = z.object({
   DISCORD_ERROR_WEBHOOK_URL: z.string().optional(), // エラー通知用 Discord Webhook URL（任意）
 
   // データベース
-  DATABASE_URL: z.string().default("file:./storage/db.sqlite"),
+  DATABASE_URL: z.string().min(1, "DATABASE_URL is not configured"),
 
   // ログレベル
   // Winston 標準レベル: error(0) warn(1) info(2) http(3) verbose(4) debug(5) silly(6)

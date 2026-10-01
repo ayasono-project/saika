@@ -10,7 +10,8 @@
 process.env.NODE_ENV = "test";
 process.env.DISCORD_TOKEN = "test-token-" + "a".repeat(50);
 process.env.DISCORD_APP_ID = "1234567890";
-process.env.DATABASE_URL = "file::memory:?cache=shared";
+process.env.DATABASE_URL =
+  "postgresql://test:test@localhost:5432/test?schema=public"; // 形式だけ合わせる（テストは DB に接続しない）
 process.env.LOG_LEVEL = "error"; // テスト中はエラーのみログ出力
 
 // 日時依存のテストを安定させるためタイムゾーンを固定

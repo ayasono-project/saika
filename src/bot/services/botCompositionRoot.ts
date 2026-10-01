@@ -2,6 +2,8 @@
 
 import type { PrismaClient } from "@prisma/client";
 import { getAfkSettingsRepository } from "../../features/afk/afkSettingsRepository";
+import type { AfkSettingsService } from "../../features/afk/afkSettingsService";
+import { createAfkSettingsService } from "../../features/afk/afkSettingsService";
 import { getBumpReminderSettingsRepository } from "../../features/bump-reminder/bumpReminderSettingsRepository";
 import type { BumpReminderSettingsService } from "../../features/bump-reminder/bumpReminderSettingsService";
 import { getBumpReminderRepository } from "../../features/bump-reminder/repositories/bumpReminderRepository";
@@ -69,6 +71,13 @@ export const getBotGuildRegistryRepository: () => IGuildRegistryRepository =
 export const setBotGuildRegistryRepository: (
   value: IGuildRegistryRepository,
 ) => void = _guildRegistryRepositoryAccessor[1];
+
+const _afkSettingsServiceAccessor =
+  createBotServiceAccessor<AfkSettingsService>("AfkSettingsService");
+export const getBotAfkSettingsService: () => AfkSettingsService =
+  _afkSettingsServiceAccessor[0];
+export const setBotAfkSettingsService: (value: AfkSettingsService) => void =
+  _afkSettingsServiceAccessor[1];
 
 const _bumpReminderSettingsServiceAccessor =
   createBotServiceAccessor<BumpReminderSettingsService>(
@@ -212,8 +221,7 @@ export function initializeBotCompositionRoot(prisma: PrismaClient): void {
   // スタンドアロンリポジトリ群
   const guildCoreRepo = getGuildCoreRepository(prisma);
   const guildRegistryRepo = getGuildRegistryRepository(prisma);
-  // AFK は getAfkSettingsService() が引数なしでリポジトリを取るため、ここで PrismaClient を渡して初期化しておく
-  getAfkSettingsRepository(prisma);
+  const afkRepo = getAfkSettingsRepository(prisma);
   const bumpReminderSettingsRepo = getBumpReminderSettingsRepository(prisma);
   const vacRepo = getVacSettingsRepository(prisma);
   const vcAutoRecruitRepo = getVcAutoRecruitSettingsRepository(prisma);
@@ -238,6 +246,9 @@ export function initializeBotCompositionRoot(prisma: PrismaClient): void {
   );
   setBotGuildSettingsService(guildSettingsService);
   setBotGuildRegistryRepository(guildRegistryRepo);
+
+  // AFK
+  setBotAfkSettingsService(createAfkSettingsService(afkRepo));
 
   // BumpReminder
   const bumpReminderSettingsService = createBumpReminderFeatureSettingsService(

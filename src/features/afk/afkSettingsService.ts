@@ -7,12 +7,10 @@ import {
 import { logPrefixed, tDefault } from "../../shared/locale/localeManager";
 import { executeWithDatabaseError } from "../../shared/utils/errorHandling";
 import { logger } from "../../shared/utils/logger";
-import { createServiceGetter } from "../../shared/utils/serviceFactory";
 import {
   createDefaultAfkSettings,
   normalizeAfkSettings,
 } from "./afkSettingsDefaults";
-import { getAfkSettingsRepository } from "./afkSettingsRepository";
 
 /**
  * AFK設定の取得・更新を担当するサービス
@@ -26,6 +24,8 @@ export class AfkSettingsService {
 
   /**
    * AFK設定を取得する
+   * @param guildId 取得対象のギルドID
+   * @returns AFK設定（未設定時は null）
    */
   async getAfkSettings(guildId: string): Promise<AfkSettings | null> {
     // 永続化設定を取得
@@ -40,6 +40,8 @@ export class AfkSettingsService {
 
   /**
    * AFK設定を取得（未設定時は初期値を返す）
+   * @param guildId 取得対象のギルドID
+   * @returns AFK設定（未設定時は既定値）
    */
   async getAfkSettingsOrDefault(guildId: string): Promise<AfkSettings> {
     // 設定がなければ既定値を返し、呼び出し側の null 判定を不要化
@@ -52,6 +54,8 @@ export class AfkSettingsService {
 
   /**
    * AFK設定を永続化する
+   * @param guildId 保存対象のギルドID
+   * @param config 保存するAFK設定
    */
   async saveAfkSettings(guildId: string, config: AfkSettings): Promise<void> {
     return executeWithDatabaseError(
@@ -75,6 +79,8 @@ export class AfkSettingsService {
 
   /**
    * AFKチャンネルを設定し、AFK機能を有効化する
+   * @param guildId 設定対象のギルドID
+   * @param channelId AFKチャンネルのID
    */
   async setAfkChannel(guildId: string, channelId: string): Promise<void> {
     return executeWithDatabaseError(
@@ -99,51 +105,11 @@ export class AfkSettingsService {
 
 /**
  * AFK設定サービスを依存注入で生成する
+ * @param repository 利用するリポジトリ実装
+ * @returns AfkSettingsService インスタンス
  */
 export function createAfkSettingsService(
   repository: IAfkSettingsRepository,
 ): AfkSettingsService {
   return new AfkSettingsService(repository);
-}
-
-/**
- * AFK設定サービスのシングルトンを取得する
- */
-export const getAfkSettingsService: (
-  repository?: IAfkSettingsRepository,
-) => AfkSettingsService = createServiceGetter(
-  createAfkSettingsService,
-  getAfkSettingsRepository,
-);
-
-/**
- * AFK設定を取得する
- */
-export async function getAfkSettings(
-  guildId: string,
-): Promise<AfkSettings | null> {
-  // 関数APIはシングルトンサービスへ委譲
-  return getAfkSettingsService().getAfkSettings(guildId);
-}
-
-/**
- * AFK設定を永続化する
- */
-export async function saveAfkSettings(
-  guildId: string,
-  config: AfkSettings,
-): Promise<void> {
-  // 関数APIはシングルトンサービスへ委譲
-  await getAfkSettingsService().saveAfkSettings(guildId, config);
-}
-
-/**
- * AFKチャンネルを設定し、AFK機能を有効化する
- */
-export async function setAfkChannel(
-  guildId: string,
-  channelId: string,
-): Promise<void> {
-  // 関数APIはシングルトンサービスへ委譲
-  await getAfkSettingsService().setAfkChannel(guildId, channelId);
 }

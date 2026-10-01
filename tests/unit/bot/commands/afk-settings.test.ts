@@ -24,13 +24,13 @@ const createWarningEmbedMock = vi.fn(
   }),
 );
 
-// afkSettingsService が使う DB レイヤーのみモック
+// Composition Root の AFK 設定サービスだけを差し替え、コマンド分岐を実コードで検証する
 const saveAfkSettingsMock = vi.fn();
-vi.mock("@/features/afk/afkSettingsRepository", () => ({
-  getAfkSettingsRepository: () => ({
+vi.mock("@/bot/services/botCompositionRoot", () => ({
+  getBotAfkSettingsService: () => ({
     setAfkChannel: (...args: unknown[]) => setAfkChannelMock(...args),
     getAfkSettings: (...args: unknown[]) => getAfkSettingsMock(...args),
-    updateAfkSettings: (...args: unknown[]) => saveAfkSettingsMock(...args),
+    saveAfkSettings: (...args: unknown[]) => saveAfkSettingsMock(...args),
   }),
 }));
 

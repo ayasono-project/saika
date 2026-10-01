@@ -21,10 +21,12 @@ vi.mock("@/features/afk/afkSettingsDefaults", () => ({
   }),
 }));
 
-vi.mock("@/features/afk/afkSettingsService", () => ({
-  setAfkChannel: (...args: unknown[]) => setAfkChannelMock(...args),
-  getAfkSettings: (...args: unknown[]) => getAfkSettingsMock(...args),
-  saveAfkSettings: (...args: unknown[]) => saveAfkSettingsMock(...args),
+vi.mock("@/bot/services/botCompositionRoot", () => ({
+  getBotAfkSettingsService: () => ({
+    setAfkChannel: (...args: unknown[]) => setAfkChannelMock(...args),
+    getAfkSettings: (...args: unknown[]) => getAfkSettingsMock(...args),
+    saveAfkSettings: (...args: unknown[]) => saveAfkSettingsMock(...args),
+  }),
 }));
 
 vi.mock("@/shared/locale/localeManager", () => ({

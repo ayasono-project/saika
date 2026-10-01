@@ -2,7 +2,7 @@
 
 > Architecture Guide - コード設計・モジュール構成・設計パターンの解説
 
-最終更新: 2026年9月30日
+最終更新: 2026年10月1日
 
 ---
 
@@ -391,7 +391,7 @@ initializeBotCompositionRoot(prisma);
 const service = getBotBumpReminderSettingsService();
 ```
 
-未初期化状態で getter を呼ぶと即座に `Error` がスローされるため、初期化漏れを起動時に検出できます。
+未初期化のまま getter を呼ぶと `Error` がスローされます。ただし登録漏れは、その getter が初めて使われるまで表に出ません。そのため、初期化後にすべての `getBot*` が値を返すことをテスト（`tests/unit/bot/services/botCompositionRoot.test.ts`）で確かめています。
 
 ---
 

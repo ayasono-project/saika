@@ -1,7 +1,7 @@
 // AFK 設定リソース（ドメイン ↔ 契約のマッピング + 永続化）
 
 import type { AfkSettings as ContractAfkSettings } from "@ayasono/shared/api";
-import { getAfkSettingsService } from "../../features/afk/afkSettingsService";
+import { getBotAfkSettingsService } from "../../bot/services/botCompositionRoot";
 import type { AfkSettings } from "../../shared/database/types";
 import type { SettingsResource } from "../routes/settingsResource";
 
@@ -29,11 +29,11 @@ export function createAfkResource(): SettingsResource<ContractAfkSettings> {
   return {
     path: "afk",
     async read(guildId) {
-      const svc = getAfkSettingsService();
+      const svc = getBotAfkSettingsService();
       return toContractAfk(await svc.getAfkSettingsOrDefault(guildId));
     },
     async patch(guildId, body) {
-      const svc = getAfkSettingsService();
+      const svc = getBotAfkSettingsService();
       const next = applyAfkPatch(
         await svc.getAfkSettingsOrDefault(guildId),
         body,
@@ -43,7 +43,7 @@ export function createAfkResource(): SettingsResource<ContractAfkSettings> {
     },
     async reset(guildId) {
       const def: AfkSettings = { enabled: false, channelId: undefined };
-      await getAfkSettingsService().saveAfkSettings(guildId, def);
+      await getBotAfkSettingsService().saveAfkSettings(guildId, def);
       return toContractAfk(def);
     },
   };

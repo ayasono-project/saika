@@ -69,6 +69,13 @@ export const reactionRole = {
   "embed.field.value.mode_one_action": "One Action",
   "embed.field.value.mode_exclusive": "Exclusive",
 
+  // ── Embed: error notification channel ─────────
+  "embed.field.value.error_notification_feature": "Reaction Role",
+  "embed.field.value.panel_delete_failed_action":
+    "Failed to delete the panel message automatically (delete it manually or check permissions)",
+  "embed.field.value.panel_delete_failed_notice":
+    "<#{{channelId}}> ChannelId: {{channelId}} MessageId: {{messageId}}",
+
   // ── UI labels
   "ui.button.setup_add": "Add Another",
   "ui.button.setup_done": "Done",

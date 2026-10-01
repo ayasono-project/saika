@@ -3,7 +3,7 @@
 > 決定の記録。**何を決めたか・何をやらないと決めたか・何を終えたか**を残す。
 > これからやることは [TODO.md](TODO.md) にある。
 
-最終更新: 2026年9月30日
+最終更新: 2026年10月10日
 
 **ここに書くもの**: 再検討が起きたときに判断を復元できない情報（実測値・却下理由・決定の経緯）。
 **ここに書かないもの**: git log やコードを読めば分かること。
@@ -204,6 +204,20 @@ VAC を残す判断（→「VAC（トリガー VC 方式）は残し、募集は
 
 > 詳細な作業経過は git log を参照。
 
+### 以前からある残骸の掃除（2026-10-10 develop merge）
+
+2026-09-26 の export/import 削除の残骸探しで見つかった、それとは関係なく以前からあった8件。うち3件は 2026-09-30 の全体の掃除で済ませ（下の「どこからも使われていないコードとテストを消した」）、残りの5件をここで片付けた。次のリリース（名前の整理と保守の6件をまとめた1本）に入る。
+
+- **AFK の初期化**: 戻り値を使わない `getAfkSettingsRepository(prisma);` に頼っていたのを、他の機能と同じ `setBotAfkSettingsService` の登録にした。登録漏れは typecheck でも機能ごとのテストでも見つからないので、初期化後にすべての `getBot*` が値を返すことを確かめるテスト（`tests/unit/bot/services/botCompositionRoot.test.ts`）を置き、TESTING_GUIDELINES の「composition root はテスト不要」を改めた。VC自動募集の `add-channel` が引数なしの `getVacSettingsService()` で同じ形になっていたのも直した。`vacService` / `vcAutoRecruitService` の引数なしのフォールバックは、composition root が必ず引数を渡すので残した
+- **`DATABASE_URL` を必須にした**: 既定値 `file:./storage/db.sqlite` は Postgres のアダプタでは接続できないのに、未設定でも起動時の検証を通っていた。compose は未設定の変数を空文字で渡すので、空文字も落とす
+- **エラー通知チャンネルの機能名・処理内容を翻訳キーで渡すようにした**: `notifyErrorChannel` / `notifyWarnChannel` は `{ featureKey, actionKey }` を受け取り、警告の本文は `(t) => string` で組み立てる。翻訳は通知側がエラー通知チャンネルを確かめた後にギルドの言語で行うので、呼び出し側は翻訳関数を取らない。型で縛るので生の文字列はもう渡せない
+  - ja の文言は変えていない。英語設定のギルドには英語が出るようになった。英語の生文字列だった `Channel ${id} not found`（4か所）は common の1キーにまとめ、ja では日本語で出る
+  - 機能名の「VAC」「VC自動募集」は今の名前のまま置いた（名前の整理で直す）
+  - VAC のカテゴリ満杯は、ログ用のキー（`log.category_full` / `log.category_full_action`）を `tDefault`（常に ja）で通知にも出していた。通知用に `embed.field.value.*` のキーを足し、通知にしか使っていなかった `log.category_full_action` は消した
+- **文書**: IMPLEMENTATION_GUIDELINES の customId の命名例のうち src に無い3つ（`guild-settings:page-*`・`page-select`・`reaction-role:panel-create`）を実在するものに差し替えた。`list-guilds.mjs` の冒頭コメント（「guildCreate を記録していないため」）を、今このスクリプトを使う理由に書き換えた
+
+テストは 295ファイル・2467件。ja / en のキーは16名前空間すべてで一致することを手元で突き合わせた（突き合わせのテストは無い → TODO「未確認事項」）。
+
 ### どこからも使われていないコードとテストを消した（2026-09-30 develop merge）
 
 本番コード約60か所・テストコード約150か所を消した（279ファイル・約5,300行減）。次のリリース（名前の整理と保守の6件をまとめた1本）に入る。TODO「以前からある残骸の掃除」のうち、どこからも呼ばれていないコード・guild-settings.test.ts の古いモック・interactionErrorHandler.test.ts の死んだ分岐の3件もこの中で済ませた。
@@ -212,7 +226,7 @@ VAC を残す判断（→「VAC（トリガー VC 方式）は残し、募集は
 - **外から見える口も3つ消した**: sticky の PATCH エンドポイント（ダッシュボードは作成時から一度も呼んでいない）、JWT の `username` / `globalName` / `avatar`（web BFF への移行で読み手がいなくなっていた）、env の `LOCALE`（どこからも読まれていなかった。`.env.example`・`docker-compose.coolify.yml`・DEPLOYMENT.md からも消した。Coolify の Environment Variables に残っていても無害）
 - **テスト**: 上で消したコード専用のテストのほか、テスト対象が読まないモジュールモック23件、モックの使われていないキー105件、起こり得ない入力のテストケースと書き込むだけのフィクスチャ約20件
 - **残したもの（次の掃除で再提案しないこと）**: TODO で使う予定があるもの（`jobScheduler.stopAll`・bump の `cancelByGuild` / `cancelByGuildAndChannel` / `cancelAllForGuild`・`TtlMap.has` / `clear`・JWT の `discordUserId`・未承認キックの廃止変数の案内と開発用モック）、テストが内部状態を確かめる窓口（`CooldownManager.getStats`・`BumpReminderManager.hasReminder`・`JobScheduler.getJobIds` / `getJobCount`）、中では使われていて export が余計なだけのもの（`setBot*` など約20件。使われているコードなので対象外）
-- ⚠️ **静的な走査では見えない使われ方がある。** `tests/unit/bot/{commands,events}/index.test.ts` のモックは、`loadCommands()` / `loadEvents()` がディレクトリを読んで動的 import するので生きている。composition root の `getAfkSettingsRepository(prisma);` も副作用による初期化で、消すと実行時に落ちる
+- ⚠️ **静的な走査では見えない使われ方がある。** `tests/unit/bot/{commands,events}/index.test.ts` のモックは、`loadCommands()` / `loadEvents()` がディレクトリを読んで動的 import するので生きている。composition root の `getAfkSettingsRepository(prisma);` も副作用による初期化で、消すと実行時に落ちる（→ 2026-10-01 に他の機能と同じ `setBot*` の登録へ揃えて解消。下の「以前からある残骸の掃除」）
 - vitest.config.ts の除外のうち、消した usecase 2ファイルを指していた2行も消した（もともと移動前の旧パスで効いていなかった）。これに合わせて TODO「カバレッジ設定の実態合わせ」の死んだ除外は3件になった（一覧に残っていた `ticketCleanupService.ts` は、2026-09-26 の修正でロジックが増えて除外自体を外していた）
 - web 側に残る後始末（未対応）: 開発用モック（MSW）の sticky PATCH（`web/src/client/mocks/handlers.ts`）と、`web/src/web/types.ts` のコメント「saika の SessionClaims と同形」
 

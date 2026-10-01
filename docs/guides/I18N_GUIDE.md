@@ -2,7 +2,7 @@
 
 > 多言語対応の実装ガイド — 翻訳の取得・キーの追加・命名規則
 
-最終更新: 2026年9月30日
+最終更新: 2026年10月1日
 
 ---
 
@@ -41,6 +41,19 @@ const body = t("ticket:embed.description.created");
 ```
 
 > `tInteraction` は DB を参照しないため同期です。`tGuild` はギルド設定を読むため非同期になります。**実行者向けの応答で `tGuild` を使うと、無駄な DB アクセスが発生する上に実行者の言語が無視されます。**
+
+**エラー通知チャンネル**（`notifyErrorChannel` / `notifyWarnChannel`）へは、機能名と処理内容を翻訳キー（`featureKey` / `actionKey`）で渡し、警告の本文は翻訳関数を受け取る関数 `(t) => string` で渡します。翻訳は通知する側がギルドの言語で行います（エラー通知チャンネルが未設定なら翻訳もしません）。
+
+```typescript
+await notifyWarnChannel(
+  guild,
+  (t) => t("common:embed.field.value.channel_not_found", { channelId }),
+  {
+    featureKey: "memberLog:embed.field.value.error_notification_feature",
+    actionKey: "memberLog:embed.field.value.channel_missing_action",
+  },
+);
+```
 
 ---
 

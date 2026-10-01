@@ -85,8 +85,8 @@ export async function sendBumpPanel(
     const guild = client.guilds?.cache?.get(guildId);
     if (guild) {
       await notifyErrorChannel(guild, error, {
-        feature: "Bumpリマインダー",
-        action: "パネル送信失敗",
+        featureKey: "bumpReminder:embed.field.value.error_notification_feature",
+        actionKey: "bumpReminder:embed.field.value.panel_send_failed_action",
       });
     }
     return undefined;

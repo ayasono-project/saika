@@ -57,6 +57,15 @@ export const stickyMessage = {
   "embed.field.name.embed_title": "Embed title",
   "embed.field.name.embed_color": "Embed color",
 
+  // ── Embed: error notification channel ─────────
+  "embed.field.value.error_notification_feature": "Sticky Message",
+  "embed.field.value.channel_delete_cleanup_failed_action":
+    "Failed to clean up on channel deletion",
+  "embed.field.value.resend_failed_action": "Failed to resend",
+  "embed.field.value.scheduled_resend_failed_action":
+    "Error in scheduled resend",
+  "embed.field.value.send_failed_action": "Failed to send message",
+
   // ── UI labels ──────────────────────────────────
   "ui.modal.set_title": "Enter sticky message content",
   "ui.modal.set_message_label": "Message content",

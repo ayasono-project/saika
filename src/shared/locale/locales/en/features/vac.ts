@@ -27,6 +27,19 @@ export const vac = {
   "embed.field.value.no_created_vcs": "None",
   "embed.field.value.top": "TOP",
 
+  // ── Embed: error notification channel ─────────
+  "embed.field.value.error_notification_feature": "Auto VC (VAC)",
+  "embed.field.value.member_move_failed_action":
+    "Failed to move member due to missing bot permissions",
+  "embed.field.value.channel_create_failed_action":
+    "Failed to create VC due to missing bot permissions",
+  "embed.field.value.created_vc_member_move_failed_action":
+    "Failed to move member to the new VC due to missing bot permissions",
+  "embed.field.value.category_full_action":
+    "VC creation blocked due to category channel limit",
+  "embed.field.value.category_full_notice":
+    "Category reached channel limit. GuildId: {{guildId}} CategoryId: {{categoryId}}",
+
   // ── UI labels ──────────────────────────────────
   "ui.select.trigger_remove_placeholder":
     "Select trigger channels to remove (multiple)",
@@ -50,8 +63,6 @@ export const vac = {
     "channel deleted GuildId: {{guildId}} ChannelId: {{channelId}}",
   "log.category_full":
     "category reached channel limit GuildId: {{guildId}} CategoryId: {{categoryId}}",
-  "log.category_full_action":
-    "VC creation blocked due to category channel limit",
   "log.trigger_removed_by_delete":
     "removed deleted trigger channel from config GuildId: {{guildId}} ChannelId: {{channelId}}",
   "log.channel_delete_sync_failed": "Failed to sync config on channelDelete",

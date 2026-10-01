@@ -59,6 +59,15 @@ export const stickyMessage = {
   "embed.field.name.embed_title": "Embedタイトル",
   "embed.field.name.embed_color": "Embedカラー",
 
+  // ── Embed: エラー通知チャンネル ─────────────────
+  "embed.field.value.error_notification_feature": "メッセージ固定",
+  "embed.field.value.channel_delete_cleanup_failed_action":
+    "チャンネル削除時のクリーンアップ失敗",
+  "embed.field.value.resend_failed_action": "再送処理の失敗",
+  "embed.field.value.scheduled_resend_failed_action":
+    "スケジュールされた再送のエラー",
+  "embed.field.value.send_failed_action": "メッセージ送信失敗",
+
   // ── UIラベル ──────────────────────────────────
   "ui.modal.set_title": "スティッキーメッセージの内容を入力",
   "ui.modal.set_message_label": "メッセージ内容",

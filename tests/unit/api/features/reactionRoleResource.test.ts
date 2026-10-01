@@ -62,8 +62,11 @@ describe("deletePanelMessage", () => {
     expect(notifyWarnMock).toHaveBeenCalledTimes(1);
     expect(notifyWarnMock).toHaveBeenCalledWith(
       fakeGuild,
-      expect.any(String),
-      expect.objectContaining({ feature: expect.any(String) }),
+      expect.any(Function),
+      {
+        featureKey: "reactionRole:embed.field.value.error_notification_feature",
+        actionKey: "reactionRole:embed.field.value.panel_delete_failed_action",
+      },
     );
   });
 

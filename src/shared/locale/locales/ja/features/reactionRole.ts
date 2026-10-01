@@ -72,6 +72,13 @@ export const reactionRole = {
   "embed.field.value.mode_one_action": "ワンアクション",
   "embed.field.value.mode_exclusive": "排他",
 
+  // ── Embed: エラー通知チャンネル ─────────────────
+  "embed.field.value.error_notification_feature": "リアクションロール",
+  "embed.field.value.panel_delete_failed_action":
+    "パネルメッセージの自動削除に失敗（手動削除/権限確認が必要）",
+  "embed.field.value.panel_delete_failed_notice":
+    "<#{{channelId}}> ChannelId: {{channelId}} MessageId: {{messageId}}",
+
   // ── UIラベル
   "ui.button.setup_add": "もう1つ追加",
   "ui.button.setup_done": "完了",

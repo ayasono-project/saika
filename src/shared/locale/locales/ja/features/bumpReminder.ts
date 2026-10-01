@@ -63,6 +63,18 @@ export const bumpReminder = {
   "embed.field.name.mention_role": "メンションロール",
   "embed.field.name.mention_users": "メンションユーザー",
 
+  // ── Embed: エラー通知チャンネル ─────────────────
+  "embed.field.value.error_notification_feature": "Bumpリマインダー",
+  "embed.field.value.bump_detection_failed_action": "Bump検出処理の失敗",
+  "embed.field.value.member_remove_cleanup_failed_action":
+    "メンバー退出時のメンション整理失敗",
+  "embed.field.value.role_delete_cleanup_failed_action":
+    "ロール削除時のメンション整理失敗",
+  "embed.field.value.reminder_channel_missing_action":
+    "リマインダー送信先チャンネル未発見",
+  "embed.field.value.reminder_send_failed_action": "リマインダー送信失敗",
+  "embed.field.value.panel_send_failed_action": "パネル送信失敗",
+
   // ── UIラベル ──────────────────────────────────
   "ui.button.mention_on": "ユーザー通知をONにする",
   "ui.button.mention_off": "ユーザー通知をOFFにする",

@@ -88,6 +88,8 @@ export const common = {
   "embed.title.success": "Settings Updated",
   "embed.field.name.status": "Status",
   "embed.field.value.not_configured": "Not configured",
+  "embed.field.value.channel_not_found":
+    "Channel not found. ChannelId: {{channelId}}",
 
   // Cross-feature UI button labels
   "ui.button.cancel": "Cancel",

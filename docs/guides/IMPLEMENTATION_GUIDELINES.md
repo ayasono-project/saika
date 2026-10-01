@@ -2,7 +2,7 @@
 
 > Implementation Guidelines - 実装方針とコーディング規約
 
-最終更新: 2026年9月26日
+最終更新: 2026年10月1日
 
 ---
 
@@ -191,17 +191,17 @@ src/features/<feature-name>/
 "message-delete:preview-confirm"          // プレビューの確認ボタン
 
 // ✅ ナビゲーション
-"guild-settings:page-first"                 // 最初のページへ
-"guild-settings:page-prev"                  // 前のページへ
-"guild-settings:page-next"                  // 次のページへ
-"guild-settings:page-last"                  // 最後のページへ
-"guild-settings:page-jump"                  // ページジャンプ
+"message-delete:page-first"               // 最初のページへ
+"message-delete:page-prev"                // 前のページへ
+"message-delete:page-next"                // 次のページへ
+"message-delete:page-last"                // 最後のページへ
+"message-delete:page-jump"                // ページジャンプ
 "message-delete:deletion-back"            // プレビューに戻る
 
 // ✅ UI種別
 "message-delete:webhook-modal"            // Webhook入力モーダル
 "message-delete:webhook-modal-input"      // モーダル内の入力フィールド
-"guild-settings:page-select"               // ページセレクトメニュー
+"message-delete:page-jump-modal"          // ページジャンプのモーダル
 "message-delete:user-select"             // ユーザーセレクトメニュー
 
 // ✅ 状態
@@ -209,7 +209,7 @@ src/features/<feature-name>/
 "bump-reminder:mention-off:{guildId}"    // メンション通知OFF
 
 // ✅ 動的パラメータ付き
-"reaction-role:panel-create:{channelId}"  // パネル作成
+"reaction-role:setup-modal:{sessionId}"   // パネル作成のモーダル
 "sticky-message:set-modal:{channelId}"   // 設定モーダル
 
 // ❌ 修飾子から始めている

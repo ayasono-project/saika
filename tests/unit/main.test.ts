@@ -92,7 +92,7 @@ vi.mock("discord.js", () => ({
 vi.mock("@/shared/config/env", () => ({
   get env() {
     return {
-      DATABASE_URL: "file::memory:?cache=shared",
+      DATABASE_URL: "postgresql://test:test@localhost:5432/test?schema=public",
       DISCORD_TOKEN: "test-token",
       DISCORD_APP_ID: "123456",
       DISCORD_GUILD_ID: mutableMocks.guildId,

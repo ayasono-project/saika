@@ -272,7 +272,7 @@ initializeBotCompositionRoot(prisma); // リポジトリ・サービスの初期
 apiServer = await startApiServer({ client, prisma }); // /ready の DB 疎通確認に使う
 ```
 
-リポジトリの取得関数（例: `getAfkSettingsRepository`）は `createRepositoryGetter()`（`src/shared/utils/serviceFactory.ts`）で作ったシングルトンです。**最初の呼び出しで受け取った Prisma Client でインスタンスを作り、以降はそれを返します。** 初期化は Composition Root がまとめて行うため、それより後の呼び出し側は引数なしで取得できます。初期化前に引数なしで呼ぶと `Error` になります（→ [Composition Root と DI](#composition-root-と-di)）。
+リポジトリの取得関数（例: `getAfkSettingsRepository`）は `createRepositoryGetter()`（`src/shared/utils/serviceFactory.ts`）で作ったシングルトンです。**最初の呼び出しで受け取った Prisma Client でインスタンスを作り、以降はそれを返します。** Prisma Client を渡すのは Composition Root だけで、機能のコードは引数なしで呼ばず、Composition Root の getter（`getBot*`）から取ります。初期化前に引数なしで呼ぶと `Error` になります（→ [Composition Root と DI](#composition-root-と-di)）。
 
 ### スキーマ構成
 

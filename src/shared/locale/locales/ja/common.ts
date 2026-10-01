@@ -88,6 +88,8 @@ export const common = {
   "embed.title.success": "設定完了",
   "embed.field.name.status": "状態",
   "embed.field.value.not_configured": "未設定",
+  "embed.field.value.channel_not_found":
+    "チャンネルが見つかりません。 ChannelId: {{channelId}}",
 
   // 機能横断 UI ボタンラベル
   "ui.button.cancel": "キャンセル",

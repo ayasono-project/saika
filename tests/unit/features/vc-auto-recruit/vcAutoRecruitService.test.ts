@@ -585,9 +585,20 @@ describe("features/vc-auto-recruit/vcAutoRecruitService", () => {
       // エラーチャンネルとシステムチャンネルの両方へ知らせる（メンバーログと同じ扱い）
       expect(notifyWarnChannelMock).toHaveBeenCalledWith(
         guild,
-        "Channel ch-1 not found",
-        expect.objectContaining({ feature: "VC自動募集" }),
+        expect.any(Function),
+        {
+          featureKey:
+            "vcAutoRecruit:embed.field.value.error_notification_feature",
+          actionKey: "vcAutoRecruit:embed.field.value.channel_missing_action",
+        },
       );
+      // 本文は通知先のギルドの言語で組み立てる（翻訳はキーと埋め込む値をそのまま返す）
+      const buildMessage = notifyWarnChannelMock.mock.calls[0]?.[1] as (
+        t: (key: string, params?: Record<string, unknown>) => string,
+      ) => string;
+      expect(
+        buildMessage((key, params) => `${key}:${JSON.stringify(params)}`),
+      ).toBe('common:embed.field.value.channel_not_found:{"channelId":"ch-1"}');
       expect(systemChannel.send).toHaveBeenCalledWith({
         content: "vcAutoRecruit:user-response.channel_deleted_notice",
       });

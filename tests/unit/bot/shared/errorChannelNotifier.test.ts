@@ -7,7 +7,11 @@ import {
 const getConfigMock = vi.fn();
 const sendMock = vi.fn();
 const channelFetchMock = vi.fn();
-const tGuildMock = vi.fn((_guildId: string, key: string) => key);
+// 翻訳はキーをそのまま返す（引数があれば JSON で後ろに付ける）
+const translateMock = vi.fn((key: string, options?: Record<string, unknown>) =>
+  options ? `${key}:${JSON.stringify(options)}` : key,
+);
+const getGuildTranslatorMock = vi.fn(async (_guildId: string) => translateMock);
 const loggerWarnMock = vi.fn();
 const createErrorEmbedMock = vi.fn(
   (_description: string, _options?: unknown) => ({ type: "error-embed" }),
@@ -23,8 +27,11 @@ vi.mock("@/bot/services/botCompositionRoot", () => ({
 }));
 
 vi.mock("@/shared/locale/localeManager", () => ({
-  tGuild: (guildId: string, key: string) => tGuildMock(guildId, key),
   logPrefixed: (...args: unknown[]) => args.join(":"),
+}));
+
+vi.mock("@/shared/locale/helpers", () => ({
+  getGuildTranslator: (guildId: string) => getGuildTranslatorMock(guildId),
 }));
 
 vi.mock("@/shared/utils/logger", () => ({
@@ -47,6 +54,11 @@ function createGuildMock() {
   } as never;
 }
 
+const CONTEXT = {
+  featureKey: "memberLog:embed.field.value.error_notification_feature",
+  actionKey: "memberLog:embed.field.value.join_notification_failed_action",
+} as const;
+
 function createTextChannel() {
   return {
     type: ChannelType.GuildText,
@@ -63,23 +75,19 @@ describe("bot/shared/errorChannelNotifier", () => {
     it("errorChannelId が未設定の場合はスキップする", async () => {
       getConfigMock.mockResolvedValue(null);
 
-      await notifyErrorChannel(createGuildMock(), new Error("test"), {
-        feature: "テスト機能",
-        action: "テスト処理",
-      });
+      await notifyErrorChannel(createGuildMock(), new Error("test"), CONTEXT);
 
       expect(channelFetchMock).not.toHaveBeenCalled();
       expect(sendMock).not.toHaveBeenCalled();
+      // 送らないときはギルドの言語も引かない
+      expect(getGuildTranslatorMock).not.toHaveBeenCalled();
     });
 
     it("errorChannelId が設定済みでもチャンネルが見つからない場合はスキップする", async () => {
       getConfigMock.mockResolvedValue({ errorChannelId: "ch-1" });
       channelFetchMock.mockResolvedValue(null);
 
-      await notifyErrorChannel(createGuildMock(), new Error("test"), {
-        feature: "テスト機能",
-        action: "テスト処理",
-      });
+      await notifyErrorChannel(createGuildMock(), new Error("test"), CONTEXT);
 
       expect(sendMock).not.toHaveBeenCalled();
     });
@@ -88,10 +96,7 @@ describe("bot/shared/errorChannelNotifier", () => {
       getConfigMock.mockResolvedValue({ errorChannelId: "ch-1" });
       channelFetchMock.mockResolvedValue({ type: ChannelType.GuildVoice });
 
-      await notifyErrorChannel(createGuildMock(), new Error("test"), {
-        feature: "テスト機能",
-        action: "テスト処理",
-      });
+      await notifyErrorChannel(createGuildMock(), new Error("test"), CONTEXT);
 
       expect(sendMock).not.toHaveBeenCalled();
     });
@@ -101,10 +106,11 @@ describe("bot/shared/errorChannelNotifier", () => {
       channelFetchMock.mockResolvedValue(createTextChannel());
       sendMock.mockResolvedValue(undefined);
 
-      await notifyErrorChannel(createGuildMock(), new Error("test error"), {
-        feature: "メンバーログ",
-        action: "入室通知の送信失敗",
-      });
+      await notifyErrorChannel(
+        createGuildMock(),
+        new Error("test error"),
+        CONTEXT,
+      );
 
       expect(createErrorEmbedMock).toHaveBeenCalledWith("", {
         title: "guildSettings:error-notification.title",
@@ -112,12 +118,13 @@ describe("bot/shared/errorChannelNotifier", () => {
         fields: [
           {
             name: "guildSettings:error-notification.feature",
-            value: "メンバーログ",
+            value: "memberLog:embed.field.value.error_notification_feature",
             inline: true,
           },
           {
             name: "guildSettings:error-notification.action",
-            value: "入室通知の送信失敗",
+            value:
+              "memberLog:embed.field.value.join_notification_failed_action",
             inline: true,
           },
           {
@@ -136,10 +143,7 @@ describe("bot/shared/errorChannelNotifier", () => {
       channelFetchMock.mockResolvedValue(createTextChannel());
       sendMock.mockResolvedValue(undefined);
 
-      await notifyErrorChannel(createGuildMock(), "string error", {
-        feature: "テスト",
-        action: "テスト",
-      });
+      await notifyErrorChannel(createGuildMock(), "string error", CONTEXT);
 
       expect(createErrorEmbedMock).toHaveBeenCalledWith(
         "",
@@ -156,10 +160,7 @@ describe("bot/shared/errorChannelNotifier", () => {
       channelFetchMock.mockResolvedValue(createTextChannel());
       sendMock.mockResolvedValue(undefined);
 
-      await notifyErrorChannel(createGuildMock(), 42, {
-        feature: "テスト",
-        action: "テスト",
-      });
+      await notifyErrorChannel(createGuildMock(), 42, CONTEXT);
 
       expect(createErrorEmbedMock).toHaveBeenCalledWith(
         "",
@@ -177,10 +178,11 @@ describe("bot/shared/errorChannelNotifier", () => {
       sendMock.mockResolvedValue(undefined);
 
       const longMessage = "x".repeat(2000);
-      await notifyErrorChannel(createGuildMock(), new Error(longMessage), {
-        feature: "テスト",
-        action: "テスト",
-      });
+      await notifyErrorChannel(
+        createGuildMock(),
+        new Error(longMessage),
+        CONTEXT,
+      );
 
       const call = createErrorEmbedMock.mock.calls[0] as unknown[];
       const messageField = (call[1] as { fields: { value: string }[] })
@@ -193,10 +195,7 @@ describe("bot/shared/errorChannelNotifier", () => {
       const error = new Error("DB error");
       getConfigMock.mockRejectedValue(error);
 
-      await notifyErrorChannel(createGuildMock(), new Error("test"), {
-        feature: "テスト",
-        action: "テスト",
-      });
+      await notifyErrorChannel(createGuildMock(), new Error("test"), CONTEXT);
 
       expect(loggerWarnMock).toHaveBeenCalledWith(
         expect.stringContaining("send_error_failed"),
@@ -211,10 +210,7 @@ describe("bot/shared/errorChannelNotifier", () => {
       sendMock.mockRejectedValue(error);
 
       await expect(
-        notifyErrorChannel(createGuildMock(), new Error("test"), {
-          feature: "テスト",
-          action: "テスト",
-        }),
+        notifyErrorChannel(createGuildMock(), new Error("test"), CONTEXT),
       ).resolves.toBeUndefined();
 
       expect(loggerWarnMock).toHaveBeenCalledWith(
@@ -227,10 +223,7 @@ describe("bot/shared/errorChannelNotifier", () => {
       getConfigMock.mockResolvedValue({ errorChannelId: "ch-1" });
       channelFetchMock.mockRejectedValue(new Error("fetch failed"));
 
-      await notifyErrorChannel(createGuildMock(), new Error("test"), {
-        feature: "テスト",
-        action: "テスト",
-      });
+      await notifyErrorChannel(createGuildMock(), new Error("test"), CONTEXT);
 
       expect(sendMock).not.toHaveBeenCalled();
     });
@@ -241,10 +234,7 @@ describe("bot/shared/errorChannelNotifier", () => {
       getConfigMock.mockResolvedValue(null);
 
       await expect(
-        notifyWarnChannel(createGuildMock(), "warning message", {
-          feature: "テスト機能",
-          action: "テスト処理",
-        }),
+        notifyWarnChannel(createGuildMock(), () => "warning message", CONTEXT),
       ).resolves.toBe(false);
 
       expect(sendMock).not.toHaveBeenCalled();
@@ -255,10 +245,7 @@ describe("bot/shared/errorChannelNotifier", () => {
       channelFetchMock.mockResolvedValue(null);
 
       await expect(
-        notifyWarnChannel(createGuildMock(), "warning", {
-          feature: "テスト",
-          action: "テスト",
-        }),
+        notifyWarnChannel(createGuildMock(), () => "warning", CONTEXT),
       ).resolves.toBe(false);
 
       expect(sendMock).not.toHaveBeenCalled();
@@ -269,10 +256,7 @@ describe("bot/shared/errorChannelNotifier", () => {
       channelFetchMock.mockResolvedValue({ type: ChannelType.GuildVoice });
 
       await expect(
-        notifyWarnChannel(createGuildMock(), "warning", {
-          feature: "テスト",
-          action: "テスト",
-        }),
+        notifyWarnChannel(createGuildMock(), () => "warning", CONTEXT),
       ).resolves.toBe(false);
 
       expect(sendMock).not.toHaveBeenCalled();
@@ -283,24 +267,25 @@ describe("bot/shared/errorChannelNotifier", () => {
       channelFetchMock.mockRejectedValue(new Error("fetch failed"));
 
       await expect(
-        notifyWarnChannel(createGuildMock(), "warning", {
-          feature: "テスト",
-          action: "テスト",
-        }),
+        notifyWarnChannel(createGuildMock(), () => "warning", CONTEXT),
       ).resolves.toBe(false);
 
       expect(sendMock).not.toHaveBeenCalled();
     });
 
-    it("テキストチャンネルが存在する場合は警告Embedを送信する", async () => {
+    it("テキストチャンネルが存在する場合は、通知先のギルドの言語で組み立てた警告Embedを送信する", async () => {
       getConfigMock.mockResolvedValue({ errorChannelId: "ch-1" });
       channelFetchMock.mockResolvedValue(createTextChannel());
       sendMock.mockResolvedValue(undefined);
 
-      await notifyWarnChannel(createGuildMock(), "channel not found", {
-        feature: "メンバーログ",
-        action: "通知先チャンネル消失",
-      });
+      await notifyWarnChannel(
+        createGuildMock(),
+        (t) =>
+          t("common:embed.field.value.channel_not_found", { channelId: "x" }),
+        CONTEXT,
+      );
+
+      expect(getGuildTranslatorMock).toHaveBeenCalledWith("guild-1");
 
       expect(createWarningEmbedMock).toHaveBeenCalledWith("", {
         title: "guildSettings:error-notification.warn_title",
@@ -308,17 +293,19 @@ describe("bot/shared/errorChannelNotifier", () => {
         fields: [
           {
             name: "guildSettings:error-notification.feature",
-            value: "メンバーログ",
+            value: "memberLog:embed.field.value.error_notification_feature",
             inline: true,
           },
           {
             name: "guildSettings:error-notification.action",
-            value: "通知先チャンネル消失",
+            value:
+              "memberLog:embed.field.value.join_notification_failed_action",
             inline: true,
           },
           {
             name: "guildSettings:error-notification.message",
-            value: "channel not found",
+            value:
+              'common:embed.field.value.channel_not_found:{"channelId":"x"}',
           },
         ],
       });
@@ -333,10 +320,7 @@ describe("bot/shared/errorChannelNotifier", () => {
       sendMock.mockResolvedValue(undefined);
 
       const longMessage = "w".repeat(2000);
-      await notifyWarnChannel(createGuildMock(), longMessage, {
-        feature: "テスト",
-        action: "テスト",
-      });
+      await notifyWarnChannel(createGuildMock(), () => longMessage, CONTEXT);
 
       const call = createWarningEmbedMock.mock.calls[0] as unknown[];
       const messageField = (call[1] as { fields: { value: string }[] })
@@ -350,10 +334,7 @@ describe("bot/shared/errorChannelNotifier", () => {
       getConfigMock.mockRejectedValue(error);
 
       await expect(
-        notifyWarnChannel(createGuildMock(), "warning", {
-          feature: "テスト",
-          action: "テスト",
-        }),
+        notifyWarnChannel(createGuildMock(), () => "warning", CONTEXT),
       ).resolves.toBe(false);
 
       expect(loggerWarnMock).toHaveBeenCalledWith(
@@ -369,12 +350,31 @@ describe("bot/shared/errorChannelNotifier", () => {
       sendMock.mockRejectedValue(error);
 
       await expect(
-        notifyWarnChannel(createGuildMock(), "warning", {
-          feature: "テスト",
-          action: "テスト",
-        }),
+        notifyWarnChannel(createGuildMock(), () => "warning", CONTEXT),
       ).resolves.toBe(false);
 
+      expect(loggerWarnMock).toHaveBeenCalledWith(
+        expect.stringContaining("send_warn_failed"),
+        error,
+      );
+    });
+
+    it("本文の組み立てに失敗したら、送信の失敗と同じく warn を残し、false を返す", async () => {
+      const error = new Error("build failed");
+      getConfigMock.mockResolvedValue({ errorChannelId: "ch-1" });
+      channelFetchMock.mockResolvedValue(createTextChannel());
+
+      await expect(
+        notifyWarnChannel(
+          createGuildMock(),
+          () => {
+            throw error;
+          },
+          CONTEXT,
+        ),
+      ).resolves.toBe(false);
+
+      expect(sendMock).not.toHaveBeenCalled();
       expect(loggerWarnMock).toHaveBeenCalledWith(
         expect.stringContaining("send_warn_failed"),
         error,
@@ -387,10 +387,7 @@ describe("bot/shared/errorChannelNotifier", () => {
       sendMock.mockResolvedValue(undefined);
 
       await expect(
-        notifyWarnChannel(createGuildMock(), "warning", {
-          feature: "テスト",
-          action: "テスト",
-        }),
+        notifyWarnChannel(createGuildMock(), () => "warning", CONTEXT),
       ).resolves.toBe(true);
       expect(loggerWarnMock).not.toHaveBeenCalled();
     });

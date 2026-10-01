@@ -44,8 +44,9 @@ export async function handleBumpReminderRoleDelete(role: Role): Promise<void> {
       err,
     );
     await notifyErrorChannel(role.guild, err, {
-      feature: "Bumpリマインダー",
-      action: "ロール削除時のメンション整理失敗",
+      featureKey: "bumpReminder:embed.field.value.error_notification_feature",
+      actionKey:
+        "bumpReminder:embed.field.value.role_delete_cleanup_failed_action",
     });
   }
 }

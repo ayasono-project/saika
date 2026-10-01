@@ -80,6 +80,11 @@ export const vcAutoRecruit = {
   "embed.field.value.reset_target":
     "有効/無効設定 / 投稿先チャンネル / Embed 設定 / カスタムメッセージ / 有効チャンネル / 追跡中の募集",
 
+  // ── Embed: エラー通知チャンネル ─────────────────
+  "embed.field.value.error_notification_feature": "VC自動募集",
+  "embed.field.value.channel_missing_action":
+    "投稿先チャンネル消失→設定自動リセット",
+
   // ── UIラベル ──────────────────────────────────
   "ui.modal.set_message_title": "募集メッセージを設定",
   "ui.modal.set_message_label": "募集メッセージ",

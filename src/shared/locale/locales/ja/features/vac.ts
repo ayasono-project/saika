@@ -29,6 +29,19 @@ export const vac = {
   "embed.field.value.no_created_vcs": "なし",
   "embed.field.value.top": "TOP",
 
+  // ── Embed: エラー通知チャンネル ─────────────────
+  "embed.field.value.error_notification_feature": "VAC",
+  "embed.field.value.member_move_failed_action":
+    "Bot権限不足によるメンバー移動失敗",
+  "embed.field.value.channel_create_failed_action":
+    "Bot権限不足によるVCチャンネル作成失敗",
+  "embed.field.value.created_vc_member_move_failed_action":
+    "Bot権限不足によるメンバー移動失敗（新規作成VC）",
+  "embed.field.value.category_full_action":
+    "カテゴリのチャンネル上限到達でVC作成不可",
+  "embed.field.value.category_full_notice":
+    "カテゴリがチャンネル上限に達しました。 GuildId: {{guildId}} CategoryId: {{categoryId}}",
+
   // ── UIラベル ──────────────────────────────────
   "ui.select.trigger_remove_placeholder":
     "削除するトリガーチャンネルを選択（複数選択可）",
@@ -51,7 +64,6 @@ export const vac = {
     "VCチャンネル削除 GuildId: {{guildId}} ChannelId: {{channelId}}",
   "log.category_full":
     "カテゴリがチャンネル上限に達しました。 GuildId: {{guildId}} CategoryId: {{categoryId}}",
-  "log.category_full_action": "カテゴリのチャンネル上限到達でVC作成不可",
   "log.trigger_removed_by_delete":
     "削除されたトリガーチャンネルを設定から除外 GuildId: {{guildId}} ChannelId: {{channelId}}",
   "log.channel_delete_sync_failed": "channelDelete同期処理失敗",

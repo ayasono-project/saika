@@ -8,10 +8,7 @@ import type {
 } from "discord.js";
 import { notifyWarnChannel } from "../../../bot/shared/errorChannelNotifier";
 import type { ITicketRepository, Ticket } from "../../../shared/database/types";
-import {
-  type GuildTFunction,
-  getGuildTranslator,
-} from "../../../shared/locale/helpers";
+import type { GuildTFunction } from "../../../shared/locale/helpers";
 import { logPrefixed } from "../../../shared/locale/localeManager";
 import { logger } from "../../../shared/utils/logger";
 import { TICKET_LIST_MAX_DISPLAY } from "../commands/ticketCommand.constants";
@@ -189,13 +186,12 @@ async function notifyInaccessibleTicketChannels(
   guild: Guild,
   tickets: Ticket[],
 ): Promise<boolean> {
-  const t = await getGuildTranslator(guild.id);
   return notifyWarnChannel(
     guild,
-    buildInaccessibleTicketChannelsNotice(t, tickets),
+    (t) => buildInaccessibleTicketChannelsNotice(t, tickets),
     {
-      feature: t("ticket:embed.field.value.error_notification_feature"),
-      action: t("ticket:embed.field.value.channel_access_missing_action"),
+      featureKey: "ticket:embed.field.value.error_notification_feature",
+      actionKey: "ticket:embed.field.value.channel_access_missing_action",
     },
   );
 }

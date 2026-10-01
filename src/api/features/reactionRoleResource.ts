@@ -135,10 +135,14 @@ export async function deletePanelMessage(
     );
     await notifyWarnChannel(
       guild,
-      `<#${panel.channelId}> ChannelId: ${panel.channelId} MessageId: ${panel.messageId}`,
+      (t) =>
+        t("reactionRole:embed.field.value.panel_delete_failed_notice", {
+          channelId: panel.channelId,
+          messageId: panel.messageId,
+        }),
       {
-        feature: "リアクションロール",
-        action: "パネルメッセージの自動削除に失敗（手動削除/権限確認が必要）",
+        featureKey: "reactionRole:embed.field.value.error_notification_feature",
+        actionKey: "reactionRole:embed.field.value.panel_delete_failed_action",
       },
     );
   };

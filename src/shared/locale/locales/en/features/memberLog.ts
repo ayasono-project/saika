@@ -75,6 +75,15 @@ export const memberLog = {
   "embed.field.value.age_days": "{{count}}d",
   "embed.field.value.age_separator": " ",
 
+  // ── Embed: error notification channel ─────────
+  "embed.field.value.error_notification_feature": "Member Log",
+  "embed.field.value.channel_missing_action":
+    "Notification channel missing → settings reset automatically",
+  "embed.field.value.join_notification_failed_action":
+    "Failed to send join notification",
+  "embed.field.value.leave_notification_failed_action":
+    "Failed to send leave notification",
+
   // ── UI labels ──────────────────────────────────
   "ui.modal.set_join_message_title": "Set Join Message",
   "ui.modal.set_join_message_label": "Join message",

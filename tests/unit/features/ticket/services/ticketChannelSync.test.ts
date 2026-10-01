@@ -25,13 +25,9 @@ vi.mock("@/bot/shared/errorChannelNotifier", () => ({
   notifyWarnChannel: vi.fn(),
 }));
 
-// ギルドの言語の翻訳は、キーと埋め込む値をそのまま返す
-vi.mock("@/shared/locale/helpers", () => ({
-  getGuildTranslator: vi.fn(
-    async () => (key: string, params?: Record<string, unknown>) =>
-      params ? `${key}:${JSON.stringify(params)}` : key,
-  ),
-}));
+// 通知の本文を組み立てる関数に渡す翻訳。キーと埋め込む値をそのまま返す
+const translate = (key: string, params?: Record<string, unknown>) =>
+  params ? `${key}:${JSON.stringify(params)}` : key;
 
 import { PermissionsBitField, type PermissionsString } from "discord.js";
 import { notifyWarnChannel } from "@/bot/shared/errorChannelNotifier";
@@ -313,13 +309,17 @@ describe("features/ticket/services/ticketChannelSync", () => {
       expect(notifyWarnChannel).toHaveBeenCalledTimes(1);
       expect(notifyWarnChannel).toHaveBeenCalledWith(
         guild,
+        expect.any(Function),
+        {
+          featureKey: "ticket:embed.field.value.error_notification_feature",
+          actionKey: "ticket:embed.field.value.channel_access_missing_action",
+        },
+      );
+      const buildMessage = vi.mocked(notifyWarnChannel).mock.calls[0]?.[1];
+      expect(buildMessage?.(translate)).toBe(
         `ticket:embed.field.value.channel_access_missing_notice:${JSON.stringify(
           { count: 2, channels: "<#ch-old-1> <#ch-old-2>" },
         )}`,
-        {
-          feature: "ticket:embed.field.value.error_notification_feature",
-          action: "ticket:embed.field.value.channel_access_missing_action",
-        },
       );
       // 知らせても自動削除タイマーの組み直しは続ける（発火時に扱えなければ保留する）
       expect(restoreAutoDeleteTimersForGuild).toHaveBeenCalled();
@@ -336,7 +336,9 @@ describe("features/ticket/services/ticketChannelSync", () => {
         notifyInaccessibleChannels: true,
       });
 
-      const message = vi.mocked(notifyWarnChannel).mock.calls[0]?.[1];
+      const message = vi
+        .mocked(notifyWarnChannel)
+        .mock.calls[0]?.[1]?.(translate);
       expect(message).toContain('"count":12');
       expect(message).toContain("<#ch-9>");
       expect(message).not.toContain("<#ch-10>");

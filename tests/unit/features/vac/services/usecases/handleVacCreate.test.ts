@@ -329,7 +329,10 @@ describe("bot/features/vac/services/usecases/handleVacCreate", () => {
     expect(notifyErrorChannel).toHaveBeenCalledWith(
       expect.objectContaining({ id: "guild-1" }),
       apiError,
-      expect.objectContaining({ feature: "VAC" }),
+      {
+        featureKey: "vac:embed.field.value.error_notification_feature",
+        actionKey: "vac:embed.field.value.channel_create_failed_action",
+      },
     );
     expect(setChannelMock).not.toHaveBeenCalled();
     expect(repository.addCreatedVacChannel).not.toHaveBeenCalled();
@@ -390,7 +393,10 @@ describe("bot/features/vac/services/usecases/handleVacCreate", () => {
     expect(notifyErrorChannel).toHaveBeenCalledWith(
       expect.objectContaining({ id: "guild-1" }),
       apiError,
-      expect.objectContaining({ feature: "VAC" }),
+      {
+        featureKey: "vac:embed.field.value.error_notification_feature",
+        actionKey: "vac:embed.field.value.member_move_failed_action",
+      },
     );
     expect(createMock).not.toHaveBeenCalled();
   });

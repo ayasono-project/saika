@@ -53,8 +53,10 @@ export class StickyMessageResendService {
           err,
         );
         void notifyErrorChannel(channel.guild, err, {
-          feature: "メッセージ固定",
-          action: "スケジュールされた再送のエラー",
+          featureKey:
+            "stickyMessage:embed.field.value.error_notification_feature",
+          actionKey:
+            "stickyMessage:embed.field.value.scheduled_resend_failed_action",
         });
       });
     }, RESEND_DELAY_MS);
@@ -95,8 +97,9 @@ export class StickyMessageResendService {
         { channelId: channel.id, guildId, err },
       );
       await notifyErrorChannel(channel.guild, err, {
-        feature: "メッセージ固定",
-        action: "メッセージ送信失敗",
+        featureKey:
+          "stickyMessage:embed.field.value.error_notification_feature",
+        actionKey: "stickyMessage:embed.field.value.send_failed_action",
       });
     }
   }

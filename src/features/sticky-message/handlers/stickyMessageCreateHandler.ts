@@ -38,8 +38,9 @@ export async function handleStickyMessageCreate(
     );
     if (message.guild) {
       await notifyErrorChannel(message.guild, err, {
-        feature: "メッセージ固定",
-        action: "再送処理の失敗",
+        featureKey:
+          "stickyMessage:embed.field.value.error_notification_feature",
+        actionKey: "stickyMessage:embed.field.value.resend_failed_action",
       });
     }
   }

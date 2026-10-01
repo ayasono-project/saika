@@ -52,10 +52,16 @@ export async function sendBumpReminder(
       );
       const guild = client.guilds?.cache?.get(guildId);
       if (guild) {
-        await notifyWarnChannel(guild, `Channel ${channelId} not found`, {
-          feature: "Bumpリマインダー",
-          action: "リマインダー送信先チャンネル未発見",
-        });
+        await notifyWarnChannel(
+          guild,
+          (t) => t("common:embed.field.value.channel_not_found", { channelId }),
+          {
+            featureKey:
+              "bumpReminder:embed.field.value.error_notification_feature",
+            actionKey:
+              "bumpReminder:embed.field.value.reminder_channel_missing_action",
+          },
+        );
       }
       return;
     }
@@ -161,8 +167,8 @@ export async function sendBumpReminder(
     const guild = client.guilds?.cache?.get(guildId);
     if (guild) {
       await notifyErrorChannel(guild, error, {
-        feature: "Bumpリマインダー",
-        action: "リマインダー送信失敗",
+        featureKey: "bumpReminder:embed.field.value.error_notification_feature",
+        actionKey: "bumpReminder:embed.field.value.reminder_send_failed_action",
       });
     }
   }

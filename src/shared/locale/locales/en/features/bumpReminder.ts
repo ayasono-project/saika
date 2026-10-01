@@ -64,6 +64,19 @@ export const bumpReminder = {
   "embed.field.name.mention_role": "Mention Role",
   "embed.field.name.mention_users": "Mention Users",
 
+  // ── Embed: error notification channel ─────────
+  "embed.field.value.error_notification_feature": "Bump Reminder",
+  "embed.field.value.bump_detection_failed_action":
+    "Failed to process bump detection",
+  "embed.field.value.member_remove_cleanup_failed_action":
+    "Failed to clean up mentions when a member left",
+  "embed.field.value.role_delete_cleanup_failed_action":
+    "Failed to clean up mentions when a role was deleted",
+  "embed.field.value.reminder_channel_missing_action":
+    "Reminder channel not found",
+  "embed.field.value.reminder_send_failed_action": "Failed to send reminder",
+  "embed.field.value.panel_send_failed_action": "Failed to send panel",
+
   // ── UI labels ──────────────────────────────────
   "ui.button.mention_on": "Turn Notification ON",
   "ui.button.mention_off": "Turn Notification OFF",

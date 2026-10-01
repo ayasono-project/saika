@@ -81,6 +81,11 @@ export const vcAutoRecruit = {
   "embed.field.value.reset_target":
     "Enabled/Disabled / Notification Channel / Embed Setting / Custom Message / Enabled Channels / Active recruits",
 
+  // ── Embed: error notification channel ─────────
+  "embed.field.value.error_notification_feature": "VC Auto Recruit",
+  "embed.field.value.channel_missing_action":
+    "Post channel missing → settings reset automatically",
+
   // ── UI labels ─────────────────────────────────
   "ui.modal.set_message_title": "Set Recruit Message",
   "ui.modal.set_message_label": "Recruit message",

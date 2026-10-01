@@ -75,15 +75,17 @@ vi.mock("@/features/afk/afkSettingsDefaults", () => ({
   createDefaultAfkSettings: () => ({ enabled: false, channelId: null }),
 }));
 
-// afkSettingsService のモック
+// Composition Root の AFK 設定サービスのモック
 const mockGetAfkSettings = vi.fn();
 const mockSetAfkChannel = vi.fn();
 const mockSaveAfkSettings = vi.fn();
 
-vi.mock("@/features/afk/afkSettingsService", () => ({
-  getAfkSettings: (...args: unknown[]) => mockGetAfkSettings(...args),
-  setAfkChannel: (...args: unknown[]) => mockSetAfkChannel(...args),
-  saveAfkSettings: (...args: unknown[]) => mockSaveAfkSettings(...args),
+vi.mock("@/bot/services/botCompositionRoot", () => ({
+  getBotAfkSettingsService: () => ({
+    getAfkSettings: (...args: unknown[]) => mockGetAfkSettings(...args),
+    setAfkChannel: (...args: unknown[]) => mockSetAfkChannel(...args),
+    saveAfkSettings: (...args: unknown[]) => mockSaveAfkSettings(...args),
+  }),
 }));
 
 /** ChatInputCommandInteraction のモックを作成する */

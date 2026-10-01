@@ -6,6 +6,7 @@ import {
   type ChatInputCommandInteraction,
   MessageFlags,
 } from "discord.js";
+import { getBotAfkSettingsService } from "../../../bot/services/botCompositionRoot";
 import { COMMON_I18N_KEYS } from "../../../bot/shared/i18nKeys";
 import { ensureManageGuildPermission } from "../../../bot/shared/permissionGuards";
 import {
@@ -18,11 +19,6 @@ import {
 } from "../../../shared/locale/localeManager";
 import { logger } from "../../../shared/utils/logger";
 import { createDefaultAfkSettings } from "../afkSettingsDefaults";
-import {
-  getAfkSettings,
-  saveAfkSettings,
-  setAfkChannel,
-} from "../afkSettingsService";
 
 const AFK_SETTINGS_SUBCOMMAND = {
   SET_CHANNEL: "set-channel",
@@ -83,7 +79,7 @@ async function handleSetChannel(
     );
   }
 
-  await setAfkChannel(guildId, channel.id);
+  await getBotAfkSettingsService().setAfkChannel(guildId, channel.id);
 
   const description = tInteraction(
     interaction.locale,
@@ -122,7 +118,10 @@ async function handleClearChannel(
   interaction: ChatInputCommandInteraction,
   guildId: string,
 ): Promise<void> {
-  await saveAfkSettings(guildId, createDefaultAfkSettings());
+  await getBotAfkSettingsService().saveAfkSettings(
+    guildId,
+    createDefaultAfkSettings(),
+  );
 
   const description = tInteraction(
     interaction.locale,
@@ -156,7 +155,7 @@ async function handleViewSetting(
   interaction: ChatInputCommandInteraction,
   guildId: string,
 ): Promise<void> {
-  const config = await getAfkSettings(guildId);
+  const config = await getBotAfkSettingsService().getAfkSettings(guildId);
   const locale = interaction.locale;
 
   const title = tInteraction(locale, "afk:embed.title.config_view");

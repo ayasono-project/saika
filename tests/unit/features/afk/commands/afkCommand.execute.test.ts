@@ -10,8 +10,10 @@ const resolveAuditReasonMock = vi.fn((..._a: unknown[]) => "audit-reason");
 const presentBulkConfirmMock = vi.fn().mockResolvedValue(undefined);
 const loggerInfoMock = vi.fn();
 
-vi.mock("@/features/afk/afkSettingsService", () => ({
-  getAfkSettings: (...args: unknown[]) => getAfkSettingsMock(...args),
+vi.mock("@/bot/services/botCompositionRoot", () => ({
+  getBotAfkSettingsService: () => ({
+    getAfkSettings: (...args: unknown[]) => getAfkSettingsMock(...args),
+  }),
 }));
 
 vi.mock("@/bot/shared/vcActionLog", () => ({

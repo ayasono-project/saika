@@ -2,6 +2,7 @@
 
 import { ValidationError } from "@ayasono/shared/core";
 import { ChannelType, type ChatInputCommandInteraction } from "discord.js";
+import { getBotAfkSettingsService } from "../../../bot/services/botCompositionRoot";
 import { COMMON_I18N_KEYS } from "../../../bot/shared/i18nKeys";
 import {
   formatActionLog,
@@ -18,7 +19,6 @@ import {
   tInteraction,
 } from "../../../shared/locale/localeManager";
 import { logger } from "../../../shared/utils/logger";
-import { getAfkSettings } from "../afkSettingsService";
 
 // afk コマンドのオプション名
 const AFK_OPTION = {
@@ -48,7 +48,7 @@ export async function executeAfkCommand(
     throw ValidationError.fromKey(AFK_I18N_KEYS.ERROR_GUILD_ONLY);
   }
 
-  const config = await getAfkSettings(guildId);
+  const config = await getBotAfkSettingsService().getAfkSettings(guildId);
   if (!config || !config.enabled || !config.channelId) {
     throw new ValidationError(
       tInteraction(interaction.locale, AFK_I18N_KEYS.ERROR_NOT_CONFIGURED),

@@ -2,7 +2,7 @@
 
 > Implementation Guidelines - 実装方針とコーディング規約
 
-最終更新: 2026年10月1日
+最終更新: 2026年10月13日
 
 ---
 
@@ -224,7 +224,7 @@ src/features/<feature-name>/
 "reactionRole:createPanel"
 ```
 
-- 定数は `src/features/<feature>/constants/*.constants.ts` に集約する
+- Custom ID などの定数は、使う範囲がいちばん狭い場所に置く（→「マジックナンバー禁止」）
 
 ### コメント規約
 
@@ -434,7 +434,16 @@ logger.debug(
 
 #### マジックナンバー禁止
 
-タイムアウト値・制限値・閾値は名前付き定数として `*.constants.ts` に定義する。数値リテラルの直接使用を **禁止** する。
+タイムアウト値・制限値・閾値は名前付き定数にする。数値リテラルの直接使用を **禁止** する。
+
+定数は、使う範囲がいちばん狭い場所に置く。
+
+| 使う範囲 | 置き場所 |
+| --- | --- |
+| そのファイルの中だけ | ファイルの先頭 |
+| 同じコマンドの複数ファイル | `commands/<名前>Command.constants.ts` |
+| 機能の中の複数の場所（コマンドとサービスなど） | `src/features/<feature>/constants/` |
+| 複数の機能 | `src/shared/constants/` |
 
 ```ts
 // ❌
@@ -534,7 +543,7 @@ disableComponentsAfterTimeout(interaction, [selectRow, buttonRow], TIMEOUT_MS);
 - [ ] `create*Embed` に渡すロケール文字列に絵文字を含めていない
 - [ ] ユーザー向け文字列は `tDefault()` 経由で i18n 化されている（ロケールキーは ja/en 両方に追加）
 - [ ] ログメッセージは `logPrefixed()` / `logCommand()` 経由でプレフィックスが付与されている（i18n 文字列に `[xxx]` 直書き禁止）
-- [ ] マジックナンバーを使わず名前付き定数を `*.constants.ts` に定義している
+- [ ] マジックナンバーを使わず名前付き定数にし、使う範囲がいちばん狭い場所に置いている
 - [ ] 同一・類似ロジックの重複がない（共通関数に抽出済み）
 - [ ] UI セッション状態に `TtlMap` を使用している（生 Map を使っていない）
 - [ ] コンポーネント無効化に `disableComponentsAfterTimeout` を使用している

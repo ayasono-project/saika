@@ -31,9 +31,9 @@
 | 区分 | 残件 |
 | --- | ---: |
 | いま着手できる | 14 |
-| 完了待ち | 6 |
+| 完了待ち | 7 |
 | 未決（判断が要る） | 2 |
-| **合計** | **22** |
+| **合計** | **23** |
 
 > **リリースの区切り**（→ HISTORY.md「未承認キックの進め方と、ダッシュボードのプレビューの作り方を決めた」）: 次は名前の整理と保守の6件をまとめた1本（saika は major・shared は v4.0.0）。その後は機能の改修ごとに1本で、同じ機能のタスクはまとめる（未承認キックの3件で1本・メンバーログの2件で1本）。
 >
@@ -374,6 +374,14 @@ VAC が建てた VC は ID が毎回新しく allowlist に入らないので、
 - [ ] **prisma 8**。`8.0.0-rc.15` が RC で、本番稼働中の Bot に RC は入れない。GA は2026年10月予定。`prisma` / `@prisma/client` / `@prisma/adapter-pg` を必ず3点同時に、**単独 PR・単独リリース**で（理由は 7.10 のときと同じ → HISTORY.md）
 
 > **作業手順は HISTORY.md「パッケージ更新」の「作業上の知見」を着手前に読むこと。** 特に `pnpm update --latest` のパッケージ名明示列挙（裸で叩くと prisma の RC と github: 依存の `@ayasono/shared` を巻き込む）と、更新後の `pnpm db:generate`（peer ハッシュが変わると生成物が旧パスに取り残される）。
+
+### CI の Ubuntu 26 移行を見届ける 【保守・小】
+
+**外部の期日待ち（2026-10-19）。** GitHub Actions の `ubuntu-latest` が 2026-10-19 から Ubuntu 26 に変わる（[runner-images#14748](https://github.com/actions/runner-images/issues/14748)）。2026-10-13 に、バージョンは固定せず、移行後の CI を見て判断すると決めた（→ HISTORY.md「biome の `recommended` 非推奨対応」）。CI は setup-node で入れた Node で pnpm を回すだけで、OS の影響を受けそうなのは `pnpm db:generate`（Prisma）くらいのため。
+
+- [ ] 10-19 以降に最初に走った CI（`ci.yml` と `commitlint.yml`）の結果を確かめる
+- [ ] 壊れていたら直す。すぐに直せないとき `ubuntu-24.04` に固定するかは、そのときに決める
+- [ ] 問題がなければ HISTORY.md へ移して閉じる
 
 ### 未承認キックの事前メッセージ DM のトグル化 【実装】
 

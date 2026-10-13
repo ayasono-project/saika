@@ -56,7 +56,7 @@ import { toErrorResponse } from "@/api/lib/httpError";
 import { reactionRoleRoutes } from "@/api/routes/reactionRoles";
 import type { ApiServerDeps } from "@/api/types";
 import type { BotClient } from "@/bot/client";
-import { localeManager } from "@/shared/locale/localeManager";
+import { localeManager, tInteraction } from "@/shared/locale/localeManager";
 
 /** Discord 副作用を no-op にする Client（channels.fetch は常に null） */
 function makeClient(): BotClient {
@@ -104,6 +104,10 @@ describe("reactionRoleRoutes", () => {
 
   beforeAll(async () => {
     await localeManager.initialize();
+    // g-en だけ英語のギルドとして扱う（ほかは既定の日本語）
+    localeManager.setRepository({
+      getLocale: async (guildId: string) => (guildId === "g-en" ? "en" : "ja"),
+    } as never);
   });
   beforeEach(async () => {
     h.reset();
@@ -141,6 +145,28 @@ describe("reactionRoleRoutes", () => {
       },
     ]);
   });
+
+  it.each([
+    ["g1", "ja"],
+    ["g-en", "en"],
+  ] as const)(
+    "title・description を省いた POST は、ギルドの言語の既定文を入れる（%s → %s）",
+    async (guildId, locale) => {
+      const res = await app.inject({
+        method: "POST",
+        url: `/guilds/${guildId}/reaction-roles`,
+        payload: { ...PANEL, title: undefined, description: undefined },
+      });
+
+      expect(res.statusCode).toBe(200);
+      expect(res.json().data.title).toBe(
+        tInteraction(locale, "reactionRole:embed.title.panel_default"),
+      );
+      expect(res.json().data.description).toBe(
+        tInteraction(locale, "reactionRole:embed.description.panel_default"),
+      );
+    },
+  );
 
   it("channelId 欠落の POST は 400", async () => {
     const res = await app.inject({

@@ -9,7 +9,7 @@ import {
 } from "../../bot/services/botCompositionRoot";
 import { resumeAutoDeleteForCategory } from "../../features/ticket/services/ticketAutoDeleteService";
 import type { GuildTicketSettings } from "../../shared/database/types/ticketTypes";
-import { tDefault } from "../../shared/locale/localeManager";
+import { tDefault, tGuild } from "../../shared/locale/localeManager";
 import {
   deleteTicketPanel,
   editTicketPanel,
@@ -87,8 +87,13 @@ export const ticketRoutes: FastifyPluginAsync<TicketRoutesOptions> = async (
       staffRoleIds: body.staffRoleIds,
       panelChannelId: body.channelId ?? "",
       panelMessageId: "",
-      panelTitle: body.title,
-      panelDescription: body.description,
+      // 省かれたときはギルドの言語の既定文を入れる（DB には既定値を持たない）
+      panelTitle:
+        body.title ??
+        (await tGuild(guildId, "ticket:embed.title.panel_default")),
+      panelDescription:
+        body.description ??
+        (await tGuild(guildId, "ticket:embed.description.panel_default")),
       panelColor: body.color,
       autoDeleteDays: body.autoDeleteDays,
       maxTicketsPerUser: body.maxTicketsPerUser,

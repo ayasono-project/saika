@@ -204,6 +204,14 @@ VAC を残す判断（→「VAC（トリガー VC 方式）は残し、募集は
 
 > 詳細な作業経過は git log を参照。
 
+### Embed デフォルト値の日本語ベタ書き（2026-10-13 develop merge）
+
+`guild_ticket_settings.panel_title` / `panel_description` と `guild_reaction_role_panels.title` / `description` の DB の既定値が日本語で書かれていた。DB の既定値を外し（`DROP DEFAULT` だけの migration・既存の行の値はそのまま・NOT NULL も変えない）、API の作成で title・description が省かれたときは、ギルドの言語の既定文（既存のキー `ticket:` / `reactionRole:` の `embed.*.panel_default`）を入れるようにした。次のリリース（名前の整理と保守の6件をまとめた1本）に入る。
+
+- **起票時の前提「en のギルドにも日本語が入る」は、実際には起きていなかった。** Bot のセットアップはモーダルに i18n の既定文を最初から入れて必須入力にしており、ダッシュボードの作成フォームも title・description を必ず送る。DB の既定値が効くのは、API に項目を省いたリクエストが来たときだけだった。それでも直したのは、ガイドライン違反であることと、省かれたときに黙って日本語が入る経路が残っていたため。DB の既定値を外すと、その経路は日本語ではなく NOT NULL 違反（500）になるので、API 側で既定文を入れる
+- **確かめ方**: 使い捨ての Postgres に今までの migration を当て、既定値で行を入れてから新しい migration を当てた。行の値が残ること・既定値が消えたこと・値を渡さない INSERT が NOT NULL 違反になること・`prisma migrate diff` で schema とのずれが無いことを確認した。migration の SQL は DB に繋がない `prisma migrate diff`（変更前と変更後の schema の差分）で作った。開発 DB はチェックサムがずれていて、`migrate dev` を使うには `migrate reset`（開発 DB の消去）が要るため
+- **web の作成フォームの初期文は Bot の既定文と言い回しがずれている**（チケット「お困りの際は…」・リアクションロール「…付与・解除」）。web の画面はもともと日本語だけなので i18n 違反ではない。次に web を触るときに直す（→ web/TODO.md「チケット・リアクションロールの作成フォームの初期文を Bot にそろえる」）
+
 ### biome の `recommended` 非推奨対応（2026-10-13 develop merge）
 
 `linter.rules.recommended: false` は非推奨で、biome の次のメジャーで削除される。`preset: "none"`（ルールを1つも有効にしない状態から始め、明示したルールだけが効く）に置き換えた。`biome migrate` の出力と同じ。次のリリース（名前の整理と保守の6件をまとめた1本）に入る。

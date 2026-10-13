@@ -5,7 +5,7 @@ import type { ReactionRolePanel as ContractPanel } from "@ayasono/shared/api";
 import type { FastifyPluginAsync } from "fastify";
 import { getBotReactionRolePanelSettingsService } from "../../bot/services/botCompositionRoot";
 import type { GuildReactionRolePanel } from "../../shared/database/types/reactionRoleTypes";
-import { tDefault } from "../../shared/locale/localeManager";
+import { tDefault, tGuild } from "../../shared/locale/localeManager";
 import {
   deletePanelMessage,
   postPanelMessage,
@@ -54,8 +54,13 @@ export const reactionRoleRoutes: FastifyPluginAsync<
       channelId: body.channelId,
       messageId: "",
       mode: body.mode,
-      title: body.title,
-      description: body.description,
+      // 省かれたときはギルドの言語の既定文を入れる（DB には既定値を持たない）
+      title:
+        body.title ??
+        (await tGuild(guildId, "reactionRole:embed.title.panel_default")),
+      description:
+        body.description ??
+        (await tGuild(guildId, "reactionRole:embed.description.panel_default")),
       color: body.color,
       buttons: toDomainButtons(body.buttons),
       buttonCounter: body.buttons.length,

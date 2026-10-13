@@ -53,7 +53,7 @@ import { toErrorResponse } from "@/api/lib/httpError";
 import { ticketRoutes } from "@/api/routes/tickets";
 import type { ApiServerDeps } from "@/api/types";
 import type { BotClient } from "@/bot/client";
-import { localeManager } from "@/shared/locale/localeManager";
+import { localeManager, tInteraction } from "@/shared/locale/localeManager";
 
 function makeClient(): BotClient {
   return {
@@ -94,6 +94,10 @@ describe("ticketRoutes", () => {
 
   beforeAll(async () => {
     await localeManager.initialize();
+    // g-en だけ英語のギルドとして扱う（ほかは既定の日本語）
+    localeManager.setRepository({
+      getLocale: async (guildId: string) => (guildId === "g-en" ? "en" : "ja"),
+    } as never);
   });
   beforeEach(async () => {
     h.reset();
@@ -140,6 +144,28 @@ describe("ticketRoutes", () => {
       h.repo,
     );
   });
+
+  it.each([
+    ["g1", "ja"],
+    ["g-en", "en"],
+  ] as const)(
+    "title・description を省いた POST は、ギルドの言語の既定文を入れる（%s → %s）",
+    async (guildId, locale) => {
+      const res = await app.inject({
+        method: "POST",
+        url: `/guilds/${guildId}/tickets`,
+        payload: { ...PANEL, title: undefined, description: undefined },
+      });
+
+      expect(res.statusCode).toBe(200);
+      expect(res.json().data.title).toBe(
+        tInteraction(locale, "ticket:embed.title.panel_default"),
+      );
+      expect(res.json().data.description).toBe(
+        tInteraction(locale, "ticket:embed.description.panel_default"),
+      );
+    },
+  );
 
   it("同一カテゴリの再 POST は 409 CONFLICT", async () => {
     await app.inject({

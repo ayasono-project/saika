@@ -53,7 +53,7 @@ import { toErrorResponse } from "@/api/lib/httpError";
 import { ticketRoutes } from "@/api/routes/tickets";
 import type { ApiServerDeps } from "@/api/types";
 import type { BotClient } from "@/bot/client";
-import { localeManager } from "@/shared/locale/localeManager";
+import { localeManager, tInteraction } from "@/shared/locale/localeManager";
 
 function makeClient(): BotClient {
   return {
@@ -63,15 +63,7 @@ function makeClient(): BotClient {
 
 async function buildApp(): Promise<FastifyInstance> {
   const app = Fastify({ logger: false });
-  app.decorate("authenticate", async (request) => {
-    request.authUser = {
-      discordUserId: "u1",
-      username: "u",
-      globalName: null,
-      avatar: null,
-      guilds: ["g1"],
-    };
-  });
+  app.decorate("authenticate", async () => {});
   app.decorate("requireGuildAccess", async (request) => {
     request.guildId = (request.params as { guildId?: string }).guildId;
   });
@@ -102,6 +94,10 @@ describe("ticketRoutes", () => {
 
   beforeAll(async () => {
     await localeManager.initialize();
+    // g-en だけ英語のギルドとして扱う（ほかは既定の日本語）
+    localeManager.setRepository({
+      getLocale: async (guildId: string) => (guildId === "g-en" ? "en" : "ja"),
+    } as never);
   });
   beforeEach(async () => {
     h.reset();
@@ -149,6 +145,28 @@ describe("ticketRoutes", () => {
     );
   });
 
+  it.each([
+    ["g1", "ja"],
+    ["g-en", "en"],
+  ] as const)(
+    "title・description を省いた POST は、ギルドの言語の既定文を入れる（%s → %s）",
+    async (guildId, locale) => {
+      const res = await app.inject({
+        method: "POST",
+        url: `/guilds/${guildId}/tickets`,
+        payload: { ...PANEL, title: undefined, description: undefined },
+      });
+
+      expect(res.statusCode).toBe(200);
+      expect(res.json().data.title).toBe(
+        tInteraction(locale, "ticket:embed.title.panel_default"),
+      );
+      expect(res.json().data.description).toBe(
+        tInteraction(locale, "ticket:embed.description.panel_default"),
+      );
+    },
+  );
+
   it("同一カテゴリの再 POST は 409 CONFLICT", async () => {
     await app.inject({
       method: "POST",
@@ -187,6 +205,61 @@ describe("ticketRoutes", () => {
     });
     expect(res.statusCode).toBe(200);
     expect(res.json().data.title).toBe("新タイトル");
+  });
+
+  it("0x 形式や小文字の色は、DB と同じ #RRGGBB（大文字）にそろえて保存する", async () => {
+    const post = await app.inject({
+      method: "POST",
+      url: "/guilds/g1/tickets",
+      payload: { ...PANEL, color: "0x00a8f3" },
+    });
+    expect(post.json().data.color).toBe("#00A8F3");
+
+    const patch = await app.inject({
+      method: "PATCH",
+      url: "/guilds/g1/tickets/cat1",
+      payload: { color: "ff0000" },
+    });
+    expect(patch.json().data.color).toBe("#FF0000");
+  });
+
+  it("色を省いた POST は既定色にする", async () => {
+    const res = await app.inject({
+      method: "POST",
+      url: "/guilds/g1/tickets",
+      payload: { ...PANEL, color: undefined },
+    });
+    expect(res.statusCode).toBe(200);
+    expect(res.json().data.color).toBe("#00A8F3");
+  });
+
+  it("読めない色の POST は保存せず 400 VALIDATION_ERROR", async () => {
+    const res = await app.inject({
+      method: "POST",
+      url: "/guilds/g1/tickets",
+      payload: { ...PANEL, color: "#1234567" },
+    });
+    expect(res.statusCode).toBe(400);
+    expect(res.json().error.code).toBe("VALIDATION_ERROR");
+    const list = await app.inject({ method: "GET", url: "/guilds/g1/tickets" });
+    expect(list.json().data).toEqual([]);
+  });
+
+  it("読めない色の PATCH は保存せず 400 VALIDATION_ERROR", async () => {
+    await app.inject({
+      method: "POST",
+      url: "/guilds/g1/tickets",
+      payload: PANEL,
+    });
+    const res = await app.inject({
+      method: "PATCH",
+      url: "/guilds/g1/tickets/cat1",
+      payload: { color: "red" },
+    });
+    expect(res.statusCode).toBe(400);
+    expect(res.json().error.code).toBe("VALIDATION_ERROR");
+    const list = await app.inject({ method: "GET", url: "/guilds/g1/tickets" });
+    expect(list.json().data[0].color).toBe("#00A8F3");
   });
 
   it("存在しないカテゴリの PATCH は 404", async () => {

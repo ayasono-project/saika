@@ -23,16 +23,6 @@ vi.mock("@/shared/locale/localeManager", () => ({
     const m = params ? `${messageKey}:${JSON.stringify(params)}` : messageKey;
     return sub ? `[${p}:${sub}] ${m}` : `[${p}] ${m}`;
   },
-  logCommand: (
-    commandName: string,
-    messageKey: string,
-    params?: Record<string, unknown>,
-  ) => {
-    const m = params ? `${messageKey}:${JSON.stringify(params)}` : messageKey;
-    return `[${commandName}] ${m}`;
-  },
-  tDefault: (key: string) => key,
-  tInteraction: (...args: unknown[]) => args[1],
 }));
 
 vi.mock("@/shared/utils/logger", () => ({
@@ -44,19 +34,11 @@ vi.mock("@/shared/utils/logger", () => ({
   },
 }));
 
-vi.mock("@/shared/utils/prisma", () => ({
-  requirePrismaClient: vi.fn(() => ({})),
-}));
-
 vi.mock("@/shared/scheduler/jobScheduler", () => ({
   jobScheduler: {
     addOneTimeJob: (...args: unknown[]) => addOneTimeJobMock(...args),
     removeJob: (...args: unknown[]) => removeJobMock(...args),
   },
-}));
-
-vi.mock("@/features/bump-reminder/repositories/bumpReminderRepository", () => ({
-  getBumpReminderRepository: () => repositoryMock,
 }));
 
 describe("shared/features/bump-reminder/manager", () => {
@@ -500,26 +482,6 @@ describe("shared/features/bump-reminder/manager", () => {
     );
   });
 
-  it("clearAll の allSettled で reject が混ざる場合にエラーログすることを検証", async () => {
-    (
-      manager as unknown as {
-        reminders: Map<string, { jobId: string; reminderId: string }>;
-      }
-    ).reminders.set("g-x", { jobId: "job-x", reminderId: "r-x" });
-
-    const cancelSpy = vi
-      .spyOn(manager, "cancelReminder")
-      .mockRejectedValueOnce(new Error("cancel failed"));
-
-    await manager.clearAll();
-
-    expect(cancelSpy).toHaveBeenCalledWith("g-x", undefined);
-    expect(logger.error).toHaveBeenCalledWith(
-      expect.stringContaining("bumpReminder:log.scheduler_task_failed"),
-      expect.any(Error),
-    );
-  });
-
   it("重複なし復元時は duplicate-cancel ログを出さず、serviceName 未指定で taskFactory を呼ぶことを検証", async () => {
     repositoryMock.findAllPending.mockResolvedValueOnce([
       {
@@ -553,42 +515,6 @@ describe("shared/features/bump-reminder/manager", () => {
         "bumpReminder:log.scheduler_duplicates_cancelled",
       ),
     );
-  });
-
-  it("clearAll ですべて成功した場合は reject ログを出さないことを検証", async () => {
-    (
-      manager as unknown as {
-        reminders: Map<string, { jobId: string; reminderId: string }>;
-      }
-    ).reminders.set("g-ok", { jobId: "job-ok", reminderId: "r-ok" });
-
-    const cancelSpy = vi
-      .spyOn(manager, "cancelReminder")
-      .mockResolvedValueOnce(true);
-
-    await manager.clearAll();
-
-    expect(cancelSpy).toHaveBeenCalledWith("g-ok", undefined);
-    expect(logger.error).not.toHaveBeenCalledWith(
-      expect.stringContaining("bumpReminder:log.scheduler_task_failed"),
-      expect.anything(),
-    );
-  });
-
-  it("clearAll は複合キーをギルドIDとサービス名に分けて cancelReminder に渡すことを検証", async () => {
-    (
-      manager as unknown as {
-        reminders: Map<string, { jobId: string; reminderId: string }>;
-      }
-    ).reminders.set("g-y:Dissoku", { jobId: "job-y", reminderId: "r-y" });
-
-    const cancelSpy = vi
-      .spyOn(manager, "cancelReminder")
-      .mockResolvedValueOnce(true);
-
-    await manager.clearAll();
-
-    expect(cancelSpy).toHaveBeenCalledWith("g-y", "Dissoku");
   });
 
   it("初期化前に repository なしで getBumpReminderManager を呼ぶと例外になることを検証", () => {

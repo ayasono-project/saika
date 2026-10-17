@@ -20,7 +20,6 @@ vi.mock("@/shared/utils/logger", () => ({
 
 vi.mock("@/bot/shared/errorChannelNotifier", () => ({
   notifyErrorChannel: vi.fn(),
-  notifyWarnChannel: vi.fn(),
 }));
 
 vi.mock("@/bot/services/botCompositionRoot", () => ({

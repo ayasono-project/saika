@@ -22,21 +22,13 @@ vi.mock("@/bot/shared/pagination", () => ({
 }));
 
 vi.mock("@/shared/locale/localeManager", () => ({
-  logPrefixed: (p: string, m: string, params?: Record<string, unknown>) =>
-    params ? `[${p}] ${m}:${JSON.stringify(params)}` : `[${p}] ${m}`,
-  tDefault: vi.fn((key: string) => key),
   tInteraction: (_locale: string, key: string) => key,
-}));
-
-vi.mock("@/shared/utils/logger", () => ({
-  logger: { debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() },
 }));
 
 vi.mock("@/bot/utils/messageResponse", async () => {
   const { EmbedBuilder } =
     await vi.importActual<typeof import("discord.js")>("discord.js");
   return {
-    createSuccessEmbed: vi.fn(() => ({ type: "success" })),
     createInfoEmbed: vi.fn(
       (
         _desc: string,
@@ -52,7 +44,6 @@ vi.mock("@/bot/utils/messageResponse", async () => {
       },
     ),
     createErrorEmbed: vi.fn(() => ({ type: "error" })),
-    createWarningEmbed: vi.fn(() => ({ type: "warning" })),
   };
 });
 

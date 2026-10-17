@@ -1,6 +1,5 @@
 import {
   toGuildSettings,
-  toGuildSettingsCreateData,
   toGuildSettingsUpdateData,
 } from "@/features/guild-settings/serializers/guildSettingsSerializer";
 
@@ -33,57 +32,6 @@ describe("shared/database/repositories/serializers/guildSettingsSerializer", () 
       errorChannelId: "ch-1",
       createdAt: baseRecord.createdAt,
       updatedAt: baseRecord.updatedAt,
-    });
-  });
-
-  // localeが空の場合はデフォルト値で補完されることを確認
-  it("toGuildSettingsCreateData が値をシリアライズしてデフォルトロケールを適用すること", () => {
-    const data = toGuildSettingsCreateData(
-      {
-        guildId: "guild-3",
-        locale: "",
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
-      "ja",
-    );
-
-    expect(data).toEqual({
-      guildId: "guild-3",
-      locale: "ja",
-    });
-  });
-
-  it("toGuildSettingsCreateData が指定された locale をそのまま保持すること", () => {
-    const data = toGuildSettingsCreateData(
-      {
-        guildId: "guild-4",
-        locale: "en",
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
-      "ja",
-    );
-
-    expect(data).toEqual({ guildId: "guild-4", locale: "en" });
-  });
-
-  it("toGuildSettingsCreateData が errorChannelId を含む場合にそのまま出力すること", () => {
-    const data = toGuildSettingsCreateData(
-      {
-        guildId: "guild-5",
-        locale: "ja",
-        errorChannelId: "ch-err",
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
-      "ja",
-    );
-
-    expect(data).toEqual({
-      guildId: "guild-5",
-      locale: "ja",
-      errorChannelId: "ch-err",
     });
   });
 

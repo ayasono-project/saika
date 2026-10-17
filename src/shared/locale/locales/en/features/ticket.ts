@@ -133,8 +133,6 @@ export const ticket = {
   "ui.modal.edit_panel_title": "Edit Panel",
   "ui.modal.setup_field_color": "Color (e.g. #00A8F3)",
   "ui.modal.edit_panel_field_color": "Color (e.g. #00A8F3)",
-  "user-response.invalid_color":
-    "Invalid color code. Please use #RRGGBB format.",
   "embed.field.name.panel_color": "Panel Color",
   "ui.modal.create_ticket_title": "Create Ticket",
   "ui.modal.create_ticket_subject": "Subject",
@@ -177,8 +175,6 @@ export const ticket = {
     "failed to find ticket configs GuildId: {{guildId}}",
   "log.database_config_delete_failed":
     "failed to delete ticket config GuildId: {{guildId}} CategoryId: {{categoryId}}",
-  "log.database_config_delete_all_failed":
-    "failed to delete all ticket configs GuildId: {{guildId}}",
   "log.database_config_increment_counter_failed":
     "failed to increment ticket counter GuildId: {{guildId}} CategoryId: {{categoryId}}",
   "log.database_ticket_find_failed": "failed to find ticket Id: {{id}}",
@@ -198,8 +194,6 @@ export const ticket = {
   "log.database_ticket_delete_failed": "failed to delete ticket Id: {{id}}",
   "log.database_ticket_delete_by_category_failed":
     "failed to delete tickets GuildId: {{guildId}} CategoryId: {{categoryId}}",
-  "log.database_ticket_delete_all_failed":
-    "failed to delete all tickets GuildId: {{guildId}}",
   "log.auto_delete_scheduled":
     "auto-delete timer started GuildId: {{guildId}} ChannelId: {{channelId}} DelayMs: {{delayMs}}",
   "log.auto_delete_cancelled":
@@ -236,5 +230,3 @@ export const ticket = {
   "log.teardown_channel_inaccessible":
     "could not delete a ticket channel the bot cannot handle (or lacks Manage Channels for) during removal (the channel remains) GuildId: {{guildId}} ChannelId: {{channelId}}",
 } as const;
-
-export type TicketTranslations = typeof ticket;

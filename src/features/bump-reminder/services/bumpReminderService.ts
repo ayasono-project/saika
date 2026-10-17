@@ -9,7 +9,6 @@ import {
 import { type IBumpReminderRepository } from "../repositories/types";
 import { type ScheduledReminderRef } from "./helpers/bumpReminderScheduleHelper";
 import { cancelBumpReminderUsecase } from "./usecases/cancelBumpReminderUsecase";
-import { clearAllBumpRemindersUsecase } from "./usecases/clearAllBumpRemindersUsecase";
 import { restorePendingBumpRemindersUsecase } from "./usecases/restorePendingBumpRemindersUsecase";
 import { setBumpReminderUsecase } from "./usecases/setBumpReminderUsecase";
 
@@ -139,22 +138,6 @@ export class BumpReminderManager {
       repository: this.repository,
       reminders: this.reminders,
       taskFactory,
-    });
-  }
-
-  /**
-   * すべてのリマインダーをクリア
-   * 個々のキャンセル失敗時はエラーを記録して続行する
-   * @returns 実行完了を示す Promise
-   */
-  public async clearAll(): Promise<void> {
-    await clearAllBumpRemindersUsecase({
-      reminders: this.reminders,
-      // Map のキーは複合キー（"guildId:serviceName"）の場合があるため、分解して渡す
-      cancelByKey: (reminderKey: string) => {
-        const { guildId, serviceName } = parseBumpReminderKey(reminderKey);
-        return this.cancelReminder(guildId, serviceName);
-      },
     });
   }
 }

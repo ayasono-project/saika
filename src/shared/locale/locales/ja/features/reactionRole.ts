@@ -37,8 +37,6 @@ export const reactionRole = {
   "user-response.button_limit_reached": "ボタンの上限（25個）に達しています。",
   "user-response.cannot_remove_all_buttons":
     "ボタンを0個にすることはできません。",
-  "user-response.invalid_color":
-    "カラーの形式が正しくありません。#RRGGBB形式で入力してください。",
   "user-response.invalid_emoji":
     "絵文字の形式が正しくありません。Unicode絵文字またはDiscordカスタム絵文字（<:name:id>）を入力してください。",
   "user-response.session_expired":
@@ -71,6 +69,13 @@ export const reactionRole = {
   "embed.field.value.mode_toggle": "トグル",
   "embed.field.value.mode_one_action": "ワンアクション",
   "embed.field.value.mode_exclusive": "排他",
+
+  // ── Embed: エラー通知チャンネル ─────────────────
+  "embed.field.value.error_notification_feature": "リアクションロール",
+  "embed.field.value.panel_delete_failed_action":
+    "パネルメッセージの自動削除に失敗（手動削除/権限確認が必要）",
+  "embed.field.value.panel_delete_failed_notice":
+    "<#{{channelId}}> ChannelId: {{channelId}} MessageId: {{messageId}}",
 
   // ── UIラベル
   "ui.button.setup_add": "もう1つ追加",

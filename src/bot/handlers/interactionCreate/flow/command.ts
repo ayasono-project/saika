@@ -11,7 +11,10 @@ import {
 } from "../../../../shared/locale/localeManager";
 import { logger } from "../../../../shared/utils/logger";
 import type { BotClient } from "../../../client";
-import { handleCommandError } from "../../../errors/interactionErrorHandler";
+import {
+  handleCommandError,
+  logInteractionError,
+} from "../../../errors/interactionErrorHandler";
 
 // interactionCreate のコマンド系処理で共通利用する既定値
 const INTERACTION_CONSTANTS = {
@@ -80,7 +83,7 @@ export async function handleChatInputCommand(
     );
   } catch (error) {
     // 実行例外は共通エラーハンドラへ委譲
-    logger.error(
+    logInteractionError(
       logPrefixed(
         "system:log_prefix.interaction_create",
         "system:interaction.command_error",

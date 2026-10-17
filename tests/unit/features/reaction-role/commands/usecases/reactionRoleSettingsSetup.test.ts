@@ -11,7 +11,6 @@ vi.mock("@/features/reaction-role/handlers/ui/reactionRoleSetupState", () => ({
 vi.mock("@/shared/locale/localeManager", () => ({
   logPrefixed: (p: string, m: string, params?: Record<string, unknown>) =>
     params ? `[${p}] ${m}:${JSON.stringify(params)}` : `[${p}] ${m}`,
-  tDefault: vi.fn((key: string) => key),
   tInteraction: (_locale: string, key: string) => key,
 }));
 

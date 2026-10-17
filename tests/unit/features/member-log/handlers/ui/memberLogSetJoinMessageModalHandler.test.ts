@@ -5,8 +5,6 @@ import { memberLogSetJoinMessageModalHandler } from "@/features/member-log/handl
 // ---- モック定義（vi.hoisted でファクトリ参照可能にする） ----
 const mocks = vi.hoisted(() => ({
   setJoinMessage: vi.fn(),
-  tGuild: vi.fn(async (_guildId: string, key: string) => `[${key}]`),
-  tDefault: vi.fn((key: string) => key),
   loggerInfo: vi.fn(),
   createSuccessEmbed: vi.fn((desc: string, opts?: unknown) => ({
     type: "success",
@@ -32,16 +30,6 @@ vi.mock("@/shared/locale/localeManager", () => ({
     const m = params ? `${messageKey}:${JSON.stringify(params)}` : messageKey;
     return sub ? `[${p}:${sub}] ${m}` : `[${p}] ${m}`;
   },
-  logCommand: (
-    commandName: string,
-    messageKey: string,
-    params?: Record<string, unknown>,
-  ) => {
-    const m = params ? `${messageKey}:${JSON.stringify(params)}` : messageKey;
-    return `[${commandName}] ${m}`;
-  },
-  tGuild: mocks.tGuild,
-  tDefault: mocks.tDefault,
   tInteraction: (...args: unknown[]) => args[1],
 }));
 

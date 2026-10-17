@@ -6,12 +6,9 @@ import type {
 } from "@/shared/database/types";
 
 /** インメモリのフェイクリポジトリ */
-function createFakeRepository(): IUnverifiedKickSettingsRepository & {
-  store: Map<string, UnverifiedKickSettings>;
-} {
+function createFakeRepository(): IUnverifiedKickSettingsRepository {
   const store = new Map<string, UnverifiedKickSettings>();
   return {
-    store,
     async getUnverifiedKickSettings(guildId) {
       return store.get(guildId) ?? null;
     },
@@ -22,9 +19,6 @@ function createFakeRepository(): IUnverifiedKickSettingsRepository & {
       return [...store.entries()]
         .filter(([, s]) => s.enabled)
         .map(([guildId, s]) => ({ guildId, ...s }));
-    },
-    async deleteUnverifiedKickSettings(guildId) {
-      store.delete(guildId);
     },
     async updateLastRunDate(_guildId: string, _date: string) {},
   };

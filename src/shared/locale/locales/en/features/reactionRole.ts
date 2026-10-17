@@ -35,8 +35,6 @@ export const reactionRole = {
   "user-response.no_panels": "No reaction role configurations found.",
   "user-response.button_limit_reached": "Button limit (25) has been reached.",
   "user-response.cannot_remove_all_buttons": "Cannot remove all buttons.",
-  "user-response.invalid_color":
-    "Invalid color format. Please use #RRGGBB format.",
   "user-response.invalid_emoji":
     "Invalid emoji format. Please use a Unicode emoji or Discord custom emoji (<:name:id>).",
   "user-response.session_expired":
@@ -68,6 +66,13 @@ export const reactionRole = {
   "embed.field.value.mode_toggle": "Toggle",
   "embed.field.value.mode_one_action": "One Action",
   "embed.field.value.mode_exclusive": "Exclusive",
+
+  // ── Embed: error notification channel ─────────
+  "embed.field.value.error_notification_feature": "Reaction Role",
+  "embed.field.value.panel_delete_failed_action":
+    "Failed to delete the panel message automatically (delete it manually or check permissions)",
+  "embed.field.value.panel_delete_failed_notice":
+    "<#{{channelId}}> ChannelId: {{channelId}} MessageId: {{messageId}}",
 
   // ── UI labels
   "ui.button.setup_add": "Add Another",

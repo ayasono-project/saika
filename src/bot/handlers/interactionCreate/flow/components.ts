@@ -5,17 +5,14 @@ import type {
   RepliableInteraction,
   RoleSelectMenuInteraction,
   StringSelectMenuInteraction,
-  UserSelectMenuInteraction,
 } from "discord.js";
 import { logPrefixed } from "../../../../shared/locale/localeManager";
-import { logger } from "../../../../shared/utils/logger";
-import { handleInteractionError } from "../../../errors/interactionErrorHandler";
-import { buttonHandlers } from "../ui/buttons";
 import {
-  roleSelectHandlers,
-  stringSelectHandlers,
-  userSelectHandlers,
-} from "../ui/selectMenus";
+  handleInteractionError,
+  logInteractionError,
+} from "../../../errors/interactionErrorHandler";
+import { buttonHandlers } from "../ui/buttons";
+import { roleSelectHandlers, stringSelectHandlers } from "../ui/selectMenus";
 import type { InteractionHandler } from "../ui/types";
 
 /**
@@ -38,7 +35,7 @@ async function dispatchByCustomId<
       try {
         await handler.execute(interaction);
       } catch (error) {
-        logger.error(
+        logInteractionError(
           logPrefixed(
             "system:log_prefix.interaction_create",
             errorKey,
@@ -65,21 +62,6 @@ export function handleButton(interaction: ButtonInteraction): Promise<void> {
     buttonHandlers,
     "system:interaction.button_error",
     "button",
-  );
-}
-
-/**
- * ユーザーセレクトメニューインタラクションを処理する
- * @param interaction 対象ユーザーセレクトインタラクション
- */
-export function handleUserSelectMenu(
-  interaction: UserSelectMenuInteraction,
-): Promise<void> {
-  return dispatchByCustomId(
-    interaction,
-    userSelectHandlers,
-    "system:interaction.select_menu_error",
-    "selectMenu",
   );
 }
 

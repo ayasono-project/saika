@@ -155,7 +155,6 @@ describe("shared/locale/localeManager", () => {
 
   it("固定トランスレーターの取得・キャッシュ無効化・ロケールメタデータの公開が正しく機能すること", async () => {
     const { LocaleManager } = await import("@/shared/locale/localeManager");
-    const { SUPPORTED_LOCALES } = await import("@/shared/locale/i18n");
     const manager = new LocaleManager("ja");
     const repository = {
       getLocale: vi.fn().mockResolvedValue("en"),
@@ -173,7 +172,6 @@ describe("shared/locale/localeManager", () => {
     manager.getFixedT("ja");
     expect(getFixedTMock).toHaveBeenCalledWith("ja");
     expect(manager.getDefaultLocale()).toBe("ja");
-    expect(manager.getSupportedLocales()).toBe(SUPPORTED_LOCALES);
     expect(manager.isSupported("ja")).toBe(true);
     expect(manager.isSupported("xx")).toBe(false);
   });

@@ -20,17 +20,6 @@ vi.mock("@/shared/locale/localeManager", () => ({
     const m = params ? `${messageKey}:${JSON.stringify(params)}` : messageKey;
     return sub ? `[${p}:${sub}] ${m}` : `[${p}] ${m}`;
   },
-  logCommand: (
-    commandName: string,
-    messageKey: string,
-    params?: Record<string, unknown>,
-  ) => {
-    const m = params ? `${messageKey}:${JSON.stringify(params)}` : messageKey;
-    return `[${commandName}] ${m}`;
-  },
-  tDefault: vi.fn((key: string, params?: Record<string, unknown>) =>
-    params ? `${key}:${JSON.stringify(params)}` : key,
-  ),
   tInteraction: (...args: unknown[]) => args[1],
 }));
 
@@ -868,7 +857,6 @@ describe("bot/features/message-delete/services/messageDeleteService", () => {
         authorId: "user-1",
         authorDisplayName: "User",
         channelId,
-        channelName: `channel-${channelId}`,
         createdAt: new Date(Date.now() - ageMs),
         content: "hello",
         _channel: channel,
@@ -882,10 +870,7 @@ describe("bot/features/message-delete/services/messageDeleteService", () => {
       const result = await deleteScannedMessages([msg as never]);
 
       expect(result.totalDeleted).toBe(1);
-      expect(result.channelBreakdown["ch-1"]).toEqual({
-        name: "channel-ch-1",
-        count: 1,
-      });
+      expect(result.channelBreakdown["ch-1"]).toEqual({ count: 1 });
       expect(msg._channel.bulkDelete).toHaveBeenCalled();
     });
 
@@ -980,7 +965,6 @@ describe("bot/features/message-delete/services/messageDeleteService", () => {
         authorId: "user-1",
         authorDisplayName: "User",
         channelId: "ch-1",
-        channelName: "channel-ch-1",
         createdAt: new Date(Date.now() - 1000),
         content: "hello",
         _channel: channel,
@@ -1036,7 +1020,6 @@ describe("bot/features/message-delete/services/messageDeleteService", () => {
         authorId: "user-1",
         authorDisplayName: "User",
         channelId: "ch-1",
-        channelName: "channel-ch-1",
         createdAt: new Date(Date.now() - 1000),
         content: "hello",
         _channel: channel,
@@ -1068,10 +1051,7 @@ describe("bot/features/message-delete/services/messageDeleteService", () => {
         (msg._channel.messages as { delete: Mock }).delete,
       ).not.toHaveBeenCalled();
       expect(result.totalDeleted).toBe(0);
-      expect(result.channelBreakdown["ch-1"]).toEqual({
-        name: "channel-ch-1",
-        count: 0,
-      });
+      expect(result.channelBreakdown["ch-1"]).toEqual({ count: 0 });
       expect(logger.warn).toHaveBeenCalledWith(
         expect.stringContaining(
           'messageDelete:log.svc_channel_delete_aborted:{"channelId":"ch-1","deleted":0,"total":1}',

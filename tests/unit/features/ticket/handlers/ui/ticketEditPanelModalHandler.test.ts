@@ -1,41 +1,12 @@
+import { COMMON_I18N_KEYS } from "@/bot/shared/i18nKeys";
 import { ticketEditPanelModalHandler } from "@/features/ticket/handlers/ui/ticketEditPanelModalHandler";
 
 vi.mock("@/shared/locale/localeManager", () => ({
-  logPrefixed: (
-    prefixKey: string,
-    messageKey: string,
-    params?: Record<string, unknown>,
-    sub?: string,
-  ) => {
-    const p = `${prefixKey}`;
-    const m = params ? `${messageKey}:${JSON.stringify(params)}` : messageKey;
-    return sub ? `[${p}:${sub}] ${m}` : `[${p}] ${m}`;
-  },
-  logCommand: (
-    commandName: string,
-    messageKey: string,
-    params?: Record<string, unknown>,
-  ) => {
-    const m = params ? `${messageKey}:${JSON.stringify(params)}` : messageKey;
-    return `[${commandName}] ${m}`;
-  },
-  tDefault: vi.fn((key: string) => key),
   tInteraction: (...args: unknown[]) => args[1],
-}));
-vi.mock("@/shared/utils/logger", () => ({
-  logger: { debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() },
 }));
 vi.mock("@/bot/utils/messageResponse", () => ({
   createSuccessEmbed: vi.fn(() => ({ type: "success" })),
   createErrorEmbed: vi.fn(() => ({ type: "error" })),
-  createWarningEmbed: vi.fn((_desc: string, _opts?: unknown) => ({
-    type: "warning",
-    addFields: vi.fn().mockReturnThis(),
-  })),
-  createInfoEmbed: vi.fn((_desc: string, _opts?: unknown) => ({
-    type: "info",
-    addFields: vi.fn().mockReturnThis(),
-  })),
 }));
 
 const mockConfigService = {
@@ -44,12 +15,10 @@ const mockConfigService = {
   create: vi.fn(),
   update: vi.fn(),
   delete: vi.fn(),
-  deleteAllByGuild: vi.fn(),
   incrementCounter: vi.fn(),
 };
 vi.mock("@/bot/services/botCompositionRoot", () => ({
   getBotTicketSettingsService: () => mockConfigService,
-  getBotTicketRepository: () => ({}),
 }));
 
 function createMockModalInteraction(
@@ -170,6 +139,58 @@ describe("bot/features/ticket/handlers/ui/ticketEditPanelModalHandler", () => {
           embeds: expect.any(Array),
         }),
       );
+    });
+
+    it("0x 形式の色も受け付け、DB には #RRGGBB（大文字）で保存する", async () => {
+      const mockPanelMessage = { edit: vi.fn().mockResolvedValue(undefined) };
+      const mockGuild = {
+        id: "guild-1",
+        channels: {
+          fetch: vi.fn().mockResolvedValue({
+            messages: { fetch: vi.fn().mockResolvedValue(mockPanelMessage) },
+          }),
+        },
+      };
+      mockConfigService.findByGuildAndCategory.mockResolvedValue({
+        panelChannelId: "panel-ch-1",
+        panelMessageId: "panel-msg-1",
+        panelColor: "#00A8F3",
+      });
+
+      const interaction = createMockModalInteraction(
+        "ticket:edit-panel-modal:cat-1",
+        {
+          "ticket:edit-panel-title": "New Title",
+          "ticket:edit-panel-description": "New Description",
+          "ticket:edit-panel-color": "0xff8800",
+        },
+        { guild: mockGuild },
+      );
+
+      await ticketEditPanelModalHandler.execute(interaction as never);
+
+      expect(mockConfigService.update).toHaveBeenCalledWith(
+        "guild-1",
+        "cat-1",
+        expect.objectContaining({ panelColor: "#FF8800" }),
+      );
+    });
+
+    it("読めない色は、設定を更新せず入力エラーを返す", async () => {
+      const interaction = createMockModalInteraction(
+        "ticket:edit-panel-modal:cat-1",
+        {
+          "ticket:edit-panel-title": "New Title",
+          "ticket:edit-panel-description": "New Description",
+          "ticket:edit-panel-color": "#1234567",
+        },
+      );
+
+      // 入力不備として、グローバルのエラーハンドラに返させる
+      await expect(
+        ticketEditPanelModalHandler.execute(interaction as never),
+      ).rejects.toThrow(COMMON_I18N_KEYS.INVALID_COLOR);
+      expect(mockConfigService.update).not.toHaveBeenCalled();
     });
 
     it("guildがnullの場合、パネル不在としてDB設定を削除しエラー応答する", async () => {

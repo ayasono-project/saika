@@ -1,4 +1,4 @@
-// MemberLogSettingsService のデータ取得・保存・シングルトン管理を検証
+// MemberLogSettingsService のデータ取得・保存を検証
 describe("shared/features/member-log/memberLogSettingsService", () => {
   /** テスト用 repository モックを生成する */
   const createRepositoryMock = () => ({
@@ -11,16 +11,11 @@ describe("shared/features/member-log/memberLogSettingsService", () => {
     vi.resetModules();
     vi.clearAllMocks();
 
-    const getMemberLogSettingsRepositoryMock = vi.fn();
-    vi.doMock("@/features/member-log/memberLogSettingsRepository", () => ({
-      getMemberLogSettingsRepository: getMemberLogSettingsRepositoryMock,
-    }));
-
     const module = await import(
       "@/features/member-log/memberLogSettingsService"
     );
 
-    return { module, getMemberLogSettingsRepositoryMock };
+    return { module };
   };
 
   // getMemberLogSettings がリポジトリの値をそのまま返すことを確認
@@ -234,44 +229,6 @@ describe("shared/features/member-log/memberLogSettingsService", () => {
       );
 
       expect(service).toBeInstanceOf(module.MemberLogSettingsService);
-    });
-  });
-
-  // getMemberLogSettingsService のシングルトン動作を検証
-  describe("getMemberLogSettingsService", () => {
-    it("同じ repository で呼び出すと同一のシングルトンを返すこと", async () => {
-      const { module, getMemberLogSettingsRepositoryMock } = await loadModule();
-      const repository = createRepositoryMock();
-      getMemberLogSettingsRepositoryMock.mockReturnValue(repository);
-
-      const first = module.getMemberLogSettingsService();
-      const second = module.getMemberLogSettingsService();
-
-      expect(first).toBe(second);
-    });
-
-    it("異なる repository で呼び出すと新しいインスタンスを生成すること", async () => {
-      const { module } = await loadModule();
-      const repo1 = createRepositoryMock();
-      const repo2 = createRepositoryMock();
-
-      const first = module.getMemberLogSettingsService(repo1 as never);
-      const second = module.getMemberLogSettingsService(repo2 as never);
-
-      expect(first).not.toBe(second);
-    });
-
-    it("repository が指定されない場合は getGuildSettingsRepository をデフォルトとして使用すること", async () => {
-      const { module, getMemberLogSettingsRepositoryMock } = await loadModule();
-      const repository = createRepositoryMock();
-      getMemberLogSettingsRepositoryMock.mockReturnValue(repository);
-
-      const service = module.getMemberLogSettingsService();
-      repository.getMemberLogSettings.mockResolvedValueOnce(null);
-      await service.getMemberLogSettings("guild-1");
-
-      expect(repository.getMemberLogSettings).toHaveBeenCalledWith("guild-1");
-      expect(getMemberLogSettingsRepositoryMock).toHaveBeenCalled();
     });
   });
 });

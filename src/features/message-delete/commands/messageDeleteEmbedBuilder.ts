@@ -592,7 +592,7 @@ export function buildFinalConfirmComponents(
 export function buildCompletionEmbed(
   locale: string,
   totalDeleted: number,
-  channelBreakdown: Record<string, { name: string; count: number }>,
+  channelBreakdown: Record<string, { count: number }>,
 ): EmbedBuilder {
   const breakdownLines = Object.entries(channelBreakdown).map(
     ([channelId, { count }]) =>

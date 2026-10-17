@@ -1,5 +1,6 @@
 // setup フローのパネル設定モーダル送信ハンドラ
 
+import { ValidationError } from "@ayasono/shared/core";
 import {
   ActionRowBuilder,
   MessageFlags,
@@ -7,9 +8,14 @@ import {
   StringSelectMenuBuilder,
 } from "discord.js";
 import type { ModalHandler } from "../../../../bot/handlers/interactionCreate/ui/types";
+import { COMMON_I18N_KEYS } from "../../../../bot/shared/i18nKeys";
 import { createErrorEmbed } from "../../../../bot/utils/messageResponse";
 import { REACTION_ROLE_MODE } from "../../../../shared/database/types/reactionRoleTypes";
 import { tInteraction } from "../../../../shared/locale/localeManager";
+import {
+  formatColorHex,
+  parseColorHex,
+} from "../../../../shared/utils/colorHex";
 import {
   REACTION_ROLE_CUSTOM_ID,
   REACTION_ROLE_DEFAULT_PANEL_COLOR,
@@ -54,28 +60,21 @@ export const reactionRoleSetupModalHandler: ModalHandler = {
     const colorInput = interaction.fields
       .getTextInputValue(REACTION_ROLE_CUSTOM_ID.SETUP_MODAL_COLOR)
       .trim();
-    const color = colorInput || REACTION_ROLE_DEFAULT_PANEL_COLOR;
+    const colorValue = parseColorHex(
+      colorInput || REACTION_ROLE_DEFAULT_PANEL_COLOR,
+    );
 
     // カラーコードのバリデーション
-    if (!/^#[0-9A-Fa-f]{6}$/.test(color)) {
-      const embed = createErrorEmbed(
-        tInteraction(
-          interaction.locale,
-          "reactionRole:user-response.invalid_color",
-        ),
-        { locale: interaction.locale },
+    if (colorValue === null) {
+      throw new ValidationError(
+        tInteraction(interaction.locale, COMMON_I18N_KEYS.INVALID_COLOR),
       );
-      await interaction.reply({
-        embeds: [embed],
-        flags: MessageFlags.Ephemeral,
-      });
-      return;
     }
 
-    // セッションに保存
+    // セッションに保存（色は DB と同じ #RRGGBB の形にそろえる）
     session.title = title;
     session.description = description;
-    session.color = color;
+    session.color = formatColorHex(colorValue);
 
     // モード選択 StringSelectMenu を表示
     const selectMenu = new StringSelectMenuBuilder()

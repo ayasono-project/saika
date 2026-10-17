@@ -4,13 +4,13 @@ import {
   MessageFlags,
   RESTJSONErrorCodes,
 } from "discord.js";
+import { COMMON_I18N_KEYS } from "@/bot/shared/i18nKeys";
 
 const findByChannelMock = vi.fn();
 const createMock = vi.fn();
 const updateLastMessageIdMock = vi.fn();
 const buildPayloadMock = vi.fn(() => ({ embeds: [] }));
-const parseColorStrMock = vi.fn(() => 0x008969);
-const tGuildMock = vi.fn(async (_guildId: string, key: string) => `[${key}]`);
+const parseColorStrMock = vi.fn((): number | null => 0x008969);
 const loggerMock = { error: vi.fn() };
 
 vi.mock("@/bot/services/botCompositionRoot", () => ({
@@ -38,16 +38,6 @@ vi.mock("@/shared/locale/localeManager", () => ({
     const m = params ? `${messageKey}:${JSON.stringify(params)}` : messageKey;
     return sub ? `[${p}:${sub}] ${m}` : `[${p}] ${m}`;
   },
-  logCommand: (
-    commandName: string,
-    messageKey: string,
-    params?: Record<string, unknown>,
-  ) => {
-    const m = params ? `${messageKey}:${JSON.stringify(params)}` : messageKey;
-    return `[${commandName}] ${m}`;
-  },
-  tGuild: tGuildMock,
-  tDefault: vi.fn((key: string) => key),
   tInteraction: (...args: unknown[]) => args[1],
 }));
 vi.mock("@/shared/utils/logger", () => ({ logger: loggerMock }));
@@ -162,6 +152,21 @@ describe("bot/features/sticky-message/handlers/ui/stickyMessageSetEmbedModalHand
     expect(createMock).not.toHaveBeenCalled();
   });
 
+  it("読めない色は保存の前に入力エラーにする（保存してから Embed の組み立てで落ちないように）", async () => {
+    const { stickyMessageSetEmbedModalHandler } = await import(
+      "@/features/sticky-message/handlers/ui/stickyMessageSetEmbedModalHandler"
+    );
+    findByChannelMock.mockResolvedValue(null);
+    parseColorStrMock.mockReturnValue(null);
+    const interaction = createInteractionMock({ embedColor: "#1234567" });
+
+    await expect(
+      stickyMessageSetEmbedModalHandler.execute(interaction as never),
+    ).rejects.toThrow(COMMON_I18N_KEYS.INVALID_COLOR);
+    expect(parseColorStrMock).toHaveBeenCalledWith("#1234567");
+    expect(createMock).not.toHaveBeenCalled();
+  });
+
   it("対象チャンネルにすでにスティッキーメッセージが存在する場合、重複作成を防ぐガード処理が働く", async () => {
     const { stickyMessageSetEmbedModalHandler } = await import(
       "@/features/sticky-message/handlers/ui/stickyMessageSetEmbedModalHandler"
@@ -186,7 +191,7 @@ describe("bot/features/sticky-message/handlers/ui/stickyMessageSetEmbedModalHand
 
     await expect(
       stickyMessageSetEmbedModalHandler.execute(interaction as never),
-    ).rejects.toThrow();
+    ).rejects.toThrow(COMMON_I18N_KEYS.TEXT_CHANNEL_ONLY);
   });
 
   it("embed スティッキーメッセージを作成して成功返信する", async () => {

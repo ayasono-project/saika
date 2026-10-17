@@ -31,30 +31,18 @@ vi.mock("@/shared/locale/localeManager", () => ({
     const m = params ? `${messageKey}:${JSON.stringify(params)}` : messageKey;
     return sub ? `[${p}:${sub}] ${m}` : `[${p}] ${m}`;
   },
-  logCommand: (
-    commandName: string,
-    messageKey: string,
-    params?: Record<string, unknown>,
-  ) => {
-    const m = params ? `${messageKey}:${JSON.stringify(params)}` : messageKey;
-    return `[${commandName}] ${m}`;
-  },
   tDefault: (key: string) => `mocked:${key}`,
-  tInteraction: (...args: unknown[]) => args[1],
 }));
 
 // Prismaクライアントのモック
 const mockPrismaClient = {
   $transaction: vi.fn(),
   bumpReminder: {
-    findUnique: vi.fn(),
     findFirst: vi.fn(),
     findMany: vi.fn(),
     create: vi.fn(),
     update: vi.fn(),
     updateMany: vi.fn(),
-    delete: vi.fn(),
-    deleteMany: vi.fn(),
   },
 };
 
@@ -166,49 +154,6 @@ describe("BumpReminderRepository", () => {
       await expect(
         repository.create("guild-123", "channel-456", scheduledAt),
       ).rejects.toThrow(DatabaseError);
-    });
-  });
-
-  describe("findById()", () => {
-    it("ID でリマインダーを取得できること", async () => {
-      const mockReminder = {
-        id: "reminder-1",
-        guildId: "guild-123",
-        channelId: "channel-456",
-        messageId: "msg-789",
-        scheduledAt: atOffsetMs(10 * 60 * 1000),
-        status: "pending",
-        createdAt: atOffsetMs(0),
-        updatedAt: atOffsetMs(0),
-      };
-
-      mockPrismaClient.bumpReminder.findUnique.mockResolvedValue(mockReminder);
-
-      const result = await repository.findById("reminder-1");
-
-      expect(result).toEqual(mockReminder);
-      expect(mockPrismaClient.bumpReminder.findUnique).toHaveBeenCalledWith({
-        where: { id: "reminder-1" },
-      });
-    });
-
-    it("存在しない ID の場合は null を返すこと", async () => {
-      // 未存在IDの場合は null を返す
-      mockPrismaClient.bumpReminder.findUnique.mockResolvedValue(null);
-
-      const result = await repository.findById("nonexistent");
-
-      expect(result).toBeNull();
-    });
-
-    it("取得失敗時に DatabaseError をスローすること", async () => {
-      mockPrismaClient.bumpReminder.findUnique.mockRejectedValue(
-        new Error("DB error"),
-      );
-
-      await expect(repository.findById("reminder-1")).rejects.toThrow(
-        DatabaseError,
-      );
     });
   });
 
@@ -414,30 +359,6 @@ describe("BumpReminderRepository", () => {
     });
   });
 
-  describe("delete()", () => {
-    it("リマインダーを削除できること", async () => {
-      mockPrismaClient.bumpReminder.delete.mockResolvedValue({
-        id: "reminder-1",
-      });
-
-      await repository.delete("reminder-1");
-
-      expect(mockPrismaClient.bumpReminder.delete).toHaveBeenCalledWith({
-        where: { id: "reminder-1" },
-      });
-    });
-
-    it("delete 失敗時に DatabaseError をスローすること", async () => {
-      mockPrismaClient.bumpReminder.delete.mockRejectedValue(
-        new Error("DB error"),
-      );
-
-      await expect(repository.delete("reminder-1")).rejects.toThrow(
-        DatabaseError,
-      );
-    });
-  });
-
   describe("cancelByGuild()", () => {
     it("ギルドの全 pending リマインダーをキャンセルできること", async () => {
       mockPrismaClient.bumpReminder.updateMany.mockResolvedValue({ count: 2 });
@@ -485,38 +406,6 @@ describe("BumpReminderRepository", () => {
       await expect(
         repository.cancelByGuildAndChannel("guild-123", "channel-456"),
       ).rejects.toThrow(DatabaseError);
-    });
-  });
-
-  describe("cleanupOld()", () => {
-    it("古い sent/cancelled リマインダーを削除できること", async () => {
-      // 古い sent/cancelled レコードのみを削除対象にする
-      mockPrismaClient.bumpReminder.deleteMany.mockResolvedValue({ count: 5 });
-
-      const result = await repository.cleanupOld(7);
-
-      expect(result).toBe(5);
-      expect(mockPrismaClient.bumpReminder.deleteMany).toHaveBeenCalled();
-      const callArgs =
-        mockPrismaClient.bumpReminder.deleteMany.mock.calls[0][0];
-      expect(callArgs.where.status.in).toEqual(["sent", "cancelled"]);
-    });
-
-    it("引数未指定時は既定の7日間を使用すること", async () => {
-      // 引数未指定時は既定の保持日数を使用
-      mockPrismaClient.bumpReminder.deleteMany.mockResolvedValue({ count: 3 });
-
-      const result = await repository.cleanupOld();
-
-      expect(result).toBe(3);
-    });
-
-    it("cleanupOld 失敗時に DatabaseError をスローすること", async () => {
-      mockPrismaClient.bumpReminder.deleteMany.mockRejectedValue(
-        new Error("DB error"),
-      );
-
-      await expect(repository.cleanupOld()).rejects.toThrow(DatabaseError);
     });
   });
 

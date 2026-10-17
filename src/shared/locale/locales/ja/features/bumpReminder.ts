@@ -63,6 +63,18 @@ export const bumpReminder = {
   "embed.field.name.mention_role": "メンションロール",
   "embed.field.name.mention_users": "メンションユーザー",
 
+  // ── Embed: エラー通知チャンネル ─────────────────
+  "embed.field.value.error_notification_feature": "Bumpリマインダー",
+  "embed.field.value.bump_detection_failed_action": "Bump検出処理の失敗",
+  "embed.field.value.member_remove_cleanup_failed_action":
+    "メンバー退出時のメンション整理失敗",
+  "embed.field.value.role_delete_cleanup_failed_action":
+    "ロール削除時のメンション整理失敗",
+  "embed.field.value.reminder_channel_missing_action":
+    "リマインダー送信先チャンネル未発見",
+  "embed.field.value.reminder_send_failed_action": "リマインダー送信失敗",
+  "embed.field.value.panel_send_failed_action": "パネル送信失敗",
+
   // ── UIラベル ──────────────────────────────────
   "ui.button.mention_on": "ユーザー通知をONにする",
   "ui.button.mention_off": "ユーザー通知をOFFにする",
@@ -122,7 +134,6 @@ export const bumpReminder = {
     "Bumpリマインダーを作成 Id: {{id}} GuildId: {{guildId}}",
   "log.database_create_failed":
     "Bumpリマインダー作成に失敗 GuildId: {{guildId}}",
-  "log.database_find_failed": "Bumpリマインダー取得に失敗 Id: {{id}}",
   "log.database_find_pending_failed":
     "保留中Bumpリマインダーの取得に失敗 GuildId: {{guildId}} Service: {{serviceName}}",
   "log.database_find_pending_by_guild_failed":
@@ -131,17 +142,10 @@ export const bumpReminder = {
   "log.database_status_updated":
     "Bumpリマインダーのステータスを更新 Id: {{id}} Status: {{status}}",
   "log.database_update_failed": "Bumpリマインダー更新に失敗 Id: {{id}}",
-  "log.database_deleted": "Bumpリマインダーを削除 Id: {{id}}",
-  "log.database_delete_failed": "Bumpリマインダー削除に失敗 Id: {{id}}",
   "log.database_cancelled_by_guild":
     "保留中Bumpリマインダーをキャンセル GuildId: {{guildId}}",
   "log.database_cancelled_by_channel":
     "保留中Bumpリマインダーをキャンセル GuildId: {{guildId}} ChannelId: {{channelId}}",
   "log.database_cancel_failed":
     "Bumpリマインダーキャンセルに失敗 GuildId: {{guildId}}",
-  "log.database_cleanup_completed":
-    "古いBumpリマインダー {{count}} 件をクリーンアップ ({{days}} 日以前)",
-  "log.database_cleanup_failed": "古いBumpリマインダーのクリーンアップに失敗",
 } as const;
-
-export type BumpReminderTranslations = typeof bumpReminder;

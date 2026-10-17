@@ -3,20 +3,18 @@
 import type { StickyMessage as ContractStickyMessage } from "@ayasono/shared/api";
 import type { BotClient } from "../../bot/client";
 import { getBotStickyMessageSettingsService } from "../../bot/services/botCompositionRoot";
-import {
-  buildStickyMessagePayload,
-  parseColorStr,
-} from "../../features/sticky-message/services/stickyMessagePayloadBuilder";
+import { buildStickyMessagePayload } from "../../features/sticky-message/services/stickyMessagePayloadBuilder";
 import { EMBED_COLORS } from "../../shared/constants/embedColors";
 import type {
   StickyEmbedData,
   StickyMessage,
 } from "../../shared/database/types";
+import { formatColorHex } from "../../shared/utils/colorHex";
+import { parseRequestColor } from "../lib/color";
 
 /** 数値カラー → `#RRGGBB`（未設定は sticky デフォルト色） */
 function numberToHex(color: number | undefined): string {
-  const n = color ?? EMBED_COLORS.STICKY_MESSAGE_DEFAULT;
-  return `#${n.toString(16).padStart(6, "0").toUpperCase()}`;
+  return formatColorHex(color ?? EMBED_COLORS.STICKY_MESSAGE_DEFAULT);
 }
 
 /** ドメイン → 契約（sticky の embed は title/description/color のみ・fields 非対応） */
@@ -35,7 +33,12 @@ export function toContractSticky(domain: StickyMessage): ContractStickyMessage {
   };
 }
 
-/** 契約の embed → ドメインの StickyEmbedData（fields は破棄・空文字は未設定扱い） */
+/**
+ * 契約の embed → ドメインの StickyEmbedData（fields は破棄・空文字は未設定扱い）
+ * @param embed ダッシュボードから届いた embed
+ * @returns ドメインの Embed 設定（embed が無いときは undefined）
+ * @throws {ApiHttpError} 色がカラーコードとして読めないとき（400）
+ */
 export function toStickyEmbedData(
   embed: ContractStickyMessage["embed"],
 ): StickyEmbedData | undefined {
@@ -43,7 +46,7 @@ export function toStickyEmbedData(
   return {
     title: embed.title || undefined,
     description: embed.description || undefined,
-    color: embed.color ? parseColorStr(embed.color) : undefined,
+    color: embed.color ? parseRequestColor(embed.color) : undefined,
   };
 }
 

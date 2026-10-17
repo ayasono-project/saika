@@ -6,8 +6,6 @@ import type {
   StickyMessage,
 } from "../../shared/database/types";
 
-export type { StickyMessage };
-
 /**
  * スティッキーメッセージの永続化アクセスを担当するサービス
  */

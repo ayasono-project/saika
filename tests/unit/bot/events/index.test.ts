@@ -4,9 +4,6 @@
 import { loadEvents } from "@/bot/utils/eventLoader";
 
 // イベントファイルが依存する外部モジュールをスタブ化
-vi.mock("@/shared/utils/prisma", () => ({
-  getPrismaClient: vi.fn(),
-}));
 vi.mock("@/shared/utils/logger", () => ({
   logger: {
     info: vi.fn(),

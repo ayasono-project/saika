@@ -135,8 +135,6 @@ export const ticket = {
   "ui.modal.edit_panel_title": "パネル編集",
   "ui.modal.setup_field_color": "カラー（例: #00A8F3）",
   "ui.modal.edit_panel_field_color": "カラー（例: #00A8F3）",
-  "user-response.invalid_color":
-    "無効なカラーコードです。#RRGGBB 形式で入力してください。",
   "embed.field.name.panel_color": "パネルカラー",
   "ui.modal.create_ticket_title": "チケットを作成",
   "ui.modal.create_ticket_subject": "件名",
@@ -179,8 +177,6 @@ export const ticket = {
     "チケット設定一覧取得に失敗 GuildId: {{guildId}}",
   "log.database_config_delete_failed":
     "チケット設定削除に失敗 GuildId: {{guildId}} CategoryId: {{categoryId}}",
-  "log.database_config_delete_all_failed":
-    "チケット設定全削除に失敗 GuildId: {{guildId}}",
   "log.database_config_increment_counter_failed":
     "チケットカウンターインクリメントに失敗 GuildId: {{guildId}} CategoryId: {{categoryId}}",
   "log.database_ticket_find_failed": "チケット取得に失敗 Id: {{id}}",
@@ -200,8 +196,6 @@ export const ticket = {
   "log.database_ticket_delete_failed": "チケット削除に失敗 Id: {{id}}",
   "log.database_ticket_delete_by_category_failed":
     "カテゴリのチケット全削除に失敗 GuildId: {{guildId}} CategoryId: {{categoryId}}",
-  "log.database_ticket_delete_all_failed":
-    "チケット全削除に失敗 GuildId: {{guildId}}",
   "log.auto_delete_scheduled":
     "自動削除タイマー開始 GuildId: {{guildId}} ChannelId: {{channelId}} DelayMs: {{delayMs}}",
   "log.auto_delete_cancelled":
@@ -238,5 +232,3 @@ export const ticket = {
   "log.teardown_channel_inaccessible":
     "撤去で Bot が扱えない（または「チャンネルの管理」が無い）チケットのチャンネルを削除できなかった（チャンネルが残る） GuildId: {{guildId}} ChannelId: {{channelId}}",
 } as const;
-
-export type TicketTranslations = typeof ticket;

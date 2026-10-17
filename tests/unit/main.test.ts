@@ -72,12 +72,6 @@ const mutableMocks = vi.hoisted(() => ({
 
 // vi.resetModules()後もコンストラクタとして動作するよう、
 // アロー関数でなくfunction式を使ってvi.fn()に渡す
-vi.mock("@prisma/adapter-libsql", () => ({
-  PrismaLibSql: vi.fn(function (this: unknown) {
-    return {};
-  }),
-}));
-
 vi.mock("@prisma/client", () => ({
   PrismaClient: vi.fn(function (this: unknown) {
     return mutableMocks.prisma;
@@ -98,7 +92,7 @@ vi.mock("discord.js", () => ({
 vi.mock("@/shared/config/env", () => ({
   get env() {
     return {
-      DATABASE_URL: "file::memory:?cache=shared",
+      DATABASE_URL: "postgresql://test:test@localhost:5432/test?schema=public",
       DISCORD_TOKEN: "test-token",
       DISCORD_APP_ID: "123456",
       DISCORD_GUILD_ID: mutableMocks.guildId,
@@ -152,10 +146,6 @@ vi.mock("@/shared/utils/logger", () => ({
   get logger() {
     return mutableMocks.logger;
   },
-}));
-
-vi.mock("@/shared/utils/prisma", () => ({
-  setPrismaClient: vi.fn(),
 }));
 
 vi.mock("@/bot/services/botEventRegistration", () => ({

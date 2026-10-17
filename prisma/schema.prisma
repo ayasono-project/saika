@@ -209,8 +209,8 @@ model GuildTicketSettings {
   staffRoleIds      Json    @default("[]") @map("staff_role_ids") // jsonb: string[]
   panelChannelId    String  @map("panel_channel_id")
   panelMessageId    String  @map("panel_message_id")
-  panelTitle        String  @default("サポート") @map("panel_title")
-  panelDescription  String  @default("サポートが必要な場合は下のボタンからチケットを作成してください。") @map("panel_description")
+  panelTitle        String  @map("panel_title") // 既定文は言語ごとに違うため DB には持たない（i18n から入れる）
+  panelDescription  String  @map("panel_description") // 同上
   panelColor        String  @default("#00A8F3") @map("panel_color")
   autoDeleteDays    Int     @default(7) @map("auto_delete_days")
   maxTicketsPerUser Int     @default(1) @map("max_tickets_per_user")
@@ -254,8 +254,8 @@ model GuildReactionRolePanel {
   channelId     String   @map("channel_id")
   messageId     String   @map("message_id")
   mode          String   @default("toggle") // toggle, one-action, exclusive
-  title         String   @default("ロール選択")
-  description   String   @default("ボタンを押してロールを取得・解除できます。")
+  title         String // 既定文は言語ごとに違うため DB には持たない（i18n から入れる）
+  description   String // 同上
   color         String   @default("#00A8F3")
   buttons       Json     @default("[]") // jsonb: ReactionRoleButton[]
   buttonCounter Int      @default(0) @map("button_counter")

@@ -16,8 +16,6 @@ vi.mock("@/shared/locale/localeManager", () => ({
     const m = params ? `${messageKey}:${JSON.stringify(params)}` : messageKey;
     return sub ? `[${p}:${sub}] ${m}` : `[${p}] ${m}`;
   },
-  tDefault: vi.fn((key: string) => key),
-  tInteraction: (...args: unknown[]) => args[1],
 }));
 vi.mock("@/shared/utils/logger", () => ({
   logger: { debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() },

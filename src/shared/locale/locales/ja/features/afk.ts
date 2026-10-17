@@ -78,5 +78,3 @@ export const afk = {
   "log.database_config_saved": "AFK設定を保存 GuildId: {{guildId}}",
   "log.database_config_save_failed": "AFK設定保存に失敗 GuildId: {{guildId}}",
 } as const;
-
-export type AfkTranslations = typeof afk;

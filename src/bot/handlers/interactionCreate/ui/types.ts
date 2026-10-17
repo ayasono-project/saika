@@ -5,7 +5,6 @@ import type {
   ModalSubmitInteraction,
   RoleSelectMenuInteraction,
   StringSelectMenuInteraction,
-  UserSelectMenuInteraction,
 } from "discord.js";
 
 /**
@@ -32,8 +31,6 @@ export interface InteractionHandler<T> {
 export type ButtonHandler = InteractionHandler<ButtonInteraction>;
 /** モーダル送信インタラクションハンドラ */
 export type ModalHandler = InteractionHandler<ModalSubmitInteraction>;
-/** ユーザーセレクトメニューハンドラ */
-export type UserSelectHandler = InteractionHandler<UserSelectMenuInteraction>;
 /** 文字列セレクトメニューハンドラ */
 export type StringSelectHandler =
   InteractionHandler<StringSelectMenuInteraction>;

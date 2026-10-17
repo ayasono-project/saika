@@ -41,15 +41,6 @@ vi.mock("@/shared/locale/localeManager", () => ({
     const m = params ? `${messageKey}:${JSON.stringify(params)}` : messageKey;
     return sub ? `[${p}:${sub}] ${m}` : `[${p}] ${m}`;
   },
-  logCommand: (
-    commandName: string,
-    messageKey: string,
-    params?: Record<string, unknown>,
-  ) => {
-    const m = params ? `${messageKey}:${JSON.stringify(params)}` : messageKey;
-    return `[${commandName}] ${m}`;
-  },
-  tDefault: vi.fn((key: string) => key),
   tInteraction: (...args: unknown[]) => args[1],
 }));
 
@@ -449,10 +440,7 @@ describe("MessageDeleteService Integration", () => {
       const result = await deleteScannedMessages(scanned);
 
       expect(result.totalDeleted).toBe(2);
-      expect(result.channelBreakdown["ch-1"]).toEqual({
-        name: "ch-ch-1",
-        count: 2,
-      });
+      expect(result.channelBreakdown["ch-1"]).toEqual({ count: 2 });
       expect(bulkDeleteMock).toHaveBeenCalledTimes(1);
     });
 
@@ -622,14 +610,8 @@ describe("MessageDeleteService Integration", () => {
       const result = await deleteScannedMessages(scanned);
 
       expect(result.totalDeleted).toBe(3);
-      expect(result.channelBreakdown["ch-A"]).toEqual({
-        name: "ch-ch-A",
-        count: 2,
-      });
-      expect(result.channelBreakdown["ch-B"]).toEqual({
-        name: "ch-ch-B",
-        count: 1,
-      });
+      expect(result.channelBreakdown["ch-A"]).toEqual({ count: 2 });
+      expect(result.channelBreakdown["ch-B"]).toEqual({ count: 1 });
       // 各チャンネルの bulkDelete が呼ばれている
       expect(bulkA).toHaveBeenCalledWith(["a1", "a2"], true);
       expect(bulkB).toHaveBeenCalledWith(["b1"], true);
@@ -711,10 +693,7 @@ describe("MessageDeleteService Integration", () => {
 
       // ch-A のメッセージは削除されたが、ch-B は abort で中断
       expect(result.totalDeleted).toBe(1);
-      expect(result.channelBreakdown["ch-A"]).toEqual({
-        name: "ch-ch-A",
-        count: 1,
-      });
+      expect(result.channelBreakdown["ch-A"]).toEqual({ count: 1 });
     });
   });
 
@@ -757,7 +736,6 @@ describe("MessageDeleteService Integration", () => {
       const scanCall = scanProgress.mock.calls[0][0];
       expect(scanCall).toHaveProperty("totalScanned");
       expect(scanCall).toHaveProperty("collected");
-      expect(scanCall).toHaveProperty("limit");
 
       // 削除進捗の形式を確認
       const deleteCall = deleteProgress.mock.calls[0][0];

@@ -75,15 +75,6 @@ export class ReactionRolePanelSettingsService {
   async delete(id: string, guildId = ""): Promise<void> {
     return this.repository.delete(id, guildId);
   }
-
-  /**
-   * ギルドの全パネルを削除する
-   * @param guildId ギルドID
-   * @returns 削除されたパネル数
-   */
-  async deleteAllByGuild(guildId: string): Promise<number> {
-    return this.repository.deleteAllByGuild(guildId);
-  }
 }
 
 /**

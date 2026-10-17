@@ -48,8 +48,9 @@ export async function handleBumpReminderMemberRemove(
       err,
     );
     await notifyErrorChannel(member.guild, err, {
-      feature: "Bumpリマインダー",
-      action: "メンバー退出時のメンション整理失敗",
+      featureKey: "bumpReminder:embed.field.value.error_notification_feature",
+      actionKey:
+        "bumpReminder:embed.field.value.member_remove_cleanup_failed_action",
     });
   }
 }

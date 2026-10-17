@@ -82,5 +82,3 @@ export const afk = {
   "log.database_config_save_failed":
     "Failed to save AFK config GuildId: {{guildId}}",
 } as const;
-
-export type AfkTranslations = typeof afk;

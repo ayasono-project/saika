@@ -34,6 +34,29 @@ const WARNING_ERROR_CLASSES: ReadonlyArray<
   ) => BaseError
 > = [ValidationError, NotFoundError, TimeoutError, ConfigurationError];
 
+/**
+ * ユーザー操作で回復可能なエラー（入力不備など）かどうか判定する
+ * @param error 判定対象のエラー
+ * @returns 回復可能なエラーであれば true
+ */
+const isUserRecoverableError = (error: unknown): boolean =>
+  WARNING_ERROR_CLASSES.some((cls) => error instanceof cls);
+
+/**
+ * インタラクションの処理で投げられた例外を記録する。
+ * ユーザー操作で回復可能なエラーは warn にする。error だけを送るエラー通知の Webhook に、
+ * 入力の打ち間違いのたびに流さないため
+ * @param message ログメッセージ
+ * @param error 投げられた例外
+ */
+export const logInteractionError = (message: string, error: unknown): void => {
+  if (isUserRecoverableError(error)) {
+    logger.warn(message, error);
+    return;
+  }
+  logger.error(message, error);
+};
+
 /** エラークラスと common タイトルキーの対応 */
 const ERROR_TITLE_MAP = [
   [ValidationError, "common:title_invalid_input"],
@@ -213,10 +236,7 @@ const replyWithError = async (
         )
       : getUserFriendlyMessage(err);
   const title = getErrorTitle(interaction, err);
-  const isWarning =
-    err instanceof BaseError &&
-    WARNING_ERROR_CLASSES.some((cls) => err instanceof cls);
-  const embed = isWarning
+  const embed = isUserRecoverableError(err)
     ? createWarningEmbed(message, { title })
     : createErrorEmbed(message, { title });
 

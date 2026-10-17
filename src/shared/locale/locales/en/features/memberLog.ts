@@ -31,7 +31,6 @@ export const memberLog = {
   "user-response.set_leave_message_success": "Leave message has been set",
   "user-response.clear_join_message_success": "Join message has been cleared",
   "user-response.clear_leave_message_success": "Leave message has been cleared",
-  "user-response.text_channel_only": "Please specify a text channel.",
   "user-response.reset_success": "Member log settings have been reset.",
   "user-response.reset_cancelled": "Reset has been cancelled.",
   "user-response.channel_deleted_notice":
@@ -75,6 +74,15 @@ export const memberLog = {
   "embed.field.value.age_days": "{{count}}d",
   "embed.field.value.age_separator": " ",
 
+  // ── Embed: error notification channel ─────────
+  "embed.field.value.error_notification_feature": "Member Log",
+  "embed.field.value.channel_missing_action":
+    "Notification channel missing → settings reset automatically",
+  "embed.field.value.join_notification_failed_action":
+    "Failed to send join notification",
+  "embed.field.value.leave_notification_failed_action":
+    "Failed to send leave notification",
+
   // ── UI labels ──────────────────────────────────
   "ui.modal.set_join_message_title": "Set Join Message",
   "ui.modal.set_join_message_label": "Join message",
@@ -105,5 +113,3 @@ export const memberLog = {
   "log.config_leave_message_cleared":
     "leave message cleared GuildId: {{guildId}}",
 } as const;
-
-export type MemberLogTranslations = typeof memberLog;

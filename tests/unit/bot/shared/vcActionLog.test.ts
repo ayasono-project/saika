@@ -87,19 +87,6 @@ describe("bot/shared/vcActionLog", () => {
       ).toBeUndefined();
     });
 
-    it("移動先が解決できていない場合は移動先フィールドを表示しない", () => {
-      const embed = formatActionLog({
-        action: "afk",
-        locale: "ja",
-        invokerId: "inv-1",
-        targetUserId: "tgt-1",
-      });
-
-      expect(
-        fieldValue(embed, "afk:action-log.field.destination"),
-      ).toBeUndefined();
-    });
-
     it("失敗が表示上限を超える場合は failures_more で省略表記する", () => {
       const failureUserIds = Array.from({ length: 25 }, (_, i) => `f-${i}`);
       const embed = formatActionLog({

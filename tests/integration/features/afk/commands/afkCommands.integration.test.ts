@@ -42,7 +42,6 @@ vi.mock("@/shared/locale/localeManager", () => ({
     const m = params ? `${messageKey}:${JSON.stringify(params)}` : messageKey;
     return `[${commandName}] ${m}`;
   },
-  tDefault: vi.fn((key: string) => key),
   tInteraction: vi.fn(
     (_locale: string, key: string, params?: Record<string, unknown>) =>
       params ? `${key}:${JSON.stringify(params)}` : key,
@@ -76,15 +75,17 @@ vi.mock("@/features/afk/afkSettingsDefaults", () => ({
   createDefaultAfkSettings: () => ({ enabled: false, channelId: null }),
 }));
 
-// afkSettingsService のモック
+// Composition Root の AFK 設定サービスのモック
 const mockGetAfkSettings = vi.fn();
 const mockSetAfkChannel = vi.fn();
 const mockSaveAfkSettings = vi.fn();
 
-vi.mock("@/features/afk/afkSettingsService", () => ({
-  getAfkSettings: (...args: unknown[]) => mockGetAfkSettings(...args),
-  setAfkChannel: (...args: unknown[]) => mockSetAfkChannel(...args),
-  saveAfkSettings: (...args: unknown[]) => mockSaveAfkSettings(...args),
+vi.mock("@/bot/services/botCompositionRoot", () => ({
+  getBotAfkSettingsService: () => ({
+    getAfkSettings: (...args: unknown[]) => mockGetAfkSettings(...args),
+    setAfkChannel: (...args: unknown[]) => mockSetAfkChannel(...args),
+    saveAfkSettings: (...args: unknown[]) => mockSaveAfkSettings(...args),
+  }),
 }));
 
 /** ChatInputCommandInteraction のモックを作成する */
@@ -109,7 +110,6 @@ function createInteraction(overrides?: Record<string, unknown>) {
         getSubcommand: vi.fn(() => "set-channel"),
         getChannel: vi.fn(),
         getUser: vi.fn(() => null),
-        getString: vi.fn(),
       },
       reply: replyMock,
       ...overrides,
@@ -408,11 +408,7 @@ describe("AFK Commands Integration", () => {
         channelId: "deleted-vc",
       });
 
-      const { interaction, fetchMemberMock, fetchChannelMock } =
-        createInteraction();
-      fetchMemberMock.mockResolvedValue({
-        voice: { channel: { id: "current-vc" } },
-      });
+      const { interaction, fetchChannelMock } = createInteraction();
       fetchChannelMock.mockResolvedValue(null);
 
       await expect(handler(interaction as never)).rejects.toThrow(
@@ -428,11 +424,7 @@ describe("AFK Commands Integration", () => {
         channelId: "text-ch",
       });
 
-      const { interaction, fetchMemberMock, fetchChannelMock } =
-        createInteraction();
-      fetchMemberMock.mockResolvedValue({
-        voice: { channel: { id: "current-vc" } },
-      });
+      const { interaction, fetchChannelMock } = createInteraction();
       fetchChannelMock.mockResolvedValue({
         id: "text-ch",
         type: ChannelType.GuildText,

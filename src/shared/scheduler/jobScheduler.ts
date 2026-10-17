@@ -12,8 +12,6 @@ interface ScheduledJob {
   schedule: string;
   /** 発火時に実行するタスク */
   task: () => Promise<void> | void;
-  /** ジョブの説明（任意） */
-  description?: string;
   /** cron 評価に用いるタイムゾーン（例: "Asia/Tokyo"）。未指定時はサーバーのローカルタイム */
   timezone?: string;
   /** 前回実行が長引いた場合に次回発火の重複起動を防ぐ（node-cron v4） */

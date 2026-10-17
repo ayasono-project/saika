@@ -120,5 +120,3 @@ export const reactionRoleSettingsCommand: Command = {
 
   cooldown: 3,
 };
-
-export default reactionRoleSettingsCommand;

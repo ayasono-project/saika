@@ -42,9 +42,6 @@ export default defineConfig({
         // Repositories: DB 委譲のみ、独自ロジックなし → 計測対象外
         "src/bot/features/**/repositories/*.ts",
         "src/shared/database/repositories/*.ts",
-        // Repository usecases: 単一 prisma 呼び出しのみ（分岐・変換なし）→ 計測対象外
-        "src/bot/features/bump-reminder/repositories/usecases/deleteBumpReminder.ts",
-        "src/bot/features/bump-reminder/repositories/usecases/findBumpReminderById.ts",
         // DI composition root: 配線のみ、ロジックなし → 計測対象外
         "src/bot/services/botCompositionRoot.ts",
         // UI handler array barrels: 配列エクスポートのみ → 計測対象外

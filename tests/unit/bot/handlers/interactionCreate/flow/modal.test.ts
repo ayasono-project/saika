@@ -1,5 +1,8 @@
 import type { Mock } from "vitest";
-import { handleInteractionError } from "@/bot/errors/interactionErrorHandler";
+import {
+  handleInteractionError,
+  logInteractionError,
+} from "@/bot/errors/interactionErrorHandler";
 import { handleModalSubmit } from "@/bot/handlers/interactionCreate/flow/modal";
 
 const loggerWarnMock = vi.fn();
@@ -39,6 +42,7 @@ vi.mock("@/shared/utils/logger", () => ({
 
 vi.mock("@/bot/errors/interactionErrorHandler", () => ({
   handleInteractionError: vi.fn(),
+  logInteractionError: vi.fn(),
 }));
 
 vi.mock("@/bot/handlers/interactionCreate/ui/modals", () => ({
@@ -98,6 +102,6 @@ describe("bot/handlers/interactionCreate/flow/modal", () => {
     await handleModalSubmit(interaction as never);
 
     expect(handleInteractionError).toHaveBeenCalledWith(interaction, error);
-    expect(loggerErrorMock).toHaveBeenCalledTimes(1);
+    expect(logInteractionError).toHaveBeenCalledWith(expect.any(String), error);
   });
 });

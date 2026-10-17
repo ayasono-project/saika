@@ -50,12 +50,10 @@ describe("Environment Configuration", () => {
       process.env.DISCORD_TOKEN = "a".repeat(50);
       process.env.DISCORD_APP_ID = "1234567890";
       // NODE_ENVはsetup.tsで"test"に設定されている
-      delete process.env.LOCALE;
 
       const { env } = await import("@/shared/config/env");
 
       expect(env.NODE_ENV).toBe("test"); // setup.tsで設定済み
-      expect(env.LOCALE).toBe("ja");
       // LOG_LEVELはenv.tsのデフォルト値が適用される
       expect(["info", "error"]).toContain(env.LOG_LEVEL);
     });
@@ -150,29 +148,22 @@ describe("Environment Configuration", () => {
 
       const { env } = await import("@/shared/config/env");
 
-      expect(env.DATABASE_URL).toBe("file::memory:?cache=shared");
+      expect(env.DATABASE_URL).toBe(
+        "postgresql://test:test@localhost:5432/test?schema=public",
+      );
     });
 
     it("カスタムの DATABASE_URL を受け入れてそのまま返すこと", async () => {
       process.env.DISCORD_TOKEN = "a".repeat(50);
       process.env.DISCORD_APP_ID = "1234567890";
-      process.env.DATABASE_URL = "file:./custom/path/db.sqlite";
+      process.env.DATABASE_URL =
+        "postgresql://saika:saika@db.example:5432/saika?schema=public";
 
       const { env } = await import("@/shared/config/env");
 
-      expect(env.DATABASE_URL).toBe("file:./custom/path/db.sqlite");
-    });
-  });
-
-  describe("Locale Configuration", () => {
-    it("カスタムの LOCALE 値が受け入れられること", async () => {
-      process.env.DISCORD_TOKEN = "a".repeat(50);
-      process.env.DISCORD_APP_ID = "1234567890";
-      process.env.LOCALE = "en";
-
-      const { env } = await import("@/shared/config/env");
-
-      expect(env.LOCALE).toBe("en");
+      expect(env.DATABASE_URL).toBe(
+        "postgresql://saika:saika@db.example:5432/saika?schema=public",
+      );
     });
   });
 
@@ -195,5 +186,33 @@ describe("Environment Configuration", () => {
       );
       expect(exitSpy).toHaveBeenCalledWith(1);
     });
+
+    // compose の `${DATABASE_URL}` は未設定の変数を空文字で渡すため、空文字も未設定として落とす
+    it.each([
+      { label: "未設定", value: undefined },
+      { label: "空文字", value: "" },
+    ])(
+      "DATABASE_URL が $label のとき起動時の検証で exit すること",
+      async ({ value }) => {
+        process.env.DISCORD_TOKEN = "a".repeat(50);
+        process.env.DISCORD_APP_ID = "1234567890";
+        if (value === undefined) {
+          delete process.env.DATABASE_URL;
+        } else {
+          process.env.DATABASE_URL = value;
+        }
+
+        const errorSpy = vi.spyOn(console, "error").mockImplementation(vi.fn());
+        const exitSpy = vi.spyOn(process, "exit").mockImplementation((() => {
+          throw new Error("EXIT");
+        }) as never);
+
+        await expect(import("@/shared/config/env")).rejects.toThrow("EXIT");
+        expect(errorSpy).toHaveBeenCalledWith(
+          expect.stringContaining("DATABASE_URL"),
+        );
+        expect(exitSpy).toHaveBeenCalledWith(1);
+      },
+    );
   });
 });

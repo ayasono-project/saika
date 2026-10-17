@@ -2,25 +2,6 @@ import { createSuccessEmbed } from "@/bot/utils/messageResponse";
 import { executePingCommand } from "@/features/ping/commands/pingCommand.execute";
 
 vi.mock("@/shared/locale/localeManager", () => ({
-  logPrefixed: (
-    prefixKey: string,
-    messageKey: string,
-    params?: Record<string, unknown>,
-    sub?: string,
-  ) => {
-    const p = `${prefixKey}`;
-    const m = params ? `${messageKey}:${JSON.stringify(params)}` : messageKey;
-    return sub ? `[${p}:${sub}] ${m}` : `[${p}] ${m}`;
-  },
-  logCommand: (
-    commandName: string,
-    messageKey: string,
-    params?: Record<string, unknown>,
-  ) => {
-    const m = params ? `${messageKey}:${JSON.stringify(params)}` : messageKey;
-    return `[${commandName}] ${m}`;
-  },
-  tGuild: vi.fn(),
   tInteraction: vi.fn((_locale: string, key: string) => key),
 }));
 
@@ -31,7 +12,6 @@ vi.mock("@/bot/utils/messageResponse", () => ({
 
 function createInteraction() {
   return {
-    guildId: "guild-1",
     locale: "ja",
     createdTimestamp: 1_000,
     client: { ws: { ping: 42 } },

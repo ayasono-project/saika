@@ -5,10 +5,7 @@ describe("shared/database/repositories/guildCoreRepository", () => {
 
     const coreUsecases = {
       getGuildSettingsUsecase: vi.fn(),
-      saveGuildSettingsUsecase: vi.fn(),
       updateGuildSettingsUsecase: vi.fn(),
-      deleteGuildSettingsUsecase: vi.fn(),
-      existsGuildSettingsUsecase: vi.fn(),
       getGuildLocaleUsecase: vi.fn(),
       updateGuildLocaleUsecase: vi.fn(),
     };
@@ -30,16 +27,12 @@ describe("shared/database/repositories/guildCoreRepository", () => {
     const repository = new module.GuildCoreRepository(prisma as never);
 
     coreUsecases.getGuildSettingsUsecase.mockResolvedValue({ guildId: "g1" });
-    coreUsecases.existsGuildSettingsUsecase.mockResolvedValue(true);
     coreUsecases.getGuildLocaleUsecase.mockResolvedValue("ja");
 
     await expect(repository.getSettings("g1")).resolves.toEqual({
       guildId: "g1",
     });
-    await repository.saveSettings({ guildId: "g1" } as never);
     await repository.updateSettings("g1", { locale: "en" } as never);
-    await repository.deleteSettings("g1");
-    await expect(repository.exists("g1")).resolves.toBe(true);
     await expect(repository.getLocale("g1")).resolves.toBe("ja");
     await repository.updateLocale("g1", "en");
 
@@ -51,10 +44,7 @@ describe("shared/database/repositories/guildCoreRepository", () => {
       }),
       "g1",
     );
-    expect(coreUsecases.saveGuildSettingsUsecase).toHaveBeenCalled();
     expect(coreUsecases.updateGuildSettingsUsecase).toHaveBeenCalled();
-    expect(coreUsecases.deleteGuildSettingsUsecase).toHaveBeenCalled();
-    expect(coreUsecases.existsGuildSettingsUsecase).toHaveBeenCalled();
     expect(coreUsecases.getGuildLocaleUsecase).toHaveBeenCalled();
     expect(coreUsecases.updateGuildLocaleUsecase).toHaveBeenCalled();
   });

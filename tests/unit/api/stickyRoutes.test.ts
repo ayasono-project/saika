@@ -93,15 +93,7 @@ function makeClient(): BotClient {
 
 async function buildApp(): Promise<FastifyInstance> {
   const app = Fastify({ logger: false });
-  app.decorate("authenticate", async (request) => {
-    request.authUser = {
-      discordUserId: "u1",
-      username: "u",
-      globalName: null,
-      avatar: null,
-      guilds: ["g1"],
-    };
-  });
+  app.decorate("authenticate", async () => {});
   app.decorate("requireGuildAccess", async (request) => {
     request.guildId = (request.params as { guildId?: string }).guildId;
   });
@@ -181,31 +173,6 @@ describe("stickyRoutes", () => {
     ]);
   });
 
-  it("PATCH で content を部分更新する", async () => {
-    await app.inject({
-      method: "POST",
-      url: "/guilds/g1/sticky",
-      payload: { channelId: "c1", content: "old", embed: null },
-    });
-    const patch = await app.inject({
-      method: "PATCH",
-      url: "/guilds/g1/sticky/c1",
-      payload: { content: "new" },
-    });
-    expect(patch.statusCode).toBe(200);
-    expect(patch.json().data.content).toBe("new");
-  });
-
-  it("存在しない channelId の PATCH は 404", async () => {
-    const res = await app.inject({
-      method: "PATCH",
-      url: "/guilds/g1/sticky/ghost",
-      payload: { content: "x" },
-    });
-    expect(res.statusCode).toBe(404);
-    expect(res.json().error.code).toBe("NOT_FOUND");
-  });
-
   it("DELETE で削除し、GET が空になる", async () => {
     await app.inject({
       method: "POST",
@@ -231,4 +198,26 @@ describe("stickyRoutes", () => {
     expect(res.statusCode).toBe(400);
     expect(res.json().error.code).toBe("VALIDATION_ERROR");
   });
+
+  it.each([
+    ["7桁（上限 #FFFFFF を超える）", "#1234567"],
+    ["負の数", "-1"],
+    ["途中から16進数でない", "12zz"],
+  ])(
+    "読めない色（%s）の POST は保存せず 400 VALIDATION_ERROR",
+    async (_label, color) => {
+      const res = await app.inject({
+        method: "POST",
+        url: "/guilds/g1/sticky",
+        payload: {
+          channelId: "c1",
+          content: "x",
+          embed: { title: "T", description: "D", color, fields: [] },
+        },
+      });
+      expect(res.statusCode).toBe(400);
+      expect(res.json().error.code).toBe("VALIDATION_ERROR");
+      expect(h.items).toEqual([]);
+    },
+  );
 });

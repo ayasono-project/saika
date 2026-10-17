@@ -17,7 +17,6 @@ function member(
     isVerified: false,
     memberRoleIds: [],
     joinedAt: day(1),
-    hasMarkerRole: false,
     warnedAt: null,
     ...over,
   };
@@ -124,7 +123,7 @@ describe("unverified-kick/candidates", () => {
 
   it("除外メンバー（認証済み）はキック・警告対象外", () => {
     const buckets = categorizeCandidates(
-      [member({ userId: "u1", isVerified: true, hasMarkerRole: true })],
+      [member({ userId: "u1", isVerified: true })],
       settings,
       NOW,
     );

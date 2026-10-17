@@ -4,7 +4,6 @@ import type { Mock } from "vitest";
 
 const setAfkChannelMock = vi.fn();
 const getAfkSettingsMock = vi.fn();
-const tGuildMock = vi.hoisted(() => vi.fn());
 const tDefaultMock = vi.hoisted(() => vi.fn((key: string) => `default:${key}`));
 const createSuccessEmbedMock = vi.fn(
   (description: string, _options?: unknown) => ({
@@ -25,13 +24,13 @@ const createWarningEmbedMock = vi.fn(
   }),
 );
 
-// afkSettingsService が使う DB レイヤーのみモック
+// Composition Root の AFK 設定サービスだけを差し替え、コマンド分岐を実コードで検証する
 const saveAfkSettingsMock = vi.fn();
-vi.mock("@/features/afk/afkSettingsRepository", () => ({
-  getAfkSettingsRepository: () => ({
+vi.mock("@/bot/services/botCompositionRoot", () => ({
+  getBotAfkSettingsService: () => ({
     setAfkChannel: (...args: unknown[]) => setAfkChannelMock(...args),
     getAfkSettings: (...args: unknown[]) => getAfkSettingsMock(...args),
-    updateAfkSettings: (...args: unknown[]) => saveAfkSettingsMock(...args),
+    saveAfkSettings: (...args: unknown[]) => saveAfkSettingsMock(...args),
   }),
 }));
 
@@ -57,16 +56,7 @@ vi.mock("@/shared/locale/localeManager", () => ({
     const m = params ? `${messageKey}:${JSON.stringify(params)}` : messageKey;
     return sub ? `[${p}:${sub}] ${m}` : `[${p}] ${m}`;
   },
-  logCommand: (
-    commandName: string,
-    messageKey: string,
-    params?: Record<string, unknown>,
-  ) => {
-    const m = params ? `${messageKey}:${JSON.stringify(params)}` : messageKey;
-    return `[${commandName}] ${m}`;
-  },
   tDefault: tDefaultMock,
-  tGuild: tGuildMock,
   tInteraction: (...args: unknown[]) => args[1],
 }));
 

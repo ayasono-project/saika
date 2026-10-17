@@ -100,5 +100,3 @@ export const afkSettingsCommand: Command = {
 
   cooldown: 3,
 };
-
-export default afkSettingsCommand;

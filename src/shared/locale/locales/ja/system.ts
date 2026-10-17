@@ -96,11 +96,7 @@ export const system = {
   "locale.translation_failed": "翻訳に失敗しました Key: {{key}}",
 
   // クールダウンマネージャー
-  "cooldown.cleared_all": "すべてのクールダウンをクリアしました。",
   "cooldown.destroyed": "CooldownManager を破棄しました。",
-  "cooldown.reset": "リセット CommandName: {{commandName}} UserId: {{userId}}",
-  "cooldown.cleared_for_command":
-    "コマンドの全クールダウンをクリア CommandName: {{commandName}}",
   "cooldown.cleanup": "{{count}}個の期限切れクールダウンを削除しました。",
 
   // スケジューラー（汎用ジョブ）
@@ -125,9 +121,6 @@ export const system = {
     "{{signal}} を受信しましたが、シャットダウンは既に進行中です。",
   "shutdown.cleanup_complete": "クリーンアップ完了",
   "shutdown.cleanup_failed": "クリーンアップ中のエラー:",
-
-  // データベース操作ログ（GuildSettings 汎用のみ）
-  "database.prisma_not_available": "Prismaクライアントが利用できません。",
 
   // Bot起動イベントログ
   "ready.bot_ready": "✅ Botの準備が完了しました！ {{tag}} としてログイン",
@@ -161,7 +154,6 @@ export const system = {
   "web.guild_id_required": "ギルド ID が必要です。",
   "web.channel_id_required": "チャンネル ID が必要です。",
   "web.category_id_required": "カテゴリ ID が必要です。",
-  "web.sticky_not_found": "固定メッセージが見つかりません。",
   "web.reaction_role_not_found": "リアクションロールパネルが見つかりません。",
   "web.ticket_panel_not_found": "チケットパネルが見つかりません。",
   "web.ticket_category_exists":
@@ -178,5 +170,3 @@ export const system = {
   "error.base_error_log": "[{{errorName}}] {{message}}",
   "error.unhandled_error_log": "[UnhandledError] {{message}}",
 } as const;
-
-export type SystemTranslations = typeof system;

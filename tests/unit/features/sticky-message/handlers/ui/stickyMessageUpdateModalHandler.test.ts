@@ -4,7 +4,6 @@ const findByChannelMock = vi.fn();
 const updateContentMock = vi.fn();
 const updateLastMessageIdMock = vi.fn();
 const buildPayloadMock = vi.fn(() => ({ content: "sticky" }));
-const tGuildMock = vi.fn(async (_guildId: string, key: string) => `[${key}]`);
 const loggerMock = { error: vi.fn() };
 
 vi.mock("@/bot/services/botCompositionRoot", () => ({
@@ -29,16 +28,6 @@ vi.mock("@/shared/locale/localeManager", () => ({
     const m = params ? `${messageKey}:${JSON.stringify(params)}` : messageKey;
     return sub ? `[${p}:${sub}] ${m}` : `[${p}] ${m}`;
   },
-  logCommand: (
-    commandName: string,
-    messageKey: string,
-    params?: Record<string, unknown>,
-  ) => {
-    const m = params ? `${messageKey}:${JSON.stringify(params)}` : messageKey;
-    return `[${commandName}] ${m}`;
-  },
-  tGuild: tGuildMock,
-  tDefault: vi.fn((key: string) => key),
   tInteraction: (...args: unknown[]) => args[1],
 }));
 vi.mock("@/shared/utils/logger", () => ({ logger: loggerMock }));
@@ -60,7 +49,6 @@ function createInteractionMock({
   customId?: string;
   contentValue?: string;
   channelInCache?: boolean;
-  lastMessageId?: string | undefined;
   sendResult?: unknown;
   fetchSuccess?: boolean;
 } = {}) {
@@ -254,7 +242,7 @@ describe("bot/features/sticky-message/handlers/ui/stickyMessageUpdateModalHandle
       lastMessageId: null,
     });
     updateContentMock.mockRejectedValue(new Error("DB error"));
-    const interaction = createInteractionMock({ lastMessageId: undefined });
+    const interaction = createInteractionMock();
 
     await expect(
       stickyMessageUpdateModalHandler.execute(interaction as never),

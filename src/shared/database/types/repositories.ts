@@ -1,11 +1,9 @@
 // 機能別リポジトリインターフェース（必要な範囲だけ依存できる）
 
 import type {
-  BumpReminderMentionClearResult,
   BumpReminderMentionRoleResult,
   BumpReminderMentionUserAddResult,
   BumpReminderMentionUserRemoveResult,
-  BumpReminderMentionUsersClearResult,
 } from "./bumpReminderTypes";
 import type {
   AfkSettings,
@@ -68,13 +66,10 @@ export interface IGuildRegistryRepository {
 /** ギルド設定のコアCRUD・locale操作 */
 export interface IGuildCoreRepository {
   getSettings(guildId: string): Promise<GuildSettings | null>;
-  saveSettings(config: GuildSettings): Promise<void>;
   updateSettings(
     guildId: string,
     updates: Partial<GuildSettings>,
   ): Promise<void>;
-  deleteSettings(guildId: string): Promise<void>;
-  exists(guildId: string): Promise<boolean>;
   getLocale(guildId: string): Promise<string>;
   updateLocale(guildId: string, locale: string): Promise<void>;
   updateErrorChannel(guildId: string, channelId: string): Promise<void>;
@@ -85,11 +80,6 @@ export interface IGuildCoreRepository {
 export interface IGuildSettingsAggregateRepository {
   deleteAllSettings(guildId: string): Promise<void>;
 }
-
-/** コア + 一括操作の統合インターフェース */
-export interface IBaseGuildRepository
-  extends IGuildCoreRepository,
-    IGuildSettingsAggregateRepository {}
 
 export interface IAfkSettingsRepository {
   getAfkSettings(guildId: string): Promise<AfkSettings | null>;
@@ -122,12 +112,6 @@ export interface IBumpReminderSettingsRepository {
     guildId: string,
     userId: string,
   ): Promise<BumpReminderMentionUserRemoveResult>;
-  clearBumpReminderMentionUsers(
-    guildId: string,
-  ): Promise<BumpReminderMentionUsersClearResult>;
-  clearBumpReminderMentions(
-    guildId: string,
-  ): Promise<BumpReminderMentionClearResult>;
 }
 
 export interface IVacSettingsRepository {
@@ -165,7 +149,6 @@ export interface IUnverifiedKickSettingsRepository {
   getAllEnabled(): Promise<Array<UnverifiedKickSettings & { guildId: string }>>;
   /** 最終実行日を更新する（スイープ重複防止） */
   updateLastRunDate(guildId: string, date: string): Promise<void>;
-  deleteUnverifiedKickSettings(guildId: string): Promise<void>;
 }
 
 /**
@@ -221,7 +204,6 @@ export interface IReactionRolePanelRepository {
     data: Partial<GuildReactionRolePanel>,
   ): Promise<GuildReactionRolePanel>;
   delete(id: string, guildId?: string): Promise<void>;
-  deleteAllByGuild(guildId: string): Promise<number>;
 }
 
 export interface IGuildTicketSettingsRepository {
@@ -237,7 +219,6 @@ export interface IGuildTicketSettingsRepository {
     data: Partial<GuildTicketSettings>,
   ): Promise<GuildTicketSettings>;
   delete(guildId: string, categoryId: string): Promise<void>;
-  deleteAllByGuild(guildId: string): Promise<number>;
   incrementCounter(guildId: string, categoryId: string): Promise<number>;
 }
 
@@ -249,7 +230,6 @@ export interface ITicketRepository {
     categoryId: string,
     userId: string,
   ): Promise<Ticket[]>;
-  findAllByCategory(guildId: string, categoryId: string): Promise<Ticket[]>;
   findOpenByCategory(guildId: string, categoryId: string): Promise<Ticket[]>;
   findAllClosedByGuild(guildId: string): Promise<Ticket[]>;
   findAllByGuild(guildId: string): Promise<Ticket[]>;
@@ -258,5 +238,4 @@ export interface ITicketRepository {
   delete(id: string): Promise<void>;
   deleteIfClosed(id: string): Promise<boolean>;
   deleteByCategory(guildId: string, categoryId: string): Promise<number>;
-  deleteAllByGuild(guildId: string): Promise<number>;
 }

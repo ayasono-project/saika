@@ -28,17 +28,6 @@ vi.mock("@/shared/locale/localeManager", () => ({
     const m = params ? `${messageKey}:${JSON.stringify(params)}` : messageKey;
     return sub ? `[${p}:${sub}] ${m}` : `[${p}] ${m}`;
   },
-  logCommand: (
-    commandName: string,
-    messageKey: string,
-    params?: Record<string, unknown>,
-  ) => {
-    const m = params ? `${messageKey}:${JSON.stringify(params)}` : messageKey;
-    return `[${commandName}] ${m}`;
-  },
-  tDefault: (key: string, params?: Record<string, unknown>) =>
-    `${key}:${JSON.stringify(params || {})}`,
-  tInteraction: (...args: unknown[]) => args[1],
 }));
 
 describe("CooldownManager", () => {
@@ -144,79 +133,6 @@ describe("CooldownManager", () => {
       const stats = cooldownManager.getStats();
       expect(stats.totalCommands).toBe(1);
       expect(stats.totalUsers).toBe(1);
-    });
-  });
-
-  describe("reset()", () => {
-    it("指定ユーザーのクールダウンがリセットされることを確認", () => {
-      cooldownManager.check("testCommand", "user123", 10);
-
-      cooldownManager.reset("testCommand", "user123");
-
-      const remaining = cooldownManager.check("testCommand", "user123", 10);
-      expect(remaining).toBe(0);
-    });
-
-    it("他ユーザーのクールダウンに影響しないことを確認", () => {
-      // 指定ユーザーのみ解除し、他ユーザーは維持されること
-      cooldownManager.check("testCommand", "user1", 10);
-      cooldownManager.check("testCommand", "user2", 10);
-
-      cooldownManager.reset("testCommand", "user1");
-
-      const remaining1 = cooldownManager.check("testCommand", "user1", 10);
-      const remaining2 = cooldownManager.check("testCommand", "user2", 10);
-
-      expect(remaining1).toBe(0);
-      expect(remaining2).toBeGreaterThan(0);
-    });
-
-    it("タイマーが存在しない場合でも reset が例外を投げないことを確認", () => {
-      expect(() => cooldownManager.reset("unknown", "user123")).not.toThrow();
-    });
-  });
-
-  describe("clearCommand()", () => {
-    it("コマンドの全クールダウンがクリアされることを確認", () => {
-      cooldownManager.check("testCommand", "user1", 10);
-      cooldownManager.check("testCommand", "user2", 10);
-      cooldownManager.check("testCommand", "user3", 10);
-
-      cooldownManager.clearCommand("testCommand");
-
-      expect(cooldownManager.check("testCommand", "user1", 10)).toBe(0);
-      expect(cooldownManager.check("testCommand", "user2", 10)).toBe(0);
-      expect(cooldownManager.check("testCommand", "user3", 10)).toBe(0);
-    });
-
-    it("他のコマンドのクールダウンに影響しないことを確認", () => {
-      cooldownManager.check("command1", "user123", 10);
-      cooldownManager.check("command2", "user123", 10);
-
-      cooldownManager.clearCommand("command1");
-
-      expect(cooldownManager.check("command1", "user123", 10)).toBe(0);
-      expect(cooldownManager.check("command2", "user123", 10)).toBeGreaterThan(
-        0,
-      );
-    });
-
-    it("タイマーマップが存在しない場合でも clearCommand が例外を投げないことを確認", () => {
-      expect(() => cooldownManager.clearCommand("unknown")).not.toThrow();
-    });
-  });
-
-  describe("clearAll()", () => {
-    it("全クールダウンがクリアされることを確認", () => {
-      cooldownManager.check("command1", "user1", 10);
-      cooldownManager.check("command1", "user2", 10);
-      cooldownManager.check("command2", "user1", 10);
-
-      cooldownManager.clearAll();
-
-      expect(cooldownManager.check("command1", "user1", 10)).toBe(0);
-      expect(cooldownManager.check("command1", "user2", 10)).toBe(0);
-      expect(cooldownManager.check("command2", "user1", 10)).toBe(0);
     });
   });
 

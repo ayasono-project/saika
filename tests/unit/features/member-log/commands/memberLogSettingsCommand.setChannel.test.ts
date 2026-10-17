@@ -1,17 +1,12 @@
 import { ValidationError } from "@ayasono/shared/core";
 import { ChannelType } from "discord.js";
+import { COMMON_I18N_KEYS } from "@/bot/shared/i18nKeys";
 import { MEMBER_LOG_SETTINGS_COMMAND } from "@/features/member-log/commands/memberLogSettingsCommand.constants";
 import { handleMemberLogSettingsSetChannel } from "@/features/member-log/commands/memberLogSettingsCommand.setChannel";
 
 // ---- モック定義 ----
 const ensurePermissionMock = vi.fn();
 const setChannelIdMock = vi.fn();
-const tGuildMock = vi.fn(
-  async (_guildId: string, key: string, _opts?: Record<string, unknown>) => key,
-);
-const tDefaultMock = vi.fn(
-  (key: string, _opts?: Record<string, unknown>) => key,
-);
 const loggerInfoMock = vi.fn();
 const createSuccessEmbedMock = vi.fn(
   (desc: string, opts?: { title?: string }) => ({
@@ -45,19 +40,7 @@ vi.mock("@/shared/locale/localeManager", () => ({
     const m = params ? `${messageKey}:${JSON.stringify(params)}` : messageKey;
     return sub ? `[${p}:${sub}] ${m}` : `[${p}] ${m}`;
   },
-  logCommand: (
-    commandName: string,
-    messageKey: string,
-    params?: Record<string, unknown>,
-  ) => {
-    const m = params ? `${messageKey}:${JSON.stringify(params)}` : messageKey;
-    return `[${commandName}] ${m}`;
-  },
-  tGuild: (guildId: string, key: string, opts?: Record<string, unknown>) =>
-    tGuildMock(guildId, key, opts),
   tInteraction: vi.fn((_locale: string, key: string) => key),
-  tDefault: (key: string, opts?: Record<string, unknown>) =>
-    tDefaultMock(key, opts),
 }));
 
 vi.mock("@/shared/utils/logger", () => ({
@@ -105,9 +88,12 @@ describe("bot/features/member-log/commands/memberLogSettingsCommand.setChannel",
     ensurePermissionMock.mockResolvedValue(undefined);
     const interaction = makeInteraction(ChannelType.GuildVoice);
 
-    await expect(
-      handleMemberLogSettingsSetChannel(interaction as never, "guild-1"),
-    ).rejects.toBeInstanceOf(ValidationError);
+    const promise = handleMemberLogSettingsSetChannel(
+      interaction as never,
+      "guild-1",
+    );
+    await expect(promise).rejects.toBeInstanceOf(ValidationError);
+    await expect(promise).rejects.toThrow(COMMON_I18N_KEYS.TEXT_CHANNEL_ONLY);
   });
 
   it("テキストチャンネルが選択された場合に service.setChannelId が正しい引数で呼ばれることを確認", async () => {

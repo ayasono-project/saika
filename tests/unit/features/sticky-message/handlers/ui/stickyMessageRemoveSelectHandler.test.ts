@@ -1,25 +1,3 @@
-vi.mock("@/shared/locale/localeManager", () => ({
-  tInteraction: vi.fn((_l: string, k: string) => k),
-  logPrefixed: (
-    prefixKey: string,
-    messageKey: string,
-    params?: Record<string, unknown>,
-    sub?: string,
-  ) => {
-    const p = `${prefixKey}`;
-    const m = params ? `${messageKey}:${JSON.stringify(params)}` : messageKey;
-    return sub ? `[${p}:${sub}] ${m}` : `[${p}] ${m}`;
-  },
-  logCommand: (
-    commandName: string,
-    messageKey: string,
-    params?: Record<string, unknown>,
-  ) => {
-    const m = params ? `${messageKey}:${JSON.stringify(params)}` : messageKey;
-    return `[${commandName}] ${m}`;
-  },
-}));
-
 // stickyMessageRemoveSelectHandler のテスト
 describe("bot/features/sticky-message/handlers/ui/stickyMessageRemoveSelectHandler", () => {
   // 各テストでモック呼び出し記録をリセットし、テスト間の副作用を排除する

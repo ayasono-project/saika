@@ -9,7 +9,6 @@ const createRepositoryMock = () => ({
   create: vi.fn(),
   update: vi.fn(),
   delete: vi.fn(),
-  deleteAllByGuild: vi.fn(),
 });
 
 // ReactionRolePanelSettingsService が各メソッドを IReactionRolePanelRepository へ正しく委譲することを検証する
@@ -76,17 +75,6 @@ describe("shared/features/reaction-role/reactionRolePanelSettingsService", () =>
     await service.delete("panel-1");
 
     expect(repository.delete).toHaveBeenCalledWith("panel-1", "");
-  });
-
-  it("deleteAllByGuild がリポジトリへ委譲されること", async () => {
-    const repository = createRepositoryMock();
-    const service = new ReactionRolePanelSettingsService(repository as never);
-    repository.deleteAllByGuild.mockResolvedValue(3);
-
-    const result = await service.deleteAllByGuild("guild-1");
-
-    expect(repository.deleteAllByGuild).toHaveBeenCalledWith("guild-1");
-    expect(result).toBe(3);
   });
 
   it("createReactionRolePanelSettingsService ファクトリ関数がインスタンスを生成すること", () => {

@@ -49,10 +49,13 @@ export async function handleGuildMemberAdd(member: GuildMember): Promise<void> {
       );
       await notifyWarnChannel(
         member.guild,
-        `Channel ${config.channelId} not found`,
+        (t) =>
+          t("common:embed.field.value.channel_not_found", {
+            channelId: config.channelId,
+          }),
         {
-          feature: "メンバーログ",
-          action: "通知先チャンネル消失→設定自動リセット",
+          featureKey: "memberLog:embed.field.value.error_notification_feature",
+          actionKey: "memberLog:embed.field.value.channel_missing_action",
         },
       );
       const t = await getGuildTranslator(guildId);
@@ -173,8 +176,8 @@ export async function handleGuildMemberAdd(member: GuildMember): Promise<void> {
       err,
     );
     await notifyErrorChannel(member.guild, err, {
-      feature: "メンバーログ",
-      action: "入室通知の送信失敗",
+      featureKey: "memberLog:embed.field.value.error_notification_feature",
+      actionKey: "memberLog:embed.field.value.join_notification_failed_action",
     });
   }
 }

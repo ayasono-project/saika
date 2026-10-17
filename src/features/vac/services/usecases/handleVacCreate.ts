@@ -12,7 +12,7 @@ import {
   notifyErrorChannel,
   notifyWarnChannel,
 } from "../../../../bot/shared/errorChannelNotifier";
-import { logPrefixed, tDefault } from "../../../../shared/locale/localeManager";
+import { logPrefixed } from "../../../../shared/locale/localeManager";
 import { logger } from "../../../../shared/utils/logger";
 import { VAC_SETTINGS_COMMAND } from "../../commands/vacSettingsCommand.constants";
 import type { VacSettingsService } from "../../vacSettingsService";
@@ -63,8 +63,8 @@ export async function handleVacCreateUseCase(
           error.code === RESTJSONErrorCodes.MissingPermissions
         ) {
           await notifyErrorChannel(member.guild, error, {
-            feature: "VAC",
-            action: "Bot権限不足によるメンバー移動失敗",
+            featureKey: "vac:embed.field.value.error_notification_feature",
+            actionKey: "vac:embed.field.value.member_move_failed_action",
           });
         }
         // ユーザーが切断済みの場合も含め、移動失敗は無視して続行しない
@@ -94,13 +94,14 @@ export async function handleVacCreateUseCase(
     );
     await notifyWarnChannel(
       member.guild,
-      tDefault("vac:log.category_full", {
-        guildId: member.guild.id,
-        categoryId: parentCategory.id,
-      }),
+      (t) =>
+        t("vac:embed.field.value.category_full_notice", {
+          guildId: member.guild.id,
+          categoryId: parentCategory.id,
+        }),
       {
-        feature: "VAC",
-        action: tDefault("vac:log.category_full_action"),
+        featureKey: "vac:embed.field.value.error_notification_feature",
+        actionKey: "vac:embed.field.value.category_full_action",
       },
     );
     return;
@@ -136,8 +137,8 @@ export async function handleVacCreateUseCase(
         }),
       );
       await notifyErrorChannel(member.guild, error, {
-        feature: "VAC",
-        action: "Bot権限不足によるVCチャンネル作成失敗",
+        featureKey: "vac:embed.field.value.error_notification_feature",
+        actionKey: "vac:embed.field.value.channel_create_failed_action",
       });
       return;
     }
@@ -156,8 +157,8 @@ export async function handleVacCreateUseCase(
       error.code === RESTJSONErrorCodes.MissingPermissions
     ) {
       await notifyErrorChannel(member.guild, error, {
-        feature: "VAC",
-        action: "Bot権限不足によるメンバー移動失敗（新規作成VC）",
+        featureKey: "vac:embed.field.value.error_notification_feature",
+        actionKey: "vac:embed.field.value.created_vc_member_move_failed_action",
       });
     }
     // ユーザーがチャンネル参加直後に切断した場合、移動不可能なため作成チャンネルを削除して終了

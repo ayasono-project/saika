@@ -41,6 +41,9 @@ export const common = {
   "validation.invalid_subcommand": "無効なサブコマンドです。",
   "validation.thread_not_supported":
     "スレッド内では実行できません。通常のテキストチャンネルで実行してください。",
+  "validation.text_channel_only": "テキストチャンネルにのみ設定できます。",
+  "validation.invalid_color":
+    "無効なカラーコードです。#RRGGBB 形式で入力してください。",
 
   // 権限エラー
   "permission.manage_guild_required":
@@ -88,11 +91,11 @@ export const common = {
   "embed.title.success": "設定完了",
   "embed.field.name.status": "状態",
   "embed.field.value.not_configured": "未設定",
+  "embed.field.value.channel_not_found":
+    "チャンネルが見つかりません。 ChannelId: {{channelId}}",
 
   // 機能横断 UI ボタンラベル
   "ui.button.cancel": "キャンセル",
   "ui.button.reset_confirm": "リセットする",
   "ui.button.reset_cancel": "キャンセル",
 } as const;
-
-export type CommonTranslations = typeof common;

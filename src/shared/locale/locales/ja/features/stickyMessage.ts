@@ -39,7 +39,6 @@ export const stickyMessage = {
   "user-response.permission_denied":
     "この操作を実行する権限がありません。チャンネル管理権限が必要です。",
   "user-response.empty_message": "メッセージ内容を入力してください。",
-  "user-response.text_channel_only": "テキストチャンネルにのみ設定できます。",
 
   // ── Embed ─────────────────────────────────────
   "embed.title.set_success": "設定完了",
@@ -58,6 +57,15 @@ export const stickyMessage = {
   "embed.field.name.content": "メッセージ内容",
   "embed.field.name.embed_title": "Embedタイトル",
   "embed.field.name.embed_color": "Embedカラー",
+
+  // ── Embed: エラー通知チャンネル ─────────────────
+  "embed.field.value.error_notification_feature": "メッセージ固定",
+  "embed.field.value.channel_delete_cleanup_failed_action":
+    "チャンネル削除時のクリーンアップ失敗",
+  "embed.field.value.resend_failed_action": "再送処理の失敗",
+  "embed.field.value.scheduled_resend_failed_action":
+    "スケジュールされた再送のエラー",
+  "embed.field.value.send_failed_action": "メッセージ送信失敗",
 
   // ── UIラベル ──────────────────────────────────
   "ui.modal.set_title": "スティッキーメッセージの内容を入力",
@@ -121,5 +129,3 @@ export const stickyMessage = {
   "log.database_delete_by_channel_failed":
     "スティッキーメッセージ削除に失敗 ChannelId: {{channelId}}",
 } as const;
-
-export type StickyMessageTranslations = typeof stickyMessage;

@@ -54,5 +54,3 @@ export const en: {
   ticket,
   guildSettings,
 };
-
-export type EnglishTranslations = typeof en;

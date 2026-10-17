@@ -30,17 +30,6 @@ vi.mock("@/shared/locale/localeManager", () => ({
     const m = params ? `${messageKey}:${JSON.stringify(params)}` : messageKey;
     return sub ? `[${p}:${sub}] ${m}` : `[${p}] ${m}`;
   },
-  logCommand: (
-    commandName: string,
-    messageKey: string,
-    params?: Record<string, unknown>,
-  ) => {
-    const m = params ? `${messageKey}:${JSON.stringify(params)}` : messageKey;
-    return `[${commandName}] ${m}`;
-  },
-  tDefault: vi.fn((key: string, params?: Record<string, unknown>) =>
-    params ? `${key}:${JSON.stringify(params)}` : key,
-  ),
   tInteraction: (...args: unknown[]) => args[1],
 }));
 
@@ -128,40 +117,6 @@ describe("bot/features/message-delete/commands/usecases/runScanPhase", () => {
 
     expect(result).toBeNull();
     expect(createErrorEmbedMock).toHaveBeenCalled();
-  });
-
-  it("スキャンが中断されて結果が 0 件の場合（ユーザーキャンセル）は null を返す", async () => {
-    const { runScanPhase } = await loadModule();
-
-    // Create an aborted signal
-    const controller = new AbortController();
-
-    // Mock scanMessages to abort the signal before returning
-    scanMessagesMock.mockImplementation(
-      async (_channels: never, opts: { signal?: AbortSignal }) => {
-        controller.abort();
-        // Simulate abort by checking signal
-        if (opts.signal?.aborted) return [];
-        return [];
-      },
-    );
-
-    const cancelCollector = makeMockCollector();
-    const scanReply = {
-      createMessageComponentCollector: vi.fn(() => cancelCollector),
-    };
-    const interaction = makeInteraction(scanReply);
-
-    // We need to mock the AbortController to use our controlled one
-    const result = await runScanPhase(
-      interaction as never,
-      [] as never,
-      mockOptions,
-      mockMemberIds,
-    );
-
-    // Either null (aborted with 0 results) or the messages array
-    expect(result === null || Array.isArray(result)).toBe(true);
   });
 
   it("messageDelete でコレクターが終了した場合はスキャンを即座に中断する", async () => {
@@ -321,7 +276,6 @@ describe("bot/features/message-delete/commands/usecases/runScanPhase", () => {
           await progressCallback({
             totalScanned: 50,
             collected: 10,
-            limit: 100,
           });
         }
         return [{ messageId: "msg-1" }];

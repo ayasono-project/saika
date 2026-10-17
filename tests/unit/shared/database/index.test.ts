@@ -32,10 +32,8 @@ describe("shared/database standalone repository getters", () => {
   it("types モジュールから Bump リマインダー結果定数をエクスポートしていること", async () => {
     const typesModule = await import("@/shared/database/types");
 
-    expect(typesModule.BUMP_REMINDER_MENTION_CLEAR_RESULT).toBeDefined();
     expect(typesModule.BUMP_REMINDER_MENTION_ROLE_RESULT).toBeDefined();
     expect(typesModule.BUMP_REMINDER_MENTION_USER_ADD_RESULT).toBeDefined();
     expect(typesModule.BUMP_REMINDER_MENTION_USER_REMOVE_RESULT).toBeDefined();
-    expect(typesModule.BUMP_REMINDER_MENTION_USERS_CLEAR_RESULT).toBeDefined();
   });
 });

@@ -1,5 +1,6 @@
 // setup フローのモーダル送信ハンドラ
 
+import { ValidationError } from "@ayasono/shared/core";
 import {
   ActionRowBuilder,
   ButtonBuilder,
@@ -15,6 +16,7 @@ import {
   getBotTicketSettingsService,
 } from "../../../../bot/services/botCompositionRoot";
 import { rejectThreadChannel } from "../../../../bot/shared/channelGuards";
+import { COMMON_I18N_KEYS } from "../../../../bot/shared/i18nKeys";
 import {
   createErrorEmbed,
   createSuccessEmbed,
@@ -23,6 +25,10 @@ import {
   logPrefixed,
   tInteraction,
 } from "../../../../shared/locale/localeManager";
+import {
+  formatColorHex,
+  parseColorHex,
+} from "../../../../shared/utils/colorHex";
 import { logger } from "../../../../shared/utils/logger";
 import {
   TICKET_CUSTOM_ID,
@@ -82,20 +88,18 @@ export const ticketSetupModalHandler: ModalHandler = {
     const colorInput = interaction.fields
       .getTextInputValue(TICKET_CUSTOM_ID.SETUP_MODAL_COLOR)
       .trim();
-    const panelColor = colorInput || TICKET_DEFAULT_PANEL_COLOR;
+    const panelColorValue = parseColorHex(
+      colorInput || TICKET_DEFAULT_PANEL_COLOR,
+    );
 
     // カラーコードのバリデーション
-    if (!/^#[0-9A-Fa-f]{6}$/.test(panelColor)) {
-      const embed = createErrorEmbed(
-        tInteraction(interaction.locale, "ticket:user-response.invalid_color"),
-        { locale: interaction.locale },
+    if (panelColorValue === null) {
+      throw new ValidationError(
+        tInteraction(interaction.locale, COMMON_I18N_KEYS.INVALID_COLOR),
       );
-      await interaction.reply({
-        embeds: [embed],
-        flags: MessageFlags.Ephemeral,
-      });
-      return;
     }
+    // DB には #RRGGBB の形で持つ
+    const panelColor = formatColorHex(panelColorValue);
 
     const settingsService = getBotTicketSettingsService();
     const guildId = interaction.guildId;
@@ -126,7 +130,7 @@ export const ticketSetupModalHandler: ModalHandler = {
     const panelEmbed = new EmbedBuilder()
       .setTitle(title)
       .setDescription(description)
-      .setColor(Number.parseInt(panelColor.slice(1), 16));
+      .setColor(panelColorValue);
 
     const panelButton = new ActionRowBuilder<ButtonBuilder>().addComponents(
       new ButtonBuilder()

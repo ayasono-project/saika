@@ -36,7 +36,6 @@ export const vcAutoRecruit = {
   "user-response.clear_message_success": "募集メッセージを削除しました。",
   "user-response.set_embed_enabled": "Embed を有効にしました。",
   "user-response.set_embed_disabled": "Embed を無効にしました。",
-  "user-response.text_channel_only": "テキストチャンネルを指定してください。",
   "user-response.channel_deleted_notice":
     "⚠️ VC自動募集の投稿先チャンネルが削除されました。\n設定をリセットしたので、`/vc-auto-recruit-settings set-post-channel` で再設定してください。",
   "user-response.reset_success": "VC自動募集設定をリセットしました。",
@@ -79,6 +78,11 @@ export const vcAutoRecruit = {
   "embed.field.name.reset_target": "削除対象",
   "embed.field.value.reset_target":
     "有効/無効設定 / 投稿先チャンネル / Embed 設定 / カスタムメッセージ / 有効チャンネル / 追跡中の募集",
+
+  // ── Embed: エラー通知チャンネル ─────────────────
+  "embed.field.value.error_notification_feature": "VC自動募集",
+  "embed.field.value.channel_missing_action":
+    "投稿先チャンネル消失→設定自動リセット",
 
   // ── UIラベル ──────────────────────────────────
   "ui.modal.set_message_title": "募集メッセージを設定",
@@ -124,5 +128,3 @@ export const vcAutoRecruit = {
   "log.channel_delete_failed": "channelDelete同期処理失敗（VC自動募集）",
   "log.startup_cleanup_failed": "起動クリーンアップ失敗（VC自動募集）",
 } as const;
-
-export type VcAutoRecruitTranslations = typeof vcAutoRecruit;

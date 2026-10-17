@@ -2,7 +2,7 @@
 
 > Testing Guidelines - テスト設計とベストプラクティス
 
-最終更新: 2026年9月23日
+最終更新: 2026年10月1日
 
 ---
 
@@ -35,7 +35,7 @@ Vitest を前提に、回帰を素早く検知できるテスト運用を目的�
 | `bot/utils/commandLoader.ts` / `eventLoader.ts` | 必須 | ENOENT例外・重複検出の制御フロー |
 | `api/features/*.ts` / `api/routes/*.ts` | **必須** | 入力検証・認可ガード・マッピング |
 | `features/*/xxxRepository.ts` | **要判断** | JSON パース・null変換等の独自ロジックがあれば必須、純粋委譲なら不要 |
-| `bot/services/botCompositionRoot.ts` | 不要 | サービスアクセサの配線のみ |
+| `bot/services/botCompositionRoot.ts` | 登録漏れの検出のみ | 配線だけで分岐は無いが、登録漏れは typecheck でも機能ごとのテストでも見つからない。初期化後にすべての `getBot*` が値を返すことだけを確かめる |
 
 **カバレッジ除外対象**: 除外リストは `vitest.config.ts` の `coverage.exclude` が唯一の情報源。
 除外基準: 型定義のみ / Prisma への純粋委譲 / DI配線のみ / UIハンドラーバレル / collector パターン等のユニットテスト困難な UI フロー制御。

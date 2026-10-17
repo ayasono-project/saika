@@ -22,9 +22,6 @@ async function sign(claims: Record<string, unknown>): Promise<string> {
 
 const CLAIMS: SessionClaims = {
   discordUserId: "123456789012345678",
-  username: "saika_admin",
-  globalName: "Saika Admin",
-  avatar: "abc123",
   guilds: ["g1", "g2"],
 };
 
@@ -32,21 +29,6 @@ describe("verifySessionToken", () => {
   it("有効なトークンを検証してクレームを返す", async () => {
     const decoded = await verifySessionToken(await sign({ ...CLAIMS }));
     expect(decoded).toEqual(CLAIMS);
-  });
-
-  it("globalName / avatar が null でも保持される", async () => {
-    const decoded = await verifySessionToken(
-      await sign({
-        discordUserId: "1",
-        username: "u",
-        globalName: null,
-        avatar: null,
-        guilds: [],
-      }),
-    );
-    expect(decoded.globalName).toBeNull();
-    expect(decoded.avatar).toBeNull();
-    expect(decoded.guilds).toEqual([]);
   });
 
   it("guilds クレームが欠落していれば空配列にフォールバックする", async () => {

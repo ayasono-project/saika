@@ -51,8 +51,10 @@ export async function handleStickyMessageChannelDelete(
     );
     if ("guild" in channel) {
       await notifyErrorChannel(channel.guild, err, {
-        feature: "メッセージ固定",
-        action: "チャンネル削除時のクリーンアップ失敗",
+        featureKey:
+          "stickyMessage:embed.field.value.error_notification_feature",
+        actionKey:
+          "stickyMessage:embed.field.value.channel_delete_cleanup_failed_action",
       });
     }
   }

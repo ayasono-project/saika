@@ -11,6 +11,7 @@ import {
   getBotUnverifiedKickSettingsService,
   getBotUnverifiedKickWarnRepository,
 } from "../../../bot/services/botCompositionRoot";
+import { COMMON_I18N_KEYS } from "../../../bot/shared/i18nKeys";
 import { ensureManageGuildPermission } from "../../../bot/shared/permissionGuards";
 import { createSuccessEmbed } from "../../../bot/utils/messageResponse";
 import type { AllParseKeys } from "../../../shared/locale/i18n";
@@ -171,10 +172,7 @@ async function resolveTextChannel(
     .catch(() => null);
   if (!channel || channel.type !== ChannelType.GuildText) {
     throw new ValidationError(
-      tInteraction(
-        interaction.locale,
-        "unverifiedKick:user-response.text_channel_only",
-      ),
+      tInteraction(interaction.locale, COMMON_I18N_KEYS.TEXT_CHANNEL_ONLY),
     );
   }
   const me = interaction.guild?.members.me;

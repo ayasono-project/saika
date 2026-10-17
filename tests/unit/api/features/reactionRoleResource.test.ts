@@ -19,7 +19,6 @@ vi.mock("@/shared/locale/localeManager", () => ({
 // ギルドエラーチャンネル通知（動的 import される）をモック
 vi.mock("@/bot/shared/errorChannelNotifier", () => ({
   notifyWarnChannel: notifyWarnMock,
-  notifyErrorChannel: vi.fn(),
 }));
 
 import { deletePanelMessage } from "@/api/features/reactionRoleResource";
@@ -63,8 +62,11 @@ describe("deletePanelMessage", () => {
     expect(notifyWarnMock).toHaveBeenCalledTimes(1);
     expect(notifyWarnMock).toHaveBeenCalledWith(
       fakeGuild,
-      expect.any(String),
-      expect.objectContaining({ feature: expect.any(String) }),
+      expect.any(Function),
+      {
+        featureKey: "reactionRole:embed.field.value.error_notification_feature",
+        actionKey: "reactionRole:embed.field.value.panel_delete_failed_action",
+      },
     );
   });
 

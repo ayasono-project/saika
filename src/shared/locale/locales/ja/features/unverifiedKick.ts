@@ -79,7 +79,6 @@ export const unverifiedKick = {
   "user-response.warn_out_of_range":
     "警告日数は 1 以上かつ猶予日数より小さい値で指定してください。",
   "user-response.clear_warn_days_success": "事前警告を無効化しました。",
-  "user-response.text_channel_only": "テキストチャンネルを指定してください。",
   "user-response.channel_bot_permission":
     "そのチャンネルへの送信権限（チャンネルを見る／メッセージを送信／埋め込みリンク）が不足しています。",
   "user-response.set_notify_channel_success":

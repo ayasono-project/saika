@@ -10,8 +10,10 @@ const resolveAuditReasonMock = vi.fn((..._a: unknown[]) => "audit-reason");
 const presentBulkConfirmMock = vi.fn().mockResolvedValue(undefined);
 const loggerInfoMock = vi.fn();
 
-vi.mock("@/features/afk/afkSettingsService", () => ({
-  getAfkSettings: (...args: unknown[]) => getAfkSettingsMock(...args),
+vi.mock("@/bot/services/botCompositionRoot", () => ({
+  getBotAfkSettingsService: () => ({
+    getAfkSettings: (...args: unknown[]) => getAfkSettingsMock(...args),
+  }),
 }));
 
 vi.mock("@/bot/shared/vcActionLog", () => ({
@@ -34,15 +36,6 @@ vi.mock("@/shared/locale/localeManager", () => ({
     const m = params ? `${messageKey}:${JSON.stringify(params)}` : messageKey;
     return sub ? `[${p}:${sub}] ${m}` : `[${p}] ${m}`;
   },
-  logCommand: (
-    commandName: string,
-    messageKey: string,
-    params?: Record<string, unknown>,
-  ) => {
-    const m = params ? `${messageKey}:${JSON.stringify(params)}` : messageKey;
-    return `[${commandName}] ${m}`;
-  },
-  tDefault: (key: string) => `default:${key}`,
   tInteraction: vi.fn((_locale: string, key: string) => key),
 }));
 
@@ -90,7 +83,6 @@ function createInteraction() {
     reply: vi.fn().mockResolvedValue(undefined),
     setChannelMock,
     afkChannel,
-    sourceChannel,
   };
 }
 

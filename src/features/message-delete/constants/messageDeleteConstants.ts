@@ -236,8 +236,6 @@ export interface ScannedMessage {
   authorIsMember: boolean;
   /** 投稿されたチャンネルID */
   channelId: string;
-  /** 投稿されたチャンネル名 */
-  channelName: string;
   /** メッセージの投稿日時 */
   createdAt: Date;
   /** 表示用本文（添付ファイル・Embed 概要を含む、最大 MSG_DEL_CONTENT_MAX_LENGTH 文字） */

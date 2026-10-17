@@ -49,17 +49,6 @@ vi.mock("@/shared/locale/localeManager", () => ({
     const m = params ? `${messageKey}:${JSON.stringify(params)}` : messageKey;
     return sub ? `[${p}:${sub}] ${m}` : `[${p}] ${m}`;
   },
-  logCommand: (
-    commandName: string,
-    messageKey: string,
-    params?: Record<string, unknown>,
-  ) => {
-    const m = params ? `${messageKey}:${JSON.stringify(params)}` : messageKey;
-    return `[${commandName}] ${m}`;
-  },
-  tDefault: vi.fn((key: string, params?: Record<string, unknown>) =>
-    params ? `${key}:${JSON.stringify(params)}` : key,
-  ),
   tInteraction: (
     _locale: string,
     key: string,
@@ -154,8 +143,6 @@ const MSG_DEL_CUSTOM_ID = {
   FILTER_RESET: "message-delete:filter-reset",
   FILTER_DAYS: "message-delete:days-filter",
   FILTER_AFTER: "message-delete:after-date-filter",
-  FILTER_BEFORE: "message-delete:before-date-filter",
-  FILTER_KEYWORD: "message-delete:keyword-filter",
 };
 
 const DUMMY_OPTIONS = {

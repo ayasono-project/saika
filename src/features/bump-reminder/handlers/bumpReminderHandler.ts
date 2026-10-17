@@ -134,8 +134,9 @@ export async function handleBumpDetected(
     const guild = client.guilds?.cache?.get(guildId);
     if (guild) {
       await notifyErrorChannel(guild, error, {
-        feature: "Bumpリマインダー",
-        action: "Bump検出処理の失敗",
+        featureKey: "bumpReminder:embed.field.value.error_notification_feature",
+        actionKey:
+          "bumpReminder:embed.field.value.bump_detection_failed_action",
       });
     }
   }

@@ -95,11 +95,7 @@ export const system = {
   "locale.translation_failed": "Translation failed for key: {{key}}",
 
   // Cooldown manager
-  "cooldown.cleared_all": "All cooldowns cleared",
   "cooldown.destroyed": "CooldownManager destroyed",
-  "cooldown.reset": "Reset CommandName: {{commandName}} UserId: {{userId}}",
-  "cooldown.cleared_for_command":
-    "Cleared all for command CommandName: {{commandName}}",
   "cooldown.cleanup": "Removed {{count}} expired cooldowns",
 
   // Scheduler (generic job lifecycle)
@@ -125,9 +121,6 @@ export const system = {
     "{{signal}} received, but shutdown is already in progress.",
   "shutdown.cleanup_complete": "Cleanup completed",
   "shutdown.cleanup_failed": "Error during cleanup:",
-
-  // Database operation logs (GuildSettings generic only)
-  "database.prisma_not_available": "Prisma client is not available",
 
   // Bot startup event logs
   "ready.bot_ready": "✅ Bot is ready! Logged in as {{tag}}",
@@ -159,7 +152,6 @@ export const system = {
   "web.guild_id_required": "Guild ID is required.",
   "web.channel_id_required": "Channel ID is required.",
   "web.category_id_required": "Category ID is required.",
-  "web.sticky_not_found": "Sticky message not found.",
   "web.reaction_role_not_found": "Reaction role panel not found.",
   "web.ticket_panel_not_found": "Ticket panel not found.",
   "web.ticket_category_exists":
@@ -177,5 +169,3 @@ export const system = {
   "error.base_error_log": "[{{errorName}}] {{message}}",
   "error.unhandled_error_log": "[UnhandledError] {{message}}",
 } as const;
-
-export type SystemTranslations = typeof system;

@@ -11,7 +11,7 @@
   "linter": {
     "enabled": true,
     "rules": {
-      "recommended": false,
+      "preset": "none",
       "complexity": { "noUselessTypeConstraint": "error" },
       "correctness": { "noUnusedVariables": "error" },
       "style": {
@@ -68,7 +68,7 @@
                   "../../../../database": "shared内部ではbarrel import（../database 等）を禁止し、直接モジュールをimportしてください。"
                 },
                 "patterns": [
-                  { "group": ["**/bot/**", "**/web/**"], "message": "shared から bot/web への依存は禁止です。" }
+                  { "group": ["**/bot/**"], "message": "shared から bot への依存は禁止です。" }
                 ]
               }
             }
@@ -77,7 +77,7 @@
       }
     },
     {
-      "includes": ["src/bot/features/**/*.ts"],
+      "includes": ["src/features/**/*.ts"],
       "linter": {
         "rules": {
           "style": {
@@ -85,21 +85,25 @@
               "level": "error",
               "options": {
                 "paths": {
-                  "..": "bot/features内部ではfeatureローカルbarrel import（..）を禁止し、直接モジュールをimportしてください。",
-                  "../..": "bot/features内部ではfeatureローカルbarrel import（../..）を禁止し、直接モジュールをimportしてください。",
-                  "../../..": "bot/features内部ではfeatureローカルbarrel import（../../..）を禁止し、直接モジュールをimportしてください。",
-                  "./index": "bot/features内部ではindex経由importを禁止し、直接モジュールをimportしてください。",
-                  "../index": "bot/features内部ではindex経由importを禁止し、直接モジュールをimportしてください。",
-                  "../../index": "bot/features内部ではindex経由importを禁止し、直接モジュールをimportしてください。",
-                  "../../../index": "bot/features内部ではindex経由importを禁止し、直接モジュールをimportしてください。",
-                  "../../../../shared/locale": "bot/features内部ではsharedのbarrel importを禁止し、直接モジュールをimportしてください。",
-                  "../../../../../shared/locale": "bot/features内部ではsharedのbarrel importを禁止し、直接モジュールをimportしてください。",
-                  "../../../../shared/utils": "bot/features内部ではsharedのbarrel importを禁止し、直接モジュールをimportしてください。",
-                  "../../../../../shared/utils": "bot/features内部ではsharedのbarrel importを禁止し、直接モジュールをimportしてください。",
-                  "../../../../shared/errors": "bot/features内部ではsharedのbarrel importを禁止し、直接モジュールをimportしてください。",
-                  "../../../../../shared/errors": "bot/features内部ではsharedのbarrel importを禁止し、直接モジュールをimportしてください。",
-                  "../../../../shared/database": "bot/features内部ではsharedのbarrel importを禁止し、直接モジュールをimportしてください。",
-                  "../../../../../shared/database": "bot/features内部ではsharedのbarrel importを禁止し、直接モジュールをimportしてください。"
+                  "..": "features内部ではfeatureローカルbarrel import（..）を禁止し、直接モジュールをimportしてください。",
+                  "../..": "features内部ではfeatureローカルbarrel import（../..）を禁止し、直接モジュールをimportしてください。",
+                  "../../..": "features内部ではfeatureローカルbarrel import（../../..）を禁止し、直接モジュールをimportしてください。",
+                  "./index": "features内部ではindex経由importを禁止し、直接モジュールをimportしてください。",
+                  "../index": "features内部ではindex経由importを禁止し、直接モジュールをimportしてください。",
+                  "../../index": "features内部ではindex経由importを禁止し、直接モジュールをimportしてください。",
+                  "../../../index": "features内部ではindex経由importを禁止し、直接モジュールをimportしてください。",
+                  "../../shared/locale": "features内部ではsharedのbarrel importを禁止し、直接モジュールをimportしてください。",
+                  "../../../shared/locale": "features内部ではsharedのbarrel importを禁止し、直接モジュールをimportしてください。",
+                  "../../../../shared/locale": "features内部ではsharedのbarrel importを禁止し、直接モジュールをimportしてください。",
+                  "../../shared/utils": "features内部ではsharedのbarrel importを禁止し、直接モジュールをimportしてください。",
+                  "../../../shared/utils": "features内部ではsharedのbarrel importを禁止し、直接モジュールをimportしてください。",
+                  "../../../../shared/utils": "features内部ではsharedのbarrel importを禁止し、直接モジュールをimportしてください。",
+                  "../../shared/errors": "features内部ではsharedのbarrel importを禁止し、直接モジュールをimportしてください。",
+                  "../../../shared/errors": "features内部ではsharedのbarrel importを禁止し、直接モジュールをimportしてください。",
+                  "../../../../shared/errors": "features内部ではsharedのbarrel importを禁止し、直接モジュールをimportしてください。",
+                  "../../shared/database": "features内部ではsharedのbarrel importを禁止し、直接モジュールをimportしてください。",
+                  "../../../shared/database": "features内部ではsharedのbarrel importを禁止し、直接モジュールをimportしてください。",
+                  "../../../../shared/database": "features内部ではsharedのbarrel importを禁止し、直接モジュールをimportしてください。"
                 }
               }
             }
@@ -132,41 +136,7 @@
                   "../../shared/database": "bot内部ではsharedのbarrel importを禁止し、直接モジュールをimportしてください。",
                   "../../../shared/database": "bot内部ではsharedのbarrel importを禁止し、直接モジュールをimportしてください。",
                   "../../../../shared/database": "bot内部ではsharedのbarrel importを禁止し、直接モジュールをimportしてください。"
-                },
-                "patterns": [
-                  { "group": ["**/web/**"], "message": "bot から web への依存は禁止です。" }
-                ]
-              }
-            }
-          }
-        }
-      }
-    },
-    {
-      "includes": ["src/web/**/*.ts"],
-      "linter": {
-        "rules": {
-          "style": {
-            "noRestrictedImports": {
-              "level": "error",
-              "options": {
-                "paths": {
-                  "../shared/locale": "web内部ではsharedのbarrel importを禁止し、直接モジュールをimportしてください。",
-                  "../../shared/locale": "web内部ではsharedのbarrel importを禁止し、直接モジュールをimportしてください。",
-                  "../../../shared/locale": "web内部ではsharedのbarrel importを禁止し、直接モジュールをimportしてください。",
-                  "../shared/utils": "web内部ではsharedのbarrel importを禁止し、直接モジュールをimportしてください。",
-                  "../../shared/utils": "web内部ではsharedのbarrel importを禁止し、直接モジュールをimportしてください。",
-                  "../../../shared/utils": "web内部ではsharedのbarrel importを禁止し、直接モジュールをimportしてください。",
-                  "../shared/errors": "web内部ではsharedのbarrel importを禁止し、直接モジュールをimportしてください。",
-                  "../../shared/errors": "web内部ではsharedのbarrel importを禁止し、直接モジュールをimportしてください。",
-                  "../../../shared/errors": "web内部ではsharedのbarrel importを禁止し、直接モジュールをimportしてください。",
-                  "../shared/database": "web内部ではsharedのbarrel importを禁止し、直接モジュールをimportしてください。",
-                  "../../shared/database": "web内部ではsharedのbarrel importを禁止し、直接モジュールをimportしてください。",
-                  "../../../shared/database": "web内部ではsharedのbarrel importを禁止し、直接モジュールをimportしてください。"
-                },
-                "patterns": [
-                  { "group": ["**/bot/**"], "message": "web から bot への依存は禁止です。" }
-                ]
+                }
               }
             }
           }

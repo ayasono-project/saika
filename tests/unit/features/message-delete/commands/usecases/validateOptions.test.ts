@@ -21,7 +21,6 @@ const createWarningEmbedMock = vi.fn((d: string) => ({
   _type: "warning",
   description: d,
 }));
-const tDefaultMock = vi.fn((key: string) => `t:${key}`);
 const getTimezoneOffsetForLocaleMock = vi.fn(() => "+00:00");
 
 vi.mock("@/features/message-delete/services/messageDeleteService", () => ({
@@ -33,25 +32,6 @@ vi.mock("@/bot/utils/messageResponse", () => ({
 }));
 
 vi.mock("@/shared/locale/localeManager", () => ({
-  logPrefixed: (
-    prefixKey: string,
-    messageKey: string,
-    params?: Record<string, unknown>,
-    sub?: string,
-  ) => {
-    const p = `${prefixKey}`;
-    const m = params ? `${messageKey}:${JSON.stringify(params)}` : messageKey;
-    return sub ? `[${p}:${sub}] ${m}` : `[${p}] ${m}`;
-  },
-  logCommand: (
-    commandName: string,
-    messageKey: string,
-    params?: Record<string, unknown>,
-  ) => {
-    const m = params ? `${messageKey}:${JSON.stringify(params)}` : messageKey;
-    return `[${commandName}] ${m}`;
-  },
-  tDefault: (key: string) => tDefaultMock(key),
   tInteraction: (...args: unknown[]) => args[1],
 }));
 

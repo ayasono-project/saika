@@ -1,5 +1,4 @@
 import type { Mock } from "vitest";
-import { handleInteractionError } from "@/bot/errors/interactionErrorHandler";
 import { interactionCreateEvent } from "@/bot/events/interactionCreate";
 
 // エラーハンドラは呼び出し確認だけ行う
@@ -62,22 +61,13 @@ vi.mock("@/bot/handlers/interactionCreate/ui/buttons", () => {
     __buttonHandler: buttonHandler,
   };
 });
-vi.mock("@/bot/handlers/interactionCreate/ui/selectMenus", () => {
-  const userSelectHandler = {
-    matches: vi.fn((customId: string) => customId.startsWith("select:")),
-    execute: vi.fn().mockResolvedValue(undefined),
-  };
-  return {
-    userSelectHandlers: [userSelectHandler],
-    __userSelectHandler: userSelectHandler,
-  };
-});
+// 実レジストリ（全機能のセレクトハンドラを import する）を読み込ませないよう空モックにする
+vi.mock("@/bot/handlers/interactionCreate/ui/selectMenus", () => ({}));
 
 type InteractionBase = {
   client: {
     commands: Map<string, unknown>;
     cooldownManager: { check: Mock };
-    modals: Map<string, { execute: Mock<(arg: unknown) => Promise<void>> }>;
   };
   customId: string;
   user: { id: string; tag: string };
@@ -88,7 +78,6 @@ type InteractionBase = {
   isAutocomplete: Mock<() => boolean>;
   isModalSubmit: Mock<() => boolean>;
   isButton: Mock<() => boolean>;
-  isUserSelectMenu: Mock<() => boolean>;
 };
 
 // interactionCreate の各分岐に使う共通 interaction モック
@@ -99,7 +88,6 @@ function createInteraction(
     client: {
       commands: new Map(),
       cooldownManager: { check: vi.fn(() => 0) },
-      modals: new Map(),
     },
     customId: "id-1",
     user: { id: "user-1", tag: "user#0001" },
@@ -110,7 +98,6 @@ function createInteraction(
     isAutocomplete: vi.fn(() => false),
     isModalSubmit: vi.fn(() => false),
     isButton: vi.fn(() => false),
-    isUserSelectMenu: vi.fn(() => false),
     ...overrides,
   };
 }
@@ -161,26 +148,5 @@ describe("integration: interactionCreate handler routing", () => {
     expect(buttonModule.__buttonHandler.execute).toHaveBeenCalledWith(
       interaction,
     );
-  });
-
-  it("user select ハンドラの例外が interaction 用エラーハンドラへ委譲されること", async () => {
-    const selectModule = (await vi.importMock(
-      "@/bot/handlers/interactionCreate/ui/selectMenus",
-    )) as {
-      __userSelectHandler: {
-        execute: Mock<(arg: unknown) => Promise<void>>;
-      };
-    };
-    const error = new Error("select failed");
-    selectModule.__userSelectHandler.execute.mockRejectedValueOnce(error);
-
-    const interaction = createInteraction({
-      customId: "select:afk:1",
-      isUserSelectMenu: vi.fn(() => true),
-    });
-
-    await interactionCreateEvent.execute(interaction as never);
-
-    expect(handleInteractionError).toHaveBeenCalledWith(interaction, error);
   });
 });

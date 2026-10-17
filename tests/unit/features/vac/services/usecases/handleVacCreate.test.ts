@@ -11,7 +11,6 @@ import type { VacSettingsService } from "@/features/vac/vacSettingsService";
 
 const loggerInfoMock = vi.fn();
 const loggerWarnMock = vi.fn();
-const loggerErrorMock = vi.fn();
 
 vi.mock("@/shared/locale/localeManager", () => ({
   logPrefixed: (
@@ -24,23 +23,13 @@ vi.mock("@/shared/locale/localeManager", () => ({
     const m = params ? `${messageKey}:${JSON.stringify(params)}` : messageKey;
     return sub ? `[${p}:${sub}] ${m}` : `[${p}] ${m}`;
   },
-  logCommand: (
-    commandName: string,
-    messageKey: string,
-    params?: Record<string, unknown>,
-  ) => {
-    const m = params ? `${messageKey}:${JSON.stringify(params)}` : messageKey;
-    return `[${commandName}] ${m}`;
-  },
   tDefault: vi.fn((key: string) => `default:${key}`),
-  tInteraction: (...args: unknown[]) => args[1],
 }));
 
 vi.mock("@/shared/utils/logger", () => ({
   logger: {
     info: (...args: unknown[]) => loggerInfoMock(...args),
     warn: (...args: unknown[]) => loggerWarnMock(...args),
-    error: (...args: unknown[]) => loggerErrorMock(...args),
   },
 }));
 
@@ -124,7 +113,6 @@ function createVoiceStateInput(options?: {
 
   return {
     newState,
-    member,
     fetchMock,
     createMock,
     setChannelMock,
@@ -341,7 +329,10 @@ describe("bot/features/vac/services/usecases/handleVacCreate", () => {
     expect(notifyErrorChannel).toHaveBeenCalledWith(
       expect.objectContaining({ id: "guild-1" }),
       apiError,
-      expect.objectContaining({ feature: "VAC" }),
+      {
+        featureKey: "vac:embed.field.value.error_notification_feature",
+        actionKey: "vac:embed.field.value.channel_create_failed_action",
+      },
     );
     expect(setChannelMock).not.toHaveBeenCalled();
     expect(repository.addCreatedVacChannel).not.toHaveBeenCalled();
@@ -402,7 +393,10 @@ describe("bot/features/vac/services/usecases/handleVacCreate", () => {
     expect(notifyErrorChannel).toHaveBeenCalledWith(
       expect.objectContaining({ id: "guild-1" }),
       apiError,
-      expect.objectContaining({ feature: "VAC" }),
+      {
+        featureKey: "vac:embed.field.value.error_notification_feature",
+        actionKey: "vac:embed.field.value.member_move_failed_action",
+      },
     );
     expect(createMock).not.toHaveBeenCalled();
   });

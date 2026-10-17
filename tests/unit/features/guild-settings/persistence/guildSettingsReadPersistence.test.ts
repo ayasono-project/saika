@@ -1,5 +1,4 @@
 import {
-  existsGuildSettingsRecord,
   findGuildLocale,
   findGuildSettingsRecord,
 } from "@/features/guild-settings/persistence/guildSettingsReadPersistence";
@@ -28,25 +27,6 @@ describe("shared/database/repositories/persistence/guildSettingsReadPersistence"
     expect(prisma.guildSettings.findUnique).toHaveBeenCalledWith({
       where: { guildId: "guild-1" },
     });
-  });
-
-  // レコードが存在する場合は true、null が返った場合は false になることを
-  // 同一テスト内でモックの返却値を切り替えて両方の分岐を確認する
-  it("existsGuildSettingsRecord がレコードの有無に応じて true/false を返すこと", async () => {
-    const prisma = createPrisma();
-    prisma.guildSettings.findUnique.mockResolvedValueOnce({ id: 1 });
-    await expect(
-      existsGuildSettingsRecord(prisma as never, "guild-1"),
-    ).resolves.toBe(true);
-    expect(prisma.guildSettings.findUnique).toHaveBeenLastCalledWith({
-      where: { guildId: "guild-1" },
-      select: { id: true },
-    });
-
-    prisma.guildSettings.findUnique.mockResolvedValueOnce(null);
-    await expect(
-      existsGuildSettingsRecord(prisma as never, "guild-2"),
-    ).resolves.toBe(false);
   });
 
   // select: { locale } で取得したフィールドを返し、レコードがない場合は null を返すことを確認

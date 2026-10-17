@@ -155,5 +155,3 @@ export const guildSettingsCommand: Command = {
 
   cooldown: 3,
 };
-
-export default guildSettingsCommand;

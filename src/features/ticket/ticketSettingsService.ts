@@ -75,15 +75,6 @@ export class TicketSettingsService {
   }
 
   /**
-   * ギルドの全設定を削除する
-   * @param guildId ギルドID
-   * @returns 削除された設定数
-   */
-  async deleteAllByGuild(guildId: string): Promise<number> {
-    return this.repository.deleteAllByGuild(guildId);
-  }
-
-  /**
    * チケットカウンターをインクリメントして新しい値を返す
    * @param guildId ギルドID
    * @param categoryId カテゴリID

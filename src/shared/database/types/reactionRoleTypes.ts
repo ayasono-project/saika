@@ -7,9 +7,6 @@ export const REACTION_ROLE_MODE = {
   EXCLUSIVE: "exclusive",
 } as const;
 
-export type ReactionRoleMode =
-  (typeof REACTION_ROLE_MODE)[keyof typeof REACTION_ROLE_MODE];
-
 export interface GuildReactionRolePanel {
   id: string;
   guildId: string;

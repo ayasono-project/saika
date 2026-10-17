@@ -6,8 +6,6 @@ const setBumpReminderEnabledMock = vi.fn();
 const getBumpReminderSettingsMock = vi.fn();
 const setBumpReminderMentionRoleMock = vi.fn();
 const cancelAllForGuildMock = vi.fn();
-const tDefaultMock = vi.hoisted(() => vi.fn((key: string) => `default:${key}`));
-const tGuildMock = vi.hoisted(() => vi.fn());
 const createSuccessEmbedMock = vi.fn((description: string) => ({
   description,
 }));
@@ -19,14 +17,6 @@ vi.mock("@/features/bump-reminder/bumpReminderSettingsService", () => ({
     CLEARED: "cleared",
     NOT_CONFIGURED: "not_configured",
   },
-  getBumpReminderSettingsService: vi.fn(() => ({
-    setBumpReminderEnabled: (...args: unknown[]) =>
-      setBumpReminderEnabledMock(...args),
-    getBumpReminderSettings: (...args: unknown[]) =>
-      getBumpReminderSettingsMock(...args),
-    setBumpReminderMentionRole: (...args: unknown[]) =>
-      setBumpReminderMentionRoleMock(...args),
-  })),
 }));
 
 vi.mock("@/bot/services/botCompositionRoot", () => ({
@@ -70,16 +60,6 @@ vi.mock("@/shared/locale/localeManager", () => ({
     const m = params ? `${messageKey}:${JSON.stringify(params)}` : messageKey;
     return sub ? `[${p}:${sub}] ${m}` : `[${p}] ${m}`;
   },
-  logCommand: (
-    commandName: string,
-    messageKey: string,
-    params?: Record<string, unknown>,
-  ) => {
-    const m = params ? `${messageKey}:${JSON.stringify(params)}` : messageKey;
-    return `[${commandName}] ${m}`;
-  },
-  tDefault: tDefaultMock,
-  tGuild: tGuildMock,
   tInteraction: (...args: unknown[]) => args[1],
 }));
 
@@ -89,12 +69,6 @@ vi.mock("@/bot/utils/messageResponse", () => ({
   createInfoEmbed: vi.fn((message: string) => ({ message })),
   createSuccessEmbed: (description: string) =>
     createSuccessEmbedMock(description),
-  STATUS_COLORS: {
-    success: 0x57f287,
-    info: 0x3498db,
-    warning: 0xfee75c,
-    error: 0xed4245,
-  },
 }));
 
 // ログ出力の副作用を抑止

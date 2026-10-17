@@ -1,7 +1,6 @@
 // チャンネル状態・設定状態・サービス種別(Disboard/Dissoku)・パネルメッセージの有無など
 // 多様な条件下でリマインダー送信ユースケースが正しく動作することを検証するテスト群
 describe("bot/features/bump-reminder/handlers/usecases/sendBumpReminder", () => {
-  const tDefaultMock = vi.fn((key: string) => key);
   const loggerMock = {
     warn: vi.fn(),
     debug: vi.fn(),
@@ -33,17 +32,6 @@ describe("bot/features/bump-reminder/handlers/usecases/sendBumpReminder", () => 
           : messageKey;
         return sub ? `[${p}:${sub}] ${m}` : `[${p}] ${m}`;
       },
-      logCommand: (
-        commandName: string,
-        messageKey: string,
-        params?: Record<string, unknown>,
-      ) => {
-        const m = params
-          ? `${messageKey}:${JSON.stringify(params)}`
-          : messageKey;
-        return `[${commandName}] ${m}`;
-      },
-      tDefault: tDefaultMock,
     }));
     vi.doMock("@/shared/locale/helpers", () => ({
       getGuildTranslator: getGuildTranslatorMock,

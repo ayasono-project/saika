@@ -7,7 +7,6 @@ import {
   handleButton,
   handleRoleSelectMenu,
   handleStringSelectMenu,
-  handleUserSelectMenu,
 } from "./flow/components";
 import { handleModalSubmit } from "./flow/modal";
 
@@ -38,11 +37,6 @@ export async function handleInteractionCreate(
 
   if (interaction.isButton()) {
     await handleButton(interaction);
-    return;
-  }
-
-  if (interaction.isUserSelectMenu()) {
-    await handleUserSelectMenu(interaction);
     return;
   }
 

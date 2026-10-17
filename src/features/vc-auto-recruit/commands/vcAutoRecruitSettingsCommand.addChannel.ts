@@ -11,7 +11,10 @@ import {
   StringSelectMenuOptionBuilder,
   type VoiceChannel,
 } from "discord.js";
-import { getBotVcAutoRecruitSettingsService } from "../../../bot/services/botCompositionRoot";
+import {
+  getBotVacSettingsService,
+  getBotVcAutoRecruitSettingsService,
+} from "../../../bot/services/botCompositionRoot";
 import { disableComponentsAfterTimeout } from "../../../bot/shared/disableComponentsAfterTimeout";
 import { COMMON_I18N_KEYS } from "../../../bot/shared/i18nKeys";
 import {
@@ -19,7 +22,6 @@ import {
   createWarningEmbed,
 } from "../../../bot/utils/messageResponse";
 import { tInteraction } from "../../../shared/locale/localeManager";
-import { getVacSettingsService } from "../../vac/vacSettingsService";
 import {
   VC_AUTO_RECRUIT_CHANNEL_SELECT_TIMEOUT_MS,
   VC_AUTO_RECRUIT_SETTINGS_COMMAND,
@@ -53,7 +55,7 @@ export async function handleVcAutoRecruitSettingsAddChannel(
     getBotVcAutoRecruitSettingsService().getVcAutoRecruitSettingsOrDefault(
       guildId,
     ),
-    getVacSettingsService().getVacSettingsOrDefault(guildId),
+    getBotVacSettingsService().getVacSettingsOrDefault(guildId),
   ]);
 
   const registered = new Set(config.enabledChannelIds);

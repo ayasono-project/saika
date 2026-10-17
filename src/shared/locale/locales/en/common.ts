@@ -41,6 +41,8 @@ export const common = {
   "validation.invalid_subcommand": "Invalid subcommand",
   "validation.thread_not_supported":
     "This cannot be used inside a thread. Please run it in a regular text channel.",
+  "validation.text_channel_only": "This can only be set to a text channel.",
+  "validation.invalid_color": "Invalid color code. Please use #RRGGBB format.",
 
   // Permission errors
   "permission.manage_guild_required":
@@ -88,11 +90,11 @@ export const common = {
   "embed.title.success": "Settings Updated",
   "embed.field.name.status": "Status",
   "embed.field.value.not_configured": "Not configured",
+  "embed.field.value.channel_not_found":
+    "Channel not found. ChannelId: {{channelId}}",
 
   // Cross-feature UI button labels
   "ui.button.cancel": "Cancel",
   "ui.button.reset_confirm": "Reset",
   "ui.button.reset_cancel": "Cancel",
 } as const;
-
-export type CommonTranslations = typeof common;

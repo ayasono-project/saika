@@ -27,29 +27,6 @@ export function toGuildSettings(record: GuildSettingsRecord): GuildSettings {
 }
 
 /**
- * GuildSettings から create 用DBデータを生成する
- * @param config ドメインオブジェクト
- * @param defaultLocale デフォルトロケール
- * @returns Prisma create 用データ
- */
-export function toGuildSettingsCreateData(
-  config: GuildSettings,
-  defaultLocale: string,
-): {
-  guildId: string;
-  locale: string;
-  errorChannelId?: string;
-} {
-  return {
-    guildId: config.guildId,
-    locale: config.locale || defaultLocale,
-    ...(config.errorChannelId !== undefined && {
-      errorChannelId: config.errorChannelId,
-    }),
-  };
-}
-
-/**
  * GuildSettings の部分更新差分
  *
  * `errorChannelId` は `undefined` なら「変更しない」、`null` なら「設定を消す」。

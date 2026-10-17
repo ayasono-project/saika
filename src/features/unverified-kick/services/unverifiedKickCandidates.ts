@@ -1,4 +1,4 @@
-// メンバー集合からキック/事前警告/対象ロール掃除の対象を区分する（純関数・日次チェックと preview で共有）
+// メンバー集合からキック/事前警告/失効した警告記録の対象を区分する（純関数・日次チェックと preview で共有）
 
 import {
   classifyStage,
@@ -22,8 +22,6 @@ export interface CandidateMemberInput {
   memberRoleIds: string[];
   /** サーバー参加日時（取得できなければ null） */
   joinedAt: Date | null;
-  /** 対象ロールを付与済みか */
-  hasMarkerRole: boolean;
   /** 事前警告を送った時刻（未警告なら null） */
   warnedAt: Date | null;
 }
@@ -42,8 +40,6 @@ export interface CategorizedCandidate {
   userId: string;
   ageDays: number;
   remainingDays: number;
-  /** 対象ロールを既に付与済みか */
-  hasMarkerRole: boolean;
 }
 
 /** 区分結果 */
@@ -57,7 +53,7 @@ export interface CandidateBuckets {
 }
 
 /**
- * メンバー集合を事前警告・キック・対象ロール掃除の区分へ分類する。
+ * メンバー集合を事前警告・キック・失効した警告記録の区分へ分類する。
  *
  * - 除外メンバー（Bot/Admin/オーナー/認証済み/除外ロール）はキック・警告の対象外。
  * - それ以外は実効参加時刻から経過日数を求め、区分を判定する。
@@ -129,7 +125,6 @@ export function categorizeCandidates(
         stage === UNVERIFIED_KICK_STAGE.WARN && warnDays != null
           ? settings.graceDays - warnDays
           : computeRemainingDays(ageDays, settings.graceDays),
-      hasMarkerRole: member.hasMarkerRole,
     };
 
     if (stage === UNVERIFIED_KICK_STAGE.KICK) buckets.kick.push(candidate);

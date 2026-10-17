@@ -30,5 +30,3 @@ export const logger: winston.Logger = createLogger({
   logLevel: env.LOG_LEVEL,
   extraTransports,
 });
-
-export default logger;

@@ -1,5 +1,6 @@
 // リアクションロールパネルのEmbed・ボタン構築ユーティリティ
 
+import { ValidationError } from "@ayasono/shared/core";
 import {
   ActionRowBuilder,
   ButtonBuilder,
@@ -18,6 +19,7 @@ import {
 } from "discord.js";
 import type { ReactionRoleButton } from "../../../shared/database/types/reactionRoleTypes";
 import { tInteraction } from "../../../shared/locale/localeManager";
+import { parseColorHex } from "../../../shared/utils/colorHex";
 import {
   isValidEmoji,
   normalizeEmoji,
@@ -40,6 +42,7 @@ const STYLE_MAP: Record<string, ButtonStyle> = {
  * @param title パネルタイトル
  * @param description パネル説明文
  * @param color カラーコード（#RRGGBB形式）
+ * @returns パネルの EmbedBuilder
  */
 export function buildPanelEmbed(
   title: string,
@@ -49,7 +52,7 @@ export function buildPanelEmbed(
   return new EmbedBuilder()
     .setTitle(title)
     .setDescription(description)
-    .setColor(Number.parseInt(color.slice(1), 16));
+    .setColor(parseColorHex(color));
 }
 
 /**
@@ -213,6 +216,30 @@ export function validateSelectedRolesHierarchy(
     }
   }
   return invalid;
+}
+
+/**
+ * 選択されたロールに設定できないもの（Bot か実行者の最上位ロール以上）があれば、入力不備として投げる
+ * @param guild 対象ギルド
+ * @param executor コマンド実行者
+ * @param roleIds 選択された RoleSelectMenu の値
+ * @param locale 応答に使うロケール
+ * @throws {ValidationError} 設定できないロールがあるとき（文面にそのロールを並べる）
+ */
+export function assertSelectedRolesAssignable(
+  guild: Guild,
+  executor: GuildMember,
+  roleIds: string[],
+  locale: string,
+): void {
+  const invalid = validateSelectedRolesHierarchy(guild, executor, roleIds);
+  if (invalid.length === 0) return;
+  const roleMentions = invalid.map((r) => `<@&${r.id}>`).join(", ");
+  throw new ValidationError(
+    tInteraction(locale, "reactionRole:user-response.role_above_hierarchy", {
+      roles: roleMentions,
+    }),
+  );
 }
 
 /**

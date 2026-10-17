@@ -4,14 +4,7 @@ describe("shared/features/bump-reminder/constants", () => {
   async function loadModule(testMode: boolean) {
     vi.resetModules();
     vi.doMock("@/shared/config/env", () => ({
-      NODE_ENV: {
-        DEVELOPMENT: "development",
-        PRODUCTION: "production",
-        TEST: "test",
-      },
       env: {
-        NODE_ENV: "test",
-        LOG_LEVEL: "info",
         BUMP_REMINDER_TEST_MODE: testMode,
       },
     }));

@@ -341,10 +341,18 @@ export class VcAutoRecruitService {
         );
         // 黙って設定が消えると投稿が止まった理由が分からないため管理者へ知らせる
         // （メンバーログと同じ扱い: エラーチャンネル＋システムチャンネル）
-        await notifyWarnChannel(guild, `Channel ${channel.id} not found`, {
-          feature: "VC自動募集",
-          action: "投稿先チャンネル消失→設定自動リセット",
-        });
+        await notifyWarnChannel(
+          guild,
+          (t) =>
+            t("common:embed.field.value.channel_not_found", {
+              channelId: channel.id,
+            }),
+          {
+            featureKey:
+              "vcAutoRecruit:embed.field.value.error_notification_feature",
+            actionKey: "vcAutoRecruit:embed.field.value.channel_missing_action",
+          },
+        );
         const t = await getGuildTranslator(guild.id);
         await guild.systemChannel
           ?.send({

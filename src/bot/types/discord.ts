@@ -5,7 +5,6 @@ import {
   ChatInputCommandInteraction,
   type Client,
   type ClientEvents,
-  Collection,
   SharedSlashCommand,
 } from "discord.js";
 
@@ -20,12 +19,6 @@ export interface BotEvent<K extends keyof ClientEvents = keyof ClientEvents> {
   name: K;
   once?: boolean;
   execute: (...args: ClientEvents[K]) => Promise<void>;
-}
-
-declare module "discord.js" {
-  interface Client {
-    commands: Collection<string, Command>;
-  }
 }
 
 /**

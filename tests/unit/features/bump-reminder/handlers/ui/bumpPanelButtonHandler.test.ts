@@ -35,7 +35,7 @@ vi.mock("@/bot/services/botCompositionRoot", () => ({
   })),
 }));
 
-// 定数と翻訳を固定化してカスタムID判定と応答内容の検証を安定させる
+// 定数を固定化してカスタムID判定と応答内容の検証を安定させる
 vi.mock("@/features/bump-reminder/constants/bumpReminderConstants", () => ({
   BUMP_CONSTANTS: {
     CUSTOM_ID_PREFIX: {
@@ -43,9 +43,6 @@ vi.mock("@/features/bump-reminder/constants/bumpReminderConstants", () => ({
       MENTION_OFF: "bump-reminder:mention-off:",
     },
   },
-}));
-vi.mock("@/shared/locale/helpers", () => ({
-  getGuildTranslator: vi.fn(async () => (key: string) => key),
 }));
 vi.mock("@/shared/locale/localeManager", () => ({
   logPrefixed: (
@@ -58,15 +55,6 @@ vi.mock("@/shared/locale/localeManager", () => ({
     const m = params ? `${messageKey}:${JSON.stringify(params)}` : messageKey;
     return sub ? `[${p}:${sub}] ${m}` : `[${p}] ${m}`;
   },
-  logCommand: (
-    commandName: string,
-    messageKey: string,
-    params?: Record<string, unknown>,
-  ) => {
-    const m = params ? `${messageKey}:${JSON.stringify(params)}` : messageKey;
-    return `[${commandName}] ${m}`;
-  },
-  tDefault: (key: string) => key,
   tInteraction: vi.fn((...args: unknown[]) => args[1]),
 }));
 

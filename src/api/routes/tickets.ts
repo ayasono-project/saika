@@ -7,15 +7,17 @@ import {
   getBotTicketRepository,
   getBotTicketSettingsService,
 } from "../../bot/services/botCompositionRoot";
+import { TICKET_DEFAULT_PANEL_COLOR } from "../../features/ticket/commands/ticketCommand.constants";
 import { resumeAutoDeleteForCategory } from "../../features/ticket/services/ticketAutoDeleteService";
 import type { GuildTicketSettings } from "../../shared/database/types/ticketTypes";
-import { tDefault } from "../../shared/locale/localeManager";
+import { tDefault, tGuild } from "../../shared/locale/localeManager";
 import {
   deleteTicketPanel,
   editTicketPanel,
   postTicketPanel,
   toContractTicket,
 } from "../features/ticketResource";
+import { toStoredColorHex } from "../lib/color";
 import { ApiHttpError } from "../lib/httpError";
 import { getGuildId } from "../lib/request";
 import type { ApiServerDeps } from "../types";
@@ -74,6 +76,10 @@ export const ticketRoutes: FastifyPluginAsync<TicketRoutesOptions> = async (
         tDefault("system:web.category_id_required"),
       );
     }
+    // 読めない色は保存の前に弾く（省かれたときはモーダルと同じく既定色）
+    const panelColor = toStoredColorHex(
+      body.color ?? TICKET_DEFAULT_PANEL_COLOR,
+    );
     const service = getBotTicketSettingsService();
     if (await service.findByGuildAndCategory(guildId, body.categoryId)) {
       throw ApiHttpError.conflict(
@@ -87,9 +93,14 @@ export const ticketRoutes: FastifyPluginAsync<TicketRoutesOptions> = async (
       staffRoleIds: body.staffRoleIds,
       panelChannelId: body.channelId ?? "",
       panelMessageId: "",
-      panelTitle: body.title,
-      panelDescription: body.description,
-      panelColor: body.color,
+      // 省かれたときはギルドの言語の既定文を入れる（DB には既定値を持たない）
+      panelTitle:
+        body.title ??
+        (await tGuild(guildId, "ticket:embed.title.panel_default")),
+      panelDescription:
+        body.description ??
+        (await tGuild(guildId, "ticket:embed.description.panel_default")),
+      panelColor,
       autoDeleteDays: body.autoDeleteDays,
       maxTicketsPerUser: body.maxTicketsPerUser,
       ticketCounter: 0,
@@ -135,7 +146,8 @@ export const ticketRoutes: FastifyPluginAsync<TicketRoutesOptions> = async (
     if (body.title !== undefined) patch.panelTitle = body.title;
     if (body.description !== undefined)
       patch.panelDescription = body.description;
-    if (body.color !== undefined) patch.panelColor = body.color;
+    if (body.color !== undefined)
+      patch.panelColor = toStoredColorHex(body.color);
     if (body.autoDeleteDays !== undefined)
       patch.autoDeleteDays = body.autoDeleteDays;
     if (body.maxTicketsPerUser !== undefined)

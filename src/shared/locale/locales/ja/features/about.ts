@@ -16,5 +16,3 @@ export const about = {
   "embed.field.name.dashboard": "🌐 ダッシュボード",
   "embed.field.value.dashboard": "ブラウザから各機能を設定できます: {{url}}",
 } as const;
-
-export type AboutTranslations = typeof about;

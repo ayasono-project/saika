@@ -1,9 +1,9 @@
 import { ChannelType, MessageFlags } from "discord.js";
+import { COMMON_I18N_KEYS } from "@/bot/shared/i18nKeys";
 
 const findByChannelMock = vi.fn();
 const showModalMock = vi.fn().mockResolvedValue(undefined);
-const tGuildMock = vi.fn(async (_guildId: string, key: string) => `[${key}]`);
-const tDefaultMock = vi.fn((_key: string) => "mock text");
+const tInteractionMock = vi.fn((_locale: string, _key: string) => "mock text");
 
 vi.mock("@/bot/services/botCompositionRoot", () => ({
   getBotStickyMessageSettingsService: vi.fn(() => ({
@@ -11,27 +11,7 @@ vi.mock("@/bot/services/botCompositionRoot", () => ({
   })),
 }));
 vi.mock("@/shared/locale/localeManager", () => ({
-  logPrefixed: (
-    prefixKey: string,
-    messageKey: string,
-    params?: Record<string, unknown>,
-    sub?: string,
-  ) => {
-    const p = `${prefixKey}`;
-    const m = params ? `${messageKey}:${JSON.stringify(params)}` : messageKey;
-    return sub ? `[${p}:${sub}] ${m}` : `[${p}] ${m}`;
-  },
-  logCommand: (
-    commandName: string,
-    messageKey: string,
-    params?: Record<string, unknown>,
-  ) => {
-    const m = params ? `${messageKey}:${JSON.stringify(params)}` : messageKey;
-    return `[${commandName}] ${m}`;
-  },
-  tGuild: tGuildMock,
-  tDefault: tDefaultMock,
-  tInteraction: (_locale: string, _key: string) => "mock text",
+  tInteraction: (locale: string, key: string) => tInteractionMock(locale, key),
 }));
 vi.mock("@/bot/utils/messageResponse", () => ({
   createWarningEmbed: vi.fn((msg: string) => ({
@@ -52,6 +32,7 @@ function createInteractionMock({
   replyMock?: ReturnType<typeof vi.fn>;
 } = {}) {
   return {
+    locale: "ja",
     reply: replyMock,
     showModal: showModalMock,
     channel: { id: "current-ch", type: channelType },
@@ -84,6 +65,10 @@ describe("bot/features/sticky-message/commands/usecases/stickyMessageSet", () =>
     expect(interaction._replyMock).toHaveBeenCalledWith(
       expect.objectContaining({ flags: MessageFlags.Ephemeral }),
     );
+    expect(tInteractionMock).toHaveBeenCalledWith(
+      "ja",
+      COMMON_I18N_KEYS.TEXT_CHANNEL_ONLY,
+    );
     expect(findByChannelMock).not.toHaveBeenCalled();
   });
 
@@ -99,6 +84,10 @@ describe("bot/features/sticky-message/commands/usecases/stickyMessageSet", () =>
 
     expect(interaction._replyMock).toHaveBeenCalledWith(
       expect.objectContaining({ flags: MessageFlags.Ephemeral }),
+    );
+    expect(tInteractionMock).toHaveBeenCalledWith(
+      "ja",
+      COMMON_I18N_KEYS.TEXT_CHANNEL_ONLY,
     );
   });
 

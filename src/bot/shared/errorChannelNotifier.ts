@@ -1,17 +1,25 @@
 // エラーチャンネル通知ユーティリティ
 
 import { ChannelType, type Guild } from "discord.js";
-import { logPrefixed, tGuild } from "../../shared/locale/localeManager";
+import {
+  type GuildTFunction,
+  getGuildTranslator,
+} from "../../shared/locale/helpers";
+import type { AllParseKeys } from "../../shared/locale/i18n";
+import { logPrefixed } from "../../shared/locale/localeManager";
 import { logger } from "../../shared/utils/logger";
 import { getBotGuildSettingsService } from "../services/botCompositionRoot";
 import { createErrorEmbed, createWarningEmbed } from "../utils/messageResponse";
 
-/** エラー通知のコンテキスト情報 */
+/**
+ * エラー通知のコンテキスト情報
+ * 通知先のサーバーの言語で出すため、文言ではなく翻訳キーで受け取る
+ */
 interface ErrorContext {
-  /** 機能名（例: "メンバーログ"） */
-  feature: string;
-  /** 処理内容（例: "入室通知の送信失敗"） */
-  action: string;
+  /** 機能名の翻訳キー（例: "memberLog:embed.field.value.error_notification_feature"） */
+  featureKey: AllParseKeys;
+  /** 処理内容の翻訳キー（例: "memberLog:embed.field.value.join_notification_failed_action"） */
+  actionKey: AllParseKeys;
 }
 
 /** Embed フィールド値の最大文字数（Discord 制限） */
@@ -59,14 +67,14 @@ function extractErrorMessage(error: unknown): string {
  * 呼び出し側が「管理者に届いたか」で代わりの連絡先を選べるよう、送れたかどうかを返す
  * @param guild 対象ギルド
  * @param kind 通知の種類
- * @param resolveMessage 詳細欄の本文を作る関数（作るときの失敗も送信の失敗として扱う）
- * @param context 機能名と処理内容
+ * @param resolveMessage 詳細欄の本文を作る関数。通知先のサーバーの言語の翻訳関数を受け取る（作るときの失敗も送信の失敗として扱う）
+ * @param context 機能名と処理内容の翻訳キー
  * @returns 実際に送れたときだけ true
  */
 async function sendToErrorChannel(
   guild: Guild,
   kind: NotificationKind,
-  resolveMessage: () => string,
+  resolveMessage: (t: GuildTFunction) => string,
   context: ErrorContext,
 ): Promise<boolean> {
   try {
@@ -78,33 +86,31 @@ async function sendToErrorChannel(
       .catch(() => null);
     if (!channel || channel.type !== ChannelType.GuildText) return false;
 
-    const featureLabel = await tGuild(
-      guild.id,
-      "guildSettings:error-notification.feature",
-    );
-    const actionLabel = await tGuild(
-      guild.id,
-      "guildSettings:error-notification.action",
-    );
-    const messageLabel = await tGuild(
-      guild.id,
-      "guildSettings:error-notification.message",
-    );
-    const title = await tGuild(guild.id, kind.titleKey);
-
-    const message = resolveMessage();
+    const t = await getGuildTranslator(guild.id);
+    const message = resolveMessage(t);
     const truncatedMessage =
       message.length > MAX_FIELD_VALUE_LENGTH
         ? `${message.substring(0, MAX_FIELD_VALUE_LENGTH - 3)}...`
         : message;
 
     const embed = kind.createEmbed("", {
-      title,
+      title: t(kind.titleKey),
       timestamp: true,
       fields: [
-        { name: featureLabel, value: context.feature, inline: true },
-        { name: actionLabel, value: context.action, inline: true },
-        { name: messageLabel, value: truncatedMessage },
+        {
+          name: t("guildSettings:error-notification.feature"),
+          value: t(context.featureKey),
+          inline: true,
+        },
+        {
+          name: t("guildSettings:error-notification.action"),
+          value: t(context.actionKey),
+          inline: true,
+        },
+        {
+          name: t("guildSettings:error-notification.message"),
+          value: truncatedMessage,
+        },
       ],
     });
 
@@ -128,7 +134,7 @@ async function sendToErrorChannel(
  * 送信失敗時はログのみ記録し、再帰通知はしない
  * @param guild 対象ギルド
  * @param error 発生したエラー（詳細欄にメッセージを載せる）
- * @param context 機能名と処理内容
+ * @param context 機能名と処理内容の翻訳キー
  * @returns 実行完了を示す Promise
  */
 export async function notifyErrorChannel(
@@ -149,19 +155,19 @@ export async function notifyErrorChannel(
  * エラーチャンネルが未設定の場合はスキップする
  * 送信失敗時はログのみ記録し、再帰通知はしない
  * @param guild 対象ギルド
- * @param message 詳細欄の本文
- * @param context 機能名と処理内容
+ * @param buildMessage 詳細欄の本文を作る関数。通知先のサーバーの言語の翻訳関数を受け取る
+ * @param context 機能名と処理内容の翻訳キー
  * @returns 実際に送れたときだけ true（未設定・取得できない・テキストチャンネルでない・送信失敗は false）
  */
 export async function notifyWarnChannel(
   guild: Guild,
-  message: string,
+  buildMessage: (t: GuildTFunction) => string,
   context: ErrorContext,
 ): Promise<boolean> {
   return sendToErrorChannel(
     guild,
     NOTIFICATION_KINDS.warn,
-    () => message,
+    buildMessage,
     context,
   );
 }

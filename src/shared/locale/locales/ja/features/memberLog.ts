@@ -31,7 +31,6 @@ export const memberLog = {
   "user-response.set_leave_message_success": "退出メッセージを設定しました。",
   "user-response.clear_join_message_success": "参加メッセージを削除しました。",
   "user-response.clear_leave_message_success": "退出メッセージを削除しました。",
-  "user-response.text_channel_only": "テキストチャンネルを指定してください。",
   "user-response.reset_success": "メンバーログ設定をリセットしました。",
   "user-response.reset_cancelled": "リセットをキャンセルしました。",
   "user-response.channel_deleted_notice":
@@ -75,6 +74,13 @@ export const memberLog = {
   "embed.field.value.age_days": "{{count}}日",
   "embed.field.value.age_separator": "",
 
+  // ── Embed: エラー通知チャンネル ─────────────────
+  "embed.field.value.error_notification_feature": "メンバーログ",
+  "embed.field.value.channel_missing_action":
+    "通知先チャンネル消失→設定自動リセット",
+  "embed.field.value.join_notification_failed_action": "入室通知の送信失敗",
+  "embed.field.value.leave_notification_failed_action": "退室通知の送信失敗",
+
   // ── UIラベル ──────────────────────────────────
   "ui.modal.set_join_message_title": "参加メッセージを設定",
   "ui.modal.set_join_message_label": "参加メッセージ",
@@ -103,5 +109,3 @@ export const memberLog = {
   "log.config_reset": "設定リセット GuildId: {{guildId}}",
   "log.config_leave_message_cleared": "退出メッセージ削除 GuildId: {{guildId}}",
 } as const;
-
-export type MemberLogTranslations = typeof memberLog;

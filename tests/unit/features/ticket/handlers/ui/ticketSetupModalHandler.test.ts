@@ -12,15 +12,6 @@ vi.mock("@/shared/locale/localeManager", () => ({
     const m = params ? `${messageKey}:${JSON.stringify(params)}` : messageKey;
     return sub ? `[${p}:${sub}] ${m}` : `[${p}] ${m}`;
   },
-  logCommand: (
-    commandName: string,
-    messageKey: string,
-    params?: Record<string, unknown>,
-  ) => {
-    const m = params ? `${messageKey}:${JSON.stringify(params)}` : messageKey;
-    return `[${commandName}] ${m}`;
-  },
-  tDefault: vi.fn((key: string) => key),
   tInteraction: (...args: unknown[]) => args[1],
 }));
 vi.mock("@/shared/utils/logger", () => ({
@@ -29,14 +20,6 @@ vi.mock("@/shared/utils/logger", () => ({
 vi.mock("@/bot/utils/messageResponse", () => ({
   createSuccessEmbed: vi.fn(() => ({ type: "success" })),
   createErrorEmbed: vi.fn(() => ({ type: "error" })),
-  createWarningEmbed: vi.fn((_desc: string, _opts?: unknown) => ({
-    type: "warning",
-    addFields: vi.fn().mockReturnThis(),
-  })),
-  createInfoEmbed: vi.fn((_desc: string, _opts?: unknown) => ({
-    type: "info",
-    addFields: vi.fn().mockReturnThis(),
-  })),
 }));
 
 const mockConfigService = {
@@ -45,7 +28,6 @@ const mockConfigService = {
   create: vi.fn(),
   update: vi.fn(),
   delete: vi.fn(),
-  deleteAllByGuild: vi.fn(),
   incrementCounter: vi.fn(),
 };
 const mockTicketRepository = { findAllClosedByGuild: vi.fn() };
@@ -67,6 +49,7 @@ vi.mock("@/features/ticket/handlers/ui/ticketSetupState", () => ({
   },
 }));
 
+import { COMMON_I18N_KEYS } from "@/bot/shared/i18nKeys";
 import { ticketSetupSessions } from "@/features/ticket/handlers/ui/ticketSetupState";
 import { resumeAutoDeleteForCategory } from "@/features/ticket/services/ticketAutoDeleteService";
 
@@ -94,7 +77,6 @@ function createMockModalInteraction(
       getTextInputValue: vi.fn((fieldId: string) => fields[fieldId] ?? ""),
     },
     reply: vi.fn().mockResolvedValue(undefined),
-    message: { delete: vi.fn().mockResolvedValue(undefined) },
     ...overrides,
   };
 }
@@ -287,6 +269,59 @@ describe("bot/features/ticket/handlers/ui/ticketSetupModalHandler", () => {
       // ロール選択メニューのメッセージが削除されること（commandInteraction.deleteReply経由）
     });
 
+    it("読めない色は、設定を作らず入力エラーを返す", async () => {
+      vi.mocked(ticketSetupSessions.get).mockReturnValue({
+        categoryId: "cat-1",
+        staffRoleIds: ["role-1"],
+        commandInteraction: {
+          deleteReply: vi.fn().mockResolvedValue(undefined),
+        } as never,
+      } as never);
+
+      const interaction = createMockModalInteraction(
+        "ticket:setup-modal:session-1",
+        {
+          "ticket:setup-title": "Test Title",
+          "ticket:setup-description": "Test Description",
+          "ticket:setup-color": "#1234567",
+        },
+      );
+
+      // 入力不備として、グローバルのエラーハンドラに返させる
+      await expect(
+        ticketSetupModalHandler.execute(interaction as never),
+      ).rejects.toThrow(COMMON_I18N_KEYS.INVALID_COLOR);
+      expect(interaction.channel.send).not.toHaveBeenCalled();
+      expect(mockConfigService.create).not.toHaveBeenCalled();
+    });
+
+    it("0x 形式の色も受け付け、DB には #RRGGBB（大文字）で保存する", async () => {
+      vi.mocked(ticketSetupSessions.get).mockReturnValue({
+        categoryId: "cat-1",
+        staffRoleIds: ["role-1"],
+        commandInteraction: {
+          deleteReply: vi.fn().mockResolvedValue(undefined),
+        } as never,
+      } as never);
+      mockConfigService.findByGuildAndCategory.mockResolvedValue(null);
+      mockConfigService.create.mockResolvedValue(undefined);
+
+      const interaction = createMockModalInteraction(
+        "ticket:setup-modal:session-1",
+        {
+          "ticket:setup-title": "Test Title",
+          "ticket:setup-description": "Test Description",
+          "ticket:setup-color": "0xff8800",
+        },
+      );
+
+      await ticketSetupModalHandler.execute(interaction as never);
+
+      expect(mockConfigService.create).toHaveBeenCalledWith(
+        expect.objectContaining({ panelColor: "#FF8800" }),
+      );
+    });
+
     it("設定の保存後に、このカテゴリのクローズ済みチケットの自動削除を再開する（パネルが無い間は止めているため）", async () => {
       vi.mocked(ticketSetupSessions.get).mockReturnValue({
         categoryId: "cat-1",
@@ -354,32 +389,6 @@ describe("bot/features/ticket/handlers/ui/ticketSetupModalHandler", () => {
       await expect(
         ticketSetupModalHandler.execute(interaction as never),
       ).rejects.toBe(apiError);
-    });
-
-    it("messageがnullの場合でもエラーにならない", async () => {
-      vi.mocked(ticketSetupSessions.get).mockReturnValue({
-        categoryId: "cat-1",
-        staffRoleIds: ["role-1"],
-        commandInteraction: {
-          deleteReply: vi.fn().mockResolvedValue(undefined),
-        } as never,
-      });
-      mockConfigService.findByGuildAndCategory.mockResolvedValue(null);
-      mockConfigService.create.mockResolvedValue(undefined);
-
-      const interaction = createMockModalInteraction(
-        "ticket:setup-modal:session-1",
-        {
-          "ticket:setup-title": "Title",
-          "ticket:setup-description": "Desc",
-        },
-        { message: null },
-      );
-
-      await expect(
-        ticketSetupModalHandler.execute(interaction as never),
-      ).resolves.toBeUndefined();
-      expect(mockConfigService.create).toHaveBeenCalled();
     });
   });
 });

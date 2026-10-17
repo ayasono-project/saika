@@ -36,8 +36,6 @@ export const stickyMessage = {
   "user-response.permission_denied":
     "You do not have permission to do this. Manage Channels permission is required.",
   "user-response.empty_message": "Please enter a message.",
-  "user-response.text_channel_only":
-    "Sticky messages can only be set in text channels.",
 
   // ── Embed ─────────────────────────────────────
   "embed.title.set_success": "Done",
@@ -56,6 +54,15 @@ export const stickyMessage = {
   "embed.field.name.content": "Message content",
   "embed.field.name.embed_title": "Embed title",
   "embed.field.name.embed_color": "Embed color",
+
+  // ── Embed: error notification channel ─────────
+  "embed.field.value.error_notification_feature": "Sticky Message",
+  "embed.field.value.channel_delete_cleanup_failed_action":
+    "Failed to clean up on channel deletion",
+  "embed.field.value.resend_failed_action": "Failed to resend",
+  "embed.field.value.scheduled_resend_failed_action":
+    "Error in scheduled resend",
+  "embed.field.value.send_failed_action": "Failed to send message",
 
   // ── UI labels ──────────────────────────────────
   "ui.modal.set_title": "Enter sticky message content",
@@ -118,5 +125,3 @@ export const stickyMessage = {
   "log.database_delete_by_channel_failed":
     "Failed to delete sticky message by channel ChannelId: {{channelId}}",
 } as const;
-
-export type StickyMessageTranslations = typeof stickyMessage;

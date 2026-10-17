@@ -118,20 +118,6 @@ export class ReactionRolePanelRepository
       }),
     );
   }
-
-  async deleteAllByGuild(guildId: string): Promise<number> {
-    const result = await executeWithDatabaseError(
-      () =>
-        this.prisma.guildReactionRolePanel.deleteMany({
-          where: { guildId },
-        }),
-      tDefault("reactionRole:log.database_panel_delete_failed", {
-        guildId,
-        panelId: "",
-      }),
-    );
-    return result.count;
-  }
 }
 
 /**

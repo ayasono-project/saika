@@ -11,14 +11,6 @@ vi.mock("@/shared/locale/localeManager", () => ({
     const m = params ? `${messageKey}:${JSON.stringify(params)}` : messageKey;
     return sub ? `[${p}:${sub}] ${m}` : `[${p}] ${m}`;
   },
-  logCommand: (
-    commandName: string,
-    messageKey: string,
-    params?: Record<string, unknown>,
-  ) => {
-    const m = params ? `${messageKey}:${JSON.stringify(params)}` : messageKey;
-    return `[${commandName}] ${m}`;
-  },
   tDefault: vi.fn((key: string, params?: Record<string, unknown>) =>
     params ? `${key}:${JSON.stringify(params)}` : key,
   ),
@@ -53,7 +45,6 @@ function makeMsg(
     authorIsBot: opts.authorIsBot ?? false,
     authorIsMember: opts.authorIsMember ?? true,
     channelId,
-    channelName: "general",
     createdAt,
     content: `content of ${id}`,
   };
@@ -265,8 +256,8 @@ describe("bot/features/message-delete/commands/messageDeleteEmbedBuilder", () =>
     it("チャンネル別内訳を含む完了 embed を構築する", async () => {
       const { buildCompletionEmbed } = await loadModule();
       const embed = buildCompletionEmbed("ja", 5, {
-        "ch-1": { name: "general", count: 3 },
-        "ch-2": { name: "random", count: 2 },
+        "ch-1": { count: 3 },
+        "ch-2": { count: 2 },
       });
       expect(embed).toBeDefined();
       expect(embed.data.fields?.length).toBeGreaterThan(0);
@@ -376,8 +367,8 @@ describe("bot/features/message-delete/commands/messageDeleteEmbedBuilder", () =>
         totalDeleted: 1,
         total: 3,
         channelStatuses: [
-          { channelId: "ch-1", name: "a", deleted: 1, total: 2 },
-          { channelId: "ch-2", name: "b", deleted: 0, total: 1 },
+          { channelId: "ch-1", deleted: 1, total: 2 },
+          { channelId: "ch-2", deleted: 0, total: 1 },
         ],
       });
       expect(content.split("\n")).toEqual([

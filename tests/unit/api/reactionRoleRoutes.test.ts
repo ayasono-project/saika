@@ -56,7 +56,7 @@ import { toErrorResponse } from "@/api/lib/httpError";
 import { reactionRoleRoutes } from "@/api/routes/reactionRoles";
 import type { ApiServerDeps } from "@/api/types";
 import type { BotClient } from "@/bot/client";
-import { localeManager } from "@/shared/locale/localeManager";
+import { localeManager, tInteraction } from "@/shared/locale/localeManager";
 
 /** Discord 副作用を no-op にする Client（channels.fetch は常に null） */
 function makeClient(): BotClient {
@@ -67,15 +67,7 @@ function makeClient(): BotClient {
 
 async function buildApp(): Promise<FastifyInstance> {
   const app = Fastify({ logger: false });
-  app.decorate("authenticate", async (request) => {
-    request.authUser = {
-      discordUserId: "u1",
-      username: "u",
-      globalName: null,
-      avatar: null,
-      guilds: ["g1"],
-    };
-  });
+  app.decorate("authenticate", async () => {});
   app.decorate("requireGuildAccess", async (request) => {
     request.guildId = (request.params as { guildId?: string }).guildId;
   });
@@ -112,6 +104,10 @@ describe("reactionRoleRoutes", () => {
 
   beforeAll(async () => {
     await localeManager.initialize();
+    // g-en だけ英語のギルドとして扱う（ほかは既定の日本語）
+    localeManager.setRepository({
+      getLocale: async (guildId: string) => (guildId === "g-en" ? "en" : "ja"),
+    } as never);
   });
   beforeEach(async () => {
     h.reset();
@@ -150,6 +146,28 @@ describe("reactionRoleRoutes", () => {
     ]);
   });
 
+  it.each([
+    ["g1", "ja"],
+    ["g-en", "en"],
+  ] as const)(
+    "title・description を省いた POST は、ギルドの言語の既定文を入れる（%s → %s）",
+    async (guildId, locale) => {
+      const res = await app.inject({
+        method: "POST",
+        url: `/guilds/${guildId}/reaction-roles`,
+        payload: { ...PANEL, title: undefined, description: undefined },
+      });
+
+      expect(res.statusCode).toBe(200);
+      expect(res.json().data.title).toBe(
+        tInteraction(locale, "reactionRole:embed.title.panel_default"),
+      );
+      expect(res.json().data.description).toBe(
+        tInteraction(locale, "reactionRole:embed.description.panel_default"),
+      );
+    },
+  );
+
   it("channelId 欠落の POST は 400", async () => {
     const res = await app.inject({
       method: "POST",
@@ -175,6 +193,63 @@ describe("reactionRoleRoutes", () => {
     });
     expect(res.statusCode).toBe(200);
     expect(res.json().data.title).toBe("新タイトル");
+  });
+
+  it("0x 形式や小文字の色は、DB と同じ #RRGGBB（大文字）にそろえて保存する", async () => {
+    const created = (
+      await app.inject({
+        method: "POST",
+        url: "/guilds/g1/reaction-roles",
+        payload: { ...PANEL, color: "0x5865f2" },
+      })
+    ).json().data;
+    expect(created.color).toBe("#5865F2");
+
+    const res = await app.inject({
+      method: "PATCH",
+      url: `/guilds/g1/reaction-roles/${created.id}`,
+      payload: { color: "ff0000" },
+    });
+    expect(res.json().data.color).toBe("#FF0000");
+  });
+
+  it("色を省いた POST は既定色にする", async () => {
+    const res = await app.inject({
+      method: "POST",
+      url: "/guilds/g1/reaction-roles",
+      payload: { ...PANEL, color: undefined },
+    });
+    expect(res.statusCode).toBe(200);
+    expect(res.json().data.color).toBe("#00A8F3");
+  });
+
+  it("読めない色の POST は保存せず 400 VALIDATION_ERROR", async () => {
+    const res = await app.inject({
+      method: "POST",
+      url: "/guilds/g1/reaction-roles",
+      payload: { ...PANEL, color: "#1234567" },
+    });
+    expect(res.statusCode).toBe(400);
+    expect(res.json().error.code).toBe("VALIDATION_ERROR");
+    expect(h.items).toEqual([]);
+  });
+
+  it("読めない色の PATCH は保存せず 400 VALIDATION_ERROR", async () => {
+    const created = (
+      await app.inject({
+        method: "POST",
+        url: "/guilds/g1/reaction-roles",
+        payload: PANEL,
+      })
+    ).json().data;
+    const res = await app.inject({
+      method: "PATCH",
+      url: `/guilds/g1/reaction-roles/${created.id}`,
+      payload: { color: "red" },
+    });
+    expect(res.statusCode).toBe(400);
+    expect(res.json().error.code).toBe("VALIDATION_ERROR");
+    expect(h.items[0].color).toBe("#5865F2");
   });
 
   it("存在しない id の PATCH は 404", async () => {

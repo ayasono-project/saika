@@ -1,15 +1,12 @@
 // リアクションロールパネルボタンクリックハンドラのテスト
 
 const mockConfigService = {
-  findById: vi.fn(),
   findByMessageId: vi.fn(),
-  findAllByGuild: vi.fn(),
 };
 
 vi.mock("@/shared/locale/localeManager", () => ({
   logPrefixed: (p: string, m: string, params?: Record<string, unknown>) =>
     params ? `[${p}] ${m}:${params}` : `[${p}] ${m}`,
-  tDefault: vi.fn((key: string) => key),
   tInteraction: (_locale: string, key: string) => key,
 }));
 vi.mock("@/shared/utils/logger", () => ({

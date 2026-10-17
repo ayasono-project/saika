@@ -19,5 +19,3 @@ export const help = {
   "embed.field.name.dashboard": "🌐 Dashboard",
   "embed.field.value.dashboard": "Manage settings in your browser: {{url}}",
 } as const;
-
-export type HelpTranslations = typeof help;

@@ -64,6 +64,19 @@ export const bumpReminder = {
   "embed.field.name.mention_role": "Mention Role",
   "embed.field.name.mention_users": "Mention Users",
 
+  // ── Embed: error notification channel ─────────
+  "embed.field.value.error_notification_feature": "Bump Reminder",
+  "embed.field.value.bump_detection_failed_action":
+    "Failed to process bump detection",
+  "embed.field.value.member_remove_cleanup_failed_action":
+    "Failed to clean up mentions when a member left",
+  "embed.field.value.role_delete_cleanup_failed_action":
+    "Failed to clean up mentions when a role was deleted",
+  "embed.field.value.reminder_channel_missing_action":
+    "Reminder channel not found",
+  "embed.field.value.reminder_send_failed_action": "Failed to send reminder",
+  "embed.field.value.panel_send_failed_action": "Failed to send panel",
+
   // ── UI labels ──────────────────────────────────
   "ui.button.mention_on": "Turn Notification ON",
   "ui.button.mention_off": "Turn Notification OFF",
@@ -124,7 +137,6 @@ export const bumpReminder = {
     "Bump reminder created Id: {{id}} GuildId: {{guildId}}",
   "log.database_create_failed":
     "Failed to create bump reminder GuildId: {{guildId}}",
-  "log.database_find_failed": "Failed to find bump reminder Id: {{id}}",
   "log.database_find_pending_failed":
     "failed to find pending bump reminder GuildId: {{guildId}} Service: {{serviceName}}",
   "log.database_find_pending_by_guild_failed":
@@ -133,17 +145,10 @@ export const bumpReminder = {
   "log.database_status_updated":
     "Bump reminder status updated Id: {{id}} Status: {{status}}",
   "log.database_update_failed": "Failed to update bump reminder Id: {{id}}",
-  "log.database_deleted": "Bump reminder deleted Id: {{id}}",
-  "log.database_delete_failed": "Failed to delete bump reminder Id: {{id}}",
   "log.database_cancelled_by_guild":
     "Cancelled pending bump reminders GuildId: {{guildId}}",
   "log.database_cancelled_by_channel":
     "Cancelled pending bump reminders GuildId: {{guildId}} ChannelId: {{channelId}}",
   "log.database_cancel_failed":
     "Failed to cancel bump reminders GuildId: {{guildId}}",
-  "log.database_cleanup_completed":
-    "Cleaned up {{count}} old bump reminders older than {{days}} days",
-  "log.database_cleanup_failed": "Failed to cleanup old bump reminders:",
 } as const;
-
-export type BumpReminderTranslations = typeof bumpReminder;

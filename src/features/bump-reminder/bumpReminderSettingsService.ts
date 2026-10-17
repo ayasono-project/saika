@@ -1,42 +1,24 @@
 // Bumpリマインダー設定サービス実装（Repositoryパターン準拠）
 
 import {
-  BUMP_REMINDER_MENTION_CLEAR_RESULT,
   BUMP_REMINDER_MENTION_ROLE_RESULT,
   BUMP_REMINDER_MENTION_USER_ADD_RESULT,
   BUMP_REMINDER_MENTION_USER_REMOVE_RESULT,
-  BUMP_REMINDER_MENTION_USERS_CLEAR_RESULT,
-  type BumpReminderMentionClearResult,
   type BumpReminderMentionRoleResult,
   type BumpReminderMentionUserAddResult,
   type BumpReminderMentionUserRemoveResult,
-  type BumpReminderMentionUsersClearResult,
   type BumpReminderSettings,
   type IBumpReminderSettingsRepository,
 } from "../../shared/database/types";
-import { createServiceGetter } from "../../shared/utils/serviceFactory";
 import {
   createDefaultBumpReminderSettings,
-  DEFAULT_BUMP_REMINDER_SETTINGS,
   normalizeBumpReminderSettings,
 } from "./bumpReminderSettingsDefaults";
-import { getBumpReminderSettingsRepository } from "./bumpReminderSettingsRepository";
 
-export type {
-  BumpReminderMentionClearResult,
-  BumpReminderMentionRoleResult,
-  BumpReminderMentionUserAddResult,
-  BumpReminderMentionUserRemoveResult,
-  BumpReminderMentionUsersClearResult,
-  BumpReminderSettings,
-};
 export {
-  BUMP_REMINDER_MENTION_CLEAR_RESULT,
   BUMP_REMINDER_MENTION_ROLE_RESULT,
   BUMP_REMINDER_MENTION_USER_ADD_RESULT,
   BUMP_REMINDER_MENTION_USER_REMOVE_RESULT,
-  BUMP_REMINDER_MENTION_USERS_CLEAR_RESULT,
-  DEFAULT_BUMP_REMINDER_SETTINGS,
 };
 
 /**
@@ -147,24 +129,6 @@ export class BumpReminderSettingsService {
       userId,
     );
   }
-
-  /**
-   * メンション対象ユーザー一覧をクリアする
-   */
-  async clearBumpReminderMentionUsers(
-    guildId: string,
-  ): Promise<BumpReminderMentionUsersClearResult> {
-    return this.guildSettingsRepository.clearBumpReminderMentionUsers(guildId);
-  }
-
-  /**
-   * ロール・ユーザー両方のメンション設定をクリアする
-   */
-  async clearBumpReminderMentions(
-    guildId: string,
-  ): Promise<BumpReminderMentionClearResult> {
-    return this.guildSettingsRepository.clearBumpReminderMentions(guildId);
-  }
 }
 
 /**
@@ -175,13 +139,3 @@ export function createBumpReminderSettingsService(
 ): BumpReminderSettingsService {
   return new BumpReminderSettingsService(repository);
 }
-
-/**
- * Bumpリマインダー設定サービスのシングルトンを取得する
- */
-export const getBumpReminderSettingsService: (
-  repository?: IBumpReminderSettingsRepository,
-) => BumpReminderSettingsService = createServiceGetter(
-  createBumpReminderSettingsService,
-  getBumpReminderSettingsRepository,
-);

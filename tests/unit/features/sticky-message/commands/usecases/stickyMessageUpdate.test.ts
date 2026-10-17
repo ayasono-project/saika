@@ -1,9 +1,10 @@
 import { ChannelType, MessageFlags } from "discord.js";
+import { COMMON_I18N_KEYS } from "@/bot/shared/i18nKeys";
+import { STICKY_MESSAGE_COMMAND } from "@/features/sticky-message/commands/stickyMessageCommand.constants";
 
 const findByChannelMock = vi.fn();
 const showModalMock = vi.fn().mockResolvedValue(undefined);
-const tGuildMock = vi.fn(async (_guildId: string, key: string) => `[${key}]`);
-const tDefaultMock = vi.fn((_key: string) => "mock text");
+const tInteractionMock = vi.fn((_locale: string, _key: string) => "mock text");
 
 vi.mock("@/bot/services/botCompositionRoot", () => ({
   getBotStickyMessageSettingsService: vi.fn(() => ({
@@ -11,27 +12,7 @@ vi.mock("@/bot/services/botCompositionRoot", () => ({
   })),
 }));
 vi.mock("@/shared/locale/localeManager", () => ({
-  logPrefixed: (
-    prefixKey: string,
-    messageKey: string,
-    params?: Record<string, unknown>,
-    sub?: string,
-  ) => {
-    const p = `${prefixKey}`;
-    const m = params ? `${messageKey}:${JSON.stringify(params)}` : messageKey;
-    return sub ? `[${p}:${sub}] ${m}` : `[${p}] ${m}`;
-  },
-  logCommand: (
-    commandName: string,
-    messageKey: string,
-    params?: Record<string, unknown>,
-  ) => {
-    const m = params ? `${messageKey}:${JSON.stringify(params)}` : messageKey;
-    return `[${commandName}] ${m}`;
-  },
-  tGuild: tGuildMock,
-  tDefault: tDefaultMock,
-  tInteraction: (_locale: string, _key: string) => "mock text",
+  tInteraction: (locale: string, key: string) => tInteractionMock(locale, key),
 }));
 vi.mock("@/bot/utils/messageResponse", () => ({
   createWarningEmbed: vi.fn((msg: string) => ({
@@ -51,6 +32,7 @@ function createInteractionMock({
   useEmbed = false,
 } = {}) {
   return {
+    locale: "ja",
     reply: vi.fn().mockResolvedValue(undefined),
     showModal: showModalMock,
     channel: { id: "current-ch", type: channelType },
@@ -82,6 +64,10 @@ describe("bot/features/sticky-message/commands/usecases/stickyMessageUpdate", ()
 
     expect(interaction.reply).toHaveBeenCalledWith(
       expect.objectContaining({ flags: MessageFlags.Ephemeral }),
+    );
+    expect(tInteractionMock).toHaveBeenCalledWith(
+      "ja",
+      COMMON_I18N_KEYS.TEXT_CHANNEL_ONLY,
     );
     expect(findByChannelMock).not.toHaveBeenCalled();
   });
@@ -143,6 +129,34 @@ describe("bot/features/sticky-message/commands/usecases/stickyMessageUpdate", ()
     );
   });
 
+  it("色が 0（黒）でもカラー欄に #000000 を事前入力する", async () => {
+    const { handleStickyMessageUpdate } = await import(
+      "@/features/sticky-message/commands/usecases/stickyMessageUpdate"
+    );
+    findByChannelMock.mockResolvedValue({
+      id: "sticky-1",
+      content: "Content",
+      embedData: { description: "D", color: 0 },
+    });
+    const interaction = createInteractionMock({ useEmbed: true });
+
+    await handleStickyMessageUpdate(interaction as never);
+
+    const modal = showModalMock.mock.calls[0][0];
+    const colorInput = modal.components
+      .map(
+        (row: {
+          components: { data: { custom_id: string; value?: string } }[];
+        }) => row.components[0],
+      )
+      .find(
+        (input: { data: { custom_id: string } }) =>
+          input.data.custom_id ===
+          STICKY_MESSAGE_COMMAND.MODAL_INPUT.EMBED_COLOR,
+      );
+    expect(colorInput.data.value).toBe("#000000");
+  });
+
   it("embedData が null でも embed=true が指定された場合、空の初期値でモーダルが表示される", async () => {
     const { handleStickyMessageUpdate } = await import(
       "@/features/sticky-message/commands/usecases/stickyMessageUpdate"
@@ -196,5 +210,9 @@ describe("bot/features/sticky-message/commands/usecases/stickyMessageUpdate", ()
     await handleStickyMessageUpdate(interaction as never);
 
     expect(interaction.reply).toHaveBeenCalled();
+    expect(tInteractionMock).toHaveBeenCalledWith(
+      "ja",
+      COMMON_I18N_KEYS.TEXT_CHANNEL_ONLY,
+    );
   });
 });

@@ -8,7 +8,6 @@ const { EmbedBuilderMock } = vi.hoisted(() => {
     setTitle: vi.fn().mockReturnThis(),
     setThumbnail: vi.fn().mockReturnThis(),
     addFields: vi.fn().mockReturnThis(),
-    setFooter: vi.fn().mockReturnThis(),
     setTimestamp: vi.fn().mockReturnThis(),
   };
   // アロー関数ではなく通常関数を使用: new EmbedBuilder() で呼ばれる場合、
@@ -16,7 +15,7 @@ const { EmbedBuilderMock } = vi.hoisted(() => {
   const EmbedBuilderMock = vi.fn(function () {
     return embedInstance;
   });
-  return { EmbedBuilderMock, embedInstance };
+  return { EmbedBuilderMock };
 });
 
 // ---- モック定義 ----
@@ -61,14 +60,6 @@ vi.mock("@/shared/locale/localeManager", () => ({
     const p = `${prefixKey}`;
     const m = params ? `${messageKey}:${JSON.stringify(params)}` : messageKey;
     return sub ? `[${p}:${sub}] ${m}` : `[${p}] ${m}`;
-  },
-  logCommand: (
-    commandName: string,
-    messageKey: string,
-    params?: Record<string, unknown>,
-  ) => {
-    const m = params ? `${messageKey}:${JSON.stringify(params)}` : messageKey;
-    return `[${commandName}] ${m}`;
   },
   tDefault: (key: string, opts?: Record<string, unknown>) =>
     tDefaultMock(key, opts),
@@ -227,7 +218,7 @@ describe("bot/features/member-log/handlers/guildMemberAddHandler", () => {
     });
   });
 
-  // 正常フロー（Embed 送信・フッター・フィールド構成）を検証
+  // 正常フロー（Embed 送信・フィールド構成）を検証
   describe("success flow", () => {
     it("設定が有効な場合に channel.send が embeds を含む引数で呼ばれることを確認", async () => {
       const { handleGuildMemberAdd } = await import(

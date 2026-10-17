@@ -1,9 +1,11 @@
+import { ValidationError } from "@ayasono/shared/core";
 import type {
   ActionRowBuilder,
   APIButtonComponentWithCustomId,
   TextInputBuilder,
 } from "discord.js";
 import {
+  assertSelectedRolesAssignable,
   buildButtonSettingsModal,
   buildPanelButtonRows,
   buildPanelEmbed,
@@ -379,6 +381,39 @@ describe("bot/features/reaction-role/services/reactionRolePanelBuilder", () => {
       expect(
         validateSelectedRolesHierarchy(guild, executor, ["r1", "missing"]),
       ).toEqual([]);
+    });
+
+    // 設定できないロールがあれば、入力不備（ValidationError）として投げることを検証
+    describe("assertSelectedRolesAssignable", () => {
+      it("Bot か実行者の最上位以上のロールがあれば ValidationError を投げる", () => {
+        const guild = makeGuild({
+          botHighestPosition: 10,
+          roles: [
+            { id: "r1", position: 5 },
+            { id: "r2", position: 12 },
+          ],
+        });
+        const executor = makeExecutor("user-1", 8);
+
+        expect(() =>
+          assertSelectedRolesAssignable(guild, executor, ["r1", "r2"], "ja"),
+        ).toThrow(ValidationError);
+        expect(() =>
+          assertSelectedRolesAssignable(guild, executor, ["r1", "r2"], "ja"),
+        ).toThrow("reactionRole:user-response.role_above_hierarchy");
+      });
+
+      it("全ロールを設定できるなら何も投げない", () => {
+        const guild = makeGuild({
+          botHighestPosition: 10,
+          roles: [{ id: "r1", position: 5 }],
+        });
+        const executor = makeExecutor("user-1", 8);
+
+        expect(() =>
+          assertSelectedRolesAssignable(guild, executor, ["r1"], "ja"),
+        ).not.toThrow();
+      });
     });
   });
 });

@@ -23,6 +23,7 @@ import type { Mocked } from "vitest";
 import {
   handleCommandError,
   handleInteractionError,
+  logInteractionError,
 } from "@/bot/errors/interactionErrorHandler";
 import { env, NODE_ENV } from "@/shared/config/env";
 import { getUserFriendlyMessage, logError } from "@/shared/errors/errorHandler";
@@ -72,6 +73,32 @@ describe("ErrorHandler", () => {
   // 各テスト実行前にモックの呼び出し履歴を初期化
   beforeEach(() => {
     vi.clearAllMocks();
+  });
+
+  // error だけを送るエラー通知の Webhook に、利用者が直せるエラー（入力の打ち間違いなど）を流さないことを検証
+  describe("logInteractionError()", () => {
+    it.each([
+      ["ValidationError", new ValidationError("bad input")],
+      ["NotFoundError", new NotFoundError("Panel")],
+      ["TimeoutError", new TimeoutError("timed out")],
+      ["ConfigurationError", new ConfigurationError("not configured")],
+    ])("%s は warn で記録し、error では記録しない", (_label, error) => {
+      logInteractionError("modal failed", error);
+
+      expect(logger.warn).toHaveBeenCalledWith("modal failed", error);
+      expect(logger.error).not.toHaveBeenCalled();
+    });
+
+    it.each([
+      ["DatabaseError", new DatabaseError("db down")],
+      ["PermissionError", new PermissionError("denied")],
+      ["素の Error", new Error("unexpected")],
+    ])("%s は今までどおり error で記録する", (_label, error) => {
+      logInteractionError("modal failed", error);
+
+      expect(logger.error).toHaveBeenCalledWith("modal failed", error);
+      expect(logger.warn).not.toHaveBeenCalled();
+    });
   });
 
   describe("logError()", () => {

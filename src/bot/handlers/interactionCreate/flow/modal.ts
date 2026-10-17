@@ -3,7 +3,10 @@
 import type { ModalSubmitInteraction } from "discord.js";
 import { logPrefixed } from "../../../../shared/locale/localeManager";
 import { logger } from "../../../../shared/utils/logger";
-import { handleInteractionError } from "../../../errors/interactionErrorHandler";
+import {
+  handleInteractionError,
+  logInteractionError,
+} from "../../../errors/interactionErrorHandler";
 import { modalHandlers } from "../ui/modals";
 
 /**
@@ -40,7 +43,7 @@ export async function handleModalSubmit(
     );
   } catch (error) {
     // モーダル処理失敗は同じエラーハンドラに集約
-    logger.error(
+    logInteractionError(
       logPrefixed(
         "system:log_prefix.interaction_create",
         "system:interaction.modal_error",

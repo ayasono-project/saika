@@ -1,5 +1,6 @@
 import { ChannelType, MessageFlags } from "discord.js";
 import { COMMON_I18N_KEYS } from "@/bot/shared/i18nKeys";
+import { STICKY_MESSAGE_COMMAND } from "@/features/sticky-message/commands/stickyMessageCommand.constants";
 
 const findByChannelMock = vi.fn();
 const showModalMock = vi.fn().mockResolvedValue(undefined);
@@ -126,6 +127,34 @@ describe("bot/features/sticky-message/commands/usecases/stickyMessageUpdate", ()
     expect(modal.data.custom_id).toContain(
       "sticky-message:update-embed-modal:",
     );
+  });
+
+  it("色が 0（黒）でもカラー欄に #000000 を事前入力する", async () => {
+    const { handleStickyMessageUpdate } = await import(
+      "@/features/sticky-message/commands/usecases/stickyMessageUpdate"
+    );
+    findByChannelMock.mockResolvedValue({
+      id: "sticky-1",
+      content: "Content",
+      embedData: { description: "D", color: 0 },
+    });
+    const interaction = createInteractionMock({ useEmbed: true });
+
+    await handleStickyMessageUpdate(interaction as never);
+
+    const modal = showModalMock.mock.calls[0][0];
+    const colorInput = modal.components
+      .map(
+        (row: {
+          components: { data: { custom_id: string; value?: string } }[];
+        }) => row.components[0],
+      )
+      .find(
+        (input: { data: { custom_id: string } }) =>
+          input.data.custom_id ===
+          STICKY_MESSAGE_COMMAND.MODAL_INPUT.EMBED_COLOR,
+      );
+    expect(colorInput.data.value).toBe("#000000");
   });
 
   it("embedData が null でも embed=true が指定された場合、空の初期値でモーダルが表示される", async () => {

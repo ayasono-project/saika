@@ -1,6 +1,7 @@
 import { EmbedBuilder } from "discord.js";
 import {
   buildStickyMessagePayload,
+  formatColorHex,
   parseColorStr,
 } from "@/features/sticky-message/services/stickyMessagePayloadBuilder";
 import type { StickyEmbedData } from "@/shared/database/types";
@@ -115,6 +116,25 @@ describe("bot/features/sticky-message/services/stickyMessagePayloadBuilder", () 
 
     it("解釈不能な文字列を渡した場合にデフォルト色にフォールバックする（サイレント耐障害性）", () => {
       expect(parseColorStr("gggggg")).toBe(0x008969);
+    });
+  });
+
+  // 数値カラーを #RRGGBB（大文字・6桁ゼロ埋め）に変換し、parseColorStr で元に戻せることを検証
+  describe("formatColorHex", () => {
+    it("英字を大文字にして #RRGGBB 形式で返す", () => {
+      expect(formatColorHex(0xabcdef)).toBe("#ABCDEF");
+    });
+
+    it("6桁に満たない値は先頭を 0 で埋める", () => {
+      expect(formatColorHex(0x0000ff)).toBe("#0000FF");
+    });
+
+    it("0（黒）を #000000 にする", () => {
+      expect(formatColorHex(0)).toBe("#000000");
+    });
+
+    it("parseColorStr に渡すと元の数値に戻る", () => {
+      expect(parseColorStr(formatColorHex(0x008969))).toBe(0x008969);
     });
   });
 });

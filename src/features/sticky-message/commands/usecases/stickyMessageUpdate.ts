@@ -1,22 +1,18 @@
 // sticky-message update ユースケース
 
 import {
-  ActionRowBuilder,
-  ChannelType,
   type ChatInputCommandInteraction,
   MessageFlags,
   ModalBuilder,
-  TextInputBuilder,
-  TextInputStyle,
 } from "discord.js";
 import { getBotStickyMessageSettingsService } from "../../../../bot/services/botCompositionRoot";
-import { COMMON_I18N_KEYS } from "../../../../bot/shared/i18nKeys";
-import {
-  createInfoEmbed,
-  createWarningEmbed,
-} from "../../../../bot/utils/messageResponse";
+import { createInfoEmbed } from "../../../../bot/utils/messageResponse";
 import { tInteraction } from "../../../../shared/locale/localeManager";
-import type { StickyEmbedData } from "../../services/stickyMessagePayloadBuilder";
+import {
+  buildStickyEmbedModalRows,
+  buildStickyMessageModalRow,
+} from "../helpers/stickyMessageModalInputs";
+import { resolveStickyTargetChannelId } from "../helpers/stickyMessageTargetChannel";
 import { STICKY_MESSAGE_COMMAND } from "../stickyMessageCommand.constants";
 
 /**
@@ -28,33 +24,11 @@ import { STICKY_MESSAGE_COMMAND } from "../stickyMessageCommand.constants";
 export async function handleStickyMessageUpdate(
   interaction: ChatInputCommandInteraction,
 ): Promise<void> {
-  // channel: 省略時はコマンド実行チャンネルを対象にする
-  const channelOption = interaction.options.getChannel(
-    STICKY_MESSAGE_COMMAND.OPTION.CHANNEL,
-    false,
-  );
-  const targetChannel = channelOption ?? interaction.channel;
-
-  if (!targetChannel || targetChannel.type !== ChannelType.GuildText) {
-    await interaction.reply({
-      embeds: [
-        createWarningEmbed(
-          tInteraction(interaction.locale, COMMON_I18N_KEYS.TEXT_CHANNEL_ONLY),
-          {
-            title: tInteraction(
-              interaction.locale,
-              "common:title_channel_invalid",
-            ),
-          },
-        ),
-      ],
-      flags: MessageFlags.Ephemeral,
-    });
-    return;
-  }
+  const targetChannelId = await resolveStickyTargetChannelId(interaction);
+  if (!targetChannelId) return;
 
   const service = getBotStickyMessageSettingsService();
-  const existing = await service.findByChannel(targetChannel.id);
+  const existing = await service.findByChannel(targetChannelId);
 
   if (!existing) {
     await interaction.reply({
@@ -83,71 +57,9 @@ export async function handleStickyMessageUpdate(
 
   if (useEmbed) {
     // 既存の Embed データを読み込んでモーダルを事前入力する
-    const prev: StickyEmbedData = existing.embedData ?? {};
-
-    const titleInput = new TextInputBuilder()
-      .setCustomId(STICKY_MESSAGE_COMMAND.MODAL_INPUT.EMBED_TITLE)
-      .setLabel(
-        tInteraction(
-          interaction.locale,
-          "stickyMessage:ui.modal.set_embed_title_label",
-        ),
-      )
-      .setPlaceholder(
-        tInteraction(
-          interaction.locale,
-          "stickyMessage:ui.modal.set_embed_title_placeholder",
-        ),
-      )
-      .setStyle(TextInputStyle.Short)
-      .setRequired(false)
-      .setMaxLength(256);
-    if (prev.title) titleInput.setValue(prev.title);
-
-    const descriptionInput = new TextInputBuilder()
-      .setCustomId(STICKY_MESSAGE_COMMAND.MODAL_INPUT.EMBED_DESCRIPTION)
-      .setLabel(
-        tInteraction(
-          interaction.locale,
-          "stickyMessage:ui.modal.set_embed_description_label",
-        ),
-      )
-      .setPlaceholder(
-        tInteraction(
-          interaction.locale,
-          "stickyMessage:ui.modal.set_embed_description_placeholder",
-        ),
-      )
-      .setStyle(TextInputStyle.Paragraph)
-      .setRequired(false)
-      .setMaxLength(4000);
-    if (prev.description) descriptionInput.setValue(prev.description);
-
-    const colorInput = new TextInputBuilder()
-      .setCustomId(STICKY_MESSAGE_COMMAND.MODAL_INPUT.EMBED_COLOR)
-      .setLabel(
-        tInteraction(
-          interaction.locale,
-          "stickyMessage:ui.modal.set_embed_color_label",
-        ),
-      )
-      .setPlaceholder(
-        tInteraction(
-          interaction.locale,
-          "stickyMessage:ui.modal.set_embed_color_placeholder",
-        ),
-      )
-      .setStyle(TextInputStyle.Short)
-      .setRequired(false)
-      .setMaxLength(20);
-    if (prev.color) {
-      // 数値カラーを #RRGGBB 形式の文字列に変換して事前入力する
-      colorInput.setValue(`#${prev.color.toString(16).padStart(6, "0")}`);
-    }
-
     const modal = new ModalBuilder()
       .setCustomId(
-        `${STICKY_MESSAGE_COMMAND.UPDATE_EMBED_MODAL_ID_PREFIX}${targetChannel.id}`,
+        `${STICKY_MESSAGE_COMMAND.UPDATE_EMBED_MODAL_ID_PREFIX}${targetChannelId}`,
       )
       .setTitle(
         tInteraction(
@@ -156,44 +68,31 @@ export async function handleStickyMessageUpdate(
         ),
       )
       .addComponents(
-        new ActionRowBuilder<TextInputBuilder>().addComponents(titleInput),
-        new ActionRowBuilder<TextInputBuilder>().addComponents(colorInput),
-        new ActionRowBuilder<TextInputBuilder>().addComponents(
-          descriptionInput,
+        ...buildStickyEmbedModalRows(
+          interaction.locale,
+          existing.embedData ?? {},
         ),
       );
 
     await interaction.showModal(modal);
   } else {
     // 既存のテキスト内容を事前入力してプレーンテキストモーダルを表示する
-    const messageInput = new TextInputBuilder()
-      .setCustomId(STICKY_MESSAGE_COMMAND.MODAL_INPUT.MESSAGE)
-      .setLabel(
-        tInteraction(
-          interaction.locale,
-          "stickyMessage:ui.modal.update_message_label",
-        ),
-      )
-      .setPlaceholder(
-        tInteraction(
-          interaction.locale,
-          "stickyMessage:ui.modal.update_message_placeholder",
-        ),
-      )
-      .setStyle(TextInputStyle.Paragraph)
-      .setRequired(true)
-      .setMaxLength(2000)
-      .setValue(existing.content.substring(0, 2000));
-
     const modal = new ModalBuilder()
       .setCustomId(
-        `${STICKY_MESSAGE_COMMAND.UPDATE_MODAL_ID_PREFIX}${targetChannel.id}`,
+        `${STICKY_MESSAGE_COMMAND.UPDATE_MODAL_ID_PREFIX}${targetChannelId}`,
       )
       .setTitle(
         tInteraction(interaction.locale, "stickyMessage:ui.modal.update_title"),
       )
       .addComponents(
-        new ActionRowBuilder<TextInputBuilder>().addComponents(messageInput),
+        buildStickyMessageModalRow(
+          interaction.locale,
+          {
+            label: "stickyMessage:ui.modal.update_message_label",
+            placeholder: "stickyMessage:ui.modal.update_message_placeholder",
+          },
+          existing.content,
+        ),
       );
 
     await interaction.showModal(modal);

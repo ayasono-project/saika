@@ -19,6 +19,7 @@ import type {
   Ticket,
 } from "../../../shared/database/types";
 import { logPrefixed, tDefault } from "../../../shared/locale/localeManager";
+import { parseColorHex } from "../../../shared/utils/colorHex";
 import { logger } from "../../../shared/utils/logger";
 import {
   TICKET_CHANNEL_BOT_DELETE_PERMISSIONS,
@@ -262,7 +263,7 @@ export async function createTicketChannel(
         inline: true,
       },
     )
-    .setColor(Number.parseInt(config.panelColor.slice(1), 16));
+    .setColor(parseColorHex(config.panelColor));
 
   const buttons = buildOpenTicketButtons(ticket.id);
 

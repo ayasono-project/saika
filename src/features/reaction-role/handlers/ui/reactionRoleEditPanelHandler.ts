@@ -1,5 +1,6 @@
 // edit-panel フローのセレクトメニュー・モーダルハンドラ
 
+import { ValidationError } from "@ayasono/shared/core";
 import {
   MessageFlags,
   type ModalSubmitInteraction,
@@ -10,11 +11,16 @@ import type {
   StringSelectHandler,
 } from "../../../../bot/handlers/interactionCreate/ui/types";
 import { getBotReactionRolePanelSettingsService } from "../../../../bot/services/botCompositionRoot";
+import { COMMON_I18N_KEYS } from "../../../../bot/shared/i18nKeys";
 import {
   createErrorEmbed,
   createSuccessEmbed,
 } from "../../../../bot/utils/messageResponse";
 import { tInteraction } from "../../../../shared/locale/localeManager";
+import {
+  formatColorHex,
+  parseColorHex,
+} from "../../../../shared/utils/colorHex";
 import {
   REACTION_ROLE_CUSTOM_ID,
   REACTION_ROLE_DEFAULT_PANEL_COLOR,
@@ -108,23 +114,18 @@ export const reactionRoleEditPanelModalHandler: ModalHandler = {
     const colorInput = interaction.fields
       .getTextInputValue(REACTION_ROLE_CUSTOM_ID.EDIT_PANEL_COLOR)
       .trim();
-    const color = colorInput || REACTION_ROLE_DEFAULT_PANEL_COLOR;
+    const colorValue = parseColorHex(
+      colorInput || REACTION_ROLE_DEFAULT_PANEL_COLOR,
+    );
 
     // カラーコードのバリデーション
-    if (!/^#[0-9A-Fa-f]{6}$/.test(color)) {
-      const embed = createErrorEmbed(
-        tInteraction(
-          interaction.locale,
-          "reactionRole:user-response.invalid_color",
-        ),
-        { locale: interaction.locale },
+    if (colorValue === null) {
+      throw new ValidationError(
+        tInteraction(interaction.locale, COMMON_I18N_KEYS.INVALID_COLOR),
       );
-      await interaction.reply({
-        embeds: [embed],
-        flags: MessageFlags.Ephemeral,
-      });
-      return;
     }
+    // DB には #RRGGBB の形で持つ
+    const color = formatColorHex(colorValue);
 
     await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 

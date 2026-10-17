@@ -135,8 +135,6 @@ export const ticket = {
   "ui.modal.edit_panel_title": "パネル編集",
   "ui.modal.setup_field_color": "カラー（例: #00A8F3）",
   "ui.modal.edit_panel_field_color": "カラー（例: #00A8F3）",
-  "user-response.invalid_color":
-    "無効なカラーコードです。#RRGGBB 形式で入力してください。",
   "embed.field.name.panel_color": "パネルカラー",
   "ui.modal.create_ticket_title": "チケットを作成",
   "ui.modal.create_ticket_subject": "件名",

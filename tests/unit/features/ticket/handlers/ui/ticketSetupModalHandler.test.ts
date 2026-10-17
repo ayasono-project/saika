@@ -49,6 +49,7 @@ vi.mock("@/features/ticket/handlers/ui/ticketSetupState", () => ({
   },
 }));
 
+import { COMMON_I18N_KEYS } from "@/bot/shared/i18nKeys";
 import { ticketSetupSessions } from "@/features/ticket/handlers/ui/ticketSetupState";
 import { resumeAutoDeleteForCategory } from "@/features/ticket/services/ticketAutoDeleteService";
 
@@ -266,6 +267,59 @@ describe("bot/features/ticket/handlers/ui/ticketSetupModalHandler", () => {
       );
       expect(ticketSetupSessions.delete).toHaveBeenCalledWith("session-1");
       // ロール選択メニューのメッセージが削除されること（commandInteraction.deleteReply経由）
+    });
+
+    it("読めない色は、設定を作らず入力エラーを返す", async () => {
+      vi.mocked(ticketSetupSessions.get).mockReturnValue({
+        categoryId: "cat-1",
+        staffRoleIds: ["role-1"],
+        commandInteraction: {
+          deleteReply: vi.fn().mockResolvedValue(undefined),
+        } as never,
+      } as never);
+
+      const interaction = createMockModalInteraction(
+        "ticket:setup-modal:session-1",
+        {
+          "ticket:setup-title": "Test Title",
+          "ticket:setup-description": "Test Description",
+          "ticket:setup-color": "#1234567",
+        },
+      );
+
+      // 入力不備として、グローバルのエラーハンドラに返させる
+      await expect(
+        ticketSetupModalHandler.execute(interaction as never),
+      ).rejects.toThrow(COMMON_I18N_KEYS.INVALID_COLOR);
+      expect(interaction.channel.send).not.toHaveBeenCalled();
+      expect(mockConfigService.create).not.toHaveBeenCalled();
+    });
+
+    it("0x 形式の色も受け付け、DB には #RRGGBB（大文字）で保存する", async () => {
+      vi.mocked(ticketSetupSessions.get).mockReturnValue({
+        categoryId: "cat-1",
+        staffRoleIds: ["role-1"],
+        commandInteraction: {
+          deleteReply: vi.fn().mockResolvedValue(undefined),
+        } as never,
+      } as never);
+      mockConfigService.findByGuildAndCategory.mockResolvedValue(null);
+      mockConfigService.create.mockResolvedValue(undefined);
+
+      const interaction = createMockModalInteraction(
+        "ticket:setup-modal:session-1",
+        {
+          "ticket:setup-title": "Test Title",
+          "ticket:setup-description": "Test Description",
+          "ticket:setup-color": "0xff8800",
+        },
+      );
+
+      await ticketSetupModalHandler.execute(interaction as never);
+
+      expect(mockConfigService.create).toHaveBeenCalledWith(
+        expect.objectContaining({ panelColor: "#FF8800" }),
+      );
     });
 
     it("設定の保存後に、このカテゴリのクローズ済みチケットの自動削除を再開する（パネルが無い間は止めているため）", async () => {

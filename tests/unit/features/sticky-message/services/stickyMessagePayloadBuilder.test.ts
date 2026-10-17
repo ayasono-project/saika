@@ -1,7 +1,6 @@
 import { EmbedBuilder } from "discord.js";
 import {
   buildStickyMessagePayload,
-  formatColorHex,
   parseColorStr,
 } from "@/features/sticky-message/services/stickyMessagePayloadBuilder";
 import type { StickyEmbedData } from "@/shared/database/types";
@@ -84,7 +83,8 @@ describe("bot/features/sticky-message/services/stickyMessagePayloadBuilder", () 
     });
   });
 
-  // #RRGGBB・0xRRGGBB・プレフィックスなし HEX など複数フォーマットと、無効値でのデフォルト返却を検証
+  // 空欄は既定色、それ以外は共通の parseColorHex に任せ、読めない色は null を返すことを検証
+  // （形式ごとの細かい検証は colorHex.test.ts）
   describe("parseColorStr", () => {
     it("null 入力に対してデフォルト色を返す", () => {
       expect(parseColorStr(null)).toBe(0x008969);
@@ -102,39 +102,13 @@ describe("bot/features/sticky-message/services/stickyMessagePayloadBuilder", () 
       expect(parseColorStr("#ff0000")).toBe(0xff0000);
     });
 
-    it("0xRRGGBB 形式をパースする", () => {
-      expect(parseColorStr("0x00ff00")).toBe(0x00ff00);
-    });
-
-    it("0XRRGGBB 形式（大文字 X）をパースする", () => {
-      expect(parseColorStr("0X0000ff")).toBe(0x0000ff);
-    });
-
-    it("プレフィックスなしの RRGGBB 形式をパースする", () => {
-      expect(parseColorStr("123456")).toBe(0x123456);
-    });
-
-    it("解釈不能な文字列を渡した場合にデフォルト色にフォールバックする（サイレント耐障害性）", () => {
-      expect(parseColorStr("gggggg")).toBe(0x008969);
-    });
-  });
-
-  // 数値カラーを #RRGGBB（大文字・6桁ゼロ埋め）に変換し、parseColorStr で元に戻せることを検証
-  describe("formatColorHex", () => {
-    it("英字を大文字にして #RRGGBB 形式で返す", () => {
-      expect(formatColorHex(0xabcdef)).toBe("#ABCDEF");
-    });
-
-    it("6桁に満たない値は先頭を 0 で埋める", () => {
-      expect(formatColorHex(0x0000ff)).toBe("#0000FF");
-    });
-
-    it("0（黒）を #000000 にする", () => {
-      expect(formatColorHex(0)).toBe("#000000");
-    });
-
-    it("parseColorStr に渡すと元の数値に戻る", () => {
-      expect(parseColorStr(formatColorHex(0x008969))).toBe(0x008969);
+    it.each([
+      ["16進数でない", "gggggg"],
+      ["7桁（Discord の上限 #FFFFFF を超える）", "#1234567"],
+      ["負の数", "-1"],
+      ["途中から16進数でない", "12zz"],
+    ])("読めない色（%s）は既定色にせず null を返す", (_label, input) => {
+      expect(parseColorStr(input)).toBeNull();
     });
   });
 });

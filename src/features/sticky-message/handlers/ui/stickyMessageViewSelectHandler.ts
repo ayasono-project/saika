@@ -8,8 +8,8 @@ import {
   createWarningEmbed,
 } from "../../../../bot/utils/messageResponse";
 import { tInteraction } from "../../../../shared/locale/localeManager";
+import { formatColorHex } from "../../../../shared/utils/colorHex";
 import { STICKY_MESSAGE_COMMAND } from "../../commands/stickyMessageCommand.constants";
-import { formatColorHex } from "../../services/stickyMessagePayloadBuilder";
 
 /** Embed コンテンツプレビューの最大文字数 */
 const PREVIEW_MAX = 1024;

@@ -1,3 +1,4 @@
+import { COMMON_I18N_KEYS } from "@/bot/shared/i18nKeys";
 import {
   reactionRoleEditPanelModalHandler,
   reactionRoleEditPanelSelectHandler,
@@ -153,14 +154,43 @@ describe("bot/features/reaction-role/handlers/ui/reactionRoleEditPanelHandler", 
           },
         );
 
+        // 入力不備として、グローバルのエラーハンドラに返させる
+        await expect(
+          reactionRoleEditPanelModalHandler.execute(interaction as never),
+        ).rejects.toThrow(COMMON_I18N_KEYS.INVALID_COLOR);
+        expect(interaction.deferReply).not.toHaveBeenCalled();
+        expect(mockConfigService.update).not.toHaveBeenCalled();
+      });
+
+      it("0x 形式の色も受け付け、DB には #RRGGBB（大文字）で保存する", async () => {
+        reactionRoleEditPanelSessions.set("session-1", { panelId: "panel-1" });
+        mockConfigService.findById.mockResolvedValue({
+          id: "panel-1",
+          channelId: "ch-1",
+          messageId: "msg-1",
+          title: "旧タイトル",
+          description: "旧説明",
+          color: "#000000",
+          buttons: [],
+        });
+        mockUpdatePanelMessage.mockResolvedValue(true);
+
+        const interaction = createMockModalInteraction(
+          "reaction-role:edit-panel-modal:session-1",
+          {
+            "reaction-role:edit-panel-title": "新タイトル",
+            "reaction-role:edit-panel-description": "新説明",
+            "reaction-role:edit-panel-color": "0xff8800",
+          },
+        );
+
         await reactionRoleEditPanelModalHandler.execute(interaction as never);
 
-        expect(interaction.reply).toHaveBeenCalledWith(
-          expect.objectContaining({
-            embeds: expect.any(Array),
-          }),
-        );
-        expect(interaction.deferReply).not.toHaveBeenCalled();
+        expect(mockConfigService.update).toHaveBeenCalledWith("panel-1", {
+          title: "新タイトル",
+          description: "新説明",
+          color: "#FF8800",
+        });
       });
 
       it("updatePanelMessageがtrueを返す場合は成功応答する", async () => {

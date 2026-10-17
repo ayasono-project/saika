@@ -4,6 +4,7 @@
 import type { ReactionRolePanel as ContractPanel } from "@ayasono/shared/api";
 import type { FastifyPluginAsync } from "fastify";
 import { getBotReactionRolePanelSettingsService } from "../../bot/services/botCompositionRoot";
+import { REACTION_ROLE_DEFAULT_PANEL_COLOR } from "../../features/reaction-role/commands/reactionRoleCommand.constants";
 import type { GuildReactionRolePanel } from "../../shared/database/types/reactionRoleTypes";
 import { tDefault, tGuild } from "../../shared/locale/localeManager";
 import {
@@ -12,6 +13,7 @@ import {
   toContractPanel,
   toDomainButtons,
 } from "../features/reactionRoleResource";
+import { toStoredColorHex } from "../lib/color";
 import { ApiHttpError } from "../lib/httpError";
 import { getGuildId } from "../lib/request";
 import type { ApiServerDeps } from "../types";
@@ -48,6 +50,10 @@ export const reactionRoleRoutes: FastifyPluginAsync<
     if (!body?.channelId) {
       throw ApiHttpError.validation(tDefault("system:web.channel_id_required"));
     }
+    // 読めない色は保存の前に弾く（省かれたときはモーダルと同じく既定色）
+    const color = toStoredColorHex(
+      body.color ?? REACTION_ROLE_DEFAULT_PANEL_COLOR,
+    );
     const service = getBotReactionRolePanelSettingsService();
     const created = await service.create({
       guildId,
@@ -61,7 +67,7 @@ export const reactionRoleRoutes: FastifyPluginAsync<
       description:
         body.description ??
         (await tGuild(guildId, "reactionRole:embed.description.panel_default")),
-      color: body.color,
+      color,
       buttons: toDomainButtons(body.buttons),
       buttonCounter: body.buttons.length,
     });
@@ -89,7 +95,7 @@ export const reactionRoleRoutes: FastifyPluginAsync<
     if (body.mode !== undefined) patch.mode = body.mode;
     if (body.title !== undefined) patch.title = body.title;
     if (body.description !== undefined) patch.description = body.description;
-    if (body.color !== undefined) patch.color = body.color;
+    if (body.color !== undefined) patch.color = toStoredColorHex(body.color);
     if (body.buttons !== undefined) {
       patch.buttons = toDomainButtons(body.buttons);
       patch.buttonCounter = body.buttons.length;

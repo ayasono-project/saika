@@ -4,6 +4,7 @@
 import type { TicketPanel as ContractTicket } from "@ayasono/shared/api";
 import type { BotClient } from "../../bot/client";
 import type { GuildTicketSettings } from "../../shared/database/types/ticketTypes";
+import { parseColorHex } from "../../shared/utils/colorHex";
 
 /** ドメイン設定 + オープン件数 → 契約（id は識別キーの categoryId） */
 export function toContractTicket(
@@ -42,7 +43,7 @@ async function buildTicketPanel(
   const embed = new EmbedBuilder()
     .setTitle(title)
     .setDescription(description)
-    .setColor(Number.parseInt(color.slice(1), 16));
+    .setColor(parseColorHex(color));
   const label = await tGuild(guildId, "ticket:ui.button.create_ticket");
   const row = new ActionRowBuilder<
     InstanceType<typeof ButtonBuilder>

@@ -20,6 +20,7 @@
 - **名前の整理はこのリリースで最も大きく危ない作業**（DB の名前を変える migration・shared の major・web との同時リリース・コマンド名の変更）。先に小さく安全な保守でコードを減らして整えておくほうが、名前の整理の差分もレビューも小さくなる。2026-09-30 のデッドコード削除で、名前を変える対象がすでに減っている
 - **カバレッジ設定の実態合わせは最後のまま。** 閾値は他の作業がすべて終わってから測る必要があり、除外に書くパス（`vc-auto-recruit/handlers/...`）も名前の整理で変わるため
 - 利用者から見た差は無い（どちらも同じリリースに入る）
+- **2026-10-18 追記: 済んだ保守とバグ改修は、名前の整理を待たずに v3.3.1 で先に出した。** バグ修正（読めない色で設定が壊れる件など）を含むため。名前の整理は、残りの保守・バグ改修とまとめて次の major で出す
 
 ### 名前をそろえる（事前メッセージ・VC自動作成・VC募集）（2026-09-29 決定）
 
@@ -85,6 +86,7 @@
 | 3.1.4 | スレッド対応・ドキュメントの整合 | patch |
 | 3.2.0 | 退出後30日の遅延削除・導入時 DM | minor（機能が増えた） |
 | 3.3.0 | export / import の削除・バグ修正（リリース前のレビューと実機確認で見つけた分を含む）・message-delete の全チャンネルにスレッドを含める・チケットを管理者権限でも操作できるようにした | minor（機能が減った） |
+| 3.3.1 | 読めない色を保存の前に弾く・入力不備をエラー通知に流さない・スティッキーの update で黒が既定色に戻る件ほかのバグ修正・不要コードの削除などの保守 | patch |
 
 > **採用しなかった基準**（2026-09-23 に検討して否定済み）: 「告知するかどうか」で決める（v3.1.1 は告知したうえで patch だった）／「意図的な方針変更か、欠陥の修正か」で決める（3.1.1 の reset-all ダイアログ修正も意図どおりだった挙動を誤りと判断して変えたものだが patch だった）。
 
@@ -204,20 +206,20 @@ VAC を残す判断（→「VAC（トリガー VC 方式）は残し、募集は
 
 > 詳細な作業経過は git log を参照。
 
-### リアクションロール：上位のロールを選んだときの応答を「入力不備」にした（2026-10-18 develop merge）
+### リアクションロール：上位のロールを選んだときの応答を「入力不備」にした（2026-10-18 完了・本番デプロイ済み）
 
-2026-10-18、色の修正の実機確認で見つけた。setup・ボタン追加・ボタン編集で、Bot か実行者の最上位ロール以上のロールを選ぶと、赤い「エラー」で返していた（ガイドラインの Embed タイトルの表では、入力の誤りは「入力不備」）。未承認キックの目印ロールの同じ判定にそろえて `ValidationError` で返すようにし、3か所で同じだった処理を `assertSelectedRolesAssignable` にまとめた。
+v3.3.1。2026-10-18、色の修正の実機確認で見つけた。setup・ボタン追加・ボタン編集で、Bot か実行者の最上位ロール以上のロールを選ぶと、赤い「エラー」で返していた（ガイドラインの Embed タイトルの表では、入力の誤りは「入力不備」）。未承認キックの目印ロールの同じ判定にそろえて `ValidationError` で返すようにし、3か所で同じだった処理を `assertSelectedRolesAssignable` にまとめた。
 
-### 入力不備のたびに、エラー通知の Webhook が飛んでいた（2026-10-18 develop merge）
+### 入力不備のたびに、エラー通知の Webhook が飛んでいた（2026-10-18 完了・本番デプロイ済み）
 
-2026-10-18、色の修正の実機確認で、チケットの色の打ち間違い（入力不備）がエラーログのチャンネルにスタックトレース付きで届いたことから見つけた。コマンド・ボタン・モーダルの3つの経路は、例外が出ると中身を問わず `logger.error` を出しており、error だけを送る Webhook（`DISCORD_ERROR_WEBHOOK_URL`）に、利用者が直せるエラーまで流れていた。前からある動きで、色の修正でチケット・リアクションロールの入力不備も `ValidationError` に寄せたため、通知が増えるところだった。
+v3.3.1。2026-10-18、色の修正の実機確認で、チケットの色の打ち間違い（入力不備）がエラーログのチャンネルにスタックトレース付きで届いたことから見つけた。コマンド・ボタン・モーダルの3つの経路は、例外が出ると中身を問わず `logger.error` を出しており、error だけを送る Webhook（`DISCORD_ERROR_WEBHOOK_URL`）に、利用者が直せるエラーまで流れていた。前からある動きで、色の修正でチケット・リアクションロールの入力不備も `ValidationError` に寄せたため、通知が増えるところだった。
 
 - エラーハンドラが警告で返す4つ（`ValidationError` / `NotFoundError` / `TimeoutError` / `ConfigurationError`）は warn で記録し、それ以外は今までどおり error で送る（`logInteractionError`）
 - **`isOperational` では分けない。** `DatabaseError` と `DiscordApiError` も既定で `isOperational` が true なので、それで分けると DB や Discord API の失敗まで通知されなくなる
 
-### スティッキー・チケット・リアクションロール：読めない色を保存してから落ちていた（2026-10-17 develop merge）
+### スティッキー・チケット・リアクションロール：読めない色を保存してから落ちていた（2026-10-17 完了・本番デプロイ済み）
 
-スティッキーの色の読み取り（`parseColorStr`）は16進として読めれば範囲を見ず、`#1234567`（7桁）や `-1` も数値にしていた。discord.js の `setColor` は 0〜0xFFFFFF の外で例外を投げるので、set / update の Embed モーダルと Web API は、保存してから Embed の組み立てで落ち、設定だけが残っていた（チャンネルへの投稿のたびの再送でも落ちる）。チケットとリアクションロールは、モーダルは `#RRGGBB` で検査していたが、Web API は色を検査せずに保存していた。3機能のモーダルと Web API を共通の `parseColorHex`（`src/shared/utils/colorHex.ts`）に通し、保存の前に弾くようにした。次のリリース（名前の整理と、保守・バグ改修の10件をまとめた1本）に入る。
+v3.3.1。スティッキーの色の読み取り（`parseColorStr`）は16進として読めれば範囲を見ず、`#1234567`（7桁）や `-1` も数値にしていた。discord.js の `setColor` は 0〜0xFFFFFF の外で例外を投げるので、set / update の Embed モーダルと Web API は、保存してから Embed の組み立てで落ち、設定だけが残っていた（チャンネルへの投稿のたびの再送でも落ちる）。チケットとリアクションロールは、モーダルは `#RRGGBB` で検査していたが、Web API は色を検査せずに保存していた。3機能のモーダルと Web API を共通の `parseColorHex`（`src/shared/utils/colorHex.ts`）に通し、保存の前に弾くようにした。
 
 - **読めない色は既定色にせず、入力の誤りとして返す**（2026-10-17 決定）。今までスティッキーは読めない文字列を黙って既定色にしていたが、それでは入れた色と違う色で保存されても気付けない。チケット・リアクションロールのモーダルと同じ扱いにそろえた
 - **受け付ける形は、3機能とも `#RRGGBB` / `0xRRGGBB` / `RRGGBB` のちょうど6桁**（2026-10-17 決定）。チケット・リアクションロールは今まで `#RRGGBB` だけだったが、関数を1つにするため広げた。DB には今までどおり `#RRGGBB`（大文字）で持つ。6桁に限ったので範囲外は出ず、`12zz` のように途中まで読める文字列（`parseInt` は `0x12` と読んでいた）や `#fff` のような省略形も弾く
@@ -225,32 +227,32 @@ VAC を残す判断（→「VAC（トリガー VC 方式）は残し、募集は
 - DB の `#RRGGBB` を数値にする `Number.parseInt(x.slice(1), 16)`（チケットのパネルとチケット本体の Embed・Web API のパネル・リアクションロールのパネルの4か所）も `parseColorHex` に寄せた。DB に読めない値があっても、例外で投稿が止まらず色なしの Embed になる
 - **本番 DB の実測（2026-10-17）: 範囲外・形式違いの色は、3機能とも0件。** 直すデータは無かった
 
-### スティッキーの set / update の重複と、数値の直書きを整理した（2026-10-17 develop merge）
+### スティッキーの set / update の重複と、数値の直書きを整理した（2026-10-17 完了・本番デプロイ済み）
 
-set と update で同じだったモーダルの入力欄と対象チャンネルの判定、view と remove で同じだった選択肢づくりを `commands/helpers/` にまとめ、入力欄の上限（256 / 20 / 4000 / 2000）とプレビューの50文字を定数にした。数値の色を `#RRGGBB` にする処理（update の事前入力・設定の表示・Web API の3か所）も `formatColorHex` にまとめた。次のリリース（名前の整理と保守の6件をまとめた1本）に入る。
+v3.3.1。set と update で同じだったモーダルの入力欄と対象チャンネルの判定、view と remove で同じだった選択肢づくりを `commands/helpers/` にまとめ、入力欄の上限（256 / 20 / 4000 / 2000）とプレビューの50文字を定数にした。数値の色を `#RRGGBB` にする処理（update の事前入力・設定の表示・Web API の3か所）も `formatColorHex` にまとめた。
 
 - **update で黒（`#000000`）が事前入力されていなかったのを直した。** 事前入力の条件が `if (prev.color)` で、0 を色の未設定と同じに扱っていた。カラー欄が空のまま送信すると既定色になるので、黒の Embed を update すると、色を触っていなくても既定色に変わっていた
 - **update の事前入力の色を大文字にした**（`#ff0000` → `#FF0000`）。設定の表示と Web API はもともと大文字だった。読み取り（`parseColorStr`）は大文字・小文字のどちらも受けるので、保存される値は変わらない
 
-### 機能横断の「テキストチャンネル限定」文言を共通化した（2026-10-17 develop merge）
+### 機能横断の「テキストチャンネル限定」文言を共通化した（2026-10-17 完了・本番デプロイ済み）
 
-4つの名前空間（`stickyMessage` / `memberLog` / `unverifiedKick` / `vcAutoRecruit`）に別々にあった `user-response.text_channel_only` を、`common:validation.text_channel_only`（`COMMON_I18N_KEYS.TEXT_CHANNEL_ONLY`）にまとめた。次のリリース（名前の整理と保守の6件をまとめた1本）に入る。
+v3.3.1。4つの名前空間（`stickyMessage` / `memberLog` / `unverifiedKick` / `vcAutoRecruit`）に別々にあった `user-response.text_channel_only` を、`common:validation.text_channel_only`（`COMMON_I18N_KEYS.TEXT_CHANNEL_ONLY`）にまとめた。
 
 - **文言はスティッキーの「テキストチャンネルにのみ設定できます。」にそろえた**（en は「This can only be set to a text channel.」）。他の3機能の「テキストチャンネルを指定してください。」にしなかったのは、スティッキーはチャンネルを省くと実行したチャンネルが対象になり、モーダルの送信からも同じ文言を出すため。何も指定していない人に「指定してください」と返すことになる
 - 応答の形（スティッキーは警告の Embed で返し、ほかは `ValidationError` を投げる）は変えていない
 - 今までのテストは弾くことしか確かめていなかったので、共通キーで返すことの確認を足した（メンバーログの set-channel・スティッキーの set / update と set のモーダル2つ）。未承認キックと VC自動募集はユニットテストが無いので、TODO「結合テストの穴」で扱う
 
-### Embed デフォルト値の日本語ベタ書き（2026-10-13 develop merge）
+### Embed デフォルト値の日本語ベタ書き（2026-10-13 完了・本番デプロイ済み）
 
-`guild_ticket_settings.panel_title` / `panel_description` と `guild_reaction_role_panels.title` / `description` の DB の既定値が日本語で書かれていた。DB の既定値を外し（`DROP DEFAULT` だけの migration・既存の行の値はそのまま・NOT NULL も変えない）、API の作成で title・description が省かれたときは、ギルドの言語の既定文（既存のキー `ticket:` / `reactionRole:` の `embed.*.panel_default`）を入れるようにした。次のリリース（名前の整理と保守の6件をまとめた1本）に入る。
+v3.3.1。`guild_ticket_settings.panel_title` / `panel_description` と `guild_reaction_role_panels.title` / `description` の DB の既定値が日本語で書かれていた。DB の既定値を外し（`DROP DEFAULT` だけの migration・既存の行の値はそのまま・NOT NULL も変えない）、API の作成で title・description が省かれたときは、ギルドの言語の既定文（既存のキー `ticket:` / `reactionRole:` の `embed.*.panel_default`）を入れるようにした。
 
 - **起票時の前提「en のギルドにも日本語が入る」は、実際には起きていなかった。** Bot のセットアップはモーダルに i18n の既定文を最初から入れて必須入力にしており、ダッシュボードの作成フォームも title・description を必ず送る。DB の既定値が効くのは、API に項目を省いたリクエストが来たときだけだった。それでも直したのは、ガイドライン違反であることと、省かれたときに黙って日本語が入る経路が残っていたため。DB の既定値を外すと、その経路は日本語ではなく NOT NULL 違反（500）になるので、API 側で既定文を入れる
 - **確かめ方**: 使い捨ての Postgres に今までの migration を当て、既定値で行を入れてから新しい migration を当てた。行の値が残ること・既定値が消えたこと・値を渡さない INSERT が NOT NULL 違反になること・`prisma migrate diff` で schema とのずれが無いことを確認した。migration の SQL は DB に繋がない `prisma migrate diff`（変更前と変更後の schema の差分）で作った。開発 DB はチェックサムがずれていて、`migrate dev` を使うには `migrate reset`（開発 DB の消去）が要るため
 - **web の作成フォームの初期文は Bot の既定文と言い回しがずれている**（チケット「お困りの際は…」・リアクションロール「…付与・解除」）。web の画面はもともと日本語だけなので i18n 違反ではない。次に web を触るときに直す（→ web/TODO.md「チケット・リアクションロールの作成フォームの初期文を Bot にそろえる」）
 
-### biome の `recommended` 非推奨対応（2026-10-13 develop merge）
+### biome の `recommended` 非推奨対応（2026-10-13 完了・本番デプロイ済み）
 
-`linter.rules.recommended: false` は非推奨で、biome の次のメジャーで削除される。`preset: "none"`（ルールを1つも有効にしない状態から始め、明示したルールだけが効く）に置き換えた。`biome migrate` の出力と同じ。次のリリース（名前の整理と保守の6件をまとめた1本）に入る。
+v3.3.1。`linter.rules.recommended: false` は非推奨で、biome の次のメジャーで削除される。`preset: "none"`（ルールを1つも有効にしない状態から始め、明示したルールだけが効く）に置き換えた。`biome migrate` の出力と同じ。
 
 - **件数の比較では確かめられなかった。** 今の lint の指摘は0件なので、変更前後で件数が一致しても有効なルールが同じだとは言えない。明示した13ルールそれぞれの違反と、recommended にだけあるルールの違反（`debugger`・`==`・`var`）を書いたファイルを `src/` と `tests/` に一時的に置き、変更前後で出る指摘がルール名まで同じことを確かめた。recommended だけのルールは前後とも出ず、`tests/` では上書きどおり `noNonNullAssertion`・`noExplicitAny` が出ない。標準入力（`--stdin-file-path`）で渡す方法は、biome が指摘を出力しないので使えない
 - **使われていない上書きを直した。** どちらも 2026-05-29 の構成変更（src を `{bot,features,shared}` に再編）で対象のフォルダがなくなっていた
@@ -260,9 +262,9 @@ set と update で同じだったモーダルの入力欄と対象チャンネ�
   - CI の `dorny/paths-filter` を v3 から v4 に上げた。v4.0.0 の変更は動かす Node を 24 にしただけで、入力は同じ。`ubuntu-latest` が 2026-10-19 から Ubuntu 26 に変わるとの通知も出ていたが、バージョンは固定せず、移った後の最初の CI を見て、壊れていたら直す
   - IMPLEMENTATION_GUIDELINES の定数の置き場所をコードに合わせた。ガイドは「`constants/*.constants.ts` に集約」だったが、コードは使う範囲で置き分けていた（ファイルの中だけ → ファイルの先頭、同じコマンドの複数ファイル → `commands/<名前>Command.constants.ts`、機能の中で共有 → `constants/`）。コードのほうが読みやすいので、ガイドを直した。`constants/` の中のファイル名のばらつき（`bumpReminderConstants.ts` など）はそのまま
 
-### 以前からある残骸の掃除（2026-10-10 develop merge）
+### 以前からある残骸の掃除（2026-10-10 完了・本番デプロイ済み）
 
-2026-09-26 の export/import 削除の残骸探しで見つかった、それとは関係なく以前からあった8件。うち3件は 2026-09-30 の全体の掃除で済ませ（下の「どこからも使われていないコードとテストを消した」）、残りの5件をここで片付けた。次のリリース（名前の整理と保守の6件をまとめた1本）に入る。
+v3.3.1。2026-09-26 の export/import 削除の残骸探しで見つかった、それとは関係なく以前からあった8件。うち3件は 2026-09-30 の全体の掃除で済ませ（下の「どこからも使われていないコードとテストを消した」）、残りの5件をここで片付けた。
 
 - **AFK の初期化**: 戻り値を使わない `getAfkSettingsRepository(prisma);` に頼っていたのを、他の機能と同じ `setBotAfkSettingsService` の登録にした。登録漏れは typecheck でも機能ごとのテストでも見つからないので、初期化後にすべての `getBot*` が値を返すことを確かめるテスト（`tests/unit/bot/services/botCompositionRoot.test.ts`）を置き、TESTING_GUIDELINES の「composition root はテスト不要」を改めた。VC自動募集の `add-channel` が引数なしの `getVacSettingsService()` で同じ形になっていたのも直した。`vacService` / `vcAutoRecruitService` の引数なしのフォールバックは、composition root が必ず引数を渡すので残した
 - **`DATABASE_URL` を必須にした**: 既定値 `file:./storage/db.sqlite` は Postgres のアダプタでは接続できないのに、未設定でも起動時の検証を通っていた。compose は未設定の変数を空文字で渡すので、空文字も落とす
@@ -274,9 +276,9 @@ set と update で同じだったモーダルの入力欄と対象チャンネ�
 
 テストは 295ファイル・2467件。ja / en のキーは16名前空間すべてで一致することを手元で突き合わせた（突き合わせのテストは無い → TODO「未確認事項」）。
 
-### どこからも使われていないコードとテストを消した（2026-09-30 develop merge）
+### どこからも使われていないコードとテストを消した（2026-09-30 完了・本番デプロイ済み）
 
-本番コード約60か所・テストコード約150か所を消した（279ファイル・約5,300行減）。次のリリース（名前の整理と保守の6件をまとめた1本）に入る。TODO「以前からある残骸の掃除」のうち、どこからも呼ばれていないコード・guild-settings.test.ts の古いモック・interactionErrorHandler.test.ts の死んだ分岐の3件もこの中で済ませた。
+v3.3.1。本番コード約60か所・テストコード約150か所を消した（279ファイル・約5,300行減）。TODO「以前からある残骸の掃除」のうち、どこからも呼ばれていないコード・guild-settings.test.ts の古いモック・interactionErrorHandler.test.ts の死んだ分岐の3件もこの中で済ませた。
 
 - **本番コード**: ファイルごと消したのは `src/shared/utils/prisma.ts`（`setPrismaClient` で書き込むだけで誰も読んでいなかった。実際の受け渡しは composition root への引数）と `src/shared/constants/discord.ts`（`/vc limit` の残骸）。ほかは一度も呼ばれていないメソッド（`deleteAllByGuild` 系・guild-settings の `saveSettings` / `deleteSettings` / `exists`・bump-reminder の `clearAll` / `findById` / `delete` / `cleanupOld` とメンションの一括クリア・`CooldownManager` の reset 系など）、非アクティブキックと `/vc` の残骸（通知送信の戻り値と `allowedMentions`・ページングの未使用オプション・`/afk` 共通ヘルパーの「移動先なし」分岐）、使われていない型・再エクスポート・定数（ロケール各ファイルの型エイリアス30個など）
 - **外から見える口も3つ消した**: sticky の PATCH エンドポイント（ダッシュボードは作成時から一度も呼んでいない）、JWT の `username` / `globalName` / `avatar`（web BFF への移行で読み手がいなくなっていた）、env の `LOCALE`（どこからも読まれていなかった。`.env.example`・`docker-compose.coolify.yml`・DEPLOYMENT.md からも消した。Coolify の Environment Variables に残っていても無害）

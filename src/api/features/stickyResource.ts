@@ -5,6 +5,7 @@ import type { BotClient } from "../../bot/client";
 import { getBotStickyMessageSettingsService } from "../../bot/services/botCompositionRoot";
 import {
   buildStickyMessagePayload,
+  formatColorHex,
   parseColorStr,
 } from "../../features/sticky-message/services/stickyMessagePayloadBuilder";
 import { EMBED_COLORS } from "../../shared/constants/embedColors";
@@ -15,8 +16,7 @@ import type {
 
 /** 数値カラー → `#RRGGBB`（未設定は sticky デフォルト色） */
 function numberToHex(color: number | undefined): string {
-  const n = color ?? EMBED_COLORS.STICKY_MESSAGE_DEFAULT;
-  return `#${n.toString(16).padStart(6, "0").toUpperCase()}`;
+  return formatColorHex(color ?? EMBED_COLORS.STICKY_MESSAGE_DEFAULT);
 }
 
 /** ドメイン → 契約（sticky の embed は title/description/color のみ・fields 非対応） */

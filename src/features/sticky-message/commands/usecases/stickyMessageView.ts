@@ -5,11 +5,11 @@ import {
   type ChatInputCommandInteraction,
   MessageFlags,
   StringSelectMenuBuilder,
-  StringSelectMenuOptionBuilder,
 } from "discord.js";
 import { getBotStickyMessageSettingsService } from "../../../../bot/services/botCompositionRoot";
 import { createInfoEmbed } from "../../../../bot/utils/messageResponse";
 import { tInteraction } from "../../../../shared/locale/localeManager";
+import { buildStickySelectOptions } from "../helpers/stickyMessageSelectOptions";
 import { STICKY_MESSAGE_COMMAND } from "../stickyMessageCommand.constants";
 
 /**
@@ -44,24 +44,6 @@ export async function handleStickyMessageView(
   }
 
   // StringSelectMenu を構築して選択肢を返信する
-  // 上限 25 件まで選択肢として追加
-  const options = stickies
-    .slice(0, STICKY_MESSAGE_COMMAND.MAX_SELECT_OPTIONS)
-    .map((sticky) => {
-      // キャッシュからチャンネル名を取得し、未キャッシュ時は ID をフォールバックとして使う
-      const channel = interaction.guild?.channels.cache.get(sticky.channelId);
-      const label = channel ? `#${channel.name}` : `#${sticky.channelId}`;
-      const preview =
-        sticky.content.length > 50
-          ? `${sticky.content.substring(0, 50)}...`
-          : sticky.content;
-
-      return new StringSelectMenuOptionBuilder()
-        .setLabel(label)
-        .setValue(sticky.channelId)
-        .setDescription(preview);
-    });
-
   const select = new StringSelectMenuBuilder()
     .setCustomId(STICKY_MESSAGE_COMMAND.VIEW_SELECT_CUSTOM_ID)
     .setPlaceholder(
@@ -70,7 +52,7 @@ export async function handleStickyMessageView(
         "stickyMessage:ui.select.view_placeholder",
       ),
     )
-    .addOptions(options);
+    .addOptions(buildStickySelectOptions(interaction.guild, stickies));
 
   const row = new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
     select,

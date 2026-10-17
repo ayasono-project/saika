@@ -204,6 +204,13 @@ VAC を残す判断（→「VAC（トリガー VC 方式）は残し、募集は
 
 > 詳細な作業経過は git log を参照。
 
+### スティッキーの set / update の重複と、数値の直書きを整理した（2026-10-17 develop merge）
+
+set と update で同じだったモーダルの入力欄と対象チャンネルの判定、view と remove で同じだった選択肢づくりを `commands/helpers/` にまとめ、入力欄の上限（256 / 20 / 4000 / 2000）とプレビューの50文字を定数にした。数値の色を `#RRGGBB` にする処理（update の事前入力・設定の表示・Web API の3か所）も `formatColorHex` にまとめた。次のリリース（名前の整理と保守の6件をまとめた1本）に入る。
+
+- **update で黒（`#000000`）が事前入力されていなかったのを直した。** 事前入力の条件が `if (prev.color)` で、0 を色の未設定と同じに扱っていた。カラー欄が空のまま送信すると既定色になるので、黒の Embed を update すると、色を触っていなくても既定色に変わっていた
+- **update の事前入力の色を大文字にした**（`#ff0000` → `#FF0000`）。設定の表示と Web API はもともと大文字だった。読み取り（`parseColorStr`）は大文字・小文字のどちらも受けるので、保存される値は変わらない
+
 ### 機能横断の「テキストチャンネル限定」文言を共通化した（2026-10-17 develop merge）
 
 4つの名前空間（`stickyMessage` / `memberLog` / `unverifiedKick` / `vcAutoRecruit`）に別々にあった `user-response.text_channel_only` を、`common:validation.text_channel_only`（`COMMON_I18N_KEYS.TEXT_CHANNEL_ONLY`）にまとめた。次のリリース（名前の整理と保守の6件をまとめた1本）に入る。

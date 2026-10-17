@@ -38,7 +38,6 @@ export const vcAutoRecruit = {
   "user-response.clear_message_success": "Recruit message has been cleared",
   "user-response.set_embed_enabled": "Embed has been enabled",
   "user-response.set_embed_disabled": "Embed has been disabled",
-  "user-response.text_channel_only": "Please specify a text channel.",
   "user-response.channel_deleted_notice":
     "⚠️ The VC auto recruit notification channel has been deleted.\nSettings have been reset. Please reconfigure with `/vc-auto-recruit-settings set-post-channel`.",
   "user-response.reset_success": "VC auto recruit settings have been reset.",

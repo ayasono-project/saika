@@ -36,8 +36,6 @@ export const stickyMessage = {
   "user-response.permission_denied":
     "You do not have permission to do this. Manage Channels permission is required.",
   "user-response.empty_message": "Please enter a message.",
-  "user-response.text_channel_only":
-    "Sticky messages can only be set in text channels.",
 
   // ── Embed ─────────────────────────────────────
   "embed.title.set_success": "Done",

@@ -31,7 +31,6 @@ export const memberLog = {
   "user-response.set_leave_message_success": "退出メッセージを設定しました。",
   "user-response.clear_join_message_success": "参加メッセージを削除しました。",
   "user-response.clear_leave_message_success": "退出メッセージを削除しました。",
-  "user-response.text_channel_only": "テキストチャンネルを指定してください。",
   "user-response.reset_success": "メンバーログ設定をリセットしました。",
   "user-response.reset_cancelled": "リセットをキャンセルしました。",
   "user-response.channel_deleted_notice":

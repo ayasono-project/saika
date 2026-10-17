@@ -10,6 +10,7 @@ import {
   TextInputStyle,
 } from "discord.js";
 import { getBotStickyMessageSettingsService } from "../../../../bot/services/botCompositionRoot";
+import { COMMON_I18N_KEYS } from "../../../../bot/shared/i18nKeys";
 import {
   createInfoEmbed,
   createWarningEmbed,
@@ -38,10 +39,7 @@ export async function handleStickyMessageUpdate(
     await interaction.reply({
       embeds: [
         createWarningEmbed(
-          tInteraction(
-            interaction.locale,
-            "stickyMessage:user-response.text_channel_only",
-          ),
+          tInteraction(interaction.locale, COMMON_I18N_KEYS.TEXT_CHANNEL_ONLY),
           {
             title: tInteraction(
               interaction.locale,

@@ -1,5 +1,6 @@
 import { ValidationError } from "@ayasono/shared/core";
 import { ChannelType } from "discord.js";
+import { COMMON_I18N_KEYS } from "@/bot/shared/i18nKeys";
 import { MEMBER_LOG_SETTINGS_COMMAND } from "@/features/member-log/commands/memberLogSettingsCommand.constants";
 import { handleMemberLogSettingsSetChannel } from "@/features/member-log/commands/memberLogSettingsCommand.setChannel";
 
@@ -87,9 +88,12 @@ describe("bot/features/member-log/commands/memberLogSettingsCommand.setChannel",
     ensurePermissionMock.mockResolvedValue(undefined);
     const interaction = makeInteraction(ChannelType.GuildVoice);
 
-    await expect(
-      handleMemberLogSettingsSetChannel(interaction as never, "guild-1"),
-    ).rejects.toBeInstanceOf(ValidationError);
+    const promise = handleMemberLogSettingsSetChannel(
+      interaction as never,
+      "guild-1",
+    );
+    await expect(promise).rejects.toBeInstanceOf(ValidationError);
+    await expect(promise).rejects.toThrow(COMMON_I18N_KEYS.TEXT_CHANNEL_ONLY);
   });
 
   it("テキストチャンネルが選択された場合に service.setChannelId が正しい引数で呼ばれることを確認", async () => {

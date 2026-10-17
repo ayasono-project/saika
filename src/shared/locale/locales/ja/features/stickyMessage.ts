@@ -39,7 +39,6 @@ export const stickyMessage = {
   "user-response.permission_denied":
     "この操作を実行する権限がありません。チャンネル管理権限が必要です。",
   "user-response.empty_message": "メッセージ内容を入力してください。",
-  "user-response.text_channel_only": "テキストチャンネルにのみ設定できます。",
 
   // ── Embed ─────────────────────────────────────
   "embed.title.set_success": "設定完了",

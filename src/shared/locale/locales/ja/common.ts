@@ -41,6 +41,7 @@ export const common = {
   "validation.invalid_subcommand": "無効なサブコマンドです。",
   "validation.thread_not_supported":
     "スレッド内では実行できません。通常のテキストチャンネルで実行してください。",
+  "validation.text_channel_only": "テキストチャンネルにのみ設定できます。",
 
   // 権限エラー
   "permission.manage_guild_required":

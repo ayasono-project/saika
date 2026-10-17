@@ -1,7 +1,9 @@
 import { ChannelType, MessageFlags } from "discord.js";
+import { COMMON_I18N_KEYS } from "@/bot/shared/i18nKeys";
 
 const findByChannelMock = vi.fn();
 const showModalMock = vi.fn().mockResolvedValue(undefined);
+const tInteractionMock = vi.fn((_locale: string, _key: string) => "mock text");
 
 vi.mock("@/bot/services/botCompositionRoot", () => ({
   getBotStickyMessageSettingsService: vi.fn(() => ({
@@ -9,7 +11,7 @@ vi.mock("@/bot/services/botCompositionRoot", () => ({
   })),
 }));
 vi.mock("@/shared/locale/localeManager", () => ({
-  tInteraction: (_locale: string, _key: string) => "mock text",
+  tInteraction: (locale: string, key: string) => tInteractionMock(locale, key),
 }));
 vi.mock("@/bot/utils/messageResponse", () => ({
   createWarningEmbed: vi.fn((msg: string) => ({
@@ -30,6 +32,7 @@ function createInteractionMock({
   replyMock?: ReturnType<typeof vi.fn>;
 } = {}) {
   return {
+    locale: "ja",
     reply: replyMock,
     showModal: showModalMock,
     channel: { id: "current-ch", type: channelType },
@@ -62,6 +65,10 @@ describe("bot/features/sticky-message/commands/usecases/stickyMessageSet", () =>
     expect(interaction._replyMock).toHaveBeenCalledWith(
       expect.objectContaining({ flags: MessageFlags.Ephemeral }),
     );
+    expect(tInteractionMock).toHaveBeenCalledWith(
+      "ja",
+      COMMON_I18N_KEYS.TEXT_CHANNEL_ONLY,
+    );
     expect(findByChannelMock).not.toHaveBeenCalled();
   });
 
@@ -77,6 +84,10 @@ describe("bot/features/sticky-message/commands/usecases/stickyMessageSet", () =>
 
     expect(interaction._replyMock).toHaveBeenCalledWith(
       expect.objectContaining({ flags: MessageFlags.Ephemeral }),
+    );
+    expect(tInteractionMock).toHaveBeenCalledWith(
+      "ja",
+      COMMON_I18N_KEYS.TEXT_CHANNEL_ONLY,
     );
   });
 

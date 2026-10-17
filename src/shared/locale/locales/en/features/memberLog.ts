@@ -31,7 +31,6 @@ export const memberLog = {
   "user-response.set_leave_message_success": "Leave message has been set",
   "user-response.clear_join_message_success": "Join message has been cleared",
   "user-response.clear_leave_message_success": "Leave message has been cleared",
-  "user-response.text_channel_only": "Please specify a text channel.",
   "user-response.reset_success": "Member log settings have been reset.",
   "user-response.reset_cancelled": "Reset has been cancelled.",
   "user-response.channel_deleted_notice":

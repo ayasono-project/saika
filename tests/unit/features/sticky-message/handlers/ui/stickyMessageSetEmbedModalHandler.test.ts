@@ -4,6 +4,7 @@ import {
   MessageFlags,
   RESTJSONErrorCodes,
 } from "discord.js";
+import { COMMON_I18N_KEYS } from "@/bot/shared/i18nKeys";
 
 const findByChannelMock = vi.fn();
 const createMock = vi.fn();
@@ -175,7 +176,7 @@ describe("bot/features/sticky-message/handlers/ui/stickyMessageSetEmbedModalHand
 
     await expect(
       stickyMessageSetEmbedModalHandler.execute(interaction as never),
-    ).rejects.toThrow();
+    ).rejects.toThrow(COMMON_I18N_KEYS.TEXT_CHANNEL_ONLY);
   });
 
   it("embed スティッキーメッセージを作成して成功返信する", async () => {

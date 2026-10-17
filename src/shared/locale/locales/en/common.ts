@@ -41,6 +41,7 @@ export const common = {
   "validation.invalid_subcommand": "Invalid subcommand",
   "validation.thread_not_supported":
     "This cannot be used inside a thread. Please run it in a regular text channel.",
+  "validation.text_channel_only": "This can only be set to a text channel.",
 
   // Permission errors
   "permission.manage_guild_required":

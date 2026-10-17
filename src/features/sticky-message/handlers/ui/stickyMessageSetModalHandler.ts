@@ -9,6 +9,7 @@ import {
 } from "discord.js";
 import type { ModalHandler } from "../../../../bot/handlers/interactionCreate/ui/types";
 import { getBotStickyMessageSettingsService } from "../../../../bot/services/botCompositionRoot";
+import { COMMON_I18N_KEYS } from "../../../../bot/shared/i18nKeys";
 import {
   createSuccessEmbed,
   createWarningEmbed,
@@ -111,10 +112,7 @@ export const stickyMessageSetModalHandler: ModalHandler = {
         : undefined;
     if (!textChannel) {
       throw new ValidationError(
-        tInteraction(
-          interaction.locale,
-          "stickyMessage:user-response.text_channel_only",
-        ),
+        tInteraction(interaction.locale, COMMON_I18N_KEYS.TEXT_CHANNEL_ONLY),
       );
     }
 

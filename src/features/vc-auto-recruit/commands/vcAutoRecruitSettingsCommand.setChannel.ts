@@ -7,6 +7,7 @@ import {
   MessageFlags,
 } from "discord.js";
 import { getBotVcAutoRecruitSettingsService } from "../../../bot/services/botCompositionRoot";
+import { COMMON_I18N_KEYS } from "../../../bot/shared/i18nKeys";
 import { createSuccessEmbed } from "../../../bot/utils/messageResponse";
 import {
   logPrefixed,
@@ -38,10 +39,7 @@ export async function handleVcAutoRecruitSettingsSetChannel(
   // テキストチャンネル以外は拒否
   if (channel.type !== ChannelType.GuildText) {
     throw new ValidationError(
-      tInteraction(
-        interaction.locale,
-        "vcAutoRecruit:user-response.text_channel_only",
-      ),
+      tInteraction(interaction.locale, COMMON_I18N_KEYS.TEXT_CHANNEL_ONLY),
     );
   }
 

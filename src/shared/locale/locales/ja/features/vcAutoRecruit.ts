@@ -36,7 +36,6 @@ export const vcAutoRecruit = {
   "user-response.clear_message_success": "募集メッセージを削除しました。",
   "user-response.set_embed_enabled": "Embed を有効にしました。",
   "user-response.set_embed_disabled": "Embed を無効にしました。",
-  "user-response.text_channel_only": "テキストチャンネルを指定してください。",
   "user-response.channel_deleted_notice":
     "⚠️ VC自動募集の投稿先チャンネルが削除されました。\n設定をリセットしたので、`/vc-auto-recruit-settings set-post-channel` で再設定してください。",
   "user-response.reset_success": "VC自動募集設定をリセットしました。",

@@ -80,7 +80,6 @@ export const unverifiedKick = {
   "user-response.warn_out_of_range":
     "Warn days must be at least 1 and less than the grace days.",
   "user-response.clear_warn_days_success": "Disabled the advance warning.",
-  "user-response.text_channel_only": "Please specify a text channel.",
   "user-response.channel_bot_permission":
     "Missing send permissions for that channel (View Channel / Send Messages / Embed Links).",
   "user-response.set_notify_channel_success":

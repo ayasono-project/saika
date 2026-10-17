@@ -10,7 +10,7 @@ const findByChannelMock = vi.fn();
 const createMock = vi.fn();
 const updateLastMessageIdMock = vi.fn();
 const buildPayloadMock = vi.fn(() => ({ embeds: [] }));
-const parseColorStrMock = vi.fn(() => 0x008969);
+const parseColorStrMock = vi.fn((): number | null => 0x008969);
 const loggerMock = { error: vi.fn() };
 
 vi.mock("@/bot/services/botCompositionRoot", () => ({
@@ -149,6 +149,21 @@ describe("bot/features/sticky-message/handlers/ui/stickyMessageSetEmbedModalHand
     expect(interaction._replyMock).toHaveBeenCalledWith(
       expect.objectContaining({ flags: MessageFlags.Ephemeral }),
     );
+    expect(createMock).not.toHaveBeenCalled();
+  });
+
+  it("読めない色は保存の前に入力エラーにする（保存してから Embed の組み立てで落ちないように）", async () => {
+    const { stickyMessageSetEmbedModalHandler } = await import(
+      "@/features/sticky-message/handlers/ui/stickyMessageSetEmbedModalHandler"
+    );
+    findByChannelMock.mockResolvedValue(null);
+    parseColorStrMock.mockReturnValue(null);
+    const interaction = createInteractionMock({ embedColor: "#1234567" });
+
+    await expect(
+      stickyMessageSetEmbedModalHandler.execute(interaction as never),
+    ).rejects.toThrow(COMMON_I18N_KEYS.INVALID_COLOR);
+    expect(parseColorStrMock).toHaveBeenCalledWith("#1234567");
     expect(createMock).not.toHaveBeenCalled();
   });
 

@@ -1,11 +1,12 @@
 import { ChannelType, MessageFlags } from "discord.js";
+import { COMMON_I18N_KEYS } from "@/bot/shared/i18nKeys";
 
 const findByChannelMock = vi.fn();
 const updateContentMock = vi.fn();
 const updateLastMessageIdMock = vi.fn();
 const buildPayloadMock = vi.fn(() => ({ embeds: [{ description: "sticky" }] }));
 const parseColorStrMock = vi.fn((v: string | null) =>
-  v === "#ff0000" ? 0xff0000 : undefined,
+  v === "#ff0000" ? 0xff0000 : null,
 );
 const loggerMock = { error: vi.fn() };
 
@@ -158,6 +159,23 @@ describe("bot/features/sticky-message/handlers/ui/stickyMessageUpdateEmbedModalH
       expect.objectContaining({ flags: MessageFlags.Ephemeral }),
     );
     expect(updateContentMock).not.toHaveBeenCalled();
+  });
+
+  it("読めない色は保存の前に入力エラーにする（保存してから Embed の組み立てで落ちないように）", async () => {
+    const { stickyMessageUpdateEmbedModalHandler } = await import(
+      "@/features/sticky-message/handlers/ui/stickyMessageUpdateEmbedModalHandler"
+    );
+    findByChannelMock.mockResolvedValue({
+      id: "sticky-1",
+      lastMessageId: "old-msg-id",
+    });
+    const interaction = createInteractionMock({ embedColor: "#1234567" });
+
+    await expect(
+      stickyMessageUpdateEmbedModalHandler.execute(interaction as never),
+    ).rejects.toThrow(COMMON_I18N_KEYS.INVALID_COLOR);
+    expect(updateContentMock).not.toHaveBeenCalled();
+    expect(interaction._deleteMock).not.toHaveBeenCalled();
   });
 
   it("スティッキーメッセージが見つからない場合に情報を Ephemeral 返信する", async () => {

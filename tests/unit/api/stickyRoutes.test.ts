@@ -198,4 +198,26 @@ describe("stickyRoutes", () => {
     expect(res.statusCode).toBe(400);
     expect(res.json().error.code).toBe("VALIDATION_ERROR");
   });
+
+  it.each([
+    ["7桁（上限 #FFFFFF を超える）", "#1234567"],
+    ["負の数", "-1"],
+    ["途中から16進数でない", "12zz"],
+  ])(
+    "読めない色（%s）の POST は保存せず 400 VALIDATION_ERROR",
+    async (_label, color) => {
+      const res = await app.inject({
+        method: "POST",
+        url: "/guilds/g1/sticky",
+        payload: {
+          channelId: "c1",
+          content: "x",
+          embed: { title: "T", description: "D", color, fields: [] },
+        },
+      });
+      expect(res.statusCode).toBe(400);
+      expect(res.json().error.code).toBe("VALIDATION_ERROR");
+      expect(h.items).toEqual([]);
+    },
+  );
 });

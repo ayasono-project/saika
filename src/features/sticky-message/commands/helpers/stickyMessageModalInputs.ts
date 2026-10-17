@@ -3,10 +3,8 @@
 import { ActionRowBuilder, TextInputBuilder, TextInputStyle } from "discord.js";
 import type { AllParseKeys } from "../../../../shared/locale/i18n";
 import { tInteraction } from "../../../../shared/locale/localeManager";
-import {
-  formatColorHex,
-  type StickyEmbedData,
-} from "../../services/stickyMessagePayloadBuilder";
+import { formatColorHex } from "../../../../shared/utils/colorHex";
+import type { StickyEmbedData } from "../../services/stickyMessagePayloadBuilder";
 import { STICKY_MESSAGE_COMMAND } from "../stickyMessageCommand.constants";
 
 /** Embed タイトルの最大文字数（Discord の Embed タイトルの上限） */

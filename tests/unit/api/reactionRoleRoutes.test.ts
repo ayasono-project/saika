@@ -195,6 +195,63 @@ describe("reactionRoleRoutes", () => {
     expect(res.json().data.title).toBe("新タイトル");
   });
 
+  it("0x 形式や小文字の色は、DB と同じ #RRGGBB（大文字）にそろえて保存する", async () => {
+    const created = (
+      await app.inject({
+        method: "POST",
+        url: "/guilds/g1/reaction-roles",
+        payload: { ...PANEL, color: "0x5865f2" },
+      })
+    ).json().data;
+    expect(created.color).toBe("#5865F2");
+
+    const res = await app.inject({
+      method: "PATCH",
+      url: `/guilds/g1/reaction-roles/${created.id}`,
+      payload: { color: "ff0000" },
+    });
+    expect(res.json().data.color).toBe("#FF0000");
+  });
+
+  it("色を省いた POST は既定色にする", async () => {
+    const res = await app.inject({
+      method: "POST",
+      url: "/guilds/g1/reaction-roles",
+      payload: { ...PANEL, color: undefined },
+    });
+    expect(res.statusCode).toBe(200);
+    expect(res.json().data.color).toBe("#00A8F3");
+  });
+
+  it("読めない色の POST は保存せず 400 VALIDATION_ERROR", async () => {
+    const res = await app.inject({
+      method: "POST",
+      url: "/guilds/g1/reaction-roles",
+      payload: { ...PANEL, color: "#1234567" },
+    });
+    expect(res.statusCode).toBe(400);
+    expect(res.json().error.code).toBe("VALIDATION_ERROR");
+    expect(h.items).toEqual([]);
+  });
+
+  it("読めない色の PATCH は保存せず 400 VALIDATION_ERROR", async () => {
+    const created = (
+      await app.inject({
+        method: "POST",
+        url: "/guilds/g1/reaction-roles",
+        payload: PANEL,
+      })
+    ).json().data;
+    const res = await app.inject({
+      method: "PATCH",
+      url: `/guilds/g1/reaction-roles/${created.id}`,
+      payload: { color: "red" },
+    });
+    expect(res.statusCode).toBe(400);
+    expect(res.json().error.code).toBe("VALIDATION_ERROR");
+    expect(h.items[0].color).toBe("#5865F2");
+  });
+
   it("存在しない id の PATCH は 404", async () => {
     const res = await app.inject({
       method: "PATCH",

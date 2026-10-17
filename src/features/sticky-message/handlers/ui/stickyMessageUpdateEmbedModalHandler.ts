@@ -1,5 +1,6 @@
 // sticky-message update（Embed 形式）モーダル送信処理
 
+import { ValidationError } from "@ayasono/shared/core";
 import {
   ChannelType,
   MessageFlags,
@@ -8,6 +9,7 @@ import {
 } from "discord.js";
 import type { ModalHandler } from "../../../../bot/handlers/interactionCreate/ui/types";
 import { getBotStickyMessageSettingsService } from "../../../../bot/services/botCompositionRoot";
+import { COMMON_I18N_KEYS } from "../../../../bot/shared/i18nKeys";
 import {
   createInfoEmbed,
   createSuccessEmbed,
@@ -91,7 +93,15 @@ export const stickyMessageUpdateEmbedModalHandler: ModalHandler = {
       return;
     }
 
-    // ガード（line 70）で embedTitle と embedDescription が両方 falsy な場合は already return されるため、
+    // 読めない色を保存すると、Embed を組み立てるたびに例外になるため、保存の前に弾く
+    const embedColor = parseColorStr(embedColorStr);
+    if (embedColor === null) {
+      throw new ValidationError(
+        tInteraction(interaction.locale, COMMON_I18N_KEYS.INVALID_COLOR),
+      );
+    }
+
+    // タイトルか説明文の必須チェックで、両方 falsy なら return 済みのため、
     // ?? "" のフォールバックは構造上到達しない
     /* c8 ignore next */
     const content = embedDescription ?? embedTitle ?? "";
@@ -124,7 +134,7 @@ export const stickyMessageUpdateEmbedModalHandler: ModalHandler = {
     const embedPayload: StickyEmbedData = {
       title: embedTitle ?? undefined,
       description: embedDescription ?? undefined,
-      color: parseColorStr(embedColorStr),
+      color: embedColor,
     };
 
     try {

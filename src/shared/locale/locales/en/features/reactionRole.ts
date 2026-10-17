@@ -35,8 +35,6 @@ export const reactionRole = {
   "user-response.no_panels": "No reaction role configurations found.",
   "user-response.button_limit_reached": "Button limit (25) has been reached.",
   "user-response.cannot_remove_all_buttons": "Cannot remove all buttons.",
-  "user-response.invalid_color":
-    "Invalid color format. Please use #RRGGBB format.",
   "user-response.invalid_emoji":
     "Invalid emoji format. Please use a Unicode emoji or Discord custom emoji (<:name:id>).",
   "user-response.session_expired":

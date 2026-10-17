@@ -133,8 +133,6 @@ export const ticket = {
   "ui.modal.edit_panel_title": "Edit Panel",
   "ui.modal.setup_field_color": "Color (e.g. #00A8F3)",
   "ui.modal.edit_panel_field_color": "Color (e.g. #00A8F3)",
-  "user-response.invalid_color":
-    "Invalid color code. Please use #RRGGBB format.",
   "embed.field.name.panel_color": "Panel Color",
   "ui.modal.create_ticket_title": "Create Ticket",
   "ui.modal.create_ticket_subject": "Subject",

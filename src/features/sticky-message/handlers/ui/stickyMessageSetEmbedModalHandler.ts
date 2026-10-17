@@ -92,7 +92,15 @@ export const stickyMessageSetEmbedModalHandler: ModalHandler = {
       return;
     }
 
-    // 上のガードで embedTitle と embedDescription が両方 falsy なら return 済みのため、
+    // 読めない色を保存すると、Embed を組み立てるたびに例外になるため、保存の前に弾く
+    const embedColor = parseColorStr(embedColorStr);
+    if (embedColor === null) {
+      throw new ValidationError(
+        tInteraction(interaction.locale, COMMON_I18N_KEYS.INVALID_COLOR),
+      );
+    }
+
+    // タイトルか説明文の必須チェックで、両方 falsy なら return 済みのため、
     // ?? "" のフォールバックは構造上到達しない
     /* c8 ignore next */
     const content = embedDescription ?? embedTitle ?? "";
@@ -139,7 +147,7 @@ export const stickyMessageSetEmbedModalHandler: ModalHandler = {
     const embedPayload: StickyEmbedData = {
       title: embedTitle ?? undefined,
       description: embedDescription ?? undefined,
-      color: parseColorStr(embedColorStr),
+      color: embedColor,
     };
 
     try {

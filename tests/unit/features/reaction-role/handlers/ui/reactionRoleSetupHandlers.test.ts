@@ -19,6 +19,7 @@ vi.mock("@/bot/utils/messageResponse", () => ({
   createErrorEmbed: vi.fn(() => ({ type: "error" })),
 }));
 
+import { COMMON_I18N_KEYS } from "@/bot/shared/i18nKeys";
 import { reactionRoleSetupButtonHandler } from "@/features/reaction-role/handlers/ui/reactionRoleSetupButtonHandler";
 import { reactionRoleSetupButtonModalHandler } from "@/features/reaction-role/handlers/ui/reactionRoleSetupButtonModalHandler";
 import { reactionRoleSetupModalHandler } from "@/features/reaction-role/handlers/ui/reactionRoleSetupModalHandler";
@@ -132,7 +133,7 @@ describe("bot/features/reaction-role/handlers/ui/reactionRoleSetupHandlers", () 
       );
     });
 
-    it("無効なカラーコードの場合、エラーを返す", async () => {
+    it("無効なカラーコードの場合、入力不備としてエラーハンドラに返させる", async () => {
       const session = createBaseSession();
       reactionRoleSetupSessions.set("s1", session);
       const interaction = createMockModalInteraction(
@@ -150,13 +151,34 @@ describe("bot/features/reaction-role/handlers/ui/reactionRoleSetupHandlers", () 
         },
       );
 
+      await expect(
+        reactionRoleSetupModalHandler.execute(interaction as never),
+      ).rejects.toThrow(COMMON_I18N_KEYS.INVALID_COLOR);
+      expect(interaction.reply).not.toHaveBeenCalled();
+      expect(session.color).toBe("#00A8F3");
+    });
+
+    it("0x 形式の色も受け付け、#RRGGBB（大文字）にそろえてセッションに保存する", async () => {
+      const session = createBaseSession();
+      reactionRoleSetupSessions.set("s1", session);
+      const interaction = createMockModalInteraction(
+        "reaction-role:setup-modal:s1",
+        {
+          fields: {
+            getTextInputValue: vi.fn((fieldId: string) => {
+              if (fieldId === "reaction-role:setup-color") return "0xff8800";
+              if (fieldId === "reaction-role:setup-title") return "Title";
+              if (fieldId === "reaction-role:setup-description")
+                return "Description";
+              return "";
+            }),
+          },
+        },
+      );
+
       await reactionRoleSetupModalHandler.execute(interaction as never);
 
-      expect(interaction.reply).toHaveBeenCalledWith(
-        expect.objectContaining({
-          embeds: [{ type: "error" }],
-        }),
-      );
+      expect(session.color).toBe("#FF8800");
     });
   });
 

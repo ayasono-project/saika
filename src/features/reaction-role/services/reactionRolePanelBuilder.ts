@@ -18,6 +18,7 @@ import {
 } from "discord.js";
 import type { ReactionRoleButton } from "../../../shared/database/types/reactionRoleTypes";
 import { tInteraction } from "../../../shared/locale/localeManager";
+import { parseColorHex } from "../../../shared/utils/colorHex";
 import {
   isValidEmoji,
   normalizeEmoji,
@@ -40,6 +41,7 @@ const STYLE_MAP: Record<string, ButtonStyle> = {
  * @param title パネルタイトル
  * @param description パネル説明文
  * @param color カラーコード（#RRGGBB形式）
+ * @returns パネルの EmbedBuilder
  */
 export function buildPanelEmbed(
   title: string,
@@ -49,7 +51,7 @@ export function buildPanelEmbed(
   return new EmbedBuilder()
     .setTitle(title)
     .setDescription(description)
-    .setColor(Number.parseInt(color.slice(1), 16));
+    .setColor(parseColorHex(color));
 }
 
 /**

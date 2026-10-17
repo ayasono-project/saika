@@ -42,6 +42,8 @@ export const common = {
   "validation.thread_not_supported":
     "スレッド内では実行できません。通常のテキストチャンネルで実行してください。",
   "validation.text_channel_only": "テキストチャンネルにのみ設定できます。",
+  "validation.invalid_color":
+    "無効なカラーコードです。#RRGGBB 形式で入力してください。",
 
   // 権限エラー
   "permission.manage_guild_required":

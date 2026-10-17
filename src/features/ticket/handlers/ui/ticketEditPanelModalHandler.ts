@@ -1,5 +1,6 @@
 // パネル編集モーダル送信ハンドラ
 
+import { ValidationError } from "@ayasono/shared/core";
 import {
   EmbedBuilder,
   MessageFlags,
@@ -8,11 +9,16 @@ import {
 } from "discord.js";
 import type { ModalHandler } from "../../../../bot/handlers/interactionCreate/ui/types";
 import { getBotTicketSettingsService } from "../../../../bot/services/botCompositionRoot";
+import { COMMON_I18N_KEYS } from "../../../../bot/shared/i18nKeys";
 import {
   createErrorEmbed,
   createSuccessEmbed,
 } from "../../../../bot/utils/messageResponse";
 import { tInteraction } from "../../../../shared/locale/localeManager";
+import {
+  formatColorHex,
+  parseColorHex,
+} from "../../../../shared/utils/colorHex";
 import { TICKET_CUSTOM_ID } from "../../commands/ticketCommand.constants";
 
 /**
@@ -51,18 +57,11 @@ export const ticketEditPanelModalHandler: ModalHandler = {
     if (!guildId) return;
 
     // カラー値のバリデーション（空の場合は現在の値を維持）
-    const panelColor =
-      colorInput && /^#[0-9A-Fa-f]{6}$/.test(colorInput) ? colorInput : null;
-    if (colorInput && !panelColor) {
-      const embed = createErrorEmbed(
-        tInteraction(interaction.locale, "ticket:user-response.invalid_color"),
-        { locale: interaction.locale },
+    const panelColorValue = colorInput ? parseColorHex(colorInput) : null;
+    if (colorInput && panelColorValue === null) {
+      throw new ValidationError(
+        tInteraction(interaction.locale, COMMON_I18N_KEYS.INVALID_COLOR),
       );
-      await interaction.reply({
-        embeds: [embed],
-        flags: MessageFlags.Ephemeral,
-      });
-      return;
     }
 
     const config = await settingsService.findByGuildAndCategory(
@@ -84,7 +83,11 @@ export const ticketEditPanelModalHandler: ModalHandler = {
       return;
     }
 
-    const resolvedColor = panelColor ?? config.panelColor;
+    // DB には #RRGGBB の形で持つ
+    const resolvedColor =
+      panelColorValue === null
+        ? config.panelColor
+        : formatColorHex(panelColorValue);
 
     // パネルメッセージの存在確認（Bot オフライン中の削除を検知）
     const guild = interaction.guild;
@@ -127,7 +130,7 @@ export const ticketEditPanelModalHandler: ModalHandler = {
     const updatedEmbed = new EmbedBuilder()
       .setTitle(title)
       .setDescription(description)
-      .setColor(Number.parseInt(resolvedColor.slice(1), 16));
+      .setColor(parseColorHex(resolvedColor));
     await panelMessage.edit({
       embeds: [updatedEmbed],
     });

@@ -37,8 +37,6 @@ export const reactionRole = {
   "user-response.button_limit_reached": "ボタンの上限（25個）に達しています。",
   "user-response.cannot_remove_all_buttons":
     "ボタンを0個にすることはできません。",
-  "user-response.invalid_color":
-    "カラーの形式が正しくありません。#RRGGBB形式で入力してください。",
   "user-response.invalid_emoji":
     "絵文字の形式が正しくありません。Unicode絵文字またはDiscordカスタム絵文字（<:name:id>）を入力してください。",
   "user-response.session_expired":

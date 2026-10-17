@@ -34,10 +34,10 @@ import {
   REACTION_ROLE_MAX_ROLE_SELECT,
 } from "../../commands/reactionRoleCommand.constants";
 import {
+  assertSelectedRolesAssignable,
   buildButtonSettingsModal,
   buildColorSelectMenu,
   updatePanelMessage,
-  validateSelectedRolesHierarchy,
 } from "../../services/reactionRolePanelBuilder";
 import { reactionRoleEditButtonSessions } from "./reactionRoleSetupState";
 
@@ -329,23 +329,7 @@ export const reactionRoleEditButtonRoleSelectHandler: RoleSelectHandler = {
     const guild = interaction.guild;
     const member = interaction.member as GuildMember | null;
     if (guild && member) {
-      const invalid = validateSelectedRolesHierarchy(guild, member, roleIds);
-      if (invalid.length > 0) {
-        const roleMentions = invalid.map((r) => `<@&${r.id}>`).join(", ");
-        const embed = createErrorEmbed(
-          tInteraction(
-            interaction.locale,
-            "reactionRole:user-response.role_above_hierarchy",
-            { roles: roleMentions },
-          ),
-          { locale: interaction.locale },
-        );
-        await interaction.reply({
-          embeds: [embed],
-          flags: MessageFlags.Ephemeral,
-        });
-        return;
-      }
+      assertSelectedRolesAssignable(guild, member, roleIds, interaction.locale);
     }
 
     await interaction.deferUpdate();

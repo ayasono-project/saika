@@ -1,3 +1,4 @@
+import { ValidationError } from "@ayasono/shared/core";
 import {
   reactionRoleEditButtonModalHandler,
   reactionRoleEditButtonPanelSelectHandler,
@@ -45,17 +46,15 @@ const mockBuildButtonSettingsModal = vi.fn((..._args: unknown[]) => ({
 const mockBuildColorSelectMenu = vi.fn((..._args: unknown[]) => ({
   type: "color-select",
 }));
-const mockValidateSelectedRolesHierarchy = vi.fn<
-  (...args: unknown[]) => Array<{ id: string }>
->(() => []);
+const mockAssertSelectedRolesAssignable = vi.fn<(...args: unknown[]) => void>();
 vi.mock("@/features/reaction-role/services/reactionRolePanelBuilder", () => ({
   updatePanelMessage: (...args: unknown[]) => mockUpdatePanelMessage(...args),
   buildButtonSettingsModal: (...args: unknown[]) =>
     mockBuildButtonSettingsModal(...args),
   buildColorSelectMenu: (...args: unknown[]) =>
     mockBuildColorSelectMenu(...args),
-  validateSelectedRolesHierarchy: (...args: unknown[]) =>
-    mockValidateSelectedRolesHierarchy(...args),
+  assertSelectedRolesAssignable: (...args: unknown[]) =>
+    mockAssertSelectedRolesAssignable(...args),
 }));
 
 import {
@@ -376,7 +375,7 @@ describe("bot/features/reaction-role/handlers/ui/reactionRoleEditButtonHandler",
         );
       });
 
-      it("階層バリデーション NG のロールが選択された場合はエラー返信し DB 更新しない", async () => {
+      it("階層バリデーション NG のロールが選択された場合は入力不備として投げ DB 更新しない", async () => {
         const session = {
           panelId: "panel-1",
           buttonId: 1,
@@ -388,9 +387,11 @@ describe("bot/features/reaction-role/handlers/ui/reactionRoleEditButtonHandler",
         };
         reactionRoleEditButtonSessions.set("session-1", session);
 
-        mockValidateSelectedRolesHierarchy.mockReturnValueOnce([
-          { id: "bad-role" },
-        ]);
+        mockAssertSelectedRolesAssignable.mockImplementationOnce(() => {
+          throw new ValidationError(
+            "reactionRole:user-response.role_above_hierarchy",
+          );
+        });
 
         const interaction = createMockRoleSelectInteraction(
           "reaction-role:edit-button-roles:session-1",
@@ -401,15 +402,10 @@ describe("bot/features/reaction-role/handlers/ui/reactionRoleEditButtonHandler",
           },
         );
 
-        await reactionRoleEditButtonRoleSelectHandler.execute(
-          interaction as never,
-        );
-
-        expect(interaction.reply).toHaveBeenCalledWith(
-          expect.objectContaining({
-            embeds: expect.any(Array),
-          }),
-        );
+        await expect(
+          reactionRoleEditButtonRoleSelectHandler.execute(interaction as never),
+        ).rejects.toThrow(ValidationError);
+        expect(interaction.reply).not.toHaveBeenCalled();
         expect(interaction.deferUpdate).not.toHaveBeenCalled();
         expect(mockConfigService.update).not.toHaveBeenCalled();
       });

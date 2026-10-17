@@ -7,8 +7,10 @@ import type {
   StringSelectMenuInteraction,
 } from "discord.js";
 import { logPrefixed } from "../../../../shared/locale/localeManager";
-import { logger } from "../../../../shared/utils/logger";
-import { handleInteractionError } from "../../../errors/interactionErrorHandler";
+import {
+  handleInteractionError,
+  logInteractionError,
+} from "../../../errors/interactionErrorHandler";
 import { buttonHandlers } from "../ui/buttons";
 import { roleSelectHandlers, stringSelectHandlers } from "../ui/selectMenus";
 import type { InteractionHandler } from "../ui/types";
@@ -33,7 +35,7 @@ async function dispatchByCustomId<
       try {
         await handler.execute(interaction);
       } catch (error) {
-        logger.error(
+        logInteractionError(
           logPrefixed(
             "system:log_prefix.interaction_create",
             errorKey,

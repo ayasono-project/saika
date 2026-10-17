@@ -1,12 +1,13 @@
 import type { Mock } from "vitest";
-import { handleInteractionError } from "@/bot/errors/interactionErrorHandler";
+import {
+  handleInteractionError,
+  logInteractionError,
+} from "@/bot/errors/interactionErrorHandler";
 import {
   handleButton,
   handleRoleSelectMenu,
   handleStringSelectMenu,
 } from "@/bot/handlers/interactionCreate/flow/components";
-
-const loggerErrorMock = vi.fn();
 
 vi.mock("@/shared/locale/localeManager", () => ({
   logPrefixed: (
@@ -31,14 +32,9 @@ vi.mock("@/shared/locale/localeManager", () => ({
   tInteraction: (...args: unknown[]) => args[1],
 }));
 
-vi.mock("@/shared/utils/logger", () => ({
-  logger: {
-    error: (...args: unknown[]) => loggerErrorMock(...args),
-  },
-}));
-
 vi.mock("@/bot/errors/interactionErrorHandler", () => ({
   handleInteractionError: vi.fn(),
+  logInteractionError: vi.fn(),
 }));
 
 vi.mock("@/bot/handlers/interactionCreate/ui/buttons", () => ({
@@ -102,7 +98,7 @@ describe("bot/handlers/interactionCreate/flow/components", () => {
     await handleButton(interaction as never);
 
     expect(handleInteractionError).toHaveBeenCalledWith(interaction, error);
-    expect(loggerErrorMock).toHaveBeenCalledTimes(1);
+    expect(logInteractionError).toHaveBeenCalledWith(expect.any(String), error);
   });
 
   it("customId に一致するストリングセレクトハンドラーが実行されることを確認", async () => {
@@ -153,6 +149,6 @@ describe("bot/handlers/interactionCreate/flow/components", () => {
     await handleStringSelectMenu(interaction as never);
 
     expect(handleInteractionError).toHaveBeenCalledWith(interaction, error);
-    expect(loggerErrorMock).toHaveBeenCalledTimes(1);
+    expect(logInteractionError).toHaveBeenCalledWith(expect.any(String), error);
   });
 });

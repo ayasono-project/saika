@@ -1,4 +1,7 @@
-import { handleCommandError } from "@/bot/errors/interactionErrorHandler";
+import {
+  handleCommandError,
+  logInteractionError,
+} from "@/bot/errors/interactionErrorHandler";
 import {
   handleAutocomplete,
   handleChatInputCommand,
@@ -32,6 +35,7 @@ vi.mock("@/shared/utils/logger", () => ({
 
 vi.mock("@/bot/errors/interactionErrorHandler", () => ({
   handleCommandError: vi.fn(),
+  logInteractionError: vi.fn(),
 }));
 
 // コマンドハンドラーのルーティング制御を検証する
@@ -101,7 +105,7 @@ describe("bot/handlers/interactionCreate/flow/command", () => {
     await handleChatInputCommand(interaction as never, client as never);
 
     expect(handleCommandError).toHaveBeenCalledWith(interaction, error);
-    expect(loggerErrorMock).toHaveBeenCalledTimes(1);
+    expect(logInteractionError).toHaveBeenCalledWith(expect.any(String), error);
   });
 
   it("オートコンプリート対応コマンドがある場合に autocomplete が実行されることを確認", async () => {

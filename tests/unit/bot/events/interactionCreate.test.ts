@@ -12,6 +12,7 @@ import { logger } from "@/shared/utils/logger";
 vi.mock("@/bot/errors/interactionErrorHandler", () => ({
   handleCommandError: vi.fn(),
   handleInteractionError: vi.fn(),
+  logInteractionError: vi.fn(),
 }));
 
 // ローカライズは固定文字列化してアサーションを簡潔にする
